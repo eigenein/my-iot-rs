@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>{% block title %}My IoT{% endblock %}</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="60">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css">
+  <script src="https://cdn.plot.ly/plotly-1.5.0.min.js"></script>
+</head>
+<body>
+{% block body %}{% endblock %}
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns">
+      <div class="column is-4">
+        <p>
+          <i class="fas fa-circle has-text-info"></i>
+          <a href="https://github.com/eigenein/my-iot"><strong>My IoT</strong></a>
+          by <a href="https://github.com/eigenein"><strong>eigenein</strong></a>
+        </p>
+        <p>
+          <i class="fas fa-certificate has-text-primary"></i>
+          Made with <a href="https://bulma.io/"><strong>Bulma</strong></a>
+        </p>
+        <p>
+          <i class="fab fa-fort-awesome has-text-success"></i>
+          Icons by <a href="https://fontawesome.com/"><strong>Font Awesome</strong></a>
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+    /*
+     * Used the implementation example from:
+     * https://bulma.io/documentation/components/navbar/
+     */
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // Get all "navbar-burger" elements
+        const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+
+        // Check if there are any navbar burgers
+        if ($navbarBurgers.length > 0) {
+
+            // Add a click event on each of them
+            $navbarBurgers.forEach(el => {
+                el.addEventListener('click', () => {
+
+                    // Get the target from the "data-target" attribute
+                    const target = el.dataset.target;
+                    const $target = document.getElementById(target);
+
+                    // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+                    el.classList.toggle('is-active');
+                    $target.classList.toggle('is-active');
+
+                });
+            });
+        }
+
+    });
+</script>
+</body>
+</html>

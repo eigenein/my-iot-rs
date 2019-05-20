@@ -5,6 +5,7 @@ authors = ["Pavel Perestoronin <eigenein@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-hyper = "0.12.29"
+warp = "0.1.15"
 askama = "0.8.0"
-rmp-serde = "0.13.7"
+clap = "2.33.0"
+reqwest = "0.9.17"
