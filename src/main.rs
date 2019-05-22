@@ -1,12 +1,6 @@
-extern crate askama;
-#[macro_use]
-extern crate clap;
-#[macro_use]
-extern crate log;
-extern crate pretty_env_logger;
-
 use askama::Template;
-use clap::App;
+use clap::{crate_version, App};
+use log::info;
 use warp::{self, path, Filter};
 
 #[derive(Template)]
