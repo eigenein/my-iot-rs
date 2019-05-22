@@ -5,7 +5,11 @@ authors = ["Pavel Perestoronin <eigenein@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+# CLI.
+clap = "2.33.0"
+# Web client, server and template engine.
+reqwest = "0.9.17"
 warp = "0.1.15"
 askama = "0.8.0"
-clap = "2.33.0"
-reqwest = "0.9.17"
+# Persistence.
+sled = { version = "0.24.1", default-features = false, features = ["compression"] }
