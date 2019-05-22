@@ -3,7 +3,9 @@ use clap::{crate_version, App};
 use log::info;
 use warp::{self, path, Filter};
 
-#[derive(Template)]
+mod event;
+
+#[derive(Debug, Template)]
 #[template(path = "index.html")]
 struct Index;
 
