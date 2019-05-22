@@ -9,14 +9,10 @@ ENV \
     CARGO_TARGET_ARM_UNKNOWN_LINUX_GNUEABIHF_LINKER=arm-linux-gnueabihf-gcc \
     PATH=/tmp/tools/arm-bcm2708/arm-linux-gnueabihf/bin:${PATH}
 
-# Download and build dependencies via the well-known dirty hack.
+# Not using the dirty dependency caching hack, because it's not stable.
 RUN USER=root cargo new my-iot
-WORKDIR my-iot
-COPY Cargo.* ./
-RUN cargo build --release --target arm-unknown-linux-gnueabihf && rm -r src
-
-# Build actual sources.
-COPY ./src ./src
+WORKDIR /my-iot
+COPY . .
 RUN cargo build --release --target arm-unknown-linux-gnueabihf
 
 # Make the final tiny image for Raspberry Pi Zero (W).
@@ -27,4 +23,5 @@ RUN setcap cap_net_raw=ep /usr/local/bin/my-iot
 USER nobody:nogroup
 WORKDIR /app
 EXPOSE 8080
+ENV RUST_LOG=my_iot=info
 CMD ["my-iot"]

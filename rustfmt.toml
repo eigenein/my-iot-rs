@@ -1,0 +1,6 @@
+comment_width = 100
+imports_layout = "HorizontalVertical"
+merge_imports = true
+max_width = 100
+reorder_impl_items = true
+format_code_in_doc_comments = true
