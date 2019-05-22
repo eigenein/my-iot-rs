@@ -13,3 +13,4 @@ warp = "0.1.15"
 askama = "0.8.0"
 # Persistence.
 sled = { version = "0.24.1", default-features = false, features = ["compression"] }
+rmp-serde = "0.13.7"
