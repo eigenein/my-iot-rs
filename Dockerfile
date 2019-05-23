@@ -23,5 +23,4 @@ RUN setcap cap_net_raw=ep /usr/local/bin/my-iot
 USER nobody:nogroup
 WORKDIR /app
 EXPOSE 8080
-ENV RUST_LOG=my_iot=info
 CMD ["my-iot"]

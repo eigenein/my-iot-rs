@@ -1,0 +1,1 @@
+//! Describes a service trait.

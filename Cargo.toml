@@ -5,16 +5,15 @@ authors = ["Pavel Perestoronin <eigenein@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+chrono = "0.4"
 openssl = { version = "0.10", features = ["vendored"] }
 # CLI.
 clap = "2.33.0"
 # Web client, server and template engine.
-reqwest = "0.9.17"
-warp = "0.1.15"
-askama = "0.8.0"
+actix-web = "1.0.0-rc"
+askama = { version = "0.8.0" }
 # Persistence.
-sled = { version = "0.24.1", default-features = false, features = ["compression"] }
-rmp-serde = "0.13.7"
+sqlite = "0.24.0"
 # Logging.
 pretty_env_logger = "0.3.0"
 log = "0.4"

@@ -1,25 +1,30 @@
-use askama::Template;
-use clap::{crate_version, App};
+use actix_web::middleware;
+use clap::crate_version;
 use log::info;
-use warp::{self, path, Filter};
 
 mod event;
-
-#[derive(Debug, Template)]
-#[template(path = "index.html")]
-struct Index;
+mod templates;
+mod web;
+mod units;
 
 fn main() {
     #[rustfmt::skip]
-    App::new("My IoT")
+    clap::App::new("My IoT")
         .version(crate_version!())
         .get_matches();
 
+    std::env::set_var("RUST_LOG", "info");
     pretty_env_logger::init();
     info!("My IoT is starting…");
 
     #[rustfmt::skip]
-    warp::serve(
-        path::end().map(|| warp::reply::html(Index{}.render().unwrap()))
-    ).run(([127, 0, 0, 1], 8080));
+    actix_web::HttpServer::new(|| {
+        actix_web::App::new()
+            .wrap(middleware::Logger::default())
+            .service(web::index)
+    })
+    .bind("127.0.0.1:8080")
+    .unwrap()
+    .run()
+    .unwrap();
 }
