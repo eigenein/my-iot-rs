@@ -1,20 +1,14 @@
-//! Web app functionality.
-
 use crate::templates::*;
-use actix_web::{get, HttpResponse};
 use askama::Template;
+use rouille::router;
 
-/// Index page.
-#[get("/")]
-pub fn index() -> actix_web::Result<HttpResponse> {
-    render(&IndexTemplate {})
-}
-
-/// Render a template.
-/// Ideally, this should be implemented as a trait but I didn't manage to do so.
-/// See also https://github.com/actix/examples/blob/b806d2254dff2e0db8a22141957a848ecbef77c3/template_askama/src/main.rs
-fn render<T: Template>(t: &T) -> actix_web::Result<HttpResponse> {
-    Ok(HttpResponse::Ok()
-        .content_type("text/html; charset=utf-8")
-        .body(t.render().unwrap()))
+pub fn start_server() {
+    rouille::start_server("127.0.0.1:8080", move |request| {
+        router!(request,
+            (GET) (/) => {
+                rouille::Response::html(IndexTemplate {}.render().unwrap())
+            },
+            _ => rouille::Response::empty_404(),
+        )
+    });
 }

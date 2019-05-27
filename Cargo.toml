@@ -10,7 +10,7 @@ openssl = { version = "0.10", features = ["vendored"] }
 # CLI.
 clap = "2.33.0"
 # Web client, server and template engine.
-actix-web = "1.0.0-rc"
+rouille = "3.0.0"
 askama = { version = "0.8.0" }
 # Persistence.
 sqlite = "0.24.0"
