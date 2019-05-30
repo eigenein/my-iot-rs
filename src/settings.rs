@@ -1,6 +1,7 @@
 //! Settings.
 use serde::Deserialize;
 use std::fs::File;
+use crate::services::clock::ClockSettings;
 
 /// Read the settings file.
 pub fn read() -> Settings {
@@ -12,7 +13,7 @@ pub fn read() -> Settings {
 pub struct Settings {
     /// Configured services.
     #[serde(default)]
-    pub services: Vec<Service>,
+    pub services: Vec<ServiceSettings>,
 }
 
 impl Default for Settings {
@@ -23,21 +24,7 @@ impl Default for Settings {
 
 /// A service configuration.
 #[derive(Deserialize, Debug)]
-pub enum Service {
+pub enum ServiceSettings {
     /// Emits an event every `interval` seconds.
     Clock(ClockSettings),
-}
-
-/// Clock settings.
-#[derive(Deserialize, Debug)]
-pub struct ClockSettings {
-    /// Interval in seconds.
-    #[serde(default)]
-    pub interval: f64,
-}
-
-impl Default for ClockSettings {
-    fn default() -> Self {
-        ClockSettings { interval: 1.0 }
-    }
 }
