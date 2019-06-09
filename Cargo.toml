@@ -9,7 +9,6 @@ publish = false
 readme = "README.md"
 keywords = ["iot"]
 license = "MIT"
-license-file = "LICENSE"
 
 [badges]
 travis-ci = { repository = "eigenein/my-iot-rs" }
@@ -23,7 +22,7 @@ clap = "2.33.0"
 rouille = "3.0.0"
 askama = { version = "0.8.0" }
 # Persistence.
-sqlite = "0.24.0"
+rusqlite = "0.18.0"
 # Logging.
 pretty_env_logger = "0.3.0"
 log = "0.4"

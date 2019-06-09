@@ -10,6 +10,7 @@ pub trait Service {
     fn run(&mut self, tx: Sender<Measurement>);
 }
 
+/// Create a service from the settings.
 pub fn new(settings: ServiceSettings) -> Box<dyn Service> {
     Box::new(match settings {
         ServiceSettings::Clock(settings) => clock::Clock::new(&settings),

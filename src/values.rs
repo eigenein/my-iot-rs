@@ -25,3 +25,11 @@ impl Value {
         }
     }
 }
+
+impl rusqlite::ToSql for Value {
+    fn to_sql(&self) -> rusqlite::Result<rusqlite::types::ToSqlOutput> {
+        let mut buf = Vec::new();
+        self.serialize(&mut rmp_serde::Serializer::new(&mut buf)).unwrap();
+        Ok(rusqlite::types::ToSqlOutput::Owned(rusqlite::types::Value::Blob(buf)))
+    }
+}

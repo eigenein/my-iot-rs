@@ -25,6 +25,9 @@ fn main() {
     let settings = settings::read();
     debug!("Settings: {:?}", &settings);
 
+    info!("Opening database…");
+    let db = db::new();
+
     info!("Starting services…");
     let (tx, rx) = channel();
     for service in settings.services {
@@ -37,7 +40,7 @@ fn main() {
 
     info!("Starting measurement receiver…");
     thread::spawn(move || {
-        receiver::run(rx);
+        receiver::run(rx, &db);
     });
 
     info!("Starting web server…");
