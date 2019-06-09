@@ -2,12 +2,14 @@ use clap::crate_version;
 use log::{debug, info};
 use std::{sync::mpsc::channel, thread};
 
-pub mod event;
+pub mod db;
 pub mod logging;
+pub mod measurement;
+pub mod receiver;
 pub mod services;
 pub mod settings;
 pub mod templates;
-pub mod units;
+pub mod values;
 pub mod web;
 
 /// Entry point.
@@ -32,6 +34,11 @@ fn main() {
             services::new(service).run(tx);
         });
     }
+
+    info!("Starting measurement receiver…");
+    thread::spawn(move || {
+        receiver::run(rx);
+    });
 
     info!("Starting web server…");
     web::start_server();

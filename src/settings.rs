@@ -1,25 +1,18 @@
 //! Settings.
+use crate::services::clock::ClockSettings;
 use serde::Deserialize;
 use std::fs::File;
-use crate::services::clock::ClockSettings;
 
 /// Read the settings file.
 pub fn read() -> Settings {
-    serde_yaml::from_reader(File::open("settings.yml").expect("settings.yml")).unwrap_or_default()
+    serde_yaml::from_reader(File::open("settings.yml").unwrap()).unwrap()
 }
 
 /// A root settings struct.
 #[derive(Deserialize, Debug)]
 pub struct Settings {
     /// Configured services.
-    #[serde(default)]
     pub services: Vec<ServiceSettings>,
-}
-
-impl Default for Settings {
-    fn default() -> Self {
-        Settings { services: vec![] }
-    }
 }
 
 /// A service configuration.

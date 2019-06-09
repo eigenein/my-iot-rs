@@ -6,5 +6,5 @@ pub fn init() {
         "RUST_LOG",
         std::env::var("RUST_LOG").unwrap_or_else(|_| String::from("info")),
     );
-    pretty_env_logger::init();
+    pretty_env_logger::init_timed();
 }
