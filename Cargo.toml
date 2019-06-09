@@ -3,6 +3,16 @@ name = "my-iot"
 version = "0.1.0"
 authors = ["Pavel Perestoronin <eigenein@gmail.com>"]
 edition = "2018"
+documentation = "https://github.com/eigenein/my-iot-rs/wiki"
+repository = "https://github.com/eigenein/my-iot-rs"
+publish = false
+readme = "README.md"
+keywords = ["iot"]
+license = "MIT"
+license-file = "LICENSE"
+
+[badges]
+travis-ci = { repository = "eigenein/my-iot-rs" }
 
 [dependencies]
 chrono = "0.4"
