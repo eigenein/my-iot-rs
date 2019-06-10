@@ -1,4 +1,5 @@
 //! Describes sensor values and corresponding rendering functionality.
+use rusqlite::types::{ToSqlOutput, Value as RusqliteValue};
 use serde::{Deserialize, Serialize};
 
 /// A sensor value.
@@ -27,9 +28,8 @@ impl Value {
 }
 
 impl rusqlite::ToSql for Value {
-    fn to_sql(&self) -> rusqlite::Result<rusqlite::types::ToSqlOutput> {
-        let mut buf = Vec::new();
-        self.serialize(&mut rmp_serde::Serializer::new(&mut buf)).unwrap();
-        Ok(rusqlite::types::ToSqlOutput::Owned(rusqlite::types::Value::Blob(buf)))
+    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput> {
+        let buf = rmp_serde::to_vec(&self).unwrap();
+        Ok(ToSqlOutput::Owned(RusqliteValue::Blob(buf)))
     }
 }
