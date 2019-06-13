@@ -9,7 +9,7 @@ pub mod receiver;
 pub mod services;
 pub mod settings;
 pub mod templates;
-pub mod values;
+pub mod value;
 pub mod web;
 
 /// Entry point.

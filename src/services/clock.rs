@@ -1,6 +1,6 @@
 use crate::measurement::*;
 use crate::services::Service;
-use crate::values::Value;
+use crate::value::Value;
 use log::info;
 use serde::Deserialize;
 use std::sync::mpsc::Sender;
@@ -44,7 +44,7 @@ impl Service for Clock {
             #[rustfmt::skip]
             tx.send(Measurement::new(
                 self.sensor.clone(),
-                Value::Count(self.counter),
+                Value::U64(self.counter),
                 None,
             )).unwrap();
         }

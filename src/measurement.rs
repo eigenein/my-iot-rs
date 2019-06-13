@@ -1,5 +1,5 @@
 //! Describes a sensor measurement.
-use crate::values::Value;
+use crate::value::Value;
 use chrono::prelude::*;
 
 /// A sensor measurement.
