@@ -4,7 +4,13 @@ use rusqlite::Result as RusqliteResult;
 /// Sensor measurement value.
 #[derive(Debug)]
 pub enum Value {
-    U64(u64),
+    Counter(u64),
+}
+
+/// Value kind.
+#[derive(Debug)]
+pub enum Kind {
+    Counter = 1,
 }
 
 impl ToSql for Value {
@@ -14,15 +20,15 @@ impl ToSql for Value {
 }
 
 impl Value {
-    pub fn kind(&self) -> u32 {
+    pub fn kind(&self) -> Kind {
         match self {
-            Value::U64(_) => 1, // TODO: make `Kind` enum.
+            Value::Counter(_) => Kind::Counter,
         }
     }
 
     pub fn to_vec(&self) -> Vec<u8> {
         match self {
-            Value::U64(value) => value.to_le_bytes().to_vec(),
+            Value::Counter(value) => value.to_le_bytes().to_vec(),
         }
     }
 }

@@ -44,7 +44,7 @@ impl Service for Clock {
             #[rustfmt::skip]
             tx.send(Measurement::new(
                 self.sensor.clone(),
-                Value::U64(self.counter),
+                Value::Counter(self.counter),
                 None,
             )).unwrap();
         }

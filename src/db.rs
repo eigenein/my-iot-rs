@@ -36,7 +36,7 @@ impl Db {
             VALUES (?1, ?2)
         ", &[
             &measurement.sensor as &rusqlite::ToSql,
-            &measurement.value.kind(),
+            &(measurement.value.kind() as i32),
         ]).unwrap();
 
         #[rustfmt::skip]
