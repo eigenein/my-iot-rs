@@ -19,6 +19,7 @@ openssl = { version = "0.10", features = ["vendored"] }
 # CLI.
 clap = "2.33.0"
 # Web client, server and template engine.
+reqwest = "0.9.18"
 rouille = "3.0.0"
 askama = { version = "0.8.0" }
 # Persistence.
