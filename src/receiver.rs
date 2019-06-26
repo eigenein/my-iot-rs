@@ -1,6 +1,6 @@
 //! Measurement receiver.
-use crate::measurement::*;
 use crate::db::*;
+use crate::measurement::*;
 use log::info;
 use std::sync::mpsc::Receiver;
 
