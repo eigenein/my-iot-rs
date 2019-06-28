@@ -1,5 +1,7 @@
 //! Database interface.
 use crate::measurement::Measurement;
+use chrono::prelude::*;
+use rusqlite::NO_PARAMS;
 
 /// A database connection.
 pub struct Db {
@@ -24,17 +26,35 @@ pub fn new() -> Db {
 }
 
 impl Db {
-    pub fn save_measurement(&self, measurement: &Measurement) {
+    /// Insert measurement into database.
+    pub fn insert_measurement(&self, measurement: &Measurement) {
+        // TODO: `prepare_cached`.
         #[rustfmt::skip]
-        self.connection.execute("
+        self.connection.execute::<&[&rusqlite::ToSql]>("
             INSERT OR REPLACE INTO measurements (sensor, ts, value)
             VALUES (?1, ?2, ?3)
         ", &[
-            &measurement.sensor as &rusqlite::ToSql,
+            &measurement.sensor,
             &measurement.timestamp.timestamp_millis(),
             &measurement.value,
         ]).unwrap();
     }
 
-    // TODO: explain query plan select tag, max(ts) as ts, value from test group by tag;
+    /// Select latest measurement for each sensor.
+    pub fn select_latest_measurements(&self) -> Vec<Measurement> {
+        self.connection
+            // TODO: `prepare_cached`.
+            .prepare("SELECT sensor, MAX(ts) as ts, value FROM measurements GROUP BY sensor")
+            .unwrap()
+            .query_map(NO_PARAMS, |row| {
+                Ok(Measurement {
+                    sensor: row.get_unwrap("sensor"),
+                    timestamp: Local.timestamp_millis(row.get_unwrap("ts")),
+                    value: row.get_unwrap("value"),
+                })
+            })
+            .unwrap()
+            .map(|result| result.unwrap())
+            .collect()
+    }
 }

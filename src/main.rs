@@ -1,5 +1,6 @@
 use clap::crate_version;
 use log::{debug, info};
+use std::sync::{Arc, Mutex};
 use std::{sync::mpsc::channel, thread};
 
 pub mod db;
@@ -26,7 +27,7 @@ fn main() {
     debug!("Settings: {:?}", &settings);
 
     info!("Opening database…");
-    let db = db::new();
+    let db = Arc::new(Mutex::new(db::new()));
 
     info!("Starting services…");
     let (tx, rx) = channel();
@@ -39,10 +40,13 @@ fn main() {
     }
 
     info!("Starting measurement receiver…");
-    thread::spawn(move || {
-        receiver::run(rx, &db);
-    });
+    {
+        let db = db.clone();
+        thread::spawn(move || {
+            receiver::run(rx, db);
+        });
+    }
 
     info!("Starting web server…");
-    web::start_server();
+    web::start_server(db.clone());
 }

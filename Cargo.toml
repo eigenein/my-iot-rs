@@ -22,6 +22,7 @@ clap = "2.33.0"
 reqwest = "0.9.18"
 rouille = "3.0.0"
 askama = { version = "0.8.0" }
+typed-html = "0.2.1"
 # Persistence.
 rusqlite = "0.18.0"
 # Logging.
