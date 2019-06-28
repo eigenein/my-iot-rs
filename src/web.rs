@@ -1,9 +1,7 @@
 use crate::db::Db;
 use crate::templates::*;
-use rouille::router;
+use rouille::{router, Response};
 use std::sync::{Arc, Mutex};
-use typed_html::dom::DOMTree;
-use typed_html::html;
 
 /// Start the web application.
 pub fn start_server(db: Arc<Mutex<Db>>) {
@@ -13,13 +11,9 @@ pub fn start_server(db: Arc<Mutex<Db>>) {
                 let measurements = {
                     db.lock().unwrap().select_latest_measurements()
                 };
-                // IndexTemplate { measurements }.into()
-                let doc: DOMTree<String> = html!(
-                    <p>"Hello Kitty"</p>
-                );
-                rouille::Response::html(doc.to_string())
+                Response::html(Index { }.to_string())
             },
-            _ => rouille::Response::empty_404(),
+            _ => Response::empty_404(),
         )
     });
 }

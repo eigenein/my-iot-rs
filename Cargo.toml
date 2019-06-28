@@ -21,8 +21,7 @@ clap = "2.33.0"
 # Web client, server and template engine.
 reqwest = "0.9.18"
 rouille = "3.0.0"
-askama = { version = "0.8.0" }
-typed-html = "0.2.1"
+markup = "0.3.1"
 # Persistence.
 rusqlite = "0.18.0"
 # Logging.
