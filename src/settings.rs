@@ -1,5 +1,5 @@
 //! Settings.
-use crate::services::clock::ClockSettings;
+use crate::services;
 use serde::Deserialize;
 use std::fs::File;
 
@@ -18,6 +18,8 @@ pub struct Settings {
 /// A service configuration.
 #[derive(Deserialize, Debug)]
 pub enum ServiceSettings {
-    /// Emits an event every `interval` seconds.
-    Clock(ClockSettings),
+    /// Emits an event regularly.
+    Clock(services::clock::ClockSettings),
+    /// Regularly emits database information.
+    Db(services::db::DbSettings),
 }

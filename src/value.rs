@@ -1,3 +1,4 @@
+use crate::templates;
 use rusqlite::types::*;
 use serde::{Deserialize, Serialize};
 
@@ -6,6 +7,8 @@ use serde::{Deserialize, Serialize};
 pub enum Value {
     /// Generic counter.
     Counter(u64),
+    /// File size.
+    Size(u64),
 }
 
 impl ToSql for Value {
@@ -24,6 +27,9 @@ impl FromSql for Value {
 
 impl markup::Render for Value {
     fn render(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{:?}", &self)
+        match *self {
+            Value::Counter(count) => write!(f, "{}", templates::Counter { count }),
+            Value::Size(size) => write!(f, "{}", size),  // FIXME
+        }
     }
 }

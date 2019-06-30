@@ -33,9 +33,10 @@ fn main() {
     let (tx, rx) = channel();
     for service in settings.services {
         debug!("Starting {:?}.", &service);
+        let db = db.clone();
         let tx = tx.clone();
         thread::spawn(move || {
-            services::new(service).run(tx);
+            services::new(service).run(db, tx);
         });
     }
 

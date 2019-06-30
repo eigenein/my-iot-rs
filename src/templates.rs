@@ -2,6 +2,7 @@
 
 use crate::measurement::Measurement;
 
+// Base page.
 markup::define! {
     Base(body: Box<std::fmt::Display>) {
         {markup::doctype()}
@@ -12,7 +13,7 @@ markup::define! {
                 meta[name = "viewport", content = "width=device-width, initial-scale=1"];
                 meta["http-equiv" = "refresh", content = "60"];
                 link[rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css"];
-                link[rel = "stylesheet", href = "https://use.fontawesome.com/releases/v5.5.0/css/all.css"];
+                script[src = "https://kit.fontawesome.com/e88ef3598d.js"] {}
                 script[src = "https://cdn.plot.ly/plotly-1.5.0.min.js"] {}
             }
             body {
@@ -59,6 +60,7 @@ markup::define! {
     }
 }
 
+// Shared navigation bar.
 markup::define! {
     NavBar {
         nav.navbar[role = "navigation", "aria-label" = "main navigation"] {
@@ -84,11 +86,13 @@ markup::define! {
                     }
 
                     div."navbar-end" {
-                        a."navbar-item"[href = "https://eigenein.github.io/my-iot-rs"] {
+                        a."navbar-item"[href = "https://github.com/eigenein/my-iot-rs/wiki"] {
                             span.icon {
                                 i.fas."fa-external-link-alt" {}
                             }
-                            span { "Documentation" }
+                            span {
+                                "Wiki"
+                            }
                         }
                     }
                 }
@@ -97,14 +101,19 @@ markup::define! {
     }
 }
 
+// Index page.
 markup::define! {
     Index(measurements: Vec<Measurement>) {
         section.hero."is-info" {
             div."hero-head" { {NavBar {}} }
             div."hero-body" {
                 div.container {
-                    h1.title."is-4" { "Dashboard" }
-                    h2.subtitle."is-6" { {measurements.len()} " sensors" }
+                    h1.title."is-4" {
+                        "Dashboard"
+                    }
+                    h2.subtitle."is-6" {
+                        {measurements.len()} " sensors"
+                    }
                 }
             }
         }
@@ -118,18 +127,29 @@ markup::define! {
     }
 }
 
+// Sensor tile.
 markup::define! {
     Tile<'a>(measurement: &'a Measurement) {
         div.tile."is-parent"."is-3" {
-            a.tile."is-child".notification[href = {"/sensor/".to_string() + {&measurement.sensor}} ] {
-                p.title."is-6" { {&measurement.sensor} }
-                p.subtitle."is-7" {
+            a.tile."is-child".notification[href = {format!("/sensor/{}", &measurement.sensor)} ] {
+                p.title."is-6" {
+                    {&measurement.sensor}
+                }
+                p.subtitle."is-7"[title = {&measurement.timestamp.to_string()}] {
                     {&measurement.timestamp.to_string()}
                 }
-                p."has-text-centered"."has-text-weight-bold"[title = {&measurement.value}] {
+                p."has-text-centered"."has-text-weight-bold"[title = {format!("{:?}", &measurement.value)}] {
                     {&measurement.value}
                 }
             }
         }
+    }
+}
+
+// Value templates.
+markup::define! {
+    Counter(count: u64) {
+        i.fas."fa-sort-numeric-up-alt" {}
+        " " {count}
     }
 }

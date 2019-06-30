@@ -57,4 +57,13 @@ impl Db {
             .map(|result| result.unwrap())
             .collect()
     }
+
+    /// Select database size.
+    pub fn select_size(&self) -> u64 {
+        self.connection
+            .prepare_cached("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()")
+            .unwrap()
+            .query_row(NO_PARAMS, |row| row.get::<_, i64>(0))
+            .unwrap() as u64
+    }
 }
