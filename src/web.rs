@@ -11,7 +11,9 @@ pub fn start_server(db: Arc<Mutex<Db>>) {
                 let measurements = {
                     db.lock().unwrap().select_latest_measurements()
                 };
-                Response::html(Index { }.to_string())
+                Response::html(Base {
+                    body: Box::new(Index { measurements }),
+                }.to_string())
             },
             _ => Response::empty_404(),
         )

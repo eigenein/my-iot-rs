@@ -21,3 +21,9 @@ impl FromSql for Value {
         Ok(serde_json::from_str(value.as_str().unwrap()).unwrap())
     }
 }
+
+impl markup::Render for Value {
+    fn render(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{:?}", &self)
+    }
+}
