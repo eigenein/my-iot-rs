@@ -1,11 +1,11 @@
 use crate::measurement::Measurement;
 use crate::services::Service;
 use crate::value::Value;
+use serde::Deserialize;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
-use serde::Deserialize;
 
 /// Database service.
 #[derive(Debug)]
