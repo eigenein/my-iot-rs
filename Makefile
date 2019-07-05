@@ -5,3 +5,4 @@ docker:
 .PHONY: docs
 docs:
 	@cargo doc --document-private-items --no-deps
+	@cp -R target/doc docs

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["new","Create a new database connection."]],"struct":[["Db","A database connection."]]});

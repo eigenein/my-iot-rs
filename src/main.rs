@@ -32,11 +32,13 @@ fn main() {
     info!("Starting services…");
     let (tx, rx) = channel();
     for service in settings.services {
-        debug!("Starting {:?}.", &service);
         let db = db.clone();
         let tx = tx.clone();
         thread::spawn(move || {
-            services::new(service).run(db, tx);
+            debug!("Starting {:?}…", &service);
+            let mut service = services::new(service);
+            debug!("Running {:?}…", &service);
+            service.run(db, tx);
         });
     }
 

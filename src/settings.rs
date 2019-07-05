@@ -22,4 +22,6 @@ pub enum ServiceSettings {
     Clock(services::clock::ClockSettings),
     /// Regularly emits database information.
     Db(services::db::DbSettings),
+    /// Dutch Buienradar weather service.
+    Buienradar(services::buienradar::BuienradarSettings),
 }

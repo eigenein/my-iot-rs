@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["_IMPL_DESERIALIZE_FOR_DbSettings",""]],"struct":[["Db","Database service."],["DbSettings","Database sensor settings."]]});

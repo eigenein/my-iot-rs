@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["_IMPL_DESERIALIZE_FOR_ClockSettings",""]],"struct":[["Clock","Clock service."],["ClockSettings","Clock settings."]]});

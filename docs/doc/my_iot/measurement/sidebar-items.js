@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Measurement","A sensor measurement."]]});

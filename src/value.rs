@@ -9,6 +9,8 @@ pub enum Value {
     Counter(u64),
     /// File size.
     Size(u64),
+    /// Plain text.
+    Text(String),
 }
 
 impl ToSql for Value {
@@ -30,6 +32,7 @@ impl markup::Render for Value {
         match *self {
             Value::Counter(count) => write!(f, "{}", templates::Counter { count }),
             Value::Size(size) => write!(f, "{}", size), // FIXME
+            Value::Text(ref string) => write!(f, "{}", string),
         }
     }
 }

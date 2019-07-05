@@ -1,6 +1,5 @@
 use crate::db::Db;
 use crate::measurement::*;
-use crate::services::Service;
 use crate::value::Value;
 use serde::Deserialize;
 use std::sync::mpsc::Sender;
@@ -36,7 +35,7 @@ impl Clock {
     }
 }
 
-impl Service for Clock {
+impl crate::services::Service for Clock {
     fn run(&mut self, _db: Arc<Mutex<Db>>, tx: Sender<Measurement>) {
         loop {
             #[rustfmt::skip]

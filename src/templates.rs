@@ -119,8 +119,10 @@ markup::define! {
         }
         section.section {
             div.container {
-                @for measurement in {measurements} {
-                    {Tile { measurement }}
+                div.tile."is-ancestor" {
+                    @for measurement in {measurements} {
+                        {Tile { measurement }}
+                    }
                 }
             }
         }
@@ -128,11 +130,12 @@ markup::define! {
 }
 
 // Sensor tile.
+// TODO: title should be human-readable.
 markup::define! {
     Tile<'a>(measurement: &'a Measurement) {
         div.tile."is-parent"."is-3" {
             a.tile."is-child".notification[href = {format!("/sensor/{}", &measurement.sensor)} ] {
-                p.title."is-6" {
+                p.title."is-6"[title = {&measurement.sensor}] {
                     {&measurement.sensor}
                 }
                 p.subtitle."is-7"[title = {&measurement.timestamp.to_string()}] {
