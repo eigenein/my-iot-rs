@@ -134,25 +134,17 @@ markup::define! {
 markup::define! {
     Tile<'a>(measurement: &'a Measurement) {
         div.tile."is-parent"."is-3" {
-            a.tile."is-child".notification[href = {format!("/sensor/{}", &measurement.sensor)} ] {
+            a.tile."is-child".notification.{measurement.value.class()}[href = {format!("/sensor/{}", &measurement.sensor)} ] {
                 p.title."is-6"[title = {&measurement.sensor}] {
                     {&measurement.sensor}
                 }
                 p.subtitle."is-7"[title = {&measurement.timestamp.to_string()}] {
-                    {&measurement.timestamp.to_string()}
+                    {&measurement.timestamp.format("%b %d, %H:%M:%S").to_string()}
                 }
                 p."has-text-centered"."has-text-weight-bold"[title = {format!("{:?}", &measurement.value)}] {
                     {&measurement.value}
                 }
             }
         }
-    }
-}
-
-// Value templates.
-markup::define! {
-    Counter(count: u64) {
-        i.fas."fa-sort-numeric-up-alt" {}
-        " " {count}
     }
 }

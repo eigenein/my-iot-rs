@@ -13,6 +13,13 @@ pub mod db;
 /// A service.
 pub trait Service: Debug {
     fn run(&mut self, db: Arc<Mutex<Db>>, tx: Sender<Measurement>);
+
+    /// Convenience function to send measurements.
+    fn send(&self, tx: &Sender<Measurement>, measurements: Vec<Measurement>) {
+        for measurement in measurements {
+            tx.send(measurement).unwrap();
+        }
+    }
 }
 
 /// Create a service from the settings.
