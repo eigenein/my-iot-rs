@@ -60,7 +60,7 @@ impl Buienradar {
             .station_measurements
             .iter()
             .find(|measurement| measurement.station_id == self.station_id)
-            .ok_or(format!("station {} is not found", self.station_id))?
+            .ok_or_else(|| format!("station {} is not found", self.station_id))?
             .clone();
         Ok(measurement)
     }
