@@ -2,6 +2,7 @@ use crate::db::Db;
 use crate::measurement::Measurement;
 use crate::services::Service;
 use crate::value::Value;
+use chrono::{DateTime, Local};
 use clap::crate_version;
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::Deserialize;
@@ -14,7 +15,7 @@ use std::time::Duration;
 /// Buienradar JSON feed URL.
 const URL: &str = "https://json.buienradar.nl/";
 const REFRESH_PERIOD: Duration = Duration::from_millis(60000);
-const USER_AGENT: &'static str = concat!(
+const USER_AGENT: &str = concat!(
     "My IoT / ",
     crate_version!(),
     " (Rust; https://github.com/eigenein/my-iot-rs)"
@@ -56,6 +57,9 @@ pub struct BuienradarStationMeasurement {
 
     #[serde(rename = "windspeedBft")]
     wind_speed_bft: Option<u32>,
+
+    #[serde(with = "date_format")]
+    timestamp: DateTime<Local>,
 }
 
 impl Buienradar {
@@ -74,7 +78,7 @@ impl Buienradar {
     }
 
     /// Fetch measurement for the configured station.
-    pub fn fetch(&self) -> Result<BuienradarStationMeasurement, Box<Error>> {
+    fn fetch(&self) -> Result<BuienradarStationMeasurement, Box<Error>> {
         let body = self.client.get(URL).send()?.text()?;
         let feed: BuienradarFeed = serde_json::from_str(&body)?;
         let measurement = feed
@@ -86,50 +90,66 @@ impl Buienradar {
             .clone();
         Ok(measurement)
     }
+
+    /// Sends out measurements based on Buienradar station measurement.
+    fn send_measurements(&self, measurement: BuienradarStationMeasurement, tx: &Sender<Measurement>) {
+        self.send(
+            &tx,
+            vec![Measurement::new(
+                format!("buienradar:{}:name", self.station_id),
+                Value::Text(measurement.name.clone()),
+                Some(measurement.timestamp.clone()),
+            )],
+        );
+        if let Some(degrees) = measurement.temperature {
+            self.send(
+                &tx,
+                vec![Measurement::new(
+                    format!("buienradar:{}:temperature", self.station_id),
+                    Value::Celsius(degrees),
+                    Some(measurement.timestamp.clone()),
+                )],
+            );
+        }
+        if let Some(bft) = measurement.wind_speed_bft {
+            self.send(
+                &tx,
+                vec![Measurement::new(
+                    format!("buienradar:{}:wind_speed_bft", self.station_id),
+                    Value::Bft(bft),
+                    Some(measurement.timestamp.clone()),
+                )],
+            );
+        }
+    }
 }
 
 impl Service for Buienradar {
     fn run(&mut self, _db: Arc<Mutex<Db>>, tx: Sender<Measurement>) {
         loop {
-            thread::sleep(REFRESH_PERIOD);
-
-            let measurement = match self.fetch() {
-                Ok(measurement) => measurement,
+            match self.fetch() {
+                Ok(measurement) => self.send_measurements(measurement, &tx),
                 Err(error) => {
                     log::error!("Buienradar has failed: {}", error);
-                    continue;
                 }
-            };
-
-            // TODO: use `timestamp`.
-            self.send(
-                &tx,
-                vec![Measurement::new(
-                    format!("buienradar:{}:name", self.station_id),
-                    Value::Text(measurement.name.clone()),
-                    None,
-                )],
-            );
-            if let Some(degrees) = measurement.temperature {
-                self.send(
-                    &tx,
-                    vec![Measurement::new(
-                        format!("buienradar:{}:temperature", self.station_id),
-                        Value::Celsius(degrees),
-                        None,
-                    )],
-                );
             }
-            if let Some(bft) = measurement.wind_speed_bft {
-                self.send(
-                    &tx,
-                    vec![Measurement::new(
-                        format!("buienradar:{}:wind_speed_bft", self.station_id),
-                        Value::Bft(bft),
-                        None,
-                    )],
-                );
-            }
+            thread::sleep(REFRESH_PERIOD);
         }
+    }
+}
+
+/// Implements Buienradar date/time format with Amsterdam timezone.
+/// See also: https://serde.rs/custom-date-format.html
+mod date_format {
+    use chrono::{DateTime, Local, NaiveDateTime, TimeZone};
+    use chrono_tz::Europe::Amsterdam;
+    use serde::{self, Deserialize, Deserializer};
+
+    const FORMAT: &'static str = "%Y-%m-%dT%H:%M:%S";
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<DateTime<Local>, D::Error> {
+        let string = String::deserialize(deserializer)?;
+        let datetime = NaiveDateTime::parse_from_str(&string, FORMAT).unwrap();
+        Ok(Amsterdam.from_local_datetime(&datetime).unwrap().with_timezone(&Local))
     }
 }

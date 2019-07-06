@@ -56,6 +56,7 @@ impl Value {
             Value::Bft(_) => "is-light", // TODO
             Value::Celsius(value) => match value {
                 // TODO
+                _ if 5.0 <= value && value < 15.0 => "is-primary",
                 _ if 15.0 <= value && value < 25.0 => "is-success",
                 _ => panic!("value {} is not covered", value),
             },

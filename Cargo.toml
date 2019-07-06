@@ -14,7 +14,8 @@ license = "MIT"
 travis-ci = { repository = "eigenein/my-iot-rs" }
 
 [dependencies]
-chrono = "0.4"
+chrono = { version = "0.4", features = ["serde"] }
+chrono-tz = { version = "0.5.1", features = ["serde"] }
 openssl = { version = "0.10", features = ["vendored"] }
 humansize = "1.1.0"
 # CLI.
