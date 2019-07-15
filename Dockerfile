@@ -1,4 +1,5 @@
 # My IoT for Raspberry Pi Zero (W)
+# TODO: unsupported at the moment.
 FROM rust:1.34 AS build
 
 # Set up cross compilation to ARMv6.

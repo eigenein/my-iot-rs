@@ -11,6 +11,8 @@ pub fn read() -> Settings {
 /// A root settings struct.
 #[derive(Deserialize, Debug)]
 pub struct Settings {
+    /// Web server port.
+    pub http_port: Option<u16>,
     /// Configured services.
     pub services: Vec<ServiceSettings>,
 }

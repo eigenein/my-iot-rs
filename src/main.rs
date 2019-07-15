@@ -1,4 +1,3 @@
-use clap::crate_version;
 use log::{debug, info};
 use std::sync::{Arc, Mutex};
 use std::{sync::mpsc::channel, thread};
@@ -19,7 +18,9 @@ fn main() {
 
     #[rustfmt::skip]
     clap::App::new("My IoT")
-        .version(crate_version!())
+        .version(clap::crate_version!())
+        .author(clap::crate_authors!("\n"))
+        .about(clap::crate_description!())
         .get_matches();
 
     info!("Reading settings…");
@@ -51,5 +52,5 @@ fn main() {
     }
 
     info!("Starting web server…");
-    web::start_server(db.clone());
+    web::start_server(settings.http_port.unwrap_or(8081), db.clone());
 }

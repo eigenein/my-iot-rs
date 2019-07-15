@@ -1,5 +1,6 @@
 [package]
 name = "my-iot"
+description = "Yet another home automation"
 version = "0.1.0"
 authors = ["Pavel Perestoronin <eigenein@gmail.com>"]
 edition = "2018"

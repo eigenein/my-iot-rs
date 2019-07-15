@@ -98,7 +98,7 @@ impl Buienradar {
             vec![Measurement::new(
                 format!("buienradar:{}:name", self.station_id),
                 Value::Text(measurement.name.clone()),
-                Some(measurement.timestamp.clone()),
+                Some(measurement.timestamp),
             )],
         );
         if let Some(degrees) = measurement.temperature {
@@ -107,7 +107,7 @@ impl Buienradar {
                 vec![Measurement::new(
                     format!("buienradar:{}:temperature", self.station_id),
                     Value::Celsius(degrees),
-                    Some(measurement.timestamp.clone()),
+                    Some(measurement.timestamp),
                 )],
             );
         }
@@ -117,7 +117,7 @@ impl Buienradar {
                 vec![Measurement::new(
                     format!("buienradar:{}:wind_speed_bft", self.station_id),
                     Value::Bft(bft),
-                    Some(measurement.timestamp.clone()),
+                    Some(measurement.timestamp),
                 )],
             );
         }
@@ -145,7 +145,7 @@ mod date_format {
     use chrono_tz::Europe::Amsterdam;
     use serde::{self, Deserialize, Deserializer};
 
-    const FORMAT: &'static str = "%Y-%m-%dT%H:%M:%S";
+    const FORMAT: &str = "%Y-%m-%dT%H:%M:%S";
 
     pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<DateTime<Local>, D::Error> {
         let string = String::deserialize(deserializer)?;
