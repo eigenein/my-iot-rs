@@ -1,6 +1,8 @@
 # Please, follow the target naming conventions:
 # https://www.gnu.org/prep/standards/html_node/Standard-Targets.html
 
+EXECUTABLE_PATH := /usr/local/bin/my-iot
+
 .PHONY: all
 all:
 	@cargo build --release
@@ -15,14 +17,16 @@ check:
 	@cargo clippy --all-targets --all-features -- -D warnings
 	@cargo test
 
-install: target/release/my-iot
-	@cp $< /usr/local/bin/my-iot
+.PHONY: install
+install:
+	@cp target/release/my-iot $(EXECUTABLE_PATH)
+	@setcap cap_net_raw+ep $(EXECUTABLE_PATH) || echo "Warning: install setcap to enable non-root ICMP"
 
-.PHONY: html
-html:
+.PHONY: uninstall
+uninstall:
+	@rm -f $(EXECUTABLE_PATH)
+
+.PHONY: html docs
+html docs:
 	@cargo doc --document-private-items --no-deps
 	@cp -R target/doc docs
-
-.PHONY: setup
-setup:
-	@rustup component add rustfmt clippy
