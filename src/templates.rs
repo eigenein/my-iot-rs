@@ -1,6 +1,6 @@
 //! Web interface templates.
 
-use crate::measurement::Measurement;
+use crate::measurement;
 
 // Base page.
 markup::define! {
@@ -15,6 +15,7 @@ markup::define! {
                 link[rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css"];
                 script[src = "https://kit.fontawesome.com/e88ef3598d.js"] {}
                 script[src = "https://cdn.plot.ly/plotly-1.5.0.min.js"] {}
+                style { ".measurement { height: 100% }" }
             }
             body {
                 {markup::raw(body)}
@@ -86,12 +87,12 @@ markup::define! {
                     }
 
                     div."navbar-end" {
-                        a."navbar-item"[href = "https://github.com/eigenein/my-iot-rs/wiki"] {
+                        a."navbar-item"[href = "https://eigenein.github.io/my-iot-rs/my_iot/"] {
                             span.icon {
                                 i.fas."fa-external-link-alt" {}
                             }
                             span {
-                                "Wiki"
+                                "Documentation"
                             }
                         }
                     }
@@ -103,7 +104,7 @@ markup::define! {
 
 // Index page.
 markup::define! {
-    Index(measurements: Vec<Measurement>) {
+    Index(measurements: Vec<measurement::Measurement>) {
         section.hero."is-info" {
             div."hero-head" { {NavBar {}} }
             div."hero-body" {
@@ -119,9 +120,9 @@ markup::define! {
         }
         section.section {
             div.container {
-                div.tile."is-ancestor" {
+                div.columns."is-multiline" {
                     @for measurement in {measurements} {
-                        {Tile { measurement }}
+                        {Measurement { measurement }}
                     }
                 }
             }
@@ -129,20 +130,22 @@ markup::define! {
     }
 }
 
-// Sensor tile.
+// Sensor.
 // TODO: title should be human-readable.
 markup::define! {
-    Tile<'a>(measurement: &'a Measurement) {
-        div.tile."is-parent"."is-3" {
-            a.tile."is-child".notification.{measurement.value.class()}[href = {format!("/sensor/{}", &measurement.sensor)} ] {
-                p.title."is-6"[title = {&measurement.sensor}] {
-                    {&measurement.sensor}
-                }
-                p.subtitle."is-7"[title = {&measurement.timestamp.to_string()}] {
-                    {&measurement.timestamp.format("%b %d, %H:%M:%S").to_string()}
-                }
-                p."has-text-centered"."has-text-weight-bold"[title = {format!("{:?}", &measurement.value)}] {
-                    {&measurement.value}
+    Measurement<'a>(measurement: &'a measurement::Measurement) {
+        div."column"."is-one-quarter" {
+            a[href = {format!("/sensors/{}", &measurement.sensor)} ] {
+                div.notification.measurement.{measurement.value.class()} {
+                    p.title."is-6"[title = {&measurement.sensor}] {
+                        {&measurement.sensor}
+                    }
+                    p.subtitle."is-7"[title = {&measurement.timestamp.to_string()}] {
+                        {&measurement.timestamp.format("%b %d, %H:%M:%S").to_string()}
+                    }
+                    p."has-text-centered"."has-text-weight-bold"[title = {format!("{:?}", &measurement.value)}] {
+                        {&measurement.value}
+                    }
                 }
             }
         }

@@ -54,6 +54,12 @@ pub struct BuienradarStationMeasurement {
 
     temperature: Option<f64>,
 
+    #[serde(rename = "groundtemperature")]
+    ground_temperature: Option<f64>,
+
+    #[serde(rename = "feeltemperature")]
+    feel_temperature: Option<f64>,
+
     #[serde(rename = "windspeedBft")]
     wind_speed_bft: Option<u32>,
 
@@ -105,6 +111,26 @@ impl Buienradar {
                 &tx,
                 vec![Measurement::new(
                     format!("buienradar:{}:temperature", self.station_id),
+                    Value::Celsius(degrees),
+                    Some(measurement.timestamp),
+                )],
+            );
+        }
+        if let Some(degrees) = measurement.ground_temperature {
+            self.send(
+                &tx,
+                vec![Measurement::new(
+                    format!("buienradar:{}:ground_temperature", self.station_id),
+                    Value::Celsius(degrees),
+                    Some(measurement.timestamp),
+                )],
+            );
+        }
+        if let Some(degrees) = measurement.feel_temperature {
+            self.send(
+                &tx,
+                vec![Measurement::new(
+                    format!("buienradar:{}:feel_temperature", self.station_id),
                     Value::Celsius(degrees),
                     Some(measurement.timestamp),
                 )],
