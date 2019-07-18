@@ -1,4 +1,5 @@
-//! Measurement receiver.
+//! Measurement receiver that actually processes all measurements coming from services.
+
 use crate::db::*;
 use crate::measurement::*;
 use log::info;

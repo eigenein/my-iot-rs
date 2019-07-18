@@ -1,3 +1,5 @@
+//! Implements web server.
+
 use crate::db::Db;
 use crate::templates::*;
 use rouille::{router, Response};

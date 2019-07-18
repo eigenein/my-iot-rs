@@ -3,15 +3,14 @@
 Yet another home automation. Written in Rust for Raspberry Pi Zero W
 
 [![Build Status](https://travis-ci.com/eigenein/my-iot-rs.svg?branch=master)](https://travis-ci.com/eigenein/my-iot-rs)
-[![Wiki](https://img.shields.io/badge/-Wiki-blue.svg)](https://github.com/eigenein/my-iot-rs/wiki)
-[![API docs](https://img.shields.io/badge/-API_docs-important.svg)](https://eigenein.github.io/my-iot-rs/my_iot/)
+[![Documentation](https://img.shields.io/badge/-Documentation-important.svg)](https://eigenein.github.io/my-iot-rs/my_iot/)
 
 ## Why?
 
-- To learn some Rust
-- Existing solutions didn't play nice for me
-- Because I can!
+- I want to learn Rust
+- I want it to be as less configurable as possible
+- I want it to be fast
 
 ## Getting Started
 
-I'm going to maintain user's manual in the project [Wiki](https://github.com/eigenein/my-iot-rs/wiki).
+Check out the [crate documentation](https://eigenein.github.io/my-iot-rs/my_iot/).

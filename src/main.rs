@@ -1,3 +1,23 @@
+//! # Getting started
+//!
+//! Grab a release from [GitHub](https://github.com/eigenein/my-iot-rs/releases) for your architecture
+//! or optionally clone the repo and build it manually:
+//!
+//! ```sh
+//! git clone https://github.com/eigenein/my-iot-rs.git
+//! cd my-iot-rs
+//! make
+//! ```
+//!
+//! The above should produce a single executable, you can install it to `/usr/local/bin` by running:
+//!
+//! ```sh
+//! sudo make install
+//! ```
+//!
+//! Then, you'll need to create a configuration file `settings.yml`. It must contain exactly one object,
+//! please read the [`settings`](settings/index.html) documentation.
+
 use log::{debug, info};
 use std::sync::{Arc, Mutex};
 use std::{sync::mpsc::channel, thread};
@@ -24,7 +44,7 @@ fn main() {
         .get_matches();
 
     info!("Reading settings…");
-    let settings = settings::read();
+    let settings = settings::read(); // TODO: CLI parameter.
     debug!("Settings: {:?}", &settings);
 
     info!("Opening database…");

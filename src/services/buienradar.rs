@@ -21,10 +21,9 @@ const USER_AGENT: &str = concat!(
     " (Rust; https://github.com/eigenein/my-iot-rs)"
 );
 
-/// Buienradar service settings.
 #[derive(Deserialize, Debug)]
 pub struct BuienradarSettings {
-    /// Station ID. Find a one on https://json.buienradar.nl/.
+    /// Station ID. Find a one [here](https://json.buienradar.nl/).
     station_id: u32,
 }
 

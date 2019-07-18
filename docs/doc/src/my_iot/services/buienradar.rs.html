@@ -152,7 +152,6 @@
 <span id="152">152</span>
 <span id="153">153</span>
 <span id="154">154</span>
-<span id="155">155</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">db</span>::<span class="ident">Db</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">measurement</span>::<span class="ident">Measurement</span>;
@@ -177,10 +176,9 @@
     <span class="string">&quot; (Rust; https://github.com/eigenein/my-iot-rs)&quot;</span>
 );
 
-<span class="doccomment">/// Buienradar service settings.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BuienradarSettings</span> {
-    <span class="doccomment">/// Station ID. Find a one on https://json.buienradar.nl/.</span>
+    <span class="doccomment">/// Station ID. Find a one [here](https://json.buienradar.nl/).</span>
     <span class="ident">station_id</span>: <span class="ident">u32</span>,
 }
 

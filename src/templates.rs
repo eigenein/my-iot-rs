@@ -1,4 +1,4 @@
-//! Describes all the templates.
+//! Web interface templates.
 
 use crate::measurement::Measurement;
 

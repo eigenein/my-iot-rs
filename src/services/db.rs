@@ -7,13 +7,11 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-/// Database service.
 #[derive(Debug)]
 pub struct Db {
     interval: Duration,
 }
 
-/// Database sensor settings.
 #[derive(Deserialize, Debug)]
 pub struct DbSettings {
     /// Interval in milliseconds.

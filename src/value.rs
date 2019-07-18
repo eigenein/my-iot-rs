@@ -1,3 +1,5 @@
+//! Implements sensor measurement value.
+
 use humansize::FileSize;
 use rusqlite::types::*;
 use serde::{Deserialize, Serialize};
@@ -7,7 +9,7 @@ use serde::{Deserialize, Serialize};
 pub enum Value {
     /// Generic counter.
     Counter(u64),
-    /// File size.
+    /// Size in bytes.
     Size(u64),
     /// Plain text.
     Text(String),
@@ -49,7 +51,7 @@ impl markup::Render for Value {
 }
 
 impl Value {
-    /// Retrieve value color class.
+    /// Retrieve value color CSS class.
     pub fn class(&self) -> &str {
         match *self {
             Value::Text(_) | Value::Counter(_) | Value::Size(_) => "is-light",

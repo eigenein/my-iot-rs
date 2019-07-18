@@ -30,8 +30,10 @@
 <span id="30">30</span>
 <span id="31">31</span>
 <span id="32">32</span>
+<span id="33">33</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! Describes a service trait.</span>
+<span class="doccomment">//! Implements generic `Service` trait.</span>
+
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">db</span>::<span class="ident">Db</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">measurement</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">settings</span>::<span class="kw-2">*</span>;
@@ -43,11 +45,11 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">clock</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">db</span>;
 
-<span class="doccomment">/// A service.</span>
+<span class="doccomment">/// A generic service.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Service</span>: <span class="ident">Debug</span> {
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;&gt;</span>, <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">Measurement</span><span class="op">&gt;</span>);
 
-    <span class="doccomment">/// Convenience function to send measurements.</span>
+    <span class="doccomment">/// Convenience function to send multiple measurements at once.</span>
     <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tx</span>: <span class="kw-2">&amp;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">Measurement</span><span class="op">&gt;</span>, <span class="ident">measurements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Measurement</span><span class="op">&gt;</span>) {
         <span class="kw">for</span> <span class="ident">measurement</span> <span class="kw">in</span> <span class="ident">measurements</span> {
             <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">measurement</span>).<span class="ident">unwrap</span>();
@@ -55,7 +57,7 @@
     }
 }
 
-<span class="doccomment">/// Create a service from the settings.</span>
+<span class="doccomment">/// Create a service from the service settings.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">settings</span>: <span class="ident">ServiceSettings</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Service</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">settings</span> {
         <span class="ident">ServiceSettings</span>::<span class="ident">Clock</span>(<span class="ident">settings</span>) <span class="op">=&gt;</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">clock</span>::<span class="ident">Clock</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">settings</span>)),

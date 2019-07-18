@@ -9,7 +9,7 @@ pub struct Measurement {
     pub sensor: String,
     /// An attached typed value.
     pub value: Value,
-    // Timestamp.
+    /// Timestamp when the value was actually measured.
     pub timestamp: DateTime<Local>,
 }
 

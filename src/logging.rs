@@ -1,7 +1,8 @@
 //! Logging setup.
 
-/// Init logging.
+/// Initialize logging.
 pub fn init() {
+    // Set info level by default, if not specified.
     std::env::set_var(
         "RUST_LOG",
         std::env::var("RUST_LOG").unwrap_or_else(|_| String::from("info")),

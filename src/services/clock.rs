@@ -7,7 +7,6 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-/// Clock service.
 #[derive(Debug)]
 pub struct Clock {
     interval: Duration,
@@ -15,13 +14,12 @@ pub struct Clock {
     counter: u64,
 }
 
-/// Clock settings.
 #[derive(Deserialize, Debug)]
 pub struct ClockSettings {
     /// Interval in milliseconds.
     pub interval_ms: Option<u64>,
 
-    /// Sensor suffix.
+    /// Sensor suffix. Clock will yield measurements under `clock:suffix` sensor.
     pub suffix: String,
 }
 

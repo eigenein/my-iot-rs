@@ -1,10 +1,12 @@
 //! Database interface.
+
 use crate::measurement::Measurement;
 use chrono::prelude::*;
 use rusqlite::NO_PARAMS;
 
 /// A database connection.
 pub struct Db {
+    /// Wrapped SQLite connection.
     connection: rusqlite::Connection,
 }
 
@@ -28,7 +30,7 @@ pub fn new() -> Db {
 impl Db {
     /// Insert measurement into database.
     pub fn insert_measurement(&self, measurement: &Measurement) {
-        // TODO: `prepare_cached`.
+        // TODO: `prepare_cached`, see `select_size`.
         #[rustfmt::skip]
         self.connection.execute::<&[&rusqlite::ToSql]>("
             INSERT OR REPLACE INTO measurements (sensor, ts, value)
@@ -43,7 +45,7 @@ impl Db {
     /// Select latest measurement for each sensor.
     pub fn select_latest_measurements(&self) -> Vec<Measurement> {
         self.connection
-            // TODO: `prepare_cached`.
+            // TODO: `prepare_cached`, see `select_size`.
             .prepare("SELECT sensor, MAX(ts) as ts, value FROM measurements GROUP BY sensor")
             .unwrap()
             .query_map(NO_PARAMS, |row| {
@@ -58,7 +60,7 @@ impl Db {
             .collect()
     }
 
-    /// Select database size.
+    /// Select database size in bytes.
     pub fn select_size(&self) -> u64 {
         self.connection
             .prepare_cached("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()")
