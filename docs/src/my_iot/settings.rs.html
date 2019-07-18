@@ -25,8 +25,46 @@
 <span id="25">25</span>
 <span id="26">26</span>
 <span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! Settings.</span>
+<span class="doccomment">//! # Settings</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! My IoT is configured with a single YAML file</span>
+<span class="doccomment">//! which must contain exactly one [`Settings`](struct.Settings.html) object.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Example</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```yaml</span>
+<span class="doccomment">//! http_port: 8080</span>
+<span class="doccomment">//! services:</span>
+<span class="doccomment">//! - Clock:</span>
+<span class="doccomment">//!     interval_ms: 2000</span>
+<span class="doccomment">//!     suffix: heartbeat</span>
+<span class="doccomment">//! - Db:</span>
+<span class="doccomment">//!     interval_ms: 2000</span>
+<span class="doccomment">//! - Buienradar:</span>
+<span class="doccomment">//!     station_id: 6240</span>
+<span class="doccomment">//! ```</span>
+
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">services</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Deserialize</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
@@ -36,9 +74,11 @@
     <span class="ident">serde_yaml</span>::<span class="ident">from_reader</span>(<span class="ident">File</span>::<span class="ident">open</span>(<span class="string">&quot;settings.yml&quot;</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>()
 }
 
-<span class="doccomment">/// A root settings struct.</span>
+<span class="doccomment">/// Represents a root settings object.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Settings</span> {
+    <span class="doccomment">/// Web server port. It&#39;s used for the user interface as well as for webhooks.</span>
+    <span class="kw">pub</span> <span class="ident">http_port</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Configured services.</span>
     <span class="kw">pub</span> <span class="ident">services</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ServiceSettings</span><span class="op">&gt;</span>,
 }
@@ -46,11 +86,11 @@
 <span class="doccomment">/// A service configuration.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ServiceSettings</span> {
-    <span class="doccomment">/// Emits an event regularly.</span>
+    <span class="doccomment">/// Regularly emits a counter value.</span>
     <span class="ident">Clock</span>(<span class="ident">services</span>::<span class="ident">clock</span>::<span class="ident">ClockSettings</span>),
     <span class="doccomment">/// Regularly emits database information.</span>
     <span class="ident">Db</span>(<span class="ident">services</span>::<span class="ident">db</span>::<span class="ident">DbSettings</span>),
-    <span class="doccomment">/// Dutch Buienradar weather service.</span>
+    <span class="doccomment">/// Dutch [Buienradar](https://www.buienradar.nl/) weather service.</span>
     <span class="ident">Buienradar</span>(<span class="ident">services</span>::<span class="ident">buienradar</span>::<span class="ident">BuienradarSettings</span>),
 }
 </pre></div>

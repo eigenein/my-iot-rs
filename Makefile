@@ -29,4 +29,4 @@ uninstall:
 .PHONY: html docs
 html docs:
 	@cargo doc --document-private-items --no-deps
-	@cp -R target/doc docs
+	@rsync -a target/doc/ docs

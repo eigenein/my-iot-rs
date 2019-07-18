@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["init","Init logging."]]});
+initSidebarItems({"fn":[["init","Initialize logging."]]});
