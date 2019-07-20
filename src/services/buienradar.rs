@@ -205,7 +205,7 @@ mod wind_direction {
             "WNW" => Ok(Some(PointOfTheCompass::WestNorthwest)),
             "NW" => Ok(Some(PointOfTheCompass::Northwest)),
             "NNW" => Ok(Some(PointOfTheCompass::NorthNorthwest)),
-            value @ _ => Err(Error::custom(format!("could not translate wind direction: {}", value))),
+            value => Err(Error::custom(format!("could not translate wind direction: {}", value))),
         }
     }
 }
