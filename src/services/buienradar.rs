@@ -1,7 +1,7 @@
 use crate::db::Db;
 use crate::measurement::Measurement;
 use crate::services::Service;
-use crate::value::Value;
+use crate::value::{PointOfTheCompass, Value};
 use chrono::{DateTime, Local};
 use clap::crate_version;
 use reqwest::header::{HeaderMap, HeaderValue};
@@ -65,6 +65,9 @@ pub struct BuienradarStationMeasurement {
 
     #[serde(with = "date_format")]
     timestamp: DateTime<Local>,
+
+    #[serde(default, rename = "winddirection", with = "wind_direction")]
+    wind_direction: Option<PointOfTheCompass>,
 }
 
 impl Buienradar {
@@ -107,44 +110,44 @@ impl Buienradar {
             )],
         );
         if let Some(degrees) = measurement.temperature {
-            self.send(
-                &tx,
-                vec![Measurement::new(
-                    format!("buienradar:{}:temperature", self.station_id),
-                    Value::Celsius(degrees),
-                    Some(measurement.timestamp),
-                )],
-            );
+            tx.send(Measurement::new(
+                format!("buienradar:{}:temperature", self.station_id),
+                Value::Celsius(degrees),
+                Some(measurement.timestamp),
+            ))
+            .unwrap();
         }
         if let Some(degrees) = measurement.ground_temperature {
-            self.send(
-                &tx,
-                vec![Measurement::new(
-                    format!("buienradar:{}:ground_temperature", self.station_id),
-                    Value::Celsius(degrees),
-                    Some(measurement.timestamp),
-                )],
-            );
+            tx.send(Measurement::new(
+                format!("buienradar:{}:ground_temperature", self.station_id),
+                Value::Celsius(degrees),
+                Some(measurement.timestamp),
+            ))
+            .unwrap();
         }
         if let Some(degrees) = measurement.feel_temperature {
-            self.send(
-                &tx,
-                vec![Measurement::new(
-                    format!("buienradar:{}:feel_temperature", self.station_id),
-                    Value::Celsius(degrees),
-                    Some(measurement.timestamp),
-                )],
-            );
+            tx.send(Measurement::new(
+                format!("buienradar:{}:feel_temperature", self.station_id),
+                Value::Celsius(degrees),
+                Some(measurement.timestamp),
+            ))
+            .unwrap();
         }
         if let Some(bft) = measurement.wind_speed_bft {
-            self.send(
-                &tx,
-                vec![Measurement::new(
-                    format!("buienradar:{}:wind_speed_bft", self.station_id),
-                    Value::Bft(bft),
-                    Some(measurement.timestamp),
-                )],
-            );
+            tx.send(Measurement::new(
+                format!("buienradar:{}:wind_speed_bft", self.station_id),
+                Value::Bft(bft),
+                Some(measurement.timestamp),
+            ))
+            .unwrap();
+        }
+        if let Some(point) = measurement.wind_direction {
+            tx.send(Measurement::new(
+                format!("buienradar:{}:wind_direction", self.station_id),
+                Value::WindDirection(point),
+                Some(measurement.timestamp),
+            ))
+            .unwrap();
         }
     }
 }
@@ -163,8 +166,7 @@ impl Service for Buienradar {
     }
 }
 
-/// Implements Buienradar date/time format with Amsterdam timezone.
-/// See also: https://serde.rs/custom-date-format.html
+/// Implements [custom date/time format](https://serde.rs/custom-date-format.html) with Amsterdam timezone.
 mod date_format {
     use chrono::{DateTime, Local, NaiveDateTime, TimeZone};
     use chrono_tz::Europe::Amsterdam;
@@ -176,5 +178,34 @@ mod date_format {
         let string = String::deserialize(deserializer)?;
         let datetime = NaiveDateTime::parse_from_str(&string, FORMAT).unwrap();
         Ok(Amsterdam.from_local_datetime(&datetime).unwrap().with_timezone(&Local))
+    }
+}
+
+/// Translates Dutch wind direction acronyms.
+mod wind_direction {
+    use crate::value::PointOfTheCompass;
+    use serde::de::Error;
+    use serde::{self, Deserialize, Deserializer};
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<PointOfTheCompass>, D::Error> {
+        match String::deserialize(deserializer)?.as_ref() {
+            "N" => Ok(Some(PointOfTheCompass::North)),
+            "NNO" => Ok(Some(PointOfTheCompass::NorthNortheast)),
+            "NO" => Ok(Some(PointOfTheCompass::Northeast)),
+            "ONO" => Ok(Some(PointOfTheCompass::EastNortheast)),
+            "O" => Ok(Some(PointOfTheCompass::East)),
+            "OZO" => Ok(Some(PointOfTheCompass::EastSoutheast)),
+            "ZO" => Ok(Some(PointOfTheCompass::Southeast)),
+            "ZZO" => Ok(Some(PointOfTheCompass::SouthSoutheast)),
+            "Z" => Ok(Some(PointOfTheCompass::South)),
+            "ZZW" => Ok(Some(PointOfTheCompass::SouthSouthwest)),
+            "ZW" => Ok(Some(PointOfTheCompass::Southwest)),
+            "WZW" => Ok(Some(PointOfTheCompass::WestSouthwest)),
+            "W" => Ok(Some(PointOfTheCompass::West)),
+            "WNW" => Ok(Some(PointOfTheCompass::WestNorthwest)),
+            "NW" => Ok(Some(PointOfTheCompass::Northwest)),
+            "NNW" => Ok(Some(PointOfTheCompass::NorthNorthwest)),
+            value @ _ => Err(Error::custom(format!("could not translate wind direction: {}", value))),
+        }
     }
 }

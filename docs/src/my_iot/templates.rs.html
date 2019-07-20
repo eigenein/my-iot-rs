@@ -148,10 +148,24 @@
 <span id="148">148</span>
 <span id="149">149</span>
 <span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Web interface templates.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">measurement</span>::<span class="ident">Measurement</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">measurement</span>;
 
 <span class="comment">// Base page.</span>
 <span class="ident">markup</span>::<span class="macro">define</span><span class="macro">!</span> {
@@ -166,6 +180,7 @@
                 <span class="ident">link</span>[<span class="ident">rel</span> <span class="op">=</span> <span class="string">&quot;stylesheet&quot;</span>, <span class="ident">href</span> <span class="op">=</span> <span class="string">&quot;https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css&quot;</span>];
                 <span class="ident">script</span>[<span class="ident">src</span> <span class="op">=</span> <span class="string">&quot;https://kit.fontawesome.com/e88ef3598d.js&quot;</span>] {}
                 <span class="ident">script</span>[<span class="ident">src</span> <span class="op">=</span> <span class="string">&quot;https://cdn.plot.ly/plotly-1.5.0.min.js&quot;</span>] {}
+                <span class="ident">style</span> { <span class="string">&quot;.measurement { height: 100% }&quot;</span> }
             }
             <span class="ident">body</span> {
                 {<span class="ident">markup</span>::<span class="ident">raw</span>(<span class="ident">body</span>)}
@@ -175,7 +190,9 @@
                             <span class="ident">div</span>.<span class="ident">column</span>.<span class="string">&quot;is-4&quot;</span> {
                                 <span class="ident">p</span> {
                                     <span class="ident">i</span>.<span class="ident">fas</span>.<span class="string">&quot;fa-circle&quot;</span>.<span class="string">&quot;has-text-info&quot;</span> {} <span class="string">&quot; &quot;</span>
-                                    <span class="ident">a</span>[<span class="ident">href</span> <span class="op">=</span> <span class="string">&quot;https://github.com/eigenein/my-iot-rs&quot;</span>] { <span class="ident">strong</span> { <span class="string">&quot;My IoT&quot;</span> } }
+                                    <span class="ident">a</span>[<span class="ident">href</span> <span class="op">=</span> <span class="string">&quot;https://github.com/eigenein/my-iot-rs&quot;</span>] {
+                                        <span class="ident">strong</span> { <span class="string">&quot;My IoT &quot;</span> {<span class="ident">clap</span>::<span class="macro">crate_version</span><span class="macro">!</span>()} }
+                                    }
                                     <span class="string">&quot; by &quot;</span> <span class="ident">a</span>[<span class="ident">href</span> <span class="op">=</span> <span class="string">&quot;https://github.com/eigenein&quot;</span>] { <span class="ident">strong</span> { <span class="string">&quot;eigenein&quot;</span> } }
                                 }
                                 <span class="ident">p</span> {
@@ -231,19 +248,28 @@
 
                 <span class="ident">div</span>#<span class="string">&quot;navbar-menu&quot;</span>.<span class="string">&quot;navbar-menu&quot;</span> {
                     <span class="ident">div</span>.<span class="string">&quot;navbar-start&quot;</span> {
-                        <span class="ident">a</span>.<span class="string">&quot;navbar-item&quot;</span>[<span class="ident">href</span> <span class="op">=</span> <span class="string">&quot;/&quot;</span>] { <span class="string">&quot;Home&quot;</span> }
-                        <span class="ident">a</span>.<span class="string">&quot;navbar-item&quot;</span>[<span class="ident">href</span> <span class="op">=</span> <span class="string">&quot;/services&quot;</span>] { <span class="string">&quot;Services&quot;</span> }
-                        <span class="ident">a</span>.<span class="string">&quot;navbar-item&quot;</span>[<span class="ident">href</span> <span class="op">=</span> <span class="string">&quot;/measurements&quot;</span>] { <span class="string">&quot;Measurements&quot;</span> }
+                        <span class="ident">a</span>.<span class="string">&quot;navbar-item&quot;</span>[<span class="ident">href</span> <span class="op">=</span> <span class="string">&quot;/&quot;</span>] {
+                            <span class="ident">span</span>.<span class="ident">icon</span> { <span class="ident">i</span>.<span class="ident">fas</span>.<span class="string">&quot;fa-home&quot;</span> {} }
+                            <span class="ident">span</span> { <span class="string">&quot;Home&quot;</span> }
+                        }
+                        <span class="ident">a</span>.<span class="string">&quot;navbar-item&quot;</span>[<span class="ident">href</span> <span class="op">=</span> <span class="string">&quot;/services&quot;</span>] {
+                            <span class="ident">span</span>.<span class="ident">icon</span> { <span class="ident">i</span>.<span class="ident">fas</span>.<span class="string">&quot;fa-cog&quot;</span> {} }
+                            <span class="ident">span</span> { <span class="string">&quot;Services&quot;</span> }
+                        }
+                        <span class="ident">a</span>.<span class="string">&quot;navbar-item&quot;</span>[<span class="ident">href</span> <span class="op">=</span> <span class="string">&quot;/sensors&quot;</span>] {
+                            <span class="ident">span</span>.<span class="ident">icon</span> { <span class="ident">i</span>.<span class="ident">fas</span>.<span class="string">&quot;fa-chart-line&quot;</span> {} }
+                            <span class="ident">span</span> { <span class="string">&quot;Sensors&quot;</span> }
+                        }
+                        <span class="ident">a</span>.<span class="string">&quot;navbar-item&quot;</span>[<span class="ident">href</span> <span class="op">=</span> <span class="string">&quot;/measurements&quot;</span>] {
+                            <span class="ident">span</span>.<span class="ident">icon</span> { <span class="ident">i</span>.<span class="ident">fas</span>.<span class="string">&quot;fa-ruler-combined&quot;</span> {} }
+                            <span class="ident">span</span> { <span class="string">&quot;Measurements&quot;</span> }
+                        }
                     }
 
                     <span class="ident">div</span>.<span class="string">&quot;navbar-end&quot;</span> {
-                        <span class="ident">a</span>.<span class="string">&quot;navbar-item&quot;</span>[<span class="ident">href</span> <span class="op">=</span> <span class="string">&quot;https://github.com/eigenein/my-iot-rs/wiki&quot;</span>] {
-                            <span class="ident">span</span>.<span class="ident">icon</span> {
-                                <span class="ident">i</span>.<span class="ident">fas</span>.<span class="string">&quot;fa-external-link-alt&quot;</span> {}
-                            }
-                            <span class="ident">span</span> {
-                                <span class="string">&quot;Wiki&quot;</span>
-                            }
+                        <span class="ident">a</span>.<span class="string">&quot;navbar-item&quot;</span>[<span class="ident">href</span> <span class="op">=</span> <span class="string">&quot;https://eigenein.github.io/my-iot-rs/my_iot/&quot;</span>] {
+                            <span class="ident">span</span>.<span class="ident">icon</span> { <span class="ident">i</span>.<span class="ident">fas</span>.<span class="string">&quot;fa-external-link-alt&quot;</span> {} }
+                            <span class="ident">span</span> { <span class="string">&quot;Docs&quot;</span> }
                         }
                     }
                 }
@@ -254,7 +280,7 @@
 
 <span class="comment">// Index page.</span>
 <span class="ident">markup</span>::<span class="macro">define</span><span class="macro">!</span> {
-    <span class="ident">Index</span>(<span class="ident">measurements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Measurement</span><span class="op">&gt;</span>) {
+    <span class="ident">Index</span>(<span class="ident">measurements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">measurement</span>::<span class="ident">Measurement</span><span class="op">&gt;</span>) {
         <span class="ident">section</span>.<span class="ident">hero</span>.<span class="string">&quot;is-info&quot;</span> {
             <span class="ident">div</span>.<span class="string">&quot;hero-head&quot;</span> { {<span class="ident">NavBar</span> {}} }
             <span class="ident">div</span>.<span class="string">&quot;hero-body&quot;</span> {
@@ -270,9 +296,9 @@
         }
         <span class="ident">section</span>.<span class="ident">section</span> {
             <span class="ident">div</span>.<span class="ident">container</span> {
-                <span class="ident">div</span>.<span class="ident">tile</span>.<span class="string">&quot;is-ancestor&quot;</span> {
+                <span class="ident">div</span>.<span class="ident">columns</span>.<span class="string">&quot;is-multiline&quot;</span> {
                     @<span class="kw">for</span> <span class="ident">measurement</span> <span class="kw">in</span> {<span class="ident">measurements</span>} {
-                        {<span class="ident">Tile</span> { <span class="ident">measurement</span> }}
+                        {<span class="ident">Measurement</span> { <span class="ident">measurement</span> }}
                     }
                 }
             }
@@ -280,20 +306,22 @@
     }
 }
 
-<span class="comment">// Sensor tile.</span>
+<span class="comment">// Sensor.</span>
 <span class="comment">// TODO: title should be human-readable.</span>
 <span class="ident">markup</span>::<span class="macro">define</span><span class="macro">!</span> {
-    <span class="ident">Tile</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">measurement</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Measurement</span>) {
-        <span class="ident">div</span>.<span class="ident">tile</span>.<span class="string">&quot;is-parent&quot;</span>.<span class="string">&quot;is-3&quot;</span> {
-            <span class="ident">a</span>.<span class="ident">tile</span>.<span class="string">&quot;is-child&quot;</span>.<span class="ident">notification</span>.{<span class="ident">measurement</span>.<span class="ident">value</span>.<span class="ident">class</span>()}[<span class="ident">href</span> <span class="op">=</span> {<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/sensor/{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">sensor</span>)} ] {
-                <span class="ident">p</span>.<span class="ident">title</span>.<span class="string">&quot;is-6&quot;</span>[<span class="ident">title</span> <span class="op">=</span> {<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">sensor</span>}] {
-                    {<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">sensor</span>}
-                }
-                <span class="ident">p</span>.<span class="ident">subtitle</span>.<span class="string">&quot;is-7&quot;</span>[<span class="ident">title</span> <span class="op">=</span> {<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">timestamp</span>.<span class="ident">to_string</span>()}] {
-                    {<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">timestamp</span>.<span class="ident">format</span>(<span class="string">&quot;%b %d, %H:%M:%S&quot;</span>).<span class="ident">to_string</span>()}
-                }
-                <span class="ident">p</span>.<span class="string">&quot;has-text-centered&quot;</span>.<span class="string">&quot;has-text-weight-bold&quot;</span>[<span class="ident">title</span> <span class="op">=</span> {<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">value</span>)}] {
-                    {<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">value</span>}
+    <span class="ident">Measurement</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">measurement</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">measurement</span>::<span class="ident">Measurement</span>) {
+        <span class="ident">div</span>.<span class="string">&quot;column&quot;</span>.<span class="string">&quot;is-one-quarter&quot;</span> {
+            <span class="ident">a</span>[<span class="ident">href</span> <span class="op">=</span> {<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/sensors/{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">sensor</span>)} ] {
+                <span class="ident">div</span>.<span class="ident">notification</span>.<span class="ident">measurement</span>.{<span class="ident">measurement</span>.<span class="ident">value</span>.<span class="ident">class</span>()} {
+                    <span class="ident">p</span>.<span class="ident">title</span>.<span class="string">&quot;is-6&quot;</span>[<span class="ident">title</span> <span class="op">=</span> {<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">sensor</span>}] {
+                        {<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">sensor</span>}
+                    }
+                    <span class="ident">p</span>.<span class="ident">subtitle</span>.<span class="string">&quot;is-7&quot;</span>[<span class="ident">title</span> <span class="op">=</span> {<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">timestamp</span>.<span class="ident">to_string</span>()}] {
+                        {<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">timestamp</span>.<span class="ident">format</span>(<span class="string">&quot;%b %d, %H:%M:%S&quot;</span>).<span class="ident">to_string</span>()}
+                    }
+                    <span class="ident">p</span>.<span class="string">&quot;has-text-centered&quot;</span>.<span class="string">&quot;has-text-weight-bold&quot;</span>[<span class="ident">title</span> <span class="op">=</span> {<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">value</span>)}] {
+                        {<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">value</span>}
+                    }
                 }
             }
         }

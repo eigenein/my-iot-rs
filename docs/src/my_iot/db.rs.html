@@ -69,12 +69,30 @@
 <span id="69">69</span>
 <span id="70">70</span>
 <span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Database interface.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">measurement</span>::<span class="ident">Measurement</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">value</span>::<span class="ident">Value</span>;
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">rusqlite</span>::<span class="ident">NO_PARAMS</span>;
+<span class="kw">use</span> <span class="ident">rusqlite</span>::<span class="ident">types</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">rusqlite</span>::{<span class="ident">ToSql</span>, <span class="ident">NO_PARAMS</span>};
 
 <span class="doccomment">/// A database connection.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Db</span> {
@@ -97,6 +115,20 @@
     &quot;</span>).<span class="ident">unwrap</span>();
 
     <span class="ident">Db</span> { <span class="ident">connection</span> }
+}
+
+<span class="kw">impl</span> <span class="ident">ToSql</span> <span class="kw">for</span> <span class="ident">Value</span> {
+    <span class="kw">fn</span> <span class="ident">to_sql</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">rusqlite</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ToSqlOutput</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">ToSqlOutput</span>::<span class="ident">Owned</span>(<span class="ident">rusqlite</span>::<span class="ident">types</span>::<span class="ident">Value</span>::<span class="ident">Text</span>(
+            <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>).<span class="ident">unwrap</span>(),
+        )))
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">FromSql</span> <span class="kw">for</span> <span class="ident">Value</span> {
+    <span class="kw">fn</span> <span class="ident">column_result</span>(<span class="ident">value</span>: <span class="ident">ValueRef</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">FromSqlError</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">serde_json</span>::<span class="ident">from_str</span>(<span class="ident">value</span>.<span class="ident">as_str</span>().<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>())
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">Db</span> {

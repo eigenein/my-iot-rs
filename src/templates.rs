@@ -25,7 +25,9 @@ markup::define! {
                             div.column."is-4" {
                                 p {
                                     i.fas."fa-circle"."has-text-info" {} " "
-                                    a[href = "https://github.com/eigenein/my-iot-rs"] { strong { "My IoT" } }
+                                    a[href = "https://github.com/eigenein/my-iot-rs"] {
+                                        strong { "My IoT " {clap::crate_version!()} }
+                                    }
                                     " by " a[href = "https://github.com/eigenein"] { strong { "eigenein" } }
                                 }
                                 p {
@@ -81,19 +83,28 @@ markup::define! {
 
                 div#"navbar-menu"."navbar-menu" {
                     div."navbar-start" {
-                        a."navbar-item"[href = "/"] { "Home" }
-                        a."navbar-item"[href = "/services"] { "Services" }
-                        a."navbar-item"[href = "/measurements"] { "Measurements" }
+                        a."navbar-item"[href = "/"] {
+                            span.icon { i.fas."fa-home" {} }
+                            span { "Home" }
+                        }
+                        a."navbar-item"[href = "/services"] {
+                            span.icon { i.fas."fa-cog" {} }
+                            span { "Services" }
+                        }
+                        a."navbar-item"[href = "/sensors"] {
+                            span.icon { i.fas."fa-chart-line" {} }
+                            span { "Sensors" }
+                        }
+                        a."navbar-item"[href = "/measurements"] {
+                            span.icon { i.fas."fa-ruler-combined" {} }
+                            span { "Measurements" }
+                        }
                     }
 
                     div."navbar-end" {
                         a."navbar-item"[href = "https://eigenein.github.io/my-iot-rs/my_iot/"] {
-                            span.icon {
-                                i.fas."fa-external-link-alt" {}
-                            }
-                            span {
-                                "Documentation"
-                            }
+                            span.icon { i.fas."fa-external-link-alt" {} }
+                            span { "Docs" }
                         }
                     }
                 }

@@ -1,8 +1,10 @@
 //! Database interface.
 
 use crate::measurement::Measurement;
+use crate::value::Value;
 use chrono::prelude::*;
-use rusqlite::NO_PARAMS;
+use rusqlite::types::*;
+use rusqlite::{ToSql, NO_PARAMS};
 
 /// A database connection.
 pub struct Db {
@@ -25,6 +27,20 @@ pub fn new() -> Db {
     ").unwrap();
 
     Db { connection }
+}
+
+impl ToSql for Value {
+    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput> {
+        Ok(ToSqlOutput::Owned(rusqlite::types::Value::Text(
+            serde_json::to_string(&self).unwrap(),
+        )))
+    }
+}
+
+impl FromSql for Value {
+    fn column_result(value: ValueRef) -> Result<Self, FromSqlError> {
+        Ok(serde_json::from_str(value.as_str().unwrap()).unwrap())
+    }
 }
 
 impl Db {

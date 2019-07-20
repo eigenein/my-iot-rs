@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Base",""],["Index",""],["NavBar",""],["Tile",""]]});
+initSidebarItems({"struct":[["Base",""],["Index",""],["Measurement",""],["NavBar",""]]});
