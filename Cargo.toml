@@ -17,7 +17,7 @@ travis-ci = { repository = "eigenein/my-iot-rs" }
 [dependencies]
 chrono = { version = "0.4", features = ["serde"] }
 chrono-tz = { version = "0.5.1", features = ["serde"] }
-openssl = { version = "0.10", features = ["vendored"] }
+openssl = { version = "0.10" }
 humansize = "1.1.0"
 # CLI.
 clap = "2.33.0"
