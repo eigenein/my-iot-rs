@@ -74,6 +74,23 @@
 <span id="74">74</span>
 <span id="75">75</span>
 <span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Getting started</span>
 <span class="doccomment">//!</span>
@@ -94,6 +111,23 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Then, you&#39;ll need to create a configuration file `settings.yml`. It must contain exactly one object,</span>
 <span class="doccomment">//! please read the [`settings`](settings/index.html) documentation.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## OpenSSL</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Compiling My IoT may require you to install `pkg-config` and OpenSSL. Most likely, `libssl-dev`</span>
+<span class="doccomment">//! is not installed by default on Raspbian.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! See https://docs.rs/openssl/0.10.24/openssl/#automatic for more information.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## File capabilities</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! If you&#39;re not using `make`, you may need to manually set capabilities on the produced binary:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```sh</span>
+<span class="doccomment">//! setcap cap_net_raw+ep /usr/local/bin/my-iot</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This is needed to use some low-level protocols (for instance, ICMP) as a non-root user.</span>
 
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">info</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
