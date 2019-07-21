@@ -53,7 +53,7 @@ impl Value {
                 _ if 15.0 <= value && value < 25.0 => "is-success",
                 _ => panic!("value {} is not covered", value),
             },
-            Value::WindDirection(_) => "is-light", // TODO
+            Value::WindDirection(_) => "is-light",
         }
     }
 }
