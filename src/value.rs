@@ -36,7 +36,7 @@ impl markup::Render for Value {
             Value::Text(ref string) => write!(f, r#"<i class="fas fa-quote-left"></i> {}"#, string),
             Value::Celsius(degrees) => write!(f, r#"<i class="fas fa-thermometer-half"></i> {:.1} ℃"#, degrees),
             Value::Bft(bft) => write!(f, r#"<i class="fas fa-wind"></i> {} BFT"#, bft),
-            Value::WindDirection(point) => write!(f, r#"<i class="fas fa-wind"></i> {}"#, point), // TODO
+            Value::WindDirection(point) => write!(f, r#"<i class="fas fa-wind"></i> {}"#, point),
         }
     }
 }
@@ -46,12 +46,20 @@ impl Value {
     pub fn class(&self) -> &str {
         match *self {
             Value::Text(_) | Value::Counter(_) | Value::Size(_) => "is-light",
-            Value::Bft(_) => "is-light", // TODO
+            Value::Bft(number) => match number {
+                0 => "is-light",
+                1 ... 3 => "is-success",
+                4 ... 5 => "is-warning",
+                _ => "is-danger",
+            },
             Value::Celsius(value) => match value {
-                // TODO
+                _ if value < -5.0 => "is-link",
+                _ if -5.0 <= value && value < 5.0 => "is-info",
                 _ if 5.0 <= value && value < 15.0 => "is-primary",
                 _ if 15.0 <= value && value < 25.0 => "is-success",
-                _ => panic!("value {} is not covered", value),
+                _ if 25.0 <= value && value < 30.0 => "is-warning",
+                _ if 30.0 <= value => "is-danger",
+                _ => unreachable!(),
             },
             Value::WindDirection(_) => "is-light",
         }
@@ -100,8 +108,12 @@ impl Display for PointOfTheCompass {
         match self {
             PointOfTheCompass::North => write!(f, "North"),
             PointOfTheCompass::NorthNortheast => write!(f, "North-northeast"),
+            PointOfTheCompass::Northeast => write!(f, "Northeast"),
+            PointOfTheCompass::EastNortheast => write!(f, "East-northeast"),
+            PointOfTheCompass::East => write!(f, "East"),
             // TODO
             PointOfTheCompass::SouthSouthwest => write!(f, "South-southwest"),
+            // TODO
             _ => write!(f, "{:?}", self),
         }
     }
