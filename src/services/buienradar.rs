@@ -68,6 +68,9 @@ pub struct BuienradarStationMeasurement {
 
     #[serde(default, rename = "winddirection", with = "wind_direction")]
     wind_direction: Option<PointOfTheCompass>,
+
+    #[serde(rename = "weatherdescription")]
+    weather_description: String,
 }
 
 impl Buienradar {
@@ -103,11 +106,18 @@ impl Buienradar {
     fn send_measurements(&self, measurement: BuienradarStationMeasurement, tx: &Sender<Measurement>) {
         self.send(
             &tx,
-            vec![Measurement::new(
-                format!("buienradar:{}:name", self.station_id),
-                Value::Text(measurement.name.clone()),
-                Some(measurement.timestamp),
-            )],
+            vec![
+                Measurement::new(
+                    format!("buienradar:{}:name", self.station_id),
+                    Value::Text(measurement.name.clone()),
+                    Some(measurement.timestamp),
+                ),
+                Measurement::new(
+                    format!("buienradar:{}:weather_description", self.station_id),
+                    Value::Text(measurement.weather_description.clone()),
+                    Some(measurement.timestamp),
+                ),
+            ],
         );
         if let Some(degrees) = measurement.temperature {
             tx.send(Measurement::new(
