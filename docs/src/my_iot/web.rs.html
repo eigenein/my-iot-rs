@@ -29,7 +29,7 @@
 <span class="doccomment">//! Implements web server.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">db</span>::<span class="ident">Db</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">templates</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">templates</span>::{<span class="ident">base</span>::<span class="ident">Base</span>, <span class="ident">index</span>::<span class="ident">Index</span>};
 <span class="kw">use</span> <span class="ident">rouille</span>::{<span class="ident">router</span>, <span class="ident">Response</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::{<span class="ident">IpAddr</span>, <span class="ident">Ipv4Addr</span>, <span class="ident">SocketAddr</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};

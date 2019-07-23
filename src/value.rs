@@ -48,8 +48,8 @@ impl Value {
             Value::Text(_) | Value::Counter(_) | Value::Size(_) => "is-light",
             Value::Bft(number) => match number {
                 0 => "is-light",
-                1 ... 3 => "is-success",
-                4 ... 5 => "is-warning",
+                1...3 => "is-success",
+                4...5 => "is-warning",
                 _ => "is-danger",
             },
             Value::Celsius(value) => match value {

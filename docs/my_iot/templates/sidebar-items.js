@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Base",""],["Index",""],["Measurement",""],["NavBar",""]]});
+initSidebarItems({"mod":[["base","Page base."],["index","Home page."],["measurement","Renders single measurement on the sensors page."],["navbar",""]]});

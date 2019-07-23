@@ -1,7 +1,7 @@
 //! Implements web server.
 
 use crate::db::Db;
-use crate::templates::*;
+use crate::templates::{base::Base, index::Index};
 use rouille::{router, Response};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::{Arc, Mutex};
