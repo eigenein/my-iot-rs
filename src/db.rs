@@ -47,23 +47,22 @@ impl FromSql for Value {
 impl Db {
     /// Insert measurement into database.
     pub fn insert_measurement(&self, measurement: &Measurement) {
-        // TODO: `prepare_cached`, see `select_size`.
         #[rustfmt::skip]
-        self.connection.execute::<&[&dyn rusqlite::ToSql]>("
-            INSERT OR REPLACE INTO measurements (sensor, ts, value)
-            VALUES (?1, ?2, ?3)
-        ", &[
-            &measurement.sensor,
-            &measurement.timestamp.timestamp_millis(),
-            &measurement.value,
-        ]).unwrap();
+        self.connection
+            .prepare_cached("INSERT OR REPLACE INTO measurements (sensor, ts, value) VALUES (?1, ?2, ?3)")
+            .unwrap()
+            .execute::<&[&dyn rusqlite::ToSql]>(&[
+                &measurement.sensor,
+                &measurement.timestamp.timestamp_millis(),
+                &measurement.value,
+            ])
+            .unwrap();
     }
 
     /// Select latest measurement for each sensor.
     pub fn select_latest_measurements(&self) -> Vec<Measurement> {
         self.connection
-            // TODO: `prepare_cached`, see `select_size`.
-            .prepare("SELECT sensor, MAX(ts) as ts, value FROM measurements GROUP BY sensor")
+            .prepare_cached("SELECT sensor, MAX(ts) as ts, value FROM measurements GROUP BY sensor")
             .unwrap()
             .query_map(NO_PARAMS, |row| {
                 Ok(Measurement {
