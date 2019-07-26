@@ -23,7 +23,8 @@ pub fn new() -> Db {
             ts INTEGER NOT NULL,
             value TEXT NOT NULL
         );
-        CREATE UNIQUE INDEX IF NOT EXISTS measurements_sensor_ts ON measurements (sensor, ts);
+        -- Descending index on `ts` is needed to speed up the select latest queries.
+        CREATE UNIQUE INDEX IF NOT EXISTS measurements_sensor_ts ON measurements (sensor, ts DESC);
     ").unwrap();
 
     Db { connection }
@@ -48,7 +49,7 @@ impl Db {
     pub fn insert_measurement(&self, measurement: &Measurement) {
         // TODO: `prepare_cached`, see `select_size`.
         #[rustfmt::skip]
-        self.connection.execute::<&[&rusqlite::ToSql]>("
+        self.connection.execute::<&[&dyn rusqlite::ToSql]>("
             INSERT OR REPLACE INTO measurements (sensor, ts, value)
             VALUES (?1, ?2, ?3)
         ", &[
