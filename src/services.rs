@@ -12,7 +12,7 @@ pub mod clock;
 pub mod db;
 
 /// A generic service.
-pub trait Service: Debug {
+pub trait Service: Debug + Send {
     fn run(&mut self, db: Arc<Mutex<Db>>, tx: Sender<Measurement>);
 
     /// Convenience function to send multiple measurements at once.
@@ -24,10 +24,10 @@ pub trait Service: Debug {
 }
 
 /// Create a service from the service settings.
-pub fn new(settings: ServiceSettings) -> Box<dyn Service> {
+pub fn new(settings: &ServiceSettings) -> Box<dyn Service> {
     match settings {
-        ServiceSettings::Clock(settings) => Box::new(clock::Clock::new(&settings)),
-        ServiceSettings::Db(settings) => Box::new(db::Db::new(&settings)),
-        ServiceSettings::Buienradar(settings) => Box::new(buienradar::Buienradar::new(&settings)),
+        ServiceSettings::Clock(settings) => Box::new(clock::Clock::new(settings)),
+        ServiceSettings::Db(settings) => Box::new(db::Db::new(settings)),
+        ServiceSettings::Buienradar(settings) => Box::new(buienradar::Buienradar::new(settings)),
     }
 }

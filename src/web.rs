@@ -30,6 +30,11 @@ pub fn start_server(port: u16, db: Arc<Mutex<Db>>) {
                         body: Box::new(sensor::Sensor { last }),
                     }.to_string())
                 },
+                (GET) (/services) => {
+                    Response::html(base::Base {
+                        body: Box::new(services::Services { }),
+                    }.to_string())
+                },
                 _ => Response::empty_404(),
             )
         },

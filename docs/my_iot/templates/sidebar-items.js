@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["base","Page base."],["index","Home page."],["measurement","Renders single measurement on the sensors page."],["navbar",""]]});
+initSidebarItems({"constant":[["DATE_FORMAT",""]],"mod":[["base","Page base."],["index","Home page."],["measurement","Renders single measurement on the sensors page."],["navbar",""],["sensor","Sensor page."],["services","Services overview page."]]});
