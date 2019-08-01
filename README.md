@@ -11,6 +11,12 @@ Yet another home automation. Written in Rust.
 - I want it to be as less configurable as possible
 - I want it to run fast on my Raspberry Pi Zero W
 
-## Getting Started
+## Getting started
 
 Check out the [crate documentation](https://eigenein.github.io/my-iot-rs/my_iot/).
+
+## How it looks like
+
+*Disclaimer: the screenshot may become outdated at some moment because of active development.*
+
+![Screenshot](README.png)
