@@ -83,9 +83,7 @@ fn main() {
     info!("Starting measurement receiver…");
     {
         let db = db.clone();
-        thread::spawn(move || {
-            receiver::run(rx, db);
-        });
+        thread::spawn(move || receiver::run(rx, db));
     }
 
     info!("Starting web server…");
