@@ -1,6 +1,7 @@
 //! Implements web server.
 
 use crate::db::Db;
+use crate::statics;
 use crate::templates::*;
 use chrono::prelude::*;
 use chrono::Duration;
@@ -14,7 +15,7 @@ pub fn start_server(port: u16, db: Arc<Mutex<Db>>) {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), port),
         move |request| {
             router!(request,
-                (GET) (/) => {
+                (GET) ["/"] => {
                     let measurements = {
                         db.lock().unwrap().select_latest_measurements()
                     };
@@ -22,7 +23,7 @@ pub fn start_server(port: u16, db: Arc<Mutex<Db>>) {
                         body: Box::new(index::Index { measurements }),
                     }.to_string())
                 },
-                (GET) (/sensors/{sensor: String}) => {
+                (GET) ["/sensors/{sensor}", sensor: String] => {
                     let (last, _measurements) = {
                         db.lock().unwrap().select_sensor_measurements(&sensor, &(Local::now() - Duration::minutes(5)))
                     };
@@ -30,10 +31,13 @@ pub fn start_server(port: u16, db: Arc<Mutex<Db>>) {
                         body: Box::new(sensor::Sensor { last }),
                     }.to_string())
                 },
-                (GET) (/services) => {
+                (GET) ["/services"] => {
                     Response::html(base::Base {
                         body: Box::new(services::Services { }),
                     }.to_string())
+                },
+                (GET) ["/favicon.ico"] => {
+                    Response::from_data("image/x-icon", statics::FAVICON.to_vec())
                 },
                 _ => Response::empty_404(),
             )

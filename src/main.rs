@@ -45,6 +45,7 @@ pub mod measurement;
 pub mod receiver;
 pub mod services;
 pub mod settings;
+pub mod statics;
 pub mod templates;
 pub mod value;
 pub mod web;
