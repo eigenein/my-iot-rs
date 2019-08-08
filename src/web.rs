@@ -36,9 +36,10 @@ pub fn start_server(port: u16, db: Arc<Mutex<Db>>) {
                         body: Box::new(services::Services { }),
                     }.to_string())
                 },
-                (GET) ["/favicon.ico"] => {
-                    Response::from_data("image/x-icon", statics::FAVICON.to_vec())
-                },
+                (GET) ["/favicon.ico"] => Response::from_data("image/x-icon", statics::FAVICON.to_vec()),
+                (GET) ["/apple-touch-icon.png"] => Response::from_data("image/png", statics::APPLE_TOUCH_ICON.to_vec()),
+                (GET) ["/favicon-32x32.png"] => Response::from_data("image/png", statics::FAVICON_32.to_vec()),
+                (GET) ["/favicon-16x16.png"] => Response::from_data("image/png", statics::FAVICON_16.to_vec()),
                 _ => Response::empty_404(),
             )
         },
