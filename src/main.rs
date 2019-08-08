@@ -35,7 +35,12 @@
 //!
 //! This is needed to use some low-level protocols (for instance, ICMP) as a non-root user.
 
+use crate::db::Db;
+use crate::measurement::Measurement;
+use crate::services::Service;
+use crate::settings::Settings;
 use log::{debug, info};
+use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 use std::{sync::mpsc::channel, thread};
 
@@ -70,22 +75,7 @@ fn main() {
 
     info!("Starting services…");
     let (tx, rx) = channel();
-    for (service_id, settings) in settings.services.iter() {
-        info!("Starting service `{}`…", service_id);
-        debug!("Settings `{}`: {:?}", service_id, settings);
-        let mut service = services::new(settings);
-        let db = db.clone();
-        let tx = tx.clone();
-        let service_id = service_id.clone();
-        thread::Builder::new()
-            .name(service_id.clone())
-            .spawn(move || {
-                info!("Running service `{}`…", service_id);
-                debug!("State `{}`: {:?}", service_id, &service);
-                service.run(db, tx);
-            })
-            .unwrap();
-    }
+    start_services(&settings, &db, tx);
 
     info!("Starting measurement receiver…");
     {
@@ -95,4 +85,25 @@ fn main() {
 
     info!("Starting web server…");
     web::start_server(settings.http_port.unwrap_or(8081), db.clone());
+}
+
+/// Start all configured services.
+fn start_services(settings: &Settings, db: &Arc<Mutex<Db>>, tx: Sender<Measurement>) {
+    for (service_id, settings) in settings.services.iter() {
+        info!("Starting service `{}`…", service_id);
+        debug!("Settings `{}`: {:?}", service_id, settings);
+        start_service(service_id.clone(), services::new(settings), db.clone(), tx.clone());
+    }
+}
+
+/// Start a single service.
+fn start_service(service_id: String, mut service: Box<dyn Service>, db: Arc<Mutex<Db>>, tx: Sender<Measurement>) {
+    thread::Builder::new()
+        .name(service_id.clone())
+        .spawn(move || {
+            info!("Running service `{}`…", service_id);
+            debug!("State `{}`: {:?}", service_id, &service);
+            service.run(db, tx);
+        })
+        .unwrap();
 }
