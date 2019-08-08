@@ -8,14 +8,14 @@
 //! ```yaml
 //! http_port: 8080
 //! services:
-//!   clock:
+//!   heart_beatclock:
 //!     Clock:
 //!       interval_ms: 2000
 //!       suffix: heartbeat
 //!   database:
 //!     Db:
 //!       interval_ms: 2000
-//!   buienradar:
+//!   schiphol_buienradar:
 //!     Buienradar:
 //!       station_id: 6240
 //! ```

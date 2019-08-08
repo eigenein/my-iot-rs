@@ -45,6 +45,10 @@
 <span id="45">45</span>
 <span id="46">46</span>
 <span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Settings</span>
 <span class="doccomment">//!</span>
@@ -56,17 +60,21 @@
 <span class="doccomment">//! ```yaml</span>
 <span class="doccomment">//! http_port: 8080</span>
 <span class="doccomment">//! services:</span>
-<span class="doccomment">//! - Clock:</span>
-<span class="doccomment">//!     interval_ms: 2000</span>
-<span class="doccomment">//!     suffix: heartbeat</span>
-<span class="doccomment">//! - Db:</span>
-<span class="doccomment">//!     interval_ms: 2000</span>
-<span class="doccomment">//! - Buienradar:</span>
-<span class="doccomment">//!     station_id: 6240</span>
+<span class="doccomment">//!   heart_beatclock:</span>
+<span class="doccomment">//!     Clock:</span>
+<span class="doccomment">//!       interval_ms: 2000</span>
+<span class="doccomment">//!       suffix: heartbeat</span>
+<span class="doccomment">//!   database:</span>
+<span class="doccomment">//!     Db:</span>
+<span class="doccomment">//!       interval_ms: 2000</span>
+<span class="doccomment">//!   schiphol_buienradar:</span>
+<span class="doccomment">//!     Buienradar:</span>
+<span class="doccomment">//!       station_id: 6240</span>
 <span class="doccomment">//! ```</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">services</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Deserialize</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
 
 <span class="doccomment">/// Read the settings file.</span>
@@ -80,7 +88,7 @@
     <span class="doccomment">/// Web server port. It&#39;s used for the user interface as well as for webhooks.</span>
     <span class="kw">pub</span> <span class="ident">http_port</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Configured services.</span>
-    <span class="kw">pub</span> <span class="ident">services</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ServiceSettings</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">services</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">ServiceSettings</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// A service configuration.</span>
