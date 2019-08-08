@@ -31,3 +31,5 @@ pub fn new(settings: &ServiceSettings) -> Box<dyn Service> {
         ServiceSettings::Buienradar(settings) => Box::new(buienradar::Buienradar::new(settings)),
     }
 }
+
+pub struct ServiceStatus {}

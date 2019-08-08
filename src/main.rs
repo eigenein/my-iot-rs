@@ -37,10 +37,11 @@
 
 use crate::db::Db;
 use crate::measurement::Measurement;
-use crate::services::Service;
+use crate::services::{Service, ServiceStatus};
 use crate::settings::Settings;
 use log::{debug, info};
-use std::sync::mpsc::Sender;
+use std::collections::HashMap;
+use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::{sync::mpsc::channel, thread};
 
@@ -78,22 +79,28 @@ fn main() {
     start_services(&settings, &db, &tx);
 
     info!("Starting measurement receiver…");
-    {
-        let db = db.clone();
-        thread::spawn(move || receiver::run(rx, db));
-    }
+    start_measurement_receiver(rx, db.clone());
 
     info!("Starting web server…");
     web::start_server(settings.http_port.unwrap_or(8081), db.clone());
 }
 
 /// Start all configured services.
-fn start_services(settings: &Settings, db: &Arc<Mutex<Db>>, tx: &Sender<Measurement>) {
-    for (service_id, settings) in settings.services.iter() {
-        info!("Starting service `{}`…", service_id);
-        debug!("Settings `{}`: {:?}", service_id, settings);
-        start_service(service_id.clone(), services::new(settings), db.clone(), tx.clone());
-    }
+fn start_services(
+    settings: &Settings,
+    db: &Arc<Mutex<Db>>,
+    tx: &Sender<Measurement>,
+) -> HashMap<String, ServiceStatus> {
+    settings
+        .services
+        .iter()
+        .map(|(service_id, settings)| {
+            info!("Starting service `{}`…", service_id);
+            debug!("Settings `{}`: {:?}", service_id, settings);
+            start_service(service_id.clone(), services::new(settings), db.clone(), tx.clone());
+            (service_id.clone(), ServiceStatus {})
+        })
+        .collect()
 }
 
 /// Start a single service.
@@ -106,4 +113,9 @@ fn start_service(service_id: String, mut service: Box<dyn Service>, db: Arc<Mute
             service.run(db, tx);
         })
         .unwrap();
+}
+
+/// Start measurement receiver thread.
+fn start_measurement_receiver(rx: Receiver<Measurement>, db: Arc<Mutex<Db>>) {
+    thread::spawn(move || receiver::run(rx, db));
 }
