@@ -75,7 +75,7 @@ fn main() {
 
     info!("Starting services…");
     let (tx, rx) = channel();
-    start_services(&settings, &db, tx);
+    start_services(&settings, &db, &tx);
 
     info!("Starting measurement receiver…");
     {
@@ -88,7 +88,7 @@ fn main() {
 }
 
 /// Start all configured services.
-fn start_services(settings: &Settings, db: &Arc<Mutex<Db>>, tx: Sender<Measurement>) {
+fn start_services(settings: &Settings, db: &Arc<Mutex<Db>>, tx: &Sender<Measurement>) {
     for (service_id, settings) in settings.services.iter() {
         info!("Starting service `{}`…", service_id);
         debug!("Settings `{}`: {:?}", service_id, settings);
