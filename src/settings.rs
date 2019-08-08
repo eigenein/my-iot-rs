@@ -8,17 +8,21 @@
 //! ```yaml
 //! http_port: 8080
 //! services:
-//! - Clock:
-//!     interval_ms: 2000
-//!     suffix: heartbeat
-//! - Db:
-//!     interval_ms: 2000
-//! - Buienradar:
-//!     station_id: 6240
+//!   clock:
+//!     Clock:
+//!       interval_ms: 2000
+//!       suffix: heartbeat
+//!   database:
+//!     Db:
+//!       interval_ms: 2000
+//!   buienradar:
+//!     Buienradar:
+//!       station_id: 6240
 //! ```
 
 use crate::services;
 use serde::Deserialize;
+use std::collections::HashMap;
 use std::fs::File;
 
 /// Read the settings file.
@@ -32,7 +36,7 @@ pub struct Settings {
     /// Web server port. It's used for the user interface as well as for webhooks.
     pub http_port: Option<u16>,
     /// Configured services.
-    pub services: Vec<ServiceSettings>,
+    pub services: HashMap<String, ServiceSettings>,
 }
 
 /// A service configuration.

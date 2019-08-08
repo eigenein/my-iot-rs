@@ -4,6 +4,7 @@
 
 - Chore: refactor service initialisation & running
 - New: add favicons
+- Break: introduce service IDs
 
 ## `0.6.0`
 

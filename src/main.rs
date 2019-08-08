@@ -70,13 +70,16 @@ fn main() {
 
     info!("Starting services…");
     let (tx, rx) = channel();
-    for settings in settings.services.iter() {
-        debug!("Starting {:?}…", settings);
+    for (service_id, settings) in settings.services.iter() {
+        info!("Starting service `{}`…", service_id);
+        debug!("Settings `{}`: {:?}", service_id, settings);
         let mut service = services::new(settings);
         let db = db.clone();
         let tx = tx.clone();
+        let service_id = service_id.clone();
         thread::spawn(move || {
-            debug!("Running {:?}…", &service);
+            info!("Running service `{}`…", service_id);
+            debug!("State `{}`: {:?}", service_id, &service);
             service.run(db, tx);
         });
     }
