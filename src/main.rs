@@ -77,11 +77,14 @@ fn main() {
         let db = db.clone();
         let tx = tx.clone();
         let service_id = service_id.clone();
-        thread::spawn(move || {
-            info!("Running service `{}`…", service_id);
-            debug!("State `{}`: {:?}", service_id, &service);
-            service.run(db, tx);
-        });
+        thread::Builder::new()
+            .name(service_id.clone())
+            .spawn(move || {
+                info!("Running service `{}`…", service_id);
+                debug!("State `{}`: {:?}", service_id, &service);
+                service.run(db, tx);
+            })
+            .unwrap();
     }
 
     info!("Starting measurement receiver…");
