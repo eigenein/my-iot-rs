@@ -39,6 +39,7 @@ use crate::db::Db;
 use crate::measurement::Measurement;
 use crate::services::{Service, ServiceStatus};
 use crate::settings::Settings;
+use crate::types::ArcMutex;
 use log::{debug, info};
 use std::collections::HashMap;
 use std::sync::mpsc::{Receiver, Sender};
@@ -53,6 +54,7 @@ pub mod services;
 pub mod settings;
 pub mod statics;
 pub mod templates;
+pub mod types;
 pub mod value;
 pub mod web;
 
@@ -76,7 +78,7 @@ fn main() {
 
     info!("Starting services…");
     let (tx, rx) = channel();
-    start_services(&settings, &db, &tx);
+    let _service_statuses = start_services(&settings, &db, &tx); // TODO
 
     info!("Starting measurement receiver…");
     start_measurement_receiver(rx, db.clone());
@@ -90,17 +92,15 @@ fn start_services(
     settings: &Settings,
     db: &Arc<Mutex<Db>>,
     tx: &Sender<Measurement>,
-) -> HashMap<String, ServiceStatus> {
-    settings
-        .services
-        .iter()
-        .map(|(service_id, settings)| {
-            info!("Starting service `{}`…", service_id);
-            debug!("Settings `{}`: {:?}", service_id, settings);
-            start_service(service_id.clone(), services::new(settings), db.clone(), tx.clone());
-            (service_id.clone(), ServiceStatus {})
-        })
-        .collect()
+) -> ArcMutex<HashMap<String, ServiceStatus>> {
+    let statuses: ArcMutex<HashMap<String, ServiceStatus>> = Arc::new(Mutex::new(HashMap::new()));
+    for (service_id, settings) in settings.services.iter() {
+        info!("Starting service `{}`…", service_id);
+        debug!("Settings `{}`: {:?}", service_id, settings);
+        start_service(service_id.clone(), services::new(settings), db.clone(), tx.clone());
+        statuses.lock().unwrap().insert(service_id.clone(), ServiceStatus {});
+    }
+    statuses
 }
 
 /// Start a single service.

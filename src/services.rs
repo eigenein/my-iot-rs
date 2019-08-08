@@ -32,4 +32,7 @@ pub fn new(settings: &ServiceSettings) -> Box<dyn Service> {
     }
 }
 
-pub struct ServiceStatus {}
+/// Current service status.
+pub struct ServiceStatus {
+    // TODO
+}
