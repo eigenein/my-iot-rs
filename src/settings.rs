@@ -8,7 +8,7 @@
 //! ```yaml
 //! http_port: 8080
 //! services:
-//!   heart_beatclock:
+//!   heartbeat_clock:
 //!     Clock:
 //!       interval_ms: 2000
 //!       suffix: heartbeat
@@ -35,7 +35,9 @@ pub fn read() -> Settings {
 pub struct Settings {
     /// Web server port. It's used for the user interface as well as for webhooks.
     pub http_port: Option<u16>,
-    /// Configured services.
+
+    /// Services configuration.
+    /// Each entry is a pair of service ID (defined by user) and service settings.
     pub services: HashMap<String, ServiceSettings>,
 }
 

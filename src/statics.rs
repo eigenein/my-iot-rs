@@ -1,3 +1,5 @@
+//! Contains compiled in static files such as favicons.
+
 pub const FAVICON: &[u8] = include_bytes!("statics/favicon.ico");
 pub const FAVICON_16: &[u8] = include_bytes!("statics/favicon-16x16.png");
 pub const FAVICON_32: &[u8] = include_bytes!("statics/favicon-32x32.png");
