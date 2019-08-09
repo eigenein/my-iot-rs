@@ -37,7 +37,7 @@
 
 use crate::db::Db;
 use crate::measurement::Measurement;
-use crate::services::{Service, ServiceStatus};
+use crate::services::Service;
 use crate::settings::Settings;
 use crate::types::ArcMutex;
 use log::{debug, info};
@@ -59,7 +59,7 @@ pub mod value;
 pub mod web;
 
 /// Entry point.
-fn main() {
+fn main() -> ! {
     logging::init();
 
     #[rustfmt::skip]
@@ -84,30 +84,19 @@ fn main() {
     start_measurement_receiver(rx, db.clone());
 
     info!("Starting web server…");
-    web::start_server(settings.http_port.unwrap_or(8081), db.clone());
+    web::start_server(settings.http_port.unwrap_or(8081), db.clone())
 }
 
 /// Start all configured services.
-fn start_services(
-    settings: &Settings,
-    db: &Arc<Mutex<Db>>,
-    tx: &Sender<Measurement>,
-) -> HashMap<String, ArcMutex<ServiceStatus>> {
+fn start_services(settings: &Settings, db: &ArcMutex<Db>, tx: &Sender<Measurement>) -> HashMap<String, ()> {
     settings
         .services
         .iter()
         .map(|(service_id, settings)| {
             info!("Starting service `{}`…", service_id);
             debug!("Settings `{}`: {:?}", service_id, settings);
-            let status = Arc::new(Mutex::new(ServiceStatus {}));
-            spawn_service(
-                service_id.clone(),
-                services::new(settings),
-                db.clone(),
-                tx.clone(),
-                status.clone(),
-            );
-            (service_id.clone(), status)
+            spawn_service(service_id.clone(), services::new(settings), db.clone(), tx.clone());
+            (service_id.clone(), ()) // TODO: return some valid handle.
         })
         .collect()
 }
@@ -122,9 +111,8 @@ fn start_services(
 fn spawn_service(
     service_id: String,
     mut service: Box<dyn Service>,
-    db: Arc<Mutex<Db>>,
+    db: ArcMutex<Db>,
     tx: Sender<Measurement>,
-    _status: ArcMutex<ServiceStatus>,
 ) -> thread::JoinHandle<()> {
     thread::Builder::new()
         .name(service_id.clone())
@@ -137,6 +125,6 @@ fn spawn_service(
 }
 
 /// Start measurement receiver thread.
-fn start_measurement_receiver(rx: Receiver<Measurement>, db: Arc<Mutex<Db>>) {
+fn start_measurement_receiver(rx: Receiver<Measurement>, db: ArcMutex<Db>) {
     thread::spawn(move || receiver::run(rx, db));
 }

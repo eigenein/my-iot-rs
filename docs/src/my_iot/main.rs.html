@@ -128,18 +128,6 @@
 <span id="128">128</span>
 <span id="129">129</span>
 <span id="130">130</span>
-<span id="131">131</span>
-<span id="132">132</span>
-<span id="133">133</span>
-<span id="134">134</span>
-<span id="135">135</span>
-<span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
-<span id="139">139</span>
-<span id="140">140</span>
-<span id="141">141</span>
-<span id="142">142</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Getting started</span>
 <span class="doccomment">//!</span>
@@ -180,7 +168,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">db</span>::<span class="ident">Db</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">measurement</span>::<span class="ident">Measurement</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">services</span>::{<span class="ident">Service</span>, <span class="ident">ServiceStatus</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">services</span>::<span class="ident">Service</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">settings</span>::<span class="ident">Settings</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::<span class="ident">ArcMutex</span>;
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">info</span>};
@@ -202,7 +190,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">web</span>;
 
 <span class="doccomment">/// Entry point.</span>
-<span class="kw">fn</span> <span class="ident">main</span>() {
+<span class="kw">fn</span> <span class="ident">main</span>() <span class="op">-&gt;</span> <span class="op">!</span> {
     <span class="ident">logging</span>::<span class="ident">init</span>();
 
     <span class="attribute">#[<span class="ident">rustfmt</span>::<span class="ident">skip</span>]</span>
@@ -227,30 +215,19 @@
     <span class="ident">start_measurement_receiver</span>(<span class="ident">rx</span>, <span class="ident">db</span>.<span class="ident">clone</span>());
 
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Starting web server…&quot;</span>);
-    <span class="ident">web</span>::<span class="ident">start_server</span>(<span class="ident">settings</span>.<span class="ident">http_port</span>.<span class="ident">unwrap_or</span>(<span class="number">8081</span>), <span class="ident">db</span>.<span class="ident">clone</span>());
+    <span class="ident">web</span>::<span class="ident">start_server</span>(<span class="ident">settings</span>.<span class="ident">http_port</span>.<span class="ident">unwrap_or</span>(<span class="number">8081</span>), <span class="ident">db</span>.<span class="ident">clone</span>())
 }
 
 <span class="doccomment">/// Start all configured services.</span>
-<span class="kw">fn</span> <span class="ident">start_services</span>(
-    <span class="ident">settings</span>: <span class="kw-2">&amp;</span><span class="ident">Settings</span>,
-    <span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;&gt;</span>,
-    <span class="ident">tx</span>: <span class="kw-2">&amp;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">Measurement</span><span class="op">&gt;</span>,
-) <span class="op">-&gt;</span> <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">ArcMutex</span><span class="op">&lt;</span><span class="ident">ServiceStatus</span><span class="op">&gt;&gt;</span> {
+<span class="kw">fn</span> <span class="ident">start_services</span>(<span class="ident">settings</span>: <span class="kw-2">&amp;</span><span class="ident">Settings</span>, <span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="ident">ArcMutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;</span>, <span class="ident">tx</span>: <span class="kw-2">&amp;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">Measurement</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, ()<span class="op">&gt;</span> {
     <span class="ident">settings</span>
         .<span class="ident">services</span>
         .<span class="ident">iter</span>()
         .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">service_id</span>, <span class="ident">settings</span>)<span class="op">|</span> {
             <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Starting service `{}`…&quot;</span>, <span class="ident">service_id</span>);
             <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Settings `{}`: {:?}&quot;</span>, <span class="ident">service_id</span>, <span class="ident">settings</span>);
-            <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">ServiceStatus</span> {}));
-            <span class="ident">spawn_service</span>(
-                <span class="ident">service_id</span>.<span class="ident">clone</span>(),
-                <span class="ident">services</span>::<span class="ident">new</span>(<span class="ident">settings</span>),
-                <span class="ident">db</span>.<span class="ident">clone</span>(),
-                <span class="ident">tx</span>.<span class="ident">clone</span>(),
-                <span class="ident">status</span>.<span class="ident">clone</span>(),
-            );
-            (<span class="ident">service_id</span>.<span class="ident">clone</span>(), <span class="ident">status</span>)
+            <span class="ident">spawn_service</span>(<span class="ident">service_id</span>.<span class="ident">clone</span>(), <span class="ident">services</span>::<span class="ident">new</span>(<span class="ident">settings</span>), <span class="ident">db</span>.<span class="ident">clone</span>(), <span class="ident">tx</span>.<span class="ident">clone</span>());
+            (<span class="ident">service_id</span>.<span class="ident">clone</span>(), ()) <span class="comment">// TODO: return some valid handle.</span>
         })
         .<span class="ident">collect</span>()
 }
@@ -265,9 +242,8 @@
 <span class="kw">fn</span> <span class="ident">spawn_service</span>(
     <span class="ident">service_id</span>: <span class="ident">String</span>,
     <span class="kw-2">mut</span> <span class="ident">service</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Service</span><span class="op">&gt;</span>,
-    <span class="ident">db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">db</span>: <span class="ident">ArcMutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;</span>,
     <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">Measurement</span><span class="op">&gt;</span>,
-    <span class="ident">status</span>: <span class="ident">ArcMutex</span><span class="op">&lt;</span><span class="ident">ServiceStatus</span><span class="op">&gt;</span>,
 ) <span class="op">-&gt;</span> <span class="ident">thread</span>::<span class="ident">JoinHandle</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="ident">thread</span>::<span class="ident">Builder</span>::<span class="ident">new</span>()
         .<span class="ident">name</span>(<span class="ident">service_id</span>.<span class="ident">clone</span>())
@@ -280,7 +256,7 @@
 }
 
 <span class="doccomment">/// Start measurement receiver thread.</span>
-<span class="kw">fn</span> <span class="ident">start_measurement_receiver</span>(<span class="ident">rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">Measurement</span><span class="op">&gt;</span>, <span class="ident">db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;&gt;</span>) {
+<span class="kw">fn</span> <span class="ident">start_measurement_receiver</span>(<span class="ident">rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">Measurement</span><span class="op">&gt;</span>, <span class="ident">db</span>: <span class="ident">ArcMutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;</span>) {
     <span class="ident">thread</span>::<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">||</span> <span class="ident">receiver</span>::<span class="ident">run</span>(<span class="ident">rx</span>, <span class="ident">db</span>));
 }
 </pre></div>
