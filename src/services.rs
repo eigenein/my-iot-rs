@@ -13,7 +13,7 @@ pub mod db;
 
 /// A generic service.
 pub trait Service: Debug + Send {
-    fn run(&mut self, db: Arc<Mutex<Db>>, tx: Sender<Measurement>);
+    fn run(&mut self, db: Arc<Mutex<Db>>, tx: Sender<Measurement>) -> !;
 
     /// Convenience function to send multiple measurements at once.
     fn send(&self, tx: &Sender<Measurement>, measurements: Vec<Measurement>) {

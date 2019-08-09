@@ -119,7 +119,7 @@ fn spawn_service(
         .spawn(move || {
             info!("Running service `{}`…", service_id);
             debug!("State `{}`: {:?}", service_id, &service);
-            service.run(db, tx);
+            service.run(db, tx)
         })
         .unwrap()
 }

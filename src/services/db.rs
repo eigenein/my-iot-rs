@@ -27,7 +27,7 @@ impl Db {
 }
 
 impl Service for Db {
-    fn run(&mut self, db: Arc<Mutex<crate::db::Db>>, tx: Sender<Measurement>) {
+    fn run(&mut self, db: Arc<Mutex<crate::db::Db>>, tx: Sender<Measurement>) -> ! {
         loop {
             let size = { db.lock().unwrap().select_size() };
 

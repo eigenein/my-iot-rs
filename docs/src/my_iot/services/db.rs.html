@@ -72,7 +72,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Service</span> <span class="kw">for</span> <span class="ident">Db</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="ident">db</span>::<span class="ident">Db</span><span class="op">&gt;&gt;</span>, <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">Measurement</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="ident">db</span>::<span class="ident">Db</span><span class="op">&gt;&gt;</span>, <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">Measurement</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="op">!</span> {
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> { <span class="ident">db</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">select_size</span>() };
 

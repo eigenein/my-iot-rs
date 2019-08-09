@@ -89,7 +89,7 @@ impl Buienradar {
     }
 
     /// Fetch measurement for the configured station.
-    fn fetch(&self) -> Result<BuienradarStationMeasurement, Box<Error>> {
+    fn fetch(&self) -> Result<BuienradarStationMeasurement, Box<dyn Error>> {
         let body = self.client.get(URL).send()?.text()?;
         let feed: BuienradarFeed = serde_json::from_str(&body)?;
         let measurement = feed
@@ -163,7 +163,7 @@ impl Buienradar {
 }
 
 impl Service for Buienradar {
-    fn run(&mut self, _db: Arc<Mutex<Db>>, tx: Sender<Measurement>) {
+    fn run(&mut self, _db: Arc<Mutex<Db>>, tx: Sender<Measurement>) -> ! {
         loop {
             match self.fetch() {
                 Ok(measurement) => self.send_measurements(measurement, &tx),

@@ -34,7 +34,7 @@ impl Clock {
 }
 
 impl crate::services::Service for Clock {
-    fn run(&mut self, _db: Arc<Mutex<Db>>, tx: Sender<Measurement>) {
+    fn run(&mut self, _db: Arc<Mutex<Db>>, tx: Sender<Measurement>) -> ! {
         loop {
             #[rustfmt::skip]
             tx.send(Measurement::new(
