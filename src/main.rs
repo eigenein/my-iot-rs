@@ -92,19 +92,40 @@ fn start_services(
     settings: &Settings,
     db: &Arc<Mutex<Db>>,
     tx: &Sender<Measurement>,
-) -> ArcMutex<HashMap<String, ServiceStatus>> {
-    let statuses: ArcMutex<HashMap<String, ServiceStatus>> = Arc::new(Mutex::new(HashMap::new()));
-    for (service_id, settings) in settings.services.iter() {
-        info!("Starting service `{}`…", service_id);
-        debug!("Settings `{}`: {:?}", service_id, settings);
-        start_service(service_id.clone(), services::new(settings), db.clone(), tx.clone());
-        statuses.lock().unwrap().insert(service_id.clone(), ServiceStatus {});
-    }
-    statuses
+) -> HashMap<String, ArcMutex<ServiceStatus>> {
+    settings
+        .services
+        .iter()
+        .map(|(service_id, settings)| {
+            info!("Starting service `{}`…", service_id);
+            debug!("Settings `{}`: {:?}", service_id, settings);
+            let status = Arc::new(Mutex::new(ServiceStatus {}));
+            spawn_service(
+                service_id.clone(),
+                services::new(settings),
+                db.clone(),
+                tx.clone(),
+                status.clone(),
+            );
+            (service_id.clone(), status)
+        })
+        .collect()
 }
 
-/// Start a single service.
-fn start_service(service_id: String, mut service: Box<dyn Service>, db: Arc<Mutex<Db>>, tx: Sender<Measurement>) {
+/// Spawn service thread.
+///
+/// * `service_id`: user-defined service ID.
+/// * `service`: service instance.
+/// * `db`: main database.
+/// * `tx`: measurement sender.
+/// * `status`: struct to keep track of the service status.
+fn spawn_service(
+    service_id: String,
+    mut service: Box<dyn Service>,
+    db: Arc<Mutex<Db>>,
+    tx: Sender<Measurement>,
+    _status: ArcMutex<ServiceStatus>,
+) -> thread::JoinHandle<()> {
     thread::Builder::new()
         .name(service_id.clone())
         .spawn(move || {
@@ -112,7 +133,7 @@ fn start_service(service_id: String, mut service: Box<dyn Service>, db: Arc<Mute
             debug!("State `{}`: {:?}", service_id, &service);
             service.run(db, tx);
         })
-        .unwrap();
+        .unwrap()
 }
 
 /// Start measurement receiver thread.
