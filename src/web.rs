@@ -1,18 +1,19 @@
 //! Implements web server.
 
 use crate::db::Db;
+use crate::settings::Settings;
 use crate::statics;
 use crate::templates::*;
+use crate::types::ArcMutex;
 use chrono::prelude::*;
 use chrono::Duration;
 use rouille::{router, Response};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::sync::{Arc, Mutex};
 
 /// Start the web application.
-pub fn start_server(port: u16, db: Arc<Mutex<Db>>) -> ! {
+pub fn start_server(settings: Settings, db: ArcMutex<Db>) -> ! {
     rouille::start_server(
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), port),
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), settings.http_port.unwrap_or(8081)),
         move |request| {
             router!(request,
                 (GET) ["/"] => {
@@ -31,9 +32,10 @@ pub fn start_server(port: u16, db: Arc<Mutex<Db>>) -> ! {
                         body: Box::new(sensor::Sensor { last }),
                     }.to_string())
                 },
-                (GET) ["/services"] => {
+                (GET) ["/status"] => {
+                    let settings = settings.clone();
                     Response::html(base::Base {
-                        body: Box::new(services::Services { }),
+                        body: Box::new(status::Status { settings: settings }),
                     }.to_string())
                 },
                 (GET) ["/favicon.ico"] => Response::from_data("image/x-icon", statics::FAVICON.to_vec()),

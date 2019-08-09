@@ -14,7 +14,7 @@ pub struct Clock {
     counter: u64,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct ClockSettings {
     /// Interval in milliseconds.
     pub interval_ms: Option<u64>,

@@ -31,7 +31,7 @@ markup::define! {
                     div."message-body" {
                         pre {
                             code {
-                                {format!("{:?}", &last)}
+                                {format!("{:#?}", &last)}
                             }
                         }
                     }

@@ -31,7 +31,7 @@ pub fn read() -> Settings {
 }
 
 /// Represents a root settings object.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Settings {
     /// Web server port. It's used for the user interface as well as for webhooks.
     pub http_port: Option<u16>,
@@ -42,7 +42,7 @@ pub struct Settings {
 }
 
 /// A service configuration.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub enum ServiceSettings {
     /// Regularly emits a counter value.
     Clock(services::clock::ClockSettings),

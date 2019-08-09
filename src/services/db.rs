@@ -12,7 +12,7 @@ pub struct Db {
     interval: Duration,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct DbSettings {
     /// Interval in milliseconds.
     pub interval_ms: Option<u64>,

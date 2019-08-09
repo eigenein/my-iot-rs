@@ -84,7 +84,7 @@ fn main() -> ! {
     start_measurement_receiver(rx, db.clone());
 
     info!("Starting web server…");
-    web::start_server(settings.http_port.unwrap_or(8081), db.clone())
+    web::start_server(settings, db.clone())
 }
 
 /// Start all configured services.

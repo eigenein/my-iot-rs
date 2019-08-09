@@ -215,7 +215,7 @@
     <span class="ident">start_measurement_receiver</span>(<span class="ident">rx</span>, <span class="ident">db</span>.<span class="ident">clone</span>());
 
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Starting web server…&quot;</span>);
-    <span class="ident">web</span>::<span class="ident">start_server</span>(<span class="ident">settings</span>.<span class="ident">http_port</span>.<span class="ident">unwrap_or</span>(<span class="number">8081</span>), <span class="ident">db</span>.<span class="ident">clone</span>())
+    <span class="ident">web</span>::<span class="ident">start_server</span>(<span class="ident">settings</span>, <span class="ident">db</span>.<span class="ident">clone</span>())
 }
 
 <span class="doccomment">/// Start all configured services.</span>
