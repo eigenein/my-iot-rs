@@ -1,6 +1,6 @@
 # `my-iot`
 
-## `master`
+## `0.7.0`
 
 - Chore: refactor service initialisation & running
 - New: add favicons
