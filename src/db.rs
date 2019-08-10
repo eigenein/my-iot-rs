@@ -124,7 +124,7 @@ impl Db {
     /// Get item from generic key-value store.
     pub fn get<K: AsRef<str>>(&self, key: K) -> serde_json::Value {
         self.connection
-            .prepare_cached("SELECT value FROM kv WHERE `key` = ?1 AND expires_ts >= ?2")
+            .prepare_cached("SELECT value FROM kv WHERE `key` = ?1 AND expires_ts > ?2")
             .unwrap()
             .query_row(
                 &[&key.as_ref() as &dyn ToSql, &Local::now().timestamp_millis()],
@@ -172,7 +172,7 @@ mod tests {
     #[test]
     fn expired_key_returns_null() {
         let db = Db::new(":memory:");
-        db.set("hello", "world", Local::now() - Duration::seconds(1));
+        db.set("hello", "world", Local::now());
         assert_eq!(db.get("hello"), serde_json::Value::Null);
     }
 }
