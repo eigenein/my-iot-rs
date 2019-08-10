@@ -15,7 +15,7 @@ clean:
 check:
 	@cargo fmt --all -- --check
 	@cargo clippy --all-targets --all-features -- -D warnings
-	@cargo test
+	@RUST_BACKTRACE=1 cargo test
 
 .PHONY: install
 install:

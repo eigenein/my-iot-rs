@@ -5,6 +5,7 @@ use crate::value::Value;
 use chrono::prelude::*;
 use rusqlite::types::*;
 use rusqlite::{Connection, Row, ToSql, NO_PARAMS};
+use std::path::Path;
 
 /// A database connection.
 pub struct Db {
@@ -12,22 +13,31 @@ pub struct Db {
     connection: Connection,
 }
 
-/// Create a new database connection.
-pub fn new() -> Db {
-    let connection = Connection::open("my-iot.sqlite3").unwrap();
+impl Db {
+    /// Create a new database connection.
+    pub fn new<P: AsRef<Path>>(path: P) -> Db {
+        let connection = Connection::open(path).unwrap();
 
-    #[rustfmt::skip]
-    connection.execute_batch("
-        CREATE TABLE IF NOT EXISTS measurements (
-            sensor TEXT NOT NULL,
-            ts INTEGER NOT NULL,
-            value TEXT NOT NULL
-        );
-        -- Descending index on `ts` is needed to speed up the select latest queries.
-        CREATE UNIQUE INDEX IF NOT EXISTS measurements_sensor_ts ON measurements (sensor, ts DESC);
-    ").unwrap();
+        #[rustfmt::skip]
+        connection.execute_batch("
+            -- Stores all sensor measurements.
+            CREATE TABLE IF NOT EXISTS measurements (
+                sensor TEXT NOT NULL,
+                ts INTEGER NOT NULL,
+                value TEXT NOT NULL
+            );
+            -- Descending index on `ts` is needed to speed up the select latest queries.
+            CREATE UNIQUE INDEX IF NOT EXISTS measurements_sensor_ts ON measurements (sensor, ts DESC);
 
-    Db { connection }
+            -- Key-value store for general use.
+            CREATE TABLE IF NOT EXISTS kv (
+                'key' TEXT NOT NULL PRIMARY KEY,
+                'value' TEXT NOT NULL
+            );
+        ").unwrap();
+
+        Db { connection }
+    }
 }
 
 impl ToSql for Value {
@@ -108,5 +118,44 @@ impl Db {
             .map(|result| result.unwrap())
             .collect();
         (last, measurements)
+    }
+
+    /// Get item from generic key-value store.
+    pub fn get(&self, key: &str) -> serde_json::Value {
+        self.connection
+            .prepare_cached("SELECT value FROM kv WHERE `key` = ?1")
+            .unwrap()
+            .query_row(&[key], |row| {
+                Ok(serde_json::from_str(&row.get_unwrap::<_, String>("value")).unwrap())
+            })
+            .unwrap_or(serde_json::Value::Null)
+    }
+
+    /// Set item in generic key-value store.
+    pub fn set<V: Into<serde_json::Value>>(&self, key: &str, value: V) {
+        self.connection
+            .prepare_cached("INSERT OR REPLACE INTO kv (`key`, value) VALUES (?1, ?2)")
+            .unwrap()
+            .execute(&[key, &serde_json::to_string(&value.into()).unwrap()])
+            .unwrap();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// We should be able to retrieve a stored value.
+    #[test]
+    fn get_returns_set_value() {
+        let db = Db::new(":memory:");
+        db.set("hello", "world");
+        assert_eq!(db.get("hello"), "world");
+    }
+
+    /// If key is missing in the database, `get` should silently return `Null`.
+    #[test]
+    fn missing_index_returns_null() {
+        assert_eq!(Db::new(":memory:").get("non-existing"), serde_json::Value::Null);
     }
 }

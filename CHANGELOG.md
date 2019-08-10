@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- New: generic persisted JSON key-value store
+
 ## `0.7.0`
 
 - Chore: refactor service initialisation & running

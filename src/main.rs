@@ -74,7 +74,7 @@ fn main() -> ! {
     debug!("Settings: {:?}", &settings);
 
     info!("Opening database…");
-    let db = Arc::new(Mutex::new(db::new()));
+    let db = Arc::new(Mutex::new(Db::new("my-iot.sqlite3")));
 
     info!("Starting services…");
     let (tx, rx) = channel();
