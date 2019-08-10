@@ -31,8 +31,9 @@ impl Db {
 
             -- Key-value store for general use.
             CREATE TABLE IF NOT EXISTS kv (
-                'key' TEXT NOT NULL PRIMARY KEY,
-                'value' TEXT NOT NULL
+                `key` TEXT NOT NULL PRIMARY KEY,
+                value TEXT NOT NULL,
+                expires_ts INTEGER NOT NULL
             );
         ").unwrap();
 
@@ -121,22 +122,32 @@ impl Db {
     }
 
     /// Get item from generic key-value store.
-    pub fn get(&self, key: &str) -> serde_json::Value {
+    pub fn get<K: AsRef<str>>(&self, key: K) -> serde_json::Value {
         self.connection
-            .prepare_cached("SELECT value FROM kv WHERE `key` = ?1")
+            .prepare_cached("SELECT value FROM kv WHERE `key` = ?1 AND expires_ts >= ?2")
             .unwrap()
-            .query_row(&[key], |row| {
-                Ok(serde_json::from_str(&row.get_unwrap::<_, String>("value")).unwrap())
-            })
+            .query_row(
+                &[&key.as_ref() as &dyn ToSql, &Local::now().timestamp_millis()],
+                |row| Ok(serde_json::from_str(&row.get_unwrap::<_, String>("value")).unwrap()),
+            )
             .unwrap_or(serde_json::Value::Null)
     }
 
     /// Set item in generic key-value store.
-    pub fn set<V: Into<serde_json::Value>>(&self, key: &str, value: V) {
+    pub fn set<K, V, E>(&self, key: K, value: V, expires_at: E)
+    where
+        K: AsRef<str>,
+        V: Into<serde_json::Value>,
+        E: Into<DateTime<Local>>,
+    {
         self.connection
-            .prepare_cached("INSERT OR REPLACE INTO kv (`key`, value) VALUES (?1, ?2)")
+            .prepare_cached("INSERT OR REPLACE INTO kv (`key`, value, expires_ts) VALUES (?1, ?2, ?3)")
             .unwrap()
-            .execute(&[key, &serde_json::to_string(&value.into()).unwrap()])
+            .execute(&[
+                &key.as_ref() as &dyn ToSql,
+                &serde_json::to_string(&value.into()).unwrap(),
+                &expires_at.into().timestamp_millis(),
+            ])
             .unwrap();
     }
 }
@@ -144,18 +155,24 @@ impl Db {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::Duration;
 
-    /// We should be able to retrieve a stored value.
     #[test]
     fn get_returns_set_value() {
         let db = Db::new(":memory:");
-        db.set("hello", "world");
+        db.set("hello", "world", Local::now() + Duration::days(1));
         assert_eq!(db.get("hello"), "world");
     }
 
-    /// If key is missing in the database, `get` should silently return `Null`.
     #[test]
     fn missing_index_returns_null() {
         assert_eq!(Db::new(":memory:").get("non-existing"), serde_json::Value::Null);
+    }
+
+    #[test]
+    fn expired_key_returns_null() {
+        let db = Db::new(":memory:");
+        db.set("hello", "world", Local::now() - Duration::seconds(1));
+        assert_eq!(db.get("hello"), serde_json::Value::Null);
     }
 }

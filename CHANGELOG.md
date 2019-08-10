@@ -3,6 +3,7 @@
 ## `master`
 
 - New: generic persisted JSON key-value store
+- Break: add `expires_ts` to the key-value store
 
 ## `0.7.0`
 
