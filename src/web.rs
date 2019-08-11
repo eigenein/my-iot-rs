@@ -1,8 +1,8 @@
 //! Implements web server.
 
+use crate::consts;
 use crate::db::Db;
 use crate::settings::Settings;
-use crate::statics;
 use crate::templates::*;
 use crate::types::ArcMutex;
 use chrono::prelude::*;
@@ -38,10 +38,10 @@ pub fn start_server(settings: Settings, db: ArcMutex<Db>) -> ! {
                         body: Box::new(status::Status { settings: settings }),
                     }.to_string())
                 },
-                (GET) ["/favicon.ico"] => Response::from_data("image/x-icon", statics::FAVICON.to_vec()),
-                (GET) ["/apple-touch-icon.png"] => Response::from_data("image/png", statics::APPLE_TOUCH_ICON.to_vec()),
-                (GET) ["/favicon-32x32.png"] => Response::from_data("image/png", statics::FAVICON_32.to_vec()),
-                (GET) ["/favicon-16x16.png"] => Response::from_data("image/png", statics::FAVICON_16.to_vec()),
+                (GET) ["/favicon.ico"] => Response::from_data("image/x-icon", consts::FAVICON.to_vec()),
+                (GET) ["/apple-touch-icon.png"] => Response::from_data("image/png", consts::APPLE_TOUCH_ICON.to_vec()),
+                (GET) ["/favicon-32x32.png"] => Response::from_data("image/png", consts::FAVICON_32.to_vec()),
+                (GET) ["/favicon-16x16.png"] => Response::from_data("image/png", consts::FAVICON_16.to_vec()),
                 _ => Response::empty_404(),
             )
         },

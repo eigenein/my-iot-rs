@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["run","Run the receiver."]]});

@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["new","Create a service from the service settings."]],"mod":[["buienradar",""],["clock",""],["db",""]],"trait":[["Service","A generic service."]]});

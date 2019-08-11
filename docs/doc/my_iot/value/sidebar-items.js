@@ -1,1 +1,0 @@
-initSidebarItems({"constant":[["_IMPL_DESERIALIZE_FOR_Value",""],["_IMPL_SERIALIZE_FOR_Value",""]],"enum":[["Value","Sensor measurement value."]]});

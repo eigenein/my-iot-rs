@@ -46,13 +46,13 @@ use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::{sync::mpsc::channel, thread};
 
+pub mod consts;
 pub mod db;
 pub mod logging;
 pub mod reading;
 pub mod receiver;
 pub mod services;
 pub mod settings;
-pub mod statics;
 pub mod templates;
 pub mod types;
 pub mod value;

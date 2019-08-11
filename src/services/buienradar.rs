@@ -1,9 +1,9 @@
+use crate::consts::USER_AGENT;
 use crate::db::Db;
 use crate::reading::Reading;
 use crate::services::Service;
 use crate::value::{PointOfTheCompass, Value};
 use chrono::{DateTime, Local};
-use clap::crate_version;
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::Deserialize;
 use std::error::Error;
@@ -15,11 +15,6 @@ use std::time::Duration;
 /// Buienradar JSON feed URL.
 const URL: &str = "https://json.buienradar.nl/";
 const REFRESH_PERIOD: Duration = Duration::from_millis(60000);
-const USER_AGENT: &str = concat!(
-    "My IoT / ",
-    crate_version!(),
-    " (Rust; https://github.com/eigenein/my-iot-rs)"
-);
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct BuienradarSettings {

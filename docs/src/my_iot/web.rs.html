@@ -50,9 +50,9 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implements web server.</span>
 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">consts</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">db</span>::<span class="ident">Db</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">settings</span>::<span class="ident">Settings</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">statics</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">templates</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::<span class="ident">ArcMutex</span>;
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
@@ -88,10 +88,10 @@
                         <span class="ident">body</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">status</span>::<span class="ident">Status</span> { <span class="ident">settings</span>: <span class="ident">settings</span> }),
                     }.<span class="ident">to_string</span>())
                 },
-                (<span class="ident">GET</span>) [<span class="string">&quot;/favicon.ico&quot;</span>] <span class="op">=&gt;</span> <span class="ident">Response</span>::<span class="ident">from_data</span>(<span class="string">&quot;image/x-icon&quot;</span>, <span class="ident">statics</span>::<span class="ident">FAVICON</span>.<span class="ident">to_vec</span>()),
-                (<span class="ident">GET</span>) [<span class="string">&quot;/apple-touch-icon.png&quot;</span>] <span class="op">=&gt;</span> <span class="ident">Response</span>::<span class="ident">from_data</span>(<span class="string">&quot;image/png&quot;</span>, <span class="ident">statics</span>::<span class="ident">APPLE_TOUCH_ICON</span>.<span class="ident">to_vec</span>()),
-                (<span class="ident">GET</span>) [<span class="string">&quot;/favicon-32x32.png&quot;</span>] <span class="op">=&gt;</span> <span class="ident">Response</span>::<span class="ident">from_data</span>(<span class="string">&quot;image/png&quot;</span>, <span class="ident">statics</span>::<span class="ident">FAVICON_32</span>.<span class="ident">to_vec</span>()),
-                (<span class="ident">GET</span>) [<span class="string">&quot;/favicon-16x16.png&quot;</span>] <span class="op">=&gt;</span> <span class="ident">Response</span>::<span class="ident">from_data</span>(<span class="string">&quot;image/png&quot;</span>, <span class="ident">statics</span>::<span class="ident">FAVICON_16</span>.<span class="ident">to_vec</span>()),
+                (<span class="ident">GET</span>) [<span class="string">&quot;/favicon.ico&quot;</span>] <span class="op">=&gt;</span> <span class="ident">Response</span>::<span class="ident">from_data</span>(<span class="string">&quot;image/x-icon&quot;</span>, <span class="ident">consts</span>::<span class="ident">FAVICON</span>.<span class="ident">to_vec</span>()),
+                (<span class="ident">GET</span>) [<span class="string">&quot;/apple-touch-icon.png&quot;</span>] <span class="op">=&gt;</span> <span class="ident">Response</span>::<span class="ident">from_data</span>(<span class="string">&quot;image/png&quot;</span>, <span class="ident">consts</span>::<span class="ident">APPLE_TOUCH_ICON</span>.<span class="ident">to_vec</span>()),
+                (<span class="ident">GET</span>) [<span class="string">&quot;/favicon-32x32.png&quot;</span>] <span class="op">=&gt;</span> <span class="ident">Response</span>::<span class="ident">from_data</span>(<span class="string">&quot;image/png&quot;</span>, <span class="ident">consts</span>::<span class="ident">FAVICON_32</span>.<span class="ident">to_vec</span>()),
+                (<span class="ident">GET</span>) [<span class="string">&quot;/favicon-16x16.png&quot;</span>] <span class="op">=&gt;</span> <span class="ident">Response</span>::<span class="ident">from_data</span>(<span class="string">&quot;image/png&quot;</span>, <span class="ident">consts</span>::<span class="ident">FAVICON_16</span>.<span class="ident">to_vec</span>()),
                 <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">Response</span>::<span class="ident">empty_404</span>(),
             )
         },
