@@ -1,6 +1,7 @@
 use crate::db::Db;
 use crate::reading::*;
 use crate::value::Value;
+use chrono::Local;
 use serde::Deserialize;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
@@ -37,11 +38,12 @@ impl crate::services::Service for Clock {
     fn run(&mut self, _db: Arc<Mutex<Db>>, tx: Sender<Reading>) -> ! {
         loop {
             #[rustfmt::skip]
-            tx.send(Reading::new(
-                self.sensor.clone(),
-                Value::Counter(self.counter),
-                None,
-            )).unwrap();
+            tx.send(Reading {
+                sensor: self.sensor.clone(),
+                value: Value::Counter(self.counter),
+                timestamp: Local::now(),
+                is_persisted: true,
+            }).unwrap();
 
             self.counter += 1;
             thread::sleep(self.interval);

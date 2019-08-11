@@ -5,6 +5,7 @@
 - New: generic persisted JSON key-value store
 - Break: add `expires_ts` to the key-value store
 - Break: rename `Measurement` into `Reading`
+- New: add `is_persistent` flag to `Reading`
 
 ## `0.7.0`
 

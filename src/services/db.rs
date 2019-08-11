@@ -1,6 +1,7 @@
 use crate::reading::Reading;
 use crate::services::Service;
 use crate::value::Value;
+use chrono::Local;
 use serde::Deserialize;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
@@ -32,11 +33,12 @@ impl Service for Db {
             let size = { db.lock().unwrap().select_size() };
 
             #[rustfmt::skip]
-            tx.send(Reading::new(
-                "db:size".to_string(),
-                Value::Size(size),
-                None,
-            )).unwrap();
+            tx.send(Reading {
+                sensor: "db:size".to_string(),
+                value: Value::Size(size),
+                timestamp: Local::now(),
+                is_persisted: true,
+            }).unwrap();
 
             thread::sleep(self.interval);
         }

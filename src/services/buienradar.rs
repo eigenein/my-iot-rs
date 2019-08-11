@@ -107,56 +107,63 @@ impl Buienradar {
         self.send(
             &tx,
             vec![
-                Reading::new(
-                    format!("buienradar:{}:name", self.station_id),
-                    Value::Text(measurement.name.clone()),
-                    Some(measurement.timestamp),
-                ),
-                Reading::new(
-                    format!("buienradar:{}:weather_description", self.station_id),
-                    Value::Text(measurement.weather_description.clone()),
-                    Some(measurement.timestamp),
-                ),
+                Reading {
+                    sensor: format!("buienradar:{}:name", self.station_id),
+                    value: Value::Text(measurement.name.clone()),
+                    timestamp: measurement.timestamp,
+                    is_persisted: true,
+                },
+                Reading {
+                    sensor: format!("buienradar:{}:weather_description", self.station_id),
+                    value: Value::Text(measurement.weather_description.clone()),
+                    timestamp: measurement.timestamp,
+                    is_persisted: true,
+                },
             ],
         );
         if let Some(degrees) = measurement.temperature {
-            tx.send(Reading::new(
-                format!("buienradar:{}:temperature", self.station_id),
-                Value::Celsius(degrees),
-                Some(measurement.timestamp),
-            ))
+            tx.send(Reading {
+                sensor: format!("buienradar:{}:temperature", self.station_id),
+                value: Value::Celsius(degrees),
+                timestamp: measurement.timestamp,
+                is_persisted: true,
+            })
             .unwrap();
         }
         if let Some(degrees) = measurement.ground_temperature {
-            tx.send(Reading::new(
-                format!("buienradar:{}:ground_temperature", self.station_id),
-                Value::Celsius(degrees),
-                Some(measurement.timestamp),
-            ))
+            tx.send(Reading {
+                sensor: format!("buienradar:{}:ground_temperature", self.station_id),
+                value: Value::Celsius(degrees),
+                timestamp: measurement.timestamp,
+                is_persisted: true,
+            })
             .unwrap();
         }
         if let Some(degrees) = measurement.feel_temperature {
-            tx.send(Reading::new(
-                format!("buienradar:{}:feel_temperature", self.station_id),
-                Value::Celsius(degrees),
-                Some(measurement.timestamp),
-            ))
+            tx.send(Reading {
+                sensor: format!("buienradar:{}:feel_temperature", self.station_id),
+                value: Value::Celsius(degrees),
+                timestamp: measurement.timestamp,
+                is_persisted: true,
+            })
             .unwrap();
         }
         if let Some(bft) = measurement.wind_speed_bft {
-            tx.send(Reading::new(
-                format!("buienradar:{}:wind_speed_bft", self.station_id),
-                Value::Bft(bft),
-                Some(measurement.timestamp),
-            ))
+            tx.send(Reading {
+                sensor: format!("buienradar:{}:wind_speed_bft", self.station_id),
+                value: Value::Bft(bft),
+                timestamp: measurement.timestamp,
+                is_persisted: true,
+            })
             .unwrap();
         }
         if let Some(point) = measurement.wind_direction {
-            tx.send(Reading::new(
-                format!("buienradar:{}:wind_direction", self.station_id),
-                Value::WindDirection(point),
-                Some(measurement.timestamp),
-            ))
+            tx.send(Reading {
+                sensor: format!("buienradar:{}:wind_direction", self.station_id),
+                value: Value::WindDirection(point),
+                timestamp: measurement.timestamp,
+                is_persisted: true,
+            })
             .unwrap();
         }
     }

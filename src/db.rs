@@ -61,6 +61,7 @@ impl From<&Row<'_>> for Reading {
             sensor: row.get_unwrap("sensor"),
             timestamp: Local.timestamp_millis(row.get_unwrap("ts")),
             value: row.get_unwrap("value"),
+            is_persisted: true,
         }
     }
 }

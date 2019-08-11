@@ -10,6 +10,8 @@ use std::sync::{Arc, Mutex};
 pub fn run(rx: Receiver<Reading>, db: Arc<Mutex<Db>>) {
     for reading in rx {
         info!("{}: {:?}", &reading.sensor, &reading.value);
-        db.lock().unwrap().insert_reading(&reading);
+        if reading.is_persisted {
+            db.lock().unwrap().insert_reading(&reading);
+        }
     }
 }

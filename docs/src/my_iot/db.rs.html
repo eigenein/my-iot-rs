@@ -176,6 +176,7 @@
 <span id="176">176</span>
 <span id="177">177</span>
 <span id="178">178</span>
+<span id="179">179</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Database interface.</span>
 
@@ -240,6 +241,7 @@
             <span class="ident">sensor</span>: <span class="ident">row</span>.<span class="ident">get_unwrap</span>(<span class="string">&quot;sensor&quot;</span>),
             <span class="ident">timestamp</span>: <span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="ident">row</span>.<span class="ident">get_unwrap</span>(<span class="string">&quot;ts&quot;</span>)),
             <span class="ident">value</span>: <span class="ident">row</span>.<span class="ident">get_unwrap</span>(<span class="string">&quot;value&quot;</span>),
+            <span class="ident">is_persisted</span>: <span class="bool-val">true</span>,
         }
     }
 }
