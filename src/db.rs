@@ -101,7 +101,7 @@ impl Db {
             .unwrap() as u64
     }
 
-    /// Select latest readings for an individual sensor.
+    /// Select the latest reading for individual sensor as well as latest readings within given time interval.
     pub fn select_sensor_readings(&self, sensor: &str, since: &DateTime<Local>) -> (Reading, Vec<Reading>) {
         let last = self
             .connection

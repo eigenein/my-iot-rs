@@ -281,7 +281,7 @@
             .<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u64</span>
     }
 
-    <span class="doccomment">/// Select latest readings for an individual sensor.</span>
+    <span class="doccomment">/// Select the latest reading for individual sensor as well as latest readings within given time interval.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select_sensor_readings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sensor</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">since</span>: <span class="kw-2">&amp;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Local</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> (<span class="ident">Reading</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">connection</span>
