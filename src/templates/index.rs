@@ -3,7 +3,7 @@
 use crate::templates;
 
 markup::define! {
-    Index(measurements: Vec<crate::measurement::Measurement>) {
+    Index(readings: Vec<crate::reading::Reading>) {
         section.hero."is-info" {
             div."hero-head" { {templates::navbar::NavBar {}} }
             div."hero-body" {
@@ -12,7 +12,7 @@ markup::define! {
                         "Dashboard"
                     }
                     h2.subtitle."is-6" {
-                        {measurements.len()} " sensors"
+                        {readings.len()} " sensors"
                     }
                 }
             }
@@ -20,8 +20,8 @@ markup::define! {
         section.section {
             div.container {
                 div.columns."is-multiline" {
-                    @for measurement in {measurements} {
-                        {templates::measurement::Measurement { measurement }}
+                    @for reading in {readings} {
+                        {templates::reading::Reading { reading }}
                     }
                 }
             }

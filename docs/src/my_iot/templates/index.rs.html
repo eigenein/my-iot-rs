@@ -34,7 +34,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">templates</span>;
 
 <span class="ident">markup</span>::<span class="macro">define</span><span class="macro">!</span> {
-    <span class="ident">Index</span>(<span class="ident">measurements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="ident">measurement</span>::<span class="ident">Measurement</span><span class="op">&gt;</span>) {
+    <span class="ident">Index</span>(<span class="ident">readings</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="ident">reading</span>::<span class="ident">Reading</span><span class="op">&gt;</span>) {
         <span class="ident">section</span>.<span class="ident">hero</span>.<span class="string">&quot;is-info&quot;</span> {
             <span class="ident">div</span>.<span class="string">&quot;hero-head&quot;</span> { {<span class="ident">templates</span>::<span class="ident">navbar</span>::<span class="ident">NavBar</span> {}} }
             <span class="ident">div</span>.<span class="string">&quot;hero-body&quot;</span> {
@@ -43,7 +43,7 @@
                         <span class="string">&quot;Dashboard&quot;</span>
                     }
                     <span class="ident">h2</span>.<span class="ident">subtitle</span>.<span class="string">&quot;is-6&quot;</span> {
-                        {<span class="ident">measurements</span>.<span class="ident">len</span>()} <span class="string">&quot; sensors&quot;</span>
+                        {<span class="ident">readings</span>.<span class="ident">len</span>()} <span class="string">&quot; sensors&quot;</span>
                     }
                 }
             }
@@ -51,8 +51,8 @@
         <span class="ident">section</span>.<span class="ident">section</span> {
             <span class="ident">div</span>.<span class="ident">container</span> {
                 <span class="ident">div</span>.<span class="ident">columns</span>.<span class="string">&quot;is-multiline&quot;</span> {
-                    @<span class="kw">for</span> <span class="ident">measurement</span> <span class="kw">in</span> {<span class="ident">measurements</span>} {
-                        {<span class="ident">templates</span>::<span class="ident">measurement</span>::<span class="ident">Measurement</span> { <span class="ident">measurement</span> }}
+                    @<span class="kw">for</span> <span class="ident">reading</span> <span class="kw">in</span> {<span class="ident">readings</span>} {
+                        {<span class="ident">templates</span>::<span class="ident">reading</span>::<span class="ident">Reading</span> { <span class="ident">reading</span> }}
                     }
                 }
             }

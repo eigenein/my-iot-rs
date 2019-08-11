@@ -1,7 +1,7 @@
 //! Implements generic `Service` trait.
 
 use crate::db::Db;
-use crate::measurement::*;
+use crate::reading::*;
 use crate::settings::*;
 use std::fmt::Debug;
 use std::sync::mpsc::Sender;
@@ -13,12 +13,12 @@ pub mod db;
 
 /// A generic service.
 pub trait Service: Debug + Send {
-    fn run(&mut self, db: Arc<Mutex<Db>>, tx: Sender<Measurement>) -> !;
+    fn run(&mut self, db: Arc<Mutex<Db>>, tx: Sender<Reading>) -> !;
 
-    /// Convenience function to send multiple measurements at once.
-    fn send(&self, tx: &Sender<Measurement>, measurements: Vec<Measurement>) {
-        for measurement in measurements {
-            tx.send(measurement).unwrap();
+    /// Convenience function to send multiple readings at once.
+    fn send(&self, tx: &Sender<Reading>, readings: Vec<Reading>) {
+        for reading in readings {
+            tx.send(reading).unwrap();
         }
     }
 }

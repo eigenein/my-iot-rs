@@ -1,11 +1,11 @@
 //! Sensor page.
 
-use crate::measurement::Measurement;
+use crate::reading::Reading;
 use crate::templates;
 use crate::templates::DATE_FORMAT;
 
 markup::define! {
-    Sensor(last: Measurement) {
+    Sensor(last: Reading) {
         section.hero.{&last.value.class()} {
             div."hero-head" { {templates::navbar::NavBar {}} }
             div."hero-body" {
@@ -25,7 +25,7 @@ markup::define! {
         }
         section.section {
             div.container {
-                h3.title."is-5" { "Latest measurement" }
+                h3.title."is-5" { "Latest reading" }
                 h4.subtitle."is-7" { "This is what is stored in the database" }
                 div.message {
                     div."message-body" {

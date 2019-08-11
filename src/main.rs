@@ -36,7 +36,7 @@
 //! This is needed to use some low-level protocols (for instance, ICMP) as a non-root user.
 
 use crate::db::Db;
-use crate::measurement::Measurement;
+use crate::reading::Reading;
 use crate::services::Service;
 use crate::settings::Settings;
 use crate::types::ArcMutex;
@@ -48,7 +48,7 @@ use std::{sync::mpsc::channel, thread};
 
 pub mod db;
 pub mod logging;
-pub mod measurement;
+pub mod reading;
 pub mod receiver;
 pub mod services;
 pub mod settings;
@@ -80,15 +80,15 @@ fn main() -> ! {
     let (tx, rx) = channel();
     let _service_statuses = start_services(&settings, &db, &tx); // TODO
 
-    info!("Starting measurement receiver…");
-    start_measurement_receiver(rx, db.clone());
+    info!("Starting readings receiver…");
+    start_readings_receiver(rx, db.clone());
 
     info!("Starting web server…");
     web::start_server(settings, db.clone())
 }
 
 /// Start all configured services.
-fn start_services(settings: &Settings, db: &ArcMutex<Db>, tx: &Sender<Measurement>) -> HashMap<String, ()> {
+fn start_services(settings: &Settings, db: &ArcMutex<Db>, tx: &Sender<Reading>) -> HashMap<String, ()> {
     settings
         .services
         .iter()
@@ -106,13 +106,13 @@ fn start_services(settings: &Settings, db: &ArcMutex<Db>, tx: &Sender<Measuremen
 /// * `service_id`: user-defined service ID.
 /// * `service`: service instance.
 /// * `db`: main database.
-/// * `tx`: measurement sender.
+/// * `tx`: readings sender.
 /// * `status`: struct to keep track of the service status.
 fn spawn_service(
     service_id: String,
     mut service: Box<dyn Service>,
     db: ArcMutex<Db>,
-    tx: Sender<Measurement>,
+    tx: Sender<Reading>,
 ) -> thread::JoinHandle<()> {
     thread::Builder::new()
         .name(service_id.clone())
@@ -124,7 +124,7 @@ fn spawn_service(
         .unwrap()
 }
 
-/// Start measurement receiver thread.
-fn start_measurement_receiver(rx: Receiver<Measurement>, db: ArcMutex<Db>) {
+/// Start readings receiver thread.
+fn start_readings_receiver(rx: Receiver<Reading>, db: ArcMutex<Db>) {
     thread::spawn(move || receiver::run(rx, db));
 }

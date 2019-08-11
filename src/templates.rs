@@ -2,8 +2,8 @@
 
 pub mod base;
 pub mod index;
-pub mod measurement;
 pub mod navbar;
+pub mod reading;
 pub mod sensor;
 pub mod status;
 

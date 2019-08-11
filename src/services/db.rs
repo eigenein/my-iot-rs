@@ -1,4 +1,4 @@
-use crate::measurement::Measurement;
+use crate::reading::Reading;
 use crate::services::Service;
 use crate::value::Value;
 use serde::Deserialize;
@@ -27,12 +27,12 @@ impl Db {
 }
 
 impl Service for Db {
-    fn run(&mut self, db: Arc<Mutex<crate::db::Db>>, tx: Sender<Measurement>) -> ! {
+    fn run(&mut self, db: Arc<Mutex<crate::db::Db>>, tx: Sender<Reading>) -> ! {
         loop {
             let size = { db.lock().unwrap().select_size() };
 
             #[rustfmt::skip]
-            tx.send(Measurement::new(
+            tx.send(Reading::new(
                 "db:size".to_string(),
                 Value::Size(size),
                 None,

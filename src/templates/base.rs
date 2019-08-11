@@ -15,7 +15,7 @@ markup::define! {
                 link[rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css"];
                 script[src = "https://kit.fontawesome.com/e88ef3598d.js"] {}
                 script[src = "https://cdn.plot.ly/plotly-1.5.0.min.js"] {}
-                style { ".measurement { height: 100% }" }
+                style { ".reading { height: 100% }" }
             }
             body {
                 {markup::raw(body)}

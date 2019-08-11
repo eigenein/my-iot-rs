@@ -17,16 +17,16 @@ pub fn start_server(settings: Settings, db: ArcMutex<Db>) -> ! {
         move |request| {
             router!(request,
                 (GET) ["/"] => {
-                    let measurements = {
-                        db.lock().unwrap().select_latest_measurements()
+                    let readings = {
+                        db.lock().unwrap().select_latest_readings()
                     };
                     Response::html(base::Base {
-                        body: Box::new(index::Index { measurements }),
+                        body: Box::new(index::Index { readings }),
                     }.to_string())
                 },
                 (GET) ["/sensors/{sensor}", sensor: String] => {
-                    let (last, _measurements) = {
-                        db.lock().unwrap().select_sensor_measurements(&sensor, &(Local::now() - Duration::minutes(5)))
+                    let (last, _readings) = {
+                        db.lock().unwrap().select_sensor_readings(&sensor, &(Local::now() - Duration::minutes(5)))
                     };
                     Response::html(base::Base {
                         body: Box::new(sensor::Sensor { last }),

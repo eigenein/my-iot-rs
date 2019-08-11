@@ -1,5 +1,5 @@
 use crate::db::Db;
-use crate::measurement::*;
+use crate::reading::*;
 use crate::value::Value;
 use serde::Deserialize;
 use std::sync::mpsc::Sender;
@@ -19,7 +19,7 @@ pub struct ClockSettings {
     /// Interval in milliseconds.
     pub interval_ms: Option<u64>,
 
-    /// Sensor suffix. Clock will yield measurements under `clock:suffix` sensor.
+    /// Sensor suffix. Clock will yield readings under `clock:suffix` sensor.
     pub suffix: String,
 }
 
@@ -34,10 +34,10 @@ impl Clock {
 }
 
 impl crate::services::Service for Clock {
-    fn run(&mut self, _db: Arc<Mutex<Db>>, tx: Sender<Measurement>) -> ! {
+    fn run(&mut self, _db: Arc<Mutex<Db>>, tx: Sender<Reading>) -> ! {
         loop {
             #[rustfmt::skip]
-            tx.send(Measurement::new(
+            tx.send(Reading::new(
                 self.sensor.clone(),
                 Value::Counter(self.counter),
                 None,

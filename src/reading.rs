@@ -1,10 +1,10 @@
-//! Describes a sensor measurement.
+//! Describes a sensor reading.
 use crate::value::Value;
 use chrono::prelude::*;
 
-/// A sensor measurement.
+/// A sensor reading.
 #[derive(Debug)]
-pub struct Measurement {
+pub struct Reading {
     /// A sensor. For example: `buienradar::6240::wind_speed_bft`.
     pub sensor: String,
     /// An attached typed value.
@@ -13,10 +13,10 @@ pub struct Measurement {
     pub timestamp: DateTime<Local>,
 }
 
-impl Measurement {
-    /// Create a new measurement.
+impl Reading {
+    /// Create a new reading.
     pub fn new(sensor: String, value: Value, timestamp: Option<DateTime<Local>>) -> Self {
-        Measurement {
+        Reading {
             sensor,
             value,
             timestamp: timestamp.unwrap_or_else(Local::now),

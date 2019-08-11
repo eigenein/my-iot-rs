@@ -1,6 +1,6 @@
 //! Database interface.
 
-use crate::measurement::Measurement;
+use crate::reading::Reading;
 use crate::value::Value;
 use chrono::prelude::*;
 use rusqlite::types::*;
@@ -20,14 +20,14 @@ impl Db {
 
         #[rustfmt::skip]
         connection.execute_batch("
-            -- Stores all sensor measurements.
-            CREATE TABLE IF NOT EXISTS measurements (
+            -- Stores all sensor readings.
+            CREATE TABLE IF NOT EXISTS readings (
                 sensor TEXT NOT NULL,
                 ts INTEGER NOT NULL,
                 value TEXT NOT NULL
             );
             -- Descending index on `ts` is needed to speed up the select latest queries.
-            CREATE UNIQUE INDEX IF NOT EXISTS measurements_sensor_ts ON measurements (sensor, ts DESC);
+            CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_ts ON readings (sensor, ts DESC);
 
             -- Key-value store for general use.
             CREATE TABLE IF NOT EXISTS kv (
@@ -55,9 +55,9 @@ impl FromSql for Value {
     }
 }
 
-impl From<&Row<'_>> for Measurement {
+impl From<&Row<'_>> for Reading {
     fn from(row: &Row<'_>) -> Self {
-        Measurement {
+        Reading {
             sensor: row.get_unwrap("sensor"),
             timestamp: Local.timestamp_millis(row.get_unwrap("ts")),
             value: row.get_unwrap("value"),
@@ -66,26 +66,26 @@ impl From<&Row<'_>> for Measurement {
 }
 
 impl Db {
-    /// Insert measurement into database.
-    pub fn insert_measurement(&self, measurement: &Measurement) {
+    /// Insert reading into database.
+    pub fn insert_reading(&self, reading: &Reading) {
         #[rustfmt::skip]
         self.connection
-            .prepare_cached("INSERT OR REPLACE INTO measurements (sensor, ts, value) VALUES (?1, ?2, ?3)")
+            .prepare_cached("INSERT OR REPLACE INTO readings (sensor, ts, value) VALUES (?1, ?2, ?3)")
             .unwrap()
             .execute(&[
-                &measurement.sensor as &dyn ToSql,
-                &measurement.timestamp.timestamp_millis(),
-                &measurement.value,
+                &reading.sensor as &dyn ToSql,
+                &reading.timestamp.timestamp_millis(),
+                &reading.value,
             ])
             .unwrap();
     }
 
-    /// Select latest measurement for each sensor.
-    pub fn select_latest_measurements(&self) -> Vec<Measurement> {
+    /// Select latest reading for each sensor.
+    pub fn select_latest_readings(&self) -> Vec<Reading> {
         self.connection
-            .prepare_cached("SELECT sensor, MAX(ts) as ts, value FROM measurements GROUP BY sensor")
+            .prepare_cached("SELECT sensor, MAX(ts) as ts, value FROM readings GROUP BY sensor")
             .unwrap()
-            .query_map(NO_PARAMS, |row| Ok(Measurement::from(row)))
+            .query_map(NO_PARAMS, |row| Ok(Reading::from(row)))
             .unwrap()
             .map(|result| result.unwrap())
             .collect()
@@ -100,25 +100,25 @@ impl Db {
             .unwrap() as u64
     }
 
-    /// Select latest measurements for an individual sensor.
-    pub fn select_sensor_measurements(&self, sensor: &str, since: &DateTime<Local>) -> (Measurement, Vec<Measurement>) {
+    /// Select latest readings for an individual sensor.
+    pub fn select_sensor_readings(&self, sensor: &str, since: &DateTime<Local>) -> (Reading, Vec<Reading>) {
         let last = self
             .connection
-            .prepare_cached("SELECT sensor, ts, value FROM measurements WHERE sensor = ?1 ORDER BY ts DESC LIMIT 1")
+            .prepare_cached("SELECT sensor, ts, value FROM readings WHERE sensor = ?1 ORDER BY ts DESC LIMIT 1")
             .unwrap()
-            .query_row(&[&sensor as &dyn ToSql], |row| Ok(Measurement::from(row)))
+            .query_row(&[&sensor as &dyn ToSql], |row| Ok(Reading::from(row)))
             .unwrap();
-        let measurements = self
+        let readings = self
             .connection
-            .prepare_cached("SELECT sensor, ts, value FROM measurements WHERE sensor = ?1 AND ts >= ?2 ORDER BY ts")
+            .prepare_cached("SELECT sensor, ts, value FROM readings WHERE sensor = ?1 AND ts >= ?2 ORDER BY ts")
             .unwrap()
             .query_map(&[&sensor as &dyn ToSql, &since.timestamp_millis()], |row| {
-                Ok(Measurement::from(row))
+                Ok(Reading::from(row))
             })
             .unwrap()
             .map(|result| result.unwrap())
             .collect();
-        (last, measurements)
+        (last, readings)
     }
 
     /// Get item from generic key-value store.

@@ -1,5 +1,5 @@
 use crate::db::Db;
-use crate::measurement::Measurement;
+use crate::reading::Reading;
 use crate::services::Service;
 use crate::value::{PointOfTheCompass, Value};
 use chrono::{DateTime, Local};
@@ -102,17 +102,17 @@ impl Buienradar {
         Ok(measurement)
     }
 
-    /// Sends out measurements based on Buienradar station measurement.
-    fn send_measurements(&self, measurement: BuienradarStationMeasurement, tx: &Sender<Measurement>) {
+    /// Sends out readings based on Buienradar station measurement.
+    fn send_readings(&self, measurement: BuienradarStationMeasurement, tx: &Sender<Reading>) {
         self.send(
             &tx,
             vec![
-                Measurement::new(
+                Reading::new(
                     format!("buienradar:{}:name", self.station_id),
                     Value::Text(measurement.name.clone()),
                     Some(measurement.timestamp),
                 ),
-                Measurement::new(
+                Reading::new(
                     format!("buienradar:{}:weather_description", self.station_id),
                     Value::Text(measurement.weather_description.clone()),
                     Some(measurement.timestamp),
@@ -120,7 +120,7 @@ impl Buienradar {
             ],
         );
         if let Some(degrees) = measurement.temperature {
-            tx.send(Measurement::new(
+            tx.send(Reading::new(
                 format!("buienradar:{}:temperature", self.station_id),
                 Value::Celsius(degrees),
                 Some(measurement.timestamp),
@@ -128,7 +128,7 @@ impl Buienradar {
             .unwrap();
         }
         if let Some(degrees) = measurement.ground_temperature {
-            tx.send(Measurement::new(
+            tx.send(Reading::new(
                 format!("buienradar:{}:ground_temperature", self.station_id),
                 Value::Celsius(degrees),
                 Some(measurement.timestamp),
@@ -136,7 +136,7 @@ impl Buienradar {
             .unwrap();
         }
         if let Some(degrees) = measurement.feel_temperature {
-            tx.send(Measurement::new(
+            tx.send(Reading::new(
                 format!("buienradar:{}:feel_temperature", self.station_id),
                 Value::Celsius(degrees),
                 Some(measurement.timestamp),
@@ -144,7 +144,7 @@ impl Buienradar {
             .unwrap();
         }
         if let Some(bft) = measurement.wind_speed_bft {
-            tx.send(Measurement::new(
+            tx.send(Reading::new(
                 format!("buienradar:{}:wind_speed_bft", self.station_id),
                 Value::Bft(bft),
                 Some(measurement.timestamp),
@@ -152,7 +152,7 @@ impl Buienradar {
             .unwrap();
         }
         if let Some(point) = measurement.wind_direction {
-            tx.send(Measurement::new(
+            tx.send(Reading::new(
                 format!("buienradar:{}:wind_direction", self.station_id),
                 Value::WindDirection(point),
                 Some(measurement.timestamp),
@@ -163,10 +163,10 @@ impl Buienradar {
 }
 
 impl Service for Buienradar {
-    fn run(&mut self, _db: Arc<Mutex<Db>>, tx: Sender<Measurement>) -> ! {
+    fn run(&mut self, _db: Arc<Mutex<Db>>, tx: Sender<Reading>) -> ! {
         loop {
             match self.fetch() {
-                Ok(measurement) => self.send_measurements(measurement, &tx),
+                Ok(measurement) => self.send_readings(measurement, &tx),
                 Err(error) => {
                     log::error!("Buienradar has failed: {}", error);
                 }

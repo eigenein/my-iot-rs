@@ -1,10 +1,10 @@
-//! Implements sensor measurement value.
+//! Implements sensor reading value.
 
 use humansize::FileSize;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
-/// Sensor measurement value.
+/// Sensor reading value.
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Value {
     /// Generic counter.

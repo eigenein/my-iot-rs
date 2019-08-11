@@ -179,7 +179,7 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Database interface.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">measurement</span>::<span class="ident">Measurement</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">reading</span>::<span class="ident">Reading</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">value</span>::<span class="ident">Value</span>;
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">rusqlite</span>::<span class="ident">types</span>::<span class="kw-2">*</span>;
@@ -199,14 +199,14 @@
 
         <span class="attribute">#[<span class="ident">rustfmt</span>::<span class="ident">skip</span>]</span>
         <span class="ident">connection</span>.<span class="ident">execute_batch</span>(<span class="string">&quot;
-            -- Stores all sensor measurements.
-            CREATE TABLE IF NOT EXISTS measurements (
+            -- Stores all sensor readings.
+            CREATE TABLE IF NOT EXISTS readings (
                 sensor TEXT NOT NULL,
                 ts INTEGER NOT NULL,
                 value TEXT NOT NULL
             );
             -- Descending index on `ts` is needed to speed up the select latest queries.
-            CREATE UNIQUE INDEX IF NOT EXISTS measurements_sensor_ts ON measurements (sensor, ts DESC);
+            CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_ts ON readings (sensor, ts DESC);
 
             -- Key-value store for general use.
             CREATE TABLE IF NOT EXISTS kv (
@@ -234,9 +234,9 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Row</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;&gt;</span> <span class="kw">for</span> <span class="ident">Measurement</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Row</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;&gt;</span> <span class="kw">for</span> <span class="ident">Reading</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">row</span>: <span class="kw-2">&amp;</span><span class="ident">Row</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Measurement</span> {
+        <span class="ident">Reading</span> {
             <span class="ident">sensor</span>: <span class="ident">row</span>.<span class="ident">get_unwrap</span>(<span class="string">&quot;sensor&quot;</span>),
             <span class="ident">timestamp</span>: <span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="ident">row</span>.<span class="ident">get_unwrap</span>(<span class="string">&quot;ts&quot;</span>)),
             <span class="ident">value</span>: <span class="ident">row</span>.<span class="ident">get_unwrap</span>(<span class="string">&quot;value&quot;</span>),
@@ -245,26 +245,26 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Db</span> {
-    <span class="doccomment">/// Insert measurement into database.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert_measurement</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">measurement</span>: <span class="kw-2">&amp;</span><span class="ident">Measurement</span>) {
+    <span class="doccomment">/// Insert reading into database.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert_reading</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">reading</span>: <span class="kw-2">&amp;</span><span class="ident">Reading</span>) {
         <span class="attribute">#[<span class="ident">rustfmt</span>::<span class="ident">skip</span>]</span>
         <span class="self">self</span>.<span class="ident">connection</span>
-            .<span class="ident">prepare_cached</span>(<span class="string">&quot;INSERT OR REPLACE INTO measurements (sensor, ts, value) VALUES (?1, ?2, ?3)&quot;</span>)
+            .<span class="ident">prepare_cached</span>(<span class="string">&quot;INSERT OR REPLACE INTO readings (sensor, ts, value) VALUES (?1, ?2, ?3)&quot;</span>)
             .<span class="ident">unwrap</span>()
             .<span class="ident">execute</span>(<span class="kw-2">&amp;</span>[
-                <span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">sensor</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">ToSql</span>,
-                <span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">timestamp</span>.<span class="ident">timestamp_millis</span>(),
-                <span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">value</span>,
+                <span class="kw-2">&amp;</span><span class="ident">reading</span>.<span class="ident">sensor</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">ToSql</span>,
+                <span class="kw-2">&amp;</span><span class="ident">reading</span>.<span class="ident">timestamp</span>.<span class="ident">timestamp_millis</span>(),
+                <span class="kw-2">&amp;</span><span class="ident">reading</span>.<span class="ident">value</span>,
             ])
             .<span class="ident">unwrap</span>();
     }
 
-    <span class="doccomment">/// Select latest measurement for each sensor.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select_latest_measurements</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Measurement</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Select latest reading for each sensor.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select_latest_readings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">connection</span>
-            .<span class="ident">prepare_cached</span>(<span class="string">&quot;SELECT sensor, MAX(ts) as ts, value FROM measurements GROUP BY sensor&quot;</span>)
+            .<span class="ident">prepare_cached</span>(<span class="string">&quot;SELECT sensor, MAX(ts) as ts, value FROM readings GROUP BY sensor&quot;</span>)
             .<span class="ident">unwrap</span>()
-            .<span class="ident">query_map</span>(<span class="ident">NO_PARAMS</span>, <span class="op">|</span><span class="ident">row</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Measurement</span>::<span class="ident">from</span>(<span class="ident">row</span>)))
+            .<span class="ident">query_map</span>(<span class="ident">NO_PARAMS</span>, <span class="op">|</span><span class="ident">row</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Reading</span>::<span class="ident">from</span>(<span class="ident">row</span>)))
             .<span class="ident">unwrap</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> <span class="ident">result</span>.<span class="ident">unwrap</span>())
             .<span class="ident">collect</span>()
@@ -279,31 +279,31 @@
             .<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u64</span>
     }
 
-    <span class="doccomment">/// Select latest measurements for an individual sensor.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select_sensor_measurements</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sensor</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">since</span>: <span class="kw-2">&amp;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Local</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> (<span class="ident">Measurement</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Measurement</span><span class="op">&gt;</span>) {
+    <span class="doccomment">/// Select latest readings for an individual sensor.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select_sensor_readings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sensor</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">since</span>: <span class="kw-2">&amp;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Local</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> (<span class="ident">Reading</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">connection</span>
-            .<span class="ident">prepare_cached</span>(<span class="string">&quot;SELECT sensor, ts, value FROM measurements WHERE sensor = ?1 ORDER BY ts DESC LIMIT 1&quot;</span>)
+            .<span class="ident">prepare_cached</span>(<span class="string">&quot;SELECT sensor, ts, value FROM readings WHERE sensor = ?1 ORDER BY ts DESC LIMIT 1&quot;</span>)
             .<span class="ident">unwrap</span>()
-            .<span class="ident">query_row</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">sensor</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">ToSql</span>], <span class="op">|</span><span class="ident">row</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Measurement</span>::<span class="ident">from</span>(<span class="ident">row</span>)))
+            .<span class="ident">query_row</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">sensor</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">ToSql</span>], <span class="op">|</span><span class="ident">row</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Reading</span>::<span class="ident">from</span>(<span class="ident">row</span>)))
             .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">measurements</span> <span class="op">=</span> <span class="self">self</span>
+        <span class="kw">let</span> <span class="ident">readings</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">connection</span>
-            .<span class="ident">prepare_cached</span>(<span class="string">&quot;SELECT sensor, ts, value FROM measurements WHERE sensor = ?1 AND ts &gt;= ?2 ORDER BY ts&quot;</span>)
+            .<span class="ident">prepare_cached</span>(<span class="string">&quot;SELECT sensor, ts, value FROM readings WHERE sensor = ?1 AND ts &gt;= ?2 ORDER BY ts&quot;</span>)
             .<span class="ident">unwrap</span>()
             .<span class="ident">query_map</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">sensor</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">ToSql</span>, <span class="kw-2">&amp;</span><span class="ident">since</span>.<span class="ident">timestamp_millis</span>()], <span class="op">|</span><span class="ident">row</span><span class="op">|</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">Measurement</span>::<span class="ident">from</span>(<span class="ident">row</span>))
+                <span class="prelude-val">Ok</span>(<span class="ident">Reading</span>::<span class="ident">from</span>(<span class="ident">row</span>))
             })
             .<span class="ident">unwrap</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> <span class="ident">result</span>.<span class="ident">unwrap</span>())
             .<span class="ident">collect</span>();
-        (<span class="ident">last</span>, <span class="ident">measurements</span>)
+        (<span class="ident">last</span>, <span class="ident">readings</span>)
     }
 
     <span class="doccomment">/// Get item from generic key-value store.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>) <span class="op">-&gt;</span> <span class="ident">serde_json</span>::<span class="ident">Value</span> {
         <span class="self">self</span>.<span class="ident">connection</span>
-            .<span class="ident">prepare_cached</span>(<span class="string">&quot;SELECT value FROM kv WHERE `key` = ?1 AND expires_ts &gt;= ?2&quot;</span>)
+            .<span class="ident">prepare_cached</span>(<span class="string">&quot;SELECT value FROM kv WHERE `key` = ?1 AND expires_ts &gt; ?2&quot;</span>)
             .<span class="ident">unwrap</span>()
             .<span class="ident">query_row</span>(
                 <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">as_ref</span>() <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">ToSql</span>, <span class="kw-2">&amp;</span><span class="ident">Local</span>::<span class="ident">now</span>().<span class="ident">timestamp_millis</span>()],
@@ -351,7 +351,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">expired_key_returns_null</span>() {
         <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Db</span>::<span class="ident">new</span>(<span class="string">&quot;:memory:&quot;</span>);
-        <span class="ident">db</span>.<span class="ident">set</span>(<span class="string">&quot;hello&quot;</span>, <span class="string">&quot;world&quot;</span>, <span class="ident">Local</span>::<span class="ident">now</span>() <span class="op">-</span> <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="number">1</span>));
+        <span class="ident">db</span>.<span class="ident">set</span>(<span class="string">&quot;hello&quot;</span>, <span class="string">&quot;world&quot;</span>, <span class="ident">Local</span>::<span class="ident">now</span>());
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">db</span>.<span class="ident">get</span>(<span class="string">&quot;hello&quot;</span>), <span class="ident">serde_json</span>::<span class="ident">Value</span>::<span class="ident">Null</span>);
     }
 }

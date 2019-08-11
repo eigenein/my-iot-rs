@@ -30,9 +30,9 @@ markup::define! {
                             span.icon { i.fas."fa-chart-line" {} }
                             span { "Sensors" }
                         }
-                        a."navbar-item"[href = "/measurements"] {
+                        a."navbar-item"[href = "/readings"] {
                             span.icon { i.fas."fa-ruler-combined" {} }
-                            span { "Measurements" }
+                            span { "Readings" }
                         }
                     }
 
