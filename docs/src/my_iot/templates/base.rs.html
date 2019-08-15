@@ -66,7 +66,7 @@
 <span class="doccomment">//! Page base.</span>
 
 <span class="ident">markup</span>::<span class="macro">define</span><span class="macro">!</span> {
-    <span class="ident">Base</span>(<span class="ident">body</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Display</span><span class="op">&gt;</span>) {
+    <span class="ident">Base</span>(<span class="ident">body</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Display</span><span class="op">&gt;</span>) {
         {<span class="ident">markup</span>::<span class="ident">doctype</span>()}
         <span class="ident">html</span>[<span class="ident">lang</span> <span class="op">=</span> <span class="string">&quot;en&quot;</span>] {
             <span class="ident">head</span> {

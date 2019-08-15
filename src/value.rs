@@ -9,16 +9,18 @@ use std::fmt::{Display, Formatter};
 pub enum Value {
     /// Generic counter.
     Counter(u64),
-    /// Size in bytes.
+    /// Size in [bytes](https://en.wikipedia.org/wiki/Byte).
     Size(u64),
-    /// Plain text.
+    /// [Plain text](https://en.wikipedia.org/wiki/Plain_text).
     Text(String),
-    /// Celsius temperature.
+    /// [Celsius](https://en.wikipedia.org/wiki/Celsius) temperature.
     Celsius(f64),
-    /// Beaufort wind speed.
+    /// [Beaufort](https://en.wikipedia.org/wiki/Beaufort_scale) wind speed.
     Bft(u32),
     /// Wind direction.
     WindDirection(PointOfTheCompass),
+    /// Length in [metres](https://en.wikipedia.org/wiki/Metre).
+    Metres(f64),
 }
 
 impl markup::Render for Value {
@@ -37,6 +39,7 @@ impl markup::Render for Value {
             Value::Celsius(degrees) => write!(f, r#"<i class="fas fa-thermometer-half"></i> {:.1} ℃"#, degrees),
             Value::Bft(bft) => write!(f, r#"<i class="fas fa-wind"></i> {} BFT"#, bft),
             Value::WindDirection(point) => write!(f, r#"<i class="fas fa-wind"></i> {}"#, point),
+            _ => unimplemented!(),
         }
     }
 }
@@ -48,8 +51,8 @@ impl Value {
             Value::Text(_) | Value::Counter(_) | Value::Size(_) => "is-light",
             Value::Bft(number) => match number {
                 0 => "is-light",
-                1...3 => "is-success",
-                4...5 => "is-warning",
+                1..=3 => "is-success",
+                4..=5 => "is-warning",
                 _ => "is-danger",
             },
             Value::Celsius(value) => match value {
@@ -62,6 +65,7 @@ impl Value {
                 _ => unreachable!(),
             },
             Value::WindDirection(_) => "is-light",
+            _ => unimplemented!(),
         }
     }
 }

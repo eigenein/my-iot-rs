@@ -16,28 +16,9 @@ pub fn start_server(settings: Settings, db: ArcMutex<Db>) -> ! {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), settings.http_port.unwrap_or(8081)),
         move |request| {
             router!(request,
-                (GET) ["/"] => {
-                    let readings = {
-                        db.lock().unwrap().select_latest_readings()
-                    };
-                    Response::html(base::Base {
-                        body: Box::new(index::Index { readings }),
-                    }.to_string())
-                },
-                (GET) ["/sensors/{sensor}", sensor: String] => {
-                    let (last, _readings) = {
-                        db.lock().unwrap().select_sensor_readings(&sensor, &(Local::now() - Duration::minutes(5)))
-                    };
-                    Response::html(base::Base {
-                        body: Box::new(sensor::Sensor { last }),
-                    }.to_string())
-                },
-                (GET) ["/status"] => {
-                    let settings = settings.clone();
-                    Response::html(base::Base {
-                        body: Box::new(status::Status { settings: settings }),
-                    }.to_string())
-                },
+                (GET) ["/"] => index(&db),
+                (GET) ["/sensors/{sensor}", sensor: String] => get_sensor(&db, &sensor),
+                (GET) ["/status"] => get_status(&settings),
                 (GET) ["/favicon.ico"] => Response::from_data("image/x-icon", consts::FAVICON.to_vec()),
                 (GET) ["/apple-touch-icon.png"] => Response::from_data("image/png", consts::APPLE_TOUCH_ICON.to_vec()),
                 (GET) ["/favicon-32x32.png"] => Response::from_data("image/png", consts::FAVICON_32.to_vec()),
@@ -45,5 +26,47 @@ pub fn start_server(settings: Settings, db: ArcMutex<Db>) -> ! {
                 _ => Response::empty_404(),
             )
         },
+    )
+}
+
+/// Get index page response.
+fn index(db: &ArcMutex<Db>) -> Response {
+    let readings = { db.lock().unwrap().select_latest_readings() };
+    Response::html(
+        base::Base {
+            body: Box::new(index::Index { readings }),
+        }
+        .to_string(),
+    )
+}
+
+/// Get sensor page response.
+fn get_sensor(db: &ArcMutex<Db>, sensor: &str) -> Response {
+    let (last, _readings) = {
+        let db = db.lock().unwrap();
+        (
+            db.select_last_reading(&sensor),
+            db.select_readings(&sensor, &(Local::now() - Duration::minutes(5))),
+        )
+    };
+    match last {
+        Some(reading) => Response::html(
+            base::Base {
+                body: Box::new(sensor::Sensor { last: reading }),
+            }
+            .to_string(),
+        ),
+        None => Response::empty_404(),
+    }
+}
+
+/// Get status page response.
+fn get_status(settings: &Settings) -> Response {
+    let settings = settings.clone();
+    Response::html(
+        base::Base {
+            body: Box::new(status::Status { settings }),
+        }
+        .to_string(),
     )
 }

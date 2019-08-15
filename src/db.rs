@@ -101,16 +101,18 @@ impl Db {
             .unwrap() as u64
     }
 
-    /// Select the latest reading for individual sensor as well as latest readings within given time interval.
-    pub fn select_sensor_readings(&self, sensor: &str, since: &DateTime<Local>) -> (Reading, Vec<Reading>) {
-        let last = self
-            .connection
+    /// Select the very last sensor reading.
+    pub fn select_last_reading(&self, sensor: &str) -> Option<Reading> {
+        self.connection
             .prepare_cached("SELECT sensor, ts, value FROM readings WHERE sensor = ?1 ORDER BY ts DESC LIMIT 1")
             .unwrap()
-            .query_row(&[&sensor as &dyn ToSql], |row| Ok(Reading::from(row)))
-            .unwrap();
-        let readings = self
-            .connection
+            .query_row(&[&sensor as &dyn ToSql], |row| Ok(Some(Reading::from(row))))
+            .unwrap_or(None)
+    }
+
+    /// Select the latest sensor readings within the given time interval.
+    pub fn select_readings(&self, sensor: &str, since: &DateTime<Local>) -> Vec<Reading> {
+        self.connection
             .prepare_cached("SELECT sensor, ts, value FROM readings WHERE sensor = ?1 AND ts >= ?2 ORDER BY ts")
             .unwrap()
             .query_map(&[&sensor as &dyn ToSql, &since.timestamp_millis()], |row| {
@@ -118,8 +120,7 @@ impl Db {
             })
             .unwrap()
             .map(|result| result.unwrap())
-            .collect();
-        (last, readings)
+            .collect()
     }
 
     /// Get item from generic key-value store.

@@ -177,6 +177,7 @@
 <span id="177">177</span>
 <span id="178">178</span>
 <span id="179">179</span>
+<span id="180">180</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Database interface.</span>
 
@@ -281,16 +282,18 @@
             .<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u64</span>
     }
 
-    <span class="doccomment">/// Select the latest reading for individual sensor as well as latest readings within given time interval.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select_sensor_readings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sensor</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">since</span>: <span class="kw-2">&amp;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Local</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> (<span class="ident">Reading</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">connection</span>
+    <span class="doccomment">/// Select the very last sensor reading.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select_last_reading</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sensor</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">connection</span>
             .<span class="ident">prepare_cached</span>(<span class="string">&quot;SELECT sensor, ts, value FROM readings WHERE sensor = ?1 ORDER BY ts DESC LIMIT 1&quot;</span>)
             .<span class="ident">unwrap</span>()
-            .<span class="ident">query_row</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">sensor</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">ToSql</span>], <span class="op">|</span><span class="ident">row</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Reading</span>::<span class="ident">from</span>(<span class="ident">row</span>)))
-            .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">readings</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">connection</span>
+            .<span class="ident">query_row</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">sensor</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">ToSql</span>], <span class="op">|</span><span class="ident">row</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Reading</span>::<span class="ident">from</span>(<span class="ident">row</span>))))
+            .<span class="ident">unwrap_or</span>(<span class="prelude-val">None</span>)
+    }
+
+    <span class="doccomment">/// Select the latest sensor readings within the given time interval.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select_readings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sensor</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">since</span>: <span class="kw-2">&amp;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Local</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">connection</span>
             .<span class="ident">prepare_cached</span>(<span class="string">&quot;SELECT sensor, ts, value FROM readings WHERE sensor = ?1 AND ts &gt;= ?2 ORDER BY ts&quot;</span>)
             .<span class="ident">unwrap</span>()
             .<span class="ident">query_map</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">sensor</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">ToSql</span>, <span class="kw-2">&amp;</span><span class="ident">since</span>.<span class="ident">timestamp_millis</span>()], <span class="op">|</span><span class="ident">row</span><span class="op">|</span> {
@@ -298,8 +301,7 @@
             })
             .<span class="ident">unwrap</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> <span class="ident">result</span>.<span class="ident">unwrap</span>())
-            .<span class="ident">collect</span>();
-        (<span class="ident">last</span>, <span class="ident">readings</span>)
+            .<span class="ident">collect</span>()
     }
 
     <span class="doccomment">/// Get item from generic key-value store.</span>
