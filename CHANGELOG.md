@@ -6,6 +6,7 @@
 - Break: add `expires_ts` to the key-value store
 - Break: rename `Measurement` into `Reading`
 - New: add `is_persistent` flag to `Reading`
+- New: add `/sensors/{sensor}/json` endpoint
 
 ## `0.7.0`
 

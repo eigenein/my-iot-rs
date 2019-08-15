@@ -70,6 +70,19 @@
 <span id="70">70</span>
 <span id="71">71</span>
 <span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implements web server.</span>
 
@@ -81,6 +94,7 @@
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="ident">rouille</span>::{<span class="ident">router</span>, <span class="ident">Response</span>};
+<span class="kw">use</span> <span class="ident">serde_json</span>::<span class="ident">json</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::{<span class="ident">IpAddr</span>, <span class="ident">Ipv4Addr</span>, <span class="ident">SocketAddr</span>};
 
 <span class="doccomment">/// Start the web application.</span>
@@ -91,6 +105,7 @@
             <span class="macro">router</span><span class="macro">!</span>(<span class="ident">request</span>,
                 (<span class="ident">GET</span>) [<span class="string">&quot;/&quot;</span>] <span class="op">=&gt;</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>),
                 (<span class="ident">GET</span>) [<span class="string">&quot;/sensors/{sensor}&quot;</span>, <span class="ident">sensor</span>: <span class="ident">String</span>] <span class="op">=&gt;</span> <span class="ident">get_sensor</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>, <span class="kw-2">&amp;</span><span class="ident">sensor</span>),
+                (<span class="ident">GET</span>) [<span class="string">&quot;/sensors/{sensor}/json&quot;</span>, <span class="ident">sensor</span>: <span class="ident">String</span>] <span class="op">=&gt;</span> <span class="ident">get_sensor_json</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>, <span class="kw-2">&amp;</span><span class="ident">sensor</span>),
                 (<span class="ident">GET</span>) [<span class="string">&quot;/status&quot;</span>] <span class="op">=&gt;</span> <span class="ident">get_status</span>(<span class="kw-2">&amp;</span><span class="ident">settings</span>),
                 (<span class="ident">GET</span>) [<span class="string">&quot;/favicon.ico&quot;</span>] <span class="op">=&gt;</span> <span class="ident">Response</span>::<span class="ident">from_data</span>(<span class="string">&quot;image/x-icon&quot;</span>, <span class="ident">consts</span>::<span class="ident">FAVICON</span>.<span class="ident">to_vec</span>()),
                 (<span class="ident">GET</span>) [<span class="string">&quot;/apple-touch-icon.png&quot;</span>] <span class="op">=&gt;</span> <span class="ident">Response</span>::<span class="ident">from_data</span>(<span class="string">&quot;image/png&quot;</span>, <span class="ident">consts</span>::<span class="ident">APPLE_TOUCH_ICON</span>.<span class="ident">to_vec</span>()),
@@ -129,6 +144,17 @@
             }
             .<span class="ident">to_string</span>(),
         ),
+        <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="ident">Response</span>::<span class="ident">empty_404</span>(),
+    }
+}
+
+<span class="doccomment">/// Get last sensor value JSON response.</span>
+<span class="kw">fn</span> <span class="ident">get_sensor_json</span>(<span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="ident">ArcMutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;</span>, <span class="ident">sensor</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">Response</span> {
+    <span class="kw">match</span> <span class="ident">db</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">select_last_reading</span>(<span class="kw-2">&amp;</span><span class="ident">sensor</span>) {
+        <span class="prelude-val">Some</span>(<span class="ident">reading</span>) <span class="op">=&gt;</span> <span class="ident">Response</span>::<span class="ident">json</span>(<span class="kw-2">&amp;</span><span class="macro">json</span><span class="macro">!</span>({
+            <span class="string">&quot;value&quot;</span>: <span class="kw-2">&amp;</span><span class="ident">reading</span>.<span class="ident">value</span>,
+            <span class="string">&quot;timestamp&quot;</span>: <span class="kw-2">&amp;</span><span class="ident">reading</span>.<span class="ident">timestamp</span>,
+        })),
         <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="ident">Response</span>::<span class="ident">empty_404</span>(),
     }
 }

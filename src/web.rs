@@ -8,6 +8,7 @@ use crate::types::ArcMutex;
 use chrono::prelude::*;
 use chrono::Duration;
 use rouille::{router, Response};
+use serde_json::json;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 /// Start the web application.
@@ -18,6 +19,7 @@ pub fn start_server(settings: Settings, db: ArcMutex<Db>) -> ! {
             router!(request,
                 (GET) ["/"] => index(&db),
                 (GET) ["/sensors/{sensor}", sensor: String] => get_sensor(&db, &sensor),
+                (GET) ["/sensors/{sensor}/json", sensor: String] => get_sensor_json(&db, &sensor),
                 (GET) ["/status"] => get_status(&settings),
                 (GET) ["/favicon.ico"] => Response::from_data("image/x-icon", consts::FAVICON.to_vec()),
                 (GET) ["/apple-touch-icon.png"] => Response::from_data("image/png", consts::APPLE_TOUCH_ICON.to_vec()),
@@ -56,6 +58,17 @@ fn get_sensor(db: &ArcMutex<Db>, sensor: &str) -> Response {
             }
             .to_string(),
         ),
+        None => Response::empty_404(),
+    }
+}
+
+/// Get last sensor value JSON response.
+fn get_sensor_json(db: &ArcMutex<Db>, sensor: &str) -> Response {
+    match db.lock().unwrap().select_last_reading(&sensor) {
+        Some(reading) => Response::json(&json!({
+            "value": &reading.value,
+            "timestamp": &reading.timestamp,
+        })),
         None => Response::empty_404(),
     }
 }
