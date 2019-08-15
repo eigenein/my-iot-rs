@@ -54,7 +54,10 @@ fn get_sensor(db: &ArcMutex<Db>, sensor: &str) -> Response {
     match last {
         Some(reading) => Response::html(
             base::Base {
-                body: Box::new(sensor::Sensor { last: reading, readings }),
+                body: Box::new(sensor::Sensor {
+                    last: reading,
+                    readings,
+                }),
             }
             .to_string(),
         ),
