@@ -44,7 +44,7 @@ fn index(db: &ArcMutex<Db>) -> Response {
 
 /// Get sensor page response.
 fn get_sensor(db: &ArcMutex<Db>, sensor: &str) -> Response {
-    let (last, _readings) = {
+    let (last, readings) = {
         let db = db.lock().unwrap();
         (
             db.select_last_reading(&sensor),
@@ -54,7 +54,7 @@ fn get_sensor(db: &ArcMutex<Db>, sensor: &str) -> Response {
     match last {
         Some(reading) => Response::html(
             base::Base {
-                body: Box::new(sensor::Sensor { last: reading }),
+                body: Box::new(sensor::Sensor { last: reading, readings }),
             }
             .to_string(),
         ),

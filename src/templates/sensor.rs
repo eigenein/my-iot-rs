@@ -3,9 +3,12 @@
 use crate::reading::Reading;
 use crate::templates;
 use crate::templates::DATE_FORMAT;
+use crate::value::Value;
+use chrono::{DateTime, Local};
+use serde_json::json;
 
 markup::define! {
-    Sensor(last: Reading) {
+    Sensor(last: Reading, readings: Vec<Reading>) {
         section.hero.{&last.value.class()} {
             div."hero-head" { {templates::navbar::NavBar {}} }
             div."hero-body" {
@@ -32,6 +35,31 @@ markup::define! {
                         pre {
                             code {
                                 {format!("{:#?}", &last)}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        section.section {
+            div.container {
+                h3.title."is-5" { "JSON" }
+                div.message {
+                    div."message-body" {
+                        pre {
+                            code {
+                                {
+                                    let (xs, ys): (Vec<DateTime<Local>>, Vec<Value>) = readings
+                                        .iter()
+                                        .map(|reading| (reading.timestamp, reading.value.clone()))
+                                        .unzip();
+                                }
+                                {
+                                    serde_json::to_string(&json!({
+                                        "x": xs,
+                                        "y": ys,
+                                    })).unwrap()
+                                }
                             }
                         }
                     }
