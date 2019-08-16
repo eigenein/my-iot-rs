@@ -7,6 +7,7 @@
 - Break: rename `Measurement` into `Reading`
 - New: add `is_persistent` flag to `Reading`
 - New: add `/sensors/{sensor}/json` endpoint
+- Break: services must spawn threads themselves
 
 ## `0.7.0`
 

@@ -4,7 +4,7 @@ use crate::consts;
 use crate::db::Db;
 use crate::settings::Settings;
 use crate::templates::*;
-use crate::types::ArcMutex;
+use crate::threading::ArcMutex;
 use chrono::prelude::*;
 use chrono::Duration;
 use rouille::{router, Response};

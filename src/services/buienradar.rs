@@ -2,6 +2,8 @@ use crate::consts::USER_AGENT;
 use crate::db::Db;
 use crate::reading::Reading;
 use crate::services::Service;
+use crate::threading;
+use crate::threading::JoinHandle;
 use crate::value::{PointOfTheCompass, Value};
 use chrono::{DateTime, Local};
 use reqwest::header::{HeaderMap, HeaderValue};
@@ -165,8 +167,8 @@ impl Buienradar {
 }
 
 impl Service for Buienradar {
-    fn run(&mut self, _db: Arc<Mutex<Db>>, tx: Sender<Reading>) -> ! {
-        loop {
+    fn spawn(self: Box<Self>, service_id: String, _db: Arc<Mutex<Db>>, tx: Sender<Reading>) -> Vec<JoinHandle> {
+        vec![threading::spawn(service_id, move || loop {
             match self.fetch() {
                 Ok(measurement) => self.send_readings(measurement, &tx),
                 Err(error) => {
@@ -174,7 +176,7 @@ impl Service for Buienradar {
                 }
             }
             thread::sleep(REFRESH_PERIOD);
-        }
+        })]
     }
 }
 

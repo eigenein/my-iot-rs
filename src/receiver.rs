@@ -2,7 +2,7 @@
 
 use crate::db::*;
 use crate::reading::*;
-use crate::types::ArcMutex;
+use crate::threading::ArcMutex;
 use log::info;
 use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex};

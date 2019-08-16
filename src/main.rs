@@ -37,14 +37,13 @@
 
 use crate::db::Db;
 use crate::reading::Reading;
-use crate::services::Service;
 use crate::settings::Settings;
-use crate::types::ArcMutex;
+use crate::threading::ArcMutex;
 use log::{debug, info};
-use std::collections::HashMap;
+use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
-use std::{sync::mpsc::channel, thread};
+use std::thread::JoinHandle;
 
 pub mod consts;
 pub mod db;
@@ -54,7 +53,7 @@ pub mod receiver;
 pub mod services;
 pub mod settings;
 pub mod templates;
-pub mod types;
+pub mod threading;
 pub mod value;
 pub mod web;
 
@@ -78,7 +77,7 @@ fn main() -> ! {
 
     info!("Starting services…");
     let (tx, rx) = channel();
-    let _service_statuses = start_services(&settings, &db, &tx); // TODO
+    spawn_services(&settings, &db, &tx);
 
     info!("Starting readings receiver…");
     receiver::start(rx, db.clone());
@@ -87,39 +86,19 @@ fn main() -> ! {
     web::start_server(settings, db.clone())
 }
 
-/// Start all configured services.
-fn start_services(settings: &Settings, db: &ArcMutex<Db>, tx: &Sender<Reading>) -> HashMap<String, ()> {
+/// Spawn all configured services.
+fn spawn_services(settings: &Settings, db: &ArcMutex<Db>, tx: &Sender<Reading>) -> Vec<JoinHandle<()>> {
     settings
         .services
         .iter()
-        .map(|(service_id, settings)| {
-            info!("Starting service `{}`…", service_id);
+        .flat_map(|(service_id, settings)| {
+            info!("Spawning service `{}`…", service_id);
             debug!("Settings `{}`: {:?}", service_id, settings);
-            spawn_service(service_id.clone(), services::new(settings), db.clone(), tx.clone());
-            (service_id.clone(), ()) // TODO: return some valid handle.
+            let handles = services::new(settings).spawn(service_id.clone(), db.clone(), tx.clone());
+            for handle in handles.iter() {
+                info!("Spawned `{}`.", handle.thread().name().unwrap_or("anonymous"));
+            }
+            handles
         })
         .collect()
-}
-
-/// Spawn service thread.
-///
-/// * `service_id`: user-defined service ID.
-/// * `service`: service instance.
-/// * `db`: main database.
-/// * `tx`: readings sender.
-/// * `status`: struct to keep track of the service status.
-fn spawn_service(
-    service_id: String,
-    mut service: Box<dyn Service>,
-    db: ArcMutex<Db>,
-    tx: Sender<Reading>,
-) -> thread::JoinHandle<()> {
-    thread::Builder::new()
-        .name(service_id.clone())
-        .spawn(move || {
-            info!("Running service `{}`…", service_id);
-            debug!("State `{}`: {:?}", service_id, &service);
-            service.run(db, tx)
-        })
-        .unwrap()
 }

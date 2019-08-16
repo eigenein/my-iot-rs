@@ -3,6 +3,7 @@
 use crate::db::Db;
 use crate::reading::*;
 use crate::settings::*;
+use crate::threading::JoinHandle;
 use std::fmt::Debug;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
@@ -13,7 +14,11 @@ pub mod db;
 
 /// A generic service.
 pub trait Service: Debug + Send {
-    fn run(&mut self, db: Arc<Mutex<Db>>, tx: Sender<Reading>) -> !;
+    /// Spawn service threads.
+    ///
+    /// Service may spawn as much threads as needed, but they won't be restarted in case of failure.
+    /// Service must take care of its own health.
+    fn spawn(self: Box<Self>, service_id: String, db: Arc<Mutex<Db>>, tx: Sender<Reading>) -> Vec<JoinHandle>;
 
     /// Convenience function to send multiple readings at once.
     fn send(&self, tx: &Sender<Reading>, readings: Vec<Reading>) {

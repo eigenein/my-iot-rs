@@ -1,11 +1,13 @@
 use crate::reading::Reading;
 use crate::services::Service;
+use crate::threading;
 use crate::value::Value;
 use chrono::Local;
 use serde::Deserialize;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 use std::thread;
+use std::thread::JoinHandle;
 use std::time::Duration;
 
 #[derive(Debug)]
@@ -28,8 +30,13 @@ impl Db {
 }
 
 impl Service for Db {
-    fn run(&mut self, db: Arc<Mutex<crate::db::Db>>, tx: Sender<Reading>) -> ! {
-        loop {
+    fn spawn(
+        self: Box<Self>,
+        service_id: String,
+        db: Arc<Mutex<crate::db::Db>>,
+        tx: Sender<Reading>,
+    ) -> Vec<JoinHandle<()>> {
+        vec![threading::spawn(service_id, move || loop {
             let size = { db.lock().unwrap().select_size() };
 
             #[rustfmt::skip]
@@ -41,6 +48,6 @@ impl Service for Db {
             }).unwrap();
 
             thread::sleep(self.interval);
-        }
+        })]
     }
 }
