@@ -2,6 +2,8 @@
 
 ## `master`
 
+## `0.8.0`
+
 - New: generic persisted JSON key-value store
 - Break: add `expires_ts` to the key-value store
 - Break: rename `Measurement` into `Reading`
