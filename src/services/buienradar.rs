@@ -100,18 +100,18 @@ impl Buienradar {
     }
 
     /// Sends out readings based on Buienradar station measurement.
-    fn send_readings(&self, measurement: BuienradarStationMeasurement, tx: &Sender<Reading>) {
+    fn send_readings(&self, measurement: BuienradarStationMeasurement, tx: &Sender<Reading>, service_id: &str) {
         self.send(
             &tx,
             vec![
                 Reading {
-                    sensor: format!("buienradar:{}:name", self.station_id),
+                    sensor: format!("{}:{}:name", &service_id, self.station_id),
                     value: Value::Text(measurement.name.clone()),
                     timestamp: measurement.timestamp,
                     is_persisted: true,
                 },
                 Reading {
-                    sensor: format!("buienradar:{}:weather_description", self.station_id),
+                    sensor: format!("{}:{}:weather_description", &service_id, self.station_id),
                     value: Value::Text(measurement.weather_description.clone()),
                     timestamp: measurement.timestamp,
                     is_persisted: true,
@@ -120,7 +120,7 @@ impl Buienradar {
         );
         if let Some(degrees) = measurement.temperature {
             tx.send(Reading {
-                sensor: format!("buienradar:{}:temperature", self.station_id),
+                sensor: format!("{}:{}:temperature", &service_id, self.station_id),
                 value: Value::Celsius(degrees),
                 timestamp: measurement.timestamp,
                 is_persisted: true,
@@ -129,7 +129,7 @@ impl Buienradar {
         }
         if let Some(degrees) = measurement.ground_temperature {
             tx.send(Reading {
-                sensor: format!("buienradar:{}:ground_temperature", self.station_id),
+                sensor: format!("{}:{}:ground_temperature", &service_id, self.station_id),
                 value: Value::Celsius(degrees),
                 timestamp: measurement.timestamp,
                 is_persisted: true,
@@ -138,7 +138,7 @@ impl Buienradar {
         }
         if let Some(degrees) = measurement.feel_temperature {
             tx.send(Reading {
-                sensor: format!("buienradar:{}:feel_temperature", self.station_id),
+                sensor: format!("{}:{}:feel_temperature", &service_id, self.station_id),
                 value: Value::Celsius(degrees),
                 timestamp: measurement.timestamp,
                 is_persisted: true,
@@ -147,7 +147,7 @@ impl Buienradar {
         }
         if let Some(bft) = measurement.wind_speed_bft {
             tx.send(Reading {
-                sensor: format!("buienradar:{}:wind_speed_bft", self.station_id),
+                sensor: format!("{}:{}:wind_speed_bft", &service_id, self.station_id),
                 value: Value::Bft(bft),
                 timestamp: measurement.timestamp,
                 is_persisted: true,
@@ -156,7 +156,7 @@ impl Buienradar {
         }
         if let Some(point) = measurement.wind_direction {
             tx.send(Reading {
-                sensor: format!("buienradar:{}:wind_direction", self.station_id),
+                sensor: format!("{}:{}:wind_direction", &service_id, self.station_id),
                 value: Value::WindDirection(point),
                 timestamp: measurement.timestamp,
                 is_persisted: true,
@@ -174,9 +174,10 @@ impl Service for Buienradar {
         tx: Sender<Reading>,
         _rx: Receiver<Reading>,
     ) -> Vec<JoinHandle> {
-        vec![threading::spawn(service_id, move || loop {
+        let thread_name = service_id.clone();
+        vec![threading::spawn(thread_name, move || loop {
             match self.fetch() {
-                Ok(measurement) => self.send_readings(measurement, &tx),
+                Ok(measurement) => self.send_readings(measurement, &tx, &service_id),
                 Err(error) => {
                     log::error!("Buienradar has failed: {}", error);
                 }

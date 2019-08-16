@@ -13,7 +13,6 @@ use std::time::Duration;
 #[derive(Debug)]
 pub struct Clock {
     interval: Duration,
-    sensor: String,
     counter: u64,
 }
 
@@ -21,9 +20,6 @@ pub struct Clock {
 pub struct ClockSettings {
     /// Interval in milliseconds.
     pub interval_ms: Option<u64>,
-
-    /// Sensor suffix. Clock will yield readings under `clock:suffix` sensor.
-    pub suffix: String,
 }
 
 impl Clock {
@@ -31,7 +27,6 @@ impl Clock {
         Clock {
             interval: Duration::from_millis(settings.interval_ms.unwrap_or(1000)),
             counter: 0,
-            sensor: format!("clock:{}", settings.suffix),
         }
     }
 }
@@ -44,10 +39,11 @@ impl crate::services::Service for Clock {
         tx: Sender<Reading>,
         _rx: Receiver<Reading>,
     ) -> Vec<JoinHandle> {
+        let sensor = service_id.clone();
         vec![threading::spawn(service_id, move || loop {
             #[rustfmt::skip]
             tx.send(Reading {
-                sensor: self.sensor.clone(),
+                sensor: sensor.clone(),
                 value: Value::Counter(self.counter),
                 timestamp: Local::now(),
                 is_persisted: true,

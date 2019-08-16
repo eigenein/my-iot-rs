@@ -51,6 +51,7 @@
 <span id="51">51</span>
 <span id="52">52</span>
 <span id="53">53</span>
+<span id="54">54</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Settings</span>
 <span class="doccomment">//!</span>
@@ -92,6 +93,7 @@
 
     <span class="doccomment">/// Services configuration.</span>
     <span class="doccomment">/// Each entry is a pair of service ID (defined by user) and service settings.</span>
+    <span class="doccomment">/// Service ID is normally used as a sensor prefix, for instance: `service_id:service_sensor`.</span>
     <span class="kw">pub</span> <span class="ident">services</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">ServiceSettings</span><span class="op">&gt;</span>,
 }
 
