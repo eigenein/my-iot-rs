@@ -4,7 +4,7 @@ use crate::db::*;
 use crate::reading::*;
 use crate::threading::ArcMutex;
 use crossbeam_channel::Receiver;
-use log::info;
+use log::{error, info};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
@@ -21,4 +21,5 @@ fn run(rx: Receiver<Reading>, db: Arc<Mutex<Db>>) {
             db.lock().unwrap().insert_reading(&reading);
         }
     }
+    error!("Reading receiver has stopped.");
 }
