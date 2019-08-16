@@ -2,6 +2,8 @@
 
 ## `master`
 
+- New: dark theme
+
 ## `0.8.0`
 
 - New: generic persisted JSON key-value store

@@ -13,6 +13,7 @@ markup::define! {
                 link[rel = "icon", type="image/png", sizes="32x32", href="/favicon-32x32.png"];
                 link[rel = "icon", type="image/png", sizes="16x16", href="/favicon-16x16.png"];
                 link[rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css"];
+                link[rel = "stylesheet", type="text/css", href="https://unpkg.com/bulma-prefers-dark"];
                 script[src = "https://kit.fontawesome.com/e88ef3598d.js"] {}
                 script[src = "https://cdn.plot.ly/plotly-1.5.0.min.js"] {}
                 style { ".reading { height: 100% }" }
