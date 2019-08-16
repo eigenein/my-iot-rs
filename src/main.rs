@@ -96,7 +96,7 @@ fn spawn_services(settings: &Settings, db: &ArcMutex<Db>, tx: &Sender<Reading>) 
             debug!("Settings `{}`: {:?}", service_id, settings);
             let handles = services::new(settings).spawn(service_id.clone(), db.clone(), tx.clone());
             for handle in handles.iter() {
-                info!("Spawned `{}`.", handle.thread().name().unwrap_or("anonymous"));
+                info!("Spawned thread `{}`.", handle.thread().name().unwrap_or("anonymous"));
             }
             handles
         })
