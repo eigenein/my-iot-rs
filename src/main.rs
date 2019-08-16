@@ -42,7 +42,7 @@ use crate::settings::Settings;
 use crate::types::ArcMutex;
 use log::{debug, info};
 use std::collections::HashMap;
-use std::sync::mpsc::{Receiver, Sender};
+use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 use std::{sync::mpsc::channel, thread};
 
@@ -81,7 +81,7 @@ fn main() -> ! {
     let _service_statuses = start_services(&settings, &db, &tx); // TODO
 
     info!("Starting readings receiver…");
-    start_readings_receiver(rx, db.clone());
+    receiver::start(rx, db.clone());
 
     info!("Starting web server…");
     web::start_server(settings, db.clone())
@@ -122,9 +122,4 @@ fn spawn_service(
             service.run(db, tx)
         })
         .unwrap()
-}
-
-/// Start readings receiver thread.
-fn start_readings_receiver(rx: Receiver<Reading>, db: ArcMutex<Db>) {
-    thread::spawn(move || receiver::run(rx, db));
 }
