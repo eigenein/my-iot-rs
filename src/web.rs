@@ -20,7 +20,6 @@ pub fn start_server(settings: Settings, db: ArcMutex<Db>) -> ! {
                 (GET) ["/"] => index(&db),
                 (GET) ["/sensors/{sensor}", sensor: String] => get_sensor(&db, &sensor),
                 (GET) ["/sensors/{sensor}/json", sensor: String] => get_sensor_json(&db, &sensor),
-                (GET) ["/status"] => get_status(&settings),
                 (GET) ["/favicon.ico"] => Response::from_data("image/x-icon", consts::FAVICON.to_vec()),
                 (GET) ["/apple-touch-icon.png"] => Response::from_data("image/png", consts::APPLE_TOUCH_ICON.to_vec()),
                 (GET) ["/favicon-32x32.png"] => Response::from_data("image/png", consts::FAVICON_32.to_vec()),
@@ -74,15 +73,4 @@ fn get_sensor_json(db: &ArcMutex<Db>, sensor: &str) -> Response {
         })),
         None => Response::empty_404(),
     }
-}
-
-/// Get status page response.
-fn get_status(settings: &Settings) -> Response {
-    let settings = settings.clone();
-    Response::html(
-        base::Base {
-            body: Box::new(status::Status { settings }),
-        }
-        .to_string(),
-    )
 }

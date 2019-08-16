@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["get_sensor","Get sensor page response."],["get_sensor_json","Get last sensor value JSON response."],["get_status","Get status page response."],["index","Get index page response."],["start_server","Start the web application."]]});
+initSidebarItems({"fn":[["get_sensor","Get sensor page response."],["get_sensor_json","Get last sensor value JSON response."],["index","Get index page response."],["start_server","Start the web application."]]});

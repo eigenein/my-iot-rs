@@ -6,6 +6,7 @@
 - Break: use `crossbeam_channel` for message passing so that other services could listen to readings too
 - Break: use service IDs as sensor prefixes
 - Chore: make use of `serde` default attribute
+- Break: remove status page, it is not yet clear what it should contain
 
 ## `0.8.0`
 

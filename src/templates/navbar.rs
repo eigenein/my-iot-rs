@@ -22,10 +22,6 @@ markup::define! {
                             span.icon { i.fas."fa-home" {} }
                             span { "Home" }
                         }
-                        a."navbar-item"[href = "/status"] {
-                            span.icon { i.fas."fa-info" {} }
-                            span { "Status" }
-                        }
                         a."navbar-item"[href = "/sensors"] {
                             span.icon { i.fas."fa-chart-line" {} }
                             span { "Sensors" }
