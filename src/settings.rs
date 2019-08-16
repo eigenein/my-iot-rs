@@ -34,7 +34,8 @@ pub fn read() -> Settings {
 #[derive(Deserialize, Debug, Clone)]
 pub struct Settings {
     /// Web server port. It's used for the user interface as well as for webhooks.
-    pub http_port: Option<u16>,
+    #[serde(default = "default_http_port")]
+    pub http_port: u16,
 
     /// Services configuration.
     /// Each entry is a pair of service ID (defined by user) and service settings.
@@ -51,4 +52,8 @@ pub enum ServiceSettings {
     Db(services::db::DbSettings),
     /// Dutch [Buienradar](https://www.buienradar.nl/) weather service.
     Buienradar(services::buienradar::BuienradarSettings),
+}
+
+fn default_http_port() -> u16 {
+    8081
 }

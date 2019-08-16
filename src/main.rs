@@ -81,7 +81,7 @@ fn main() -> ! {
     info!("Starting readings receiver…");
     receiver::start(rx.clone(), db.clone());
 
-    info!("Starting web server…");
+    info!("Starting web server on port {}…", settings.http_port);
     web::start_server(settings, db.clone())
 }
 

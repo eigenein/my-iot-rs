@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["_IMPL_DESERIALIZE_FOR_ServiceSettings",""],["_IMPL_DESERIALIZE_FOR_Settings",""]],"enum":[["ServiceSettings","A service configuration."]],"fn":[["read","Read the settings file."]],"struct":[["Settings","Represents a root settings object."]]});
+initSidebarItems({"constant":[["_IMPL_DESERIALIZE_FOR_ServiceSettings",""],["_IMPL_DESERIALIZE_FOR_Settings",""]],"enum":[["ServiceSettings","A service configuration."]],"fn":[["default_http_port",""],["read","Read the settings file."]],"struct":[["Settings","Represents a root settings object."]]});

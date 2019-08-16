@@ -5,6 +5,7 @@
 - New: dark theme via `bulma-prefers-dark`
 - Break: use `crossbeam_channel` for message passing so that other services could listen to readings too
 - Break: use service IDs as sensor prefixes
+- Chore: make use of `serde` default attribute
 
 ## `0.8.0`
 

@@ -190,7 +190,7 @@
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Starting readings receiver…&quot;</span>);
     <span class="ident">receiver</span>::<span class="ident">start</span>(<span class="ident">rx</span>.<span class="ident">clone</span>(), <span class="ident">db</span>.<span class="ident">clone</span>());
 
-    <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Starting web server…&quot;</span>);
+    <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Starting web server on port {}…&quot;</span>, <span class="ident">settings</span>.<span class="ident">http_port</span>);
     <span class="ident">web</span>::<span class="ident">start_server</span>(<span class="ident">settings</span>, <span class="ident">db</span>.<span class="ident">clone</span>())
 }
 

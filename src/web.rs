@@ -14,7 +14,7 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 /// Start the web application.
 pub fn start_server(settings: Settings, db: ArcMutex<Db>) -> ! {
     rouille::start_server(
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), settings.http_port.unwrap_or(8081)),
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), settings.http_port),
         move |request| {
             router!(request,
                 (GET) ["/"] => index(&db),
