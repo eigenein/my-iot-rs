@@ -39,9 +39,8 @@ use crate::db::Db;
 use crate::reading::Reading;
 use crate::settings::Settings;
 use crate::threading::ArcMutex;
+use crossbeam_channel::{bounded, Receiver, Sender};
 use log::{debug, info};
-use std::sync::mpsc::channel;
-use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 
@@ -76,25 +75,30 @@ fn main() -> ! {
     let db = Arc::new(Mutex::new(Db::new("my-iot.sqlite3")));
 
     info!("Starting services…");
-    let (tx, rx) = channel();
-    spawn_services(&settings, &db, &tx);
+    let (tx, rx) = bounded(0);
+    spawn_services(&settings, &db, &tx, &rx);
 
     info!("Starting readings receiver…");
-    receiver::start(rx, db.clone());
+    receiver::start(rx.clone(), db.clone());
 
     info!("Starting web server…");
     web::start_server(settings, db.clone())
 }
 
 /// Spawn all configured services.
-fn spawn_services(settings: &Settings, db: &ArcMutex<Db>, tx: &Sender<Reading>) -> Vec<JoinHandle<()>> {
+fn spawn_services(
+    settings: &Settings,
+    db: &ArcMutex<Db>,
+    tx: &Sender<Reading>,
+    rx: &Receiver<Reading>,
+) -> Vec<JoinHandle<()>> {
     settings
         .services
         .iter()
         .flat_map(|(service_id, settings)| {
             info!("Spawning service `{}`…", service_id);
             debug!("Settings `{}`: {:?}", service_id, settings);
-            let handles = services::new(settings).spawn(service_id.clone(), db.clone(), tx.clone());
+            let handles = services::new(settings).spawn(service_id.clone(), db.clone(), tx.clone(), rx.clone());
             for handle in handles.iter() {
                 info!("Spawned thread `{}`.", handle.thread().name().unwrap_or("anonymous"));
             }

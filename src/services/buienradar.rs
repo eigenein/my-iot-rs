@@ -6,10 +6,10 @@ use crate::threading;
 use crate::threading::JoinHandle;
 use crate::value::{PointOfTheCompass, Value};
 use chrono::{DateTime, Local};
+use crossbeam_channel::{Receiver, Sender};
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::Deserialize;
 use std::error::Error;
-use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -167,7 +167,13 @@ impl Buienradar {
 }
 
 impl Service for Buienradar {
-    fn spawn(self: Box<Self>, service_id: String, _db: Arc<Mutex<Db>>, tx: Sender<Reading>) -> Vec<JoinHandle> {
+    fn spawn(
+        self: Box<Self>,
+        service_id: String,
+        _db: Arc<Mutex<Db>>,
+        tx: Sender<Reading>,
+        _rx: Receiver<Reading>,
+    ) -> Vec<JoinHandle> {
         vec![threading::spawn(service_id, move || loop {
             match self.fetch() {
                 Ok(measurement) => self.send_readings(measurement, &tx),

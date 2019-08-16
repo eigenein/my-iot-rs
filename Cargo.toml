@@ -19,6 +19,7 @@ chrono = { version = "0.4.7", features = ["serde"] }
 chrono-tz = { version = "0.5.1", features = ["serde"] }
 openssl = { version = "0.10" }
 humansize = "1.1.0"
+crossbeam-channel = "0.3"
 # CLI.
 clap = "2.33.0"
 # Web client, server and template engine.

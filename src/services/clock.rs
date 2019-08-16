@@ -1,13 +1,13 @@
 use crate::db::Db;
 use crate::reading::*;
 use crate::threading;
+use crate::threading::JoinHandle;
 use crate::value::Value;
 use chrono::Local;
+use crossbeam_channel::{Receiver, Sender};
 use serde::Deserialize;
-use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::thread::JoinHandle;
 use std::time::Duration;
 
 #[derive(Debug)]
@@ -37,7 +37,13 @@ impl Clock {
 }
 
 impl crate::services::Service for Clock {
-    fn spawn(mut self: Box<Self>, service_id: String, _db: Arc<Mutex<Db>>, tx: Sender<Reading>) -> Vec<JoinHandle<()>> {
+    fn spawn(
+        mut self: Box<Self>,
+        service_id: String,
+        _db: Arc<Mutex<Db>>,
+        tx: Sender<Reading>,
+        _rx: Receiver<Reading>,
+    ) -> Vec<JoinHandle> {
         vec![threading::spawn(service_id, move || loop {
             #[rustfmt::skip]
             tx.send(Reading {

@@ -52,17 +52,23 @@
 <span id="52">52</span>
 <span id="53">53</span>
 <span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">db</span>::<span class="ident">Db</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">reading</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">threading</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">threading</span>::<span class="ident">JoinHandle</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">value</span>::<span class="ident">Value</span>;
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">Local</span>;
+<span class="kw">use</span> <span class="ident">crossbeam_channel</span>::{<span class="ident">Receiver</span>, <span class="ident">Sender</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Deserialize</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">mpsc</span>::<span class="ident">Sender</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread</span>::<span class="ident">JoinHandle</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -92,7 +98,13 @@
 }
 
 <span class="kw">impl</span> <span class="kw">crate</span>::<span class="ident">services</span>::<span class="ident">Service</span> <span class="kw">for</span> <span class="ident">Clock</span> {
-    <span class="kw">fn</span> <span class="ident">spawn</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">service_id</span>: <span class="ident">String</span>, <span class="ident">_db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;&gt;</span>, <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JoinHandle</span><span class="op">&lt;</span>()<span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">spawn</span>(
+        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
+        <span class="ident">service_id</span>: <span class="ident">String</span>,
+        <span class="ident">_db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;&gt;</span>,
+        <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>,
+        <span class="ident">_rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>,
+    ) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JoinHandle</span><span class="op">&gt;</span> {
         <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">threading</span>::<span class="ident">spawn</span>(<span class="ident">service_id</span>, <span class="kw">move</span> <span class="op">||</span> <span class="kw">loop</span> {
             <span class="attribute">#[<span class="ident">rustfmt</span>::<span class="ident">skip</span>]</span>
             <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">Reading</span> {

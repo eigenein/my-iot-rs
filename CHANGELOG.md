@@ -2,7 +2,8 @@
 
 ## `master`
 
-- New: dark theme
+- New: dark theme via `bulma-prefers-dark`
+- Break: use `crossbeam_channel` for message passing so that other services could listen to readings too
 
 ## `0.8.0`
 

@@ -3,8 +3,8 @@
 use crate::db::*;
 use crate::reading::*;
 use crate::threading::ArcMutex;
+use crossbeam_channel::Receiver;
 use log::info;
-use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
@@ -15,7 +15,7 @@ pub fn start(rx: Receiver<Reading>, db: ArcMutex<Db>) {
 
 /// Run the receiver.
 fn run(rx: Receiver<Reading>, db: Arc<Mutex<Db>>) {
-    for reading in rx {
+    for reading in rx.iter() {
         info!("{}: {:?}", &reading.sensor, &reading.value);
         if reading.is_persisted {
             db.lock().unwrap().insert_reading(&reading);
