@@ -2,26 +2,27 @@
 
 ## `master`
 
-- New: dark theme via `bulma-prefers-dark`
+- Break: key-value store will store different data types in their own tables
+- Break: remove status page, it is not yet clear what it should contain
 - Break: use `crossbeam_channel` for message passing so that other services could listen to readings too
 - Break: use service IDs as sensor prefixes
 - Chore: make use of `serde` default attribute
-- Break: remove status page, it is not yet clear what it should contain
+- New: dark theme via `bulma-prefers-dark`
 
 ## `0.8.0`
 
-- New: generic persisted JSON key-value store
 - Break: add `expires_ts` to the key-value store
 - Break: rename `Measurement` into `Reading`
-- New: add `is_persistent` flag to `Reading`
-- New: add `/sensors/{sensor}/json` endpoint
 - Break: services must spawn threads themselves
+- New: add `/sensors/{sensor}/json` endpoint
+- New: add `is_persistent` flag to `Reading`
+- New: generic persisted JSON key-value store
 
 ## `0.7.0`
 
+- Break: introduce service IDs
 - Chore: refactor service initialisation & running
 - New: add favicons
-- Break: introduce service IDs
 - New: set thread names
 - New: status page
 

@@ -7,6 +7,39 @@ use rusqlite::types::*;
 use rusqlite::{Connection, Row, ToSql, NO_PARAMS};
 use std::path::Path;
 
+const SCHEMA: &str = "
+    -- Stores all sensor readings.
+    CREATE TABLE IF NOT EXISTS readings (
+        sensor TEXT NOT NULL,
+        ts INTEGER NOT NULL,
+        value TEXT NOT NULL
+    );
+    -- Descending index on `ts` is needed to speed up the select latest queries.
+    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_ts ON readings (sensor, ts DESC);
+
+    -- Tables for key-value store.
+    CREATE TABLE IF NOT EXISTS integers (
+        `key` TEXT NOT NULL PRIMARY KEY,
+        value INTEGER,
+        expires INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS reals (
+        `key` TEXT NOT NULL PRIMARY KEY,
+        value REAL,
+        expires INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS texts (
+        `key` TEXT NOT NULL PRIMARY KEY,
+        value TEXT,
+        expires INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS blobs (
+        `key` TEXT NOT NULL PRIMARY KEY,
+        value BLOB,
+        expires INTEGER NOT NULL
+    );
+";
+
 /// A database connection.
 pub struct Db {
     /// Wrapped SQLite connection.
@@ -17,30 +50,12 @@ impl Db {
     /// Create a new database connection.
     pub fn new<P: AsRef<Path>>(path: P) -> Db {
         let connection = Connection::open(path).unwrap();
-
-        #[rustfmt::skip]
-        connection.execute_batch("
-            -- Stores all sensor readings.
-            CREATE TABLE IF NOT EXISTS readings (
-                sensor TEXT NOT NULL,
-                ts INTEGER NOT NULL,
-                value TEXT NOT NULL
-            );
-            -- Descending index on `ts` is needed to speed up the select latest queries.
-            CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_ts ON readings (sensor, ts DESC);
-
-            -- Key-value store for general use.
-            CREATE TABLE IF NOT EXISTS kv (
-                `key` TEXT NOT NULL PRIMARY KEY,
-                value TEXT NOT NULL,
-                expires_ts INTEGER NOT NULL
-            );
-        ").unwrap();
-
+        connection.execute_batch(SCHEMA).unwrap();
         Db { connection }
     }
 }
 
+/// Serializes value to JSON.
 impl ToSql for Value {
     fn to_sql(&self) -> rusqlite::Result<ToSqlOutput> {
         Ok(ToSqlOutput::Owned(rusqlite::types::Value::Text(
@@ -49,12 +64,14 @@ impl ToSql for Value {
     }
 }
 
+/// De-serializes value from JSON.
 impl FromSql for Value {
     fn column_result(value: ValueRef) -> Result<Self, FromSqlError> {
         Ok(serde_json::from_str(value.as_str().unwrap()).unwrap())
     }
 }
 
+/// Initializes reading from database row.
 impl From<&Row<'_>> for Reading {
     fn from(row: &Row<'_>) -> Self {
         Reading {
@@ -66,11 +83,12 @@ impl From<&Row<'_>> for Reading {
     }
 }
 
+/// Readings persistence.
 impl Db {
     /// Insert reading into database.
     pub fn insert_reading(&self, reading: &Reading) {
         #[rustfmt::skip]
-        self.connection
+            self.connection
             .prepare_cached("INSERT OR REPLACE INTO readings (sensor, ts, value) VALUES (?1, ?2, ?3)")
             .unwrap()
             .execute(&[
@@ -122,35 +140,65 @@ impl Db {
             .map(|result| result.unwrap())
             .collect()
     }
+}
 
-    /// Get item from generic key-value store.
-    pub fn get<K: AsRef<str>>(&self, key: K) -> serde_json::Value {
+/// Key-value store.
+impl Db {
+    /// Get an item from the key-value store.
+    pub fn get<K, V>(&self, key: K) -> Option<V>
+    where
+        K: AsRef<str>,
+        V: SqliteTypeName + FromSql,
+    {
         self.connection
-            .prepare_cached("SELECT value FROM kv WHERE `key` = ?1 AND expires_ts > ?2")
+            .prepare_cached(&format!(
+                "SELECT value FROM {}s WHERE `key` = ?1 AND expires > ?2",
+                V::name()
+            ))
             .unwrap()
             .query_row(
                 &[&key.as_ref() as &dyn ToSql, &Local::now().timestamp_millis()],
-                |row| Ok(serde_json::from_str(&row.get_unwrap::<_, String>("value")).unwrap()),
+                |row| Ok(Some(row.get_unwrap::<_, V>("value"))),
             )
-            .unwrap_or(serde_json::Value::Null)
+            .unwrap_or(None)
     }
 
     /// Set item in generic key-value store.
     pub fn set<K, V, E>(&self, key: K, value: V, expires_at: E)
     where
         K: AsRef<str>,
-        V: Into<serde_json::Value>,
+        V: SqliteTypeName + ToSql,
         E: Into<DateTime<Local>>,
     {
         self.connection
-            .prepare_cached("INSERT OR REPLACE INTO kv (`key`, value, expires_ts) VALUES (?1, ?2, ?3)")
+            .prepare_cached(&format!(
+                "INSERT OR REPLACE INTO {}s (`key`, value, expires) VALUES (?1, ?2, ?3)",
+                V::name()
+            ))
             .unwrap()
             .execute(&[
                 &key.as_ref() as &dyn ToSql,
-                &serde_json::to_string(&value.into()).unwrap(),
+                &value,
                 &expires_at.into().timestamp_millis(),
             ])
             .unwrap();
+    }
+}
+
+/// Trait which returns SQLite type name of the implementing type.
+pub trait SqliteTypeName {
+    fn name() -> &'static str;
+}
+
+impl SqliteTypeName for i32 {
+    fn name() -> &'static str {
+        "integer"
+    }
+}
+
+impl SqliteTypeName for f64 {
+    fn name() -> &'static str {
+        "real"
     }
 }
 
@@ -160,21 +208,28 @@ mod tests {
     use chrono::Duration;
 
     #[test]
-    fn get_returns_set_value() {
+    fn set_and_get() {
         let db = Db::new(":memory:");
-        db.set("hello", "world", Local::now() + Duration::days(1));
-        assert_eq!(db.get("hello"), "world");
+        db.set("hello", 42, Local::now() + Duration::days(1));
+        assert_eq!(db.get::<_, i32>("hello").unwrap(), 42);
     }
 
     #[test]
-    fn missing_index_returns_null() {
-        assert_eq!(Db::new(":memory:").get("non-existing"), serde_json::Value::Null);
+    fn get_missing_returns_none() {
+        assert_eq!(Db::new(":memory:").get::<_, i32>("missing"), None);
     }
 
     #[test]
-    fn expired_key_returns_null() {
+    fn expired_returns_none() {
         let db = Db::new(":memory:");
-        db.set("hello", "world", Local::now());
-        assert_eq!(db.get("hello"), serde_json::Value::Null);
+        db.set("hello", 42, Local::now());
+        assert_eq!(db.get::<_, i32>("hello"), None);
+    }
+
+    #[test]
+    fn cannot_get_different_type_value() {
+        let db = Db::new(":memory:");
+        db.set("hello", 42, Local::now() + Duration::days(1));
+        assert_eq!(db.get::<_, f64>("hello"), None);
     }
 }
