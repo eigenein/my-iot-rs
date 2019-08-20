@@ -98,7 +98,7 @@ fn spawn_services(
         .flat_map(|(service_id, settings)| {
             info!("Spawning service `{}`…", service_id);
             debug!("Settings `{}`: {:?}", service_id, settings);
-            let handles = services::new(settings).spawn(service_id.clone(), db.clone(), tx.clone(), rx.clone());
+            let handles = services::new(service_id, settings).spawn(db.clone(), tx.clone(), rx.clone());
             for handle in handles.iter() {
                 info!("Spawned thread `{}`.", handle.thread().name().unwrap_or("anonymous"));
             }

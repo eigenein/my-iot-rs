@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["_IMPL_DESERIALIZE_FOR_DbSettings",""]],"struct":[["Db",""],["DbSettings",""]]});
+initSidebarItems({"constant":[["_IMPL_DESERIALIZE_FOR_Settings",""]],"struct":[["Db",""],["Settings",""]]});

@@ -57,6 +57,8 @@
 <span id="57">57</span>
 <span id="58">58</span>
 <span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Settings</span>
 <span class="doccomment">//!</span>
@@ -107,11 +109,13 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ServiceSettings</span> {
     <span class="doccomment">/// Regularly emits a counter value.</span>
-    <span class="ident">Clock</span>(<span class="ident">services</span>::<span class="ident">clock</span>::<span class="ident">ClockSettings</span>),
+    <span class="ident">Clock</span>(<span class="ident">services</span>::<span class="ident">clock</span>::<span class="ident">Settings</span>),
     <span class="doccomment">/// Regularly emits database information.</span>
-    <span class="ident">Db</span>(<span class="ident">services</span>::<span class="ident">db</span>::<span class="ident">DbSettings</span>),
+    <span class="ident">Db</span>(<span class="ident">services</span>::<span class="ident">db</span>::<span class="ident">Settings</span>),
     <span class="doccomment">/// Dutch [Buienradar](https://www.buienradar.nl/) weather service.</span>
-    <span class="ident">Buienradar</span>(<span class="ident">services</span>::<span class="ident">buienradar</span>::<span class="ident">BuienradarSettings</span>),
+    <span class="ident">Buienradar</span>(<span class="ident">services</span>::<span class="ident">buienradar</span>::<span class="ident">Settings</span>),
+    <span class="doccomment">/// Nest API.</span>
+    <span class="ident">Nest</span>(<span class="ident">services</span>::<span class="ident">nest</span>::<span class="ident">Settings</span>),
 }
 
 <span class="kw">fn</span> <span class="ident">default_http_port</span>() <span class="op">-&gt;</span> <span class="ident">u16</span> {

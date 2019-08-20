@@ -10,20 +10,21 @@ use std::thread;
 use std::thread::JoinHandle;
 use std::time::Duration;
 
-#[derive(Debug)]
 pub struct Db {
+    service_id: String,
     interval: Duration,
 }
 
 #[derive(Deserialize, Debug, Clone)]
-pub struct DbSettings {
+pub struct Settings {
     /// Interval in milliseconds.
     pub interval_ms: Option<u64>,
 }
 
 impl Db {
-    pub fn new(settings: &DbSettings) -> Db {
+    pub fn new(service_id: &str, settings: &Settings) -> Db {
         Db {
+            service_id: service_id.into(),
             interval: Duration::from_millis(settings.interval_ms.unwrap_or(1000)),
         }
     }
@@ -32,13 +33,12 @@ impl Db {
 impl Service for Db {
     fn spawn(
         self: Box<Self>,
-        service_id: String,
         db: Arc<Mutex<crate::db::Db>>,
         tx: Sender<Reading>,
         _rx: Receiver<Reading>,
     ) -> Vec<JoinHandle<()>> {
-        let sensor = format!("{}:size", &service_id);
-        vec![threading::spawn(service_id, move || loop {
+        let sensor = format!("{}:size", &self.service_id);
+        vec![threading::spawn(self.service_id.clone(), move || loop {
             let size = { db.lock().unwrap().select_size() };
 
             #[rustfmt::skip]

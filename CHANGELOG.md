@@ -8,6 +8,7 @@
 - Break: use service IDs as sensor prefixes
 - Chore: make use of `serde` default attribute
 - New: dark theme via `bulma-prefers-dark`
+- New: Nest API service and a few initial sensors
 
 ## `0.8.0`
 

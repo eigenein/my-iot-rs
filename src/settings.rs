@@ -47,11 +47,13 @@ pub struct Settings {
 #[derive(Deserialize, Debug, Clone)]
 pub enum ServiceSettings {
     /// Regularly emits a counter value.
-    Clock(services::clock::ClockSettings),
+    Clock(services::clock::Settings),
     /// Regularly emits database information.
-    Db(services::db::DbSettings),
+    Db(services::db::Settings),
     /// Dutch [Buienradar](https://www.buienradar.nl/) weather service.
-    Buienradar(services::buienradar::BuienradarSettings),
+    Buienradar(services::buienradar::Settings),
+    /// Nest API.
+    Nest(services::nest::Settings),
 }
 
 fn default_http_port() -> u16 {

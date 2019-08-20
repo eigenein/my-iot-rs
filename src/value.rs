@@ -21,13 +21,14 @@ pub enum Value {
     WindDirection(PointOfTheCompass),
     /// Length in [metres](https://en.wikipedia.org/wiki/Metre).
     Metres(f64),
+    /// [Relative humidity](https://en.wikipedia.org/wiki/Relative_humidity) in percents.
+    Rh(f64),
 }
 
 impl markup::Render for Value {
     /// Render value in HTML.
     fn render(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        // TODO: perhaps I need to implement `icon()` and `std::fmt::Display` for `Value` to separate
-        // TODO: icon and text rendering.
+        // TODO: implement `icon()` and `std::fmt::Display` for `Value` to separate icon and text rendering.
         match *self {
             Value::Counter(count) => write!(f, r#"<i class="fas fa-sort-numeric-up-alt"></i> {} times"#, count),
             Value::Size(size) => write!(
@@ -39,6 +40,7 @@ impl markup::Render for Value {
             Value::Celsius(degrees) => write!(f, r#"<i class="fas fa-thermometer-half"></i> {:.1} ℃"#, degrees),
             Value::Bft(bft) => write!(f, r#"<i class="fas fa-wind"></i> {} BFT"#, bft),
             Value::WindDirection(point) => write!(f, r#"<i class="fas fa-wind"></i> {}"#, point),
+            Value::Rh(percent) => write!(f, r#"<i class="fas fa-wateer"></i> {}%"#, percent),
             _ => unimplemented!(),
         }
     }
@@ -65,6 +67,15 @@ impl Value {
                 _ => unreachable!(),
             },
             Value::WindDirection(_) => "is-light",
+            Value::Rh(value) => match value {
+                _ if value < 25.0 => "is-link",
+                _ if 25.0 <= value && value < 30.0 => "is-info",
+                _ if 30.0 <= value && value < 45.0 => "is-primary",
+                _ if 45.0 <= value && value < 55.0 => "is-success",
+                _ if 55.0 <= value && value < 60.0 => "is-warning",
+                _ if 60.0 <= value => "is-danger",
+                _ => unreachable!(),
+            },
             _ => unimplemented!(),
         }
     }

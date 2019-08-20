@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["_IMPL_DESERIALIZE_FOR_ClockSettings",""]],"struct":[["Clock",""],["ClockSettings",""]]});
+initSidebarItems({"constant":[["_IMPL_DESERIALIZE_FOR_Settings",""]],"struct":[["Clock",""],["Settings",""]]});
