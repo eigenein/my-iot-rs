@@ -2,6 +2,8 @@
 
 ## `master`
 
+## `0.9.0`
+
 - Break: key-value store will store different data types in their own tables
 - Break: remove status page, it is not yet clear what it should contain
 - Break: use `crossbeam_channel` for message passing so that other services could listen to readings too
