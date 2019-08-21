@@ -3,6 +3,7 @@
 use crate::reading::Reading;
 use crate::value::Value;
 use chrono::prelude::*;
+use failure::Error;
 use rusqlite::types::*;
 use rusqlite::{Connection, Row, ToSql, NO_PARAMS};
 use std::path::Path;
@@ -48,10 +49,10 @@ pub struct Db {
 
 impl Db {
     /// Create a new database connection.
-    pub fn new<P: AsRef<Path>>(path: P) -> Db {
-        let connection = Connection::open(path).unwrap();
-        connection.execute_batch(SCHEMA).unwrap();
-        Db { connection }
+    pub fn new<P: AsRef<Path>>(path: P) -> Result<Db, Error> {
+        let connection = Connection::open(path)?;
+        connection.execute_batch(SCHEMA)?;
+        Ok(Db { connection })
     }
 }
 
@@ -207,29 +208,35 @@ mod tests {
     use super::*;
     use chrono::Duration;
 
+    type Result = std::result::Result<(), Error>;
+
     #[test]
-    fn set_and_get() {
-        let db = Db::new(":memory:");
+    fn set_and_get() -> Result {
+        let db = Db::new(":memory:")?;
         db.set("hello", 42, Local::now() + Duration::days(1));
         assert_eq!(db.get::<_, i32>("hello").unwrap(), 42);
+        Ok(())
     }
 
     #[test]
-    fn get_missing_returns_none() {
-        assert_eq!(Db::new(":memory:").get::<_, i32>("missing"), None);
+    fn get_missing_returns_none() -> Result {
+        assert_eq!(Db::new(":memory:")?.get::<_, i32>("missing"), None);
+        Ok(())
     }
 
     #[test]
-    fn expired_returns_none() {
-        let db = Db::new(":memory:");
+    fn expired_returns_none() -> Result {
+        let db = Db::new(":memory:")?;
         db.set("hello", 42, Local::now());
         assert_eq!(db.get::<_, i32>("hello"), None);
+        Ok(())
     }
 
     #[test]
-    fn cannot_get_different_type_value() {
-        let db = Db::new(":memory:");
+    fn cannot_get_different_type_value() -> Result {
+        let db = Db::new(":memory:")?;
         db.set("hello", 42, Local::now() + Duration::days(1));
         assert_eq!(db.get::<_, f64>("hello"), None);
+        Ok(())
     }
 }

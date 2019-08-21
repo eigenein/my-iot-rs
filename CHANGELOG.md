@@ -2,6 +2,8 @@
 
 ## `master`
 
+- Chore: learn to not use `unwrap()`
+
 ## `0.9.0`
 
 - Break: key-value store will store different data types in their own tables

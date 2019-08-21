@@ -40,6 +40,7 @@ use crate::reading::Reading;
 use crate::settings::Settings;
 use crate::threading::ArcMutex;
 use crossbeam_channel::{bounded, Receiver, Sender};
+use failure::Error;
 use log::{debug, info};
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
@@ -57,7 +58,7 @@ pub mod value;
 pub mod web;
 
 /// Entry point.
-fn main() -> ! {
+fn main() -> Result<(), Error> {
     logging::init();
 
     #[rustfmt::skip]
@@ -72,7 +73,7 @@ fn main() -> ! {
     debug!("Settings: {:?}", &settings);
 
     info!("Opening database…");
-    let db = Arc::new(Mutex::new(Db::new("my-iot.sqlite3")));
+    let db = Arc::new(Mutex::new(Db::new("my-iot.sqlite3")?));
 
     info!("Starting services…");
     let (tx, rx) = bounded(0);
