@@ -61,7 +61,7 @@ impl ToSql for Value {
     fn to_sql(&self) -> rusqlite::Result<ToSqlOutput> {
         match serde_json::to_string(&self) {
             Ok(string) => Ok(ToSqlOutput::Owned(rusqlite::types::Value::Text(string))),
-            Err(error) => rusqlite::Result::Err(rusqlite::Error::ToSqlConversionFailure(Box::new(error))),
+            Err(error) => Err(rusqlite::Error::ToSqlConversionFailure(Box::new(error))),
         }
     }
 }
