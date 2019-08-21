@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
 /// Sensor reading value.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum Value {
     /// Generic counter.
     Counter(u64),
@@ -82,7 +82,7 @@ impl Value {
 }
 
 /// [Points of the compass](https://en.wikipedia.org/wiki/Points_of_the_compass).
-#[derive(Debug, Serialize, Deserialize, Copy, Clone)]
+#[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq)]
 pub enum PointOfTheCompass {
     /// N
     North,

@@ -59,16 +59,20 @@ impl Db {
 /// Serializes value to JSON.
 impl ToSql for Value {
     fn to_sql(&self) -> rusqlite::Result<ToSqlOutput> {
-        Ok(ToSqlOutput::Owned(rusqlite::types::Value::Text(
-            serde_json::to_string(&self).unwrap(),
-        )))
+        match serde_json::to_string(&self) {
+            Ok(string) => Ok(ToSqlOutput::Owned(rusqlite::types::Value::Text(string))),
+            Err(error) => rusqlite::Result::Err(rusqlite::Error::ToSqlConversionFailure(Box::new(error))),
+        }
     }
 }
 
 /// De-serializes value from JSON.
 impl FromSql for Value {
     fn column_result(value: ValueRef) -> Result<Self, FromSqlError> {
-        Ok(serde_json::from_str(value.as_str().unwrap()).unwrap())
+        match serde_json::from_str(value.as_str()?) {
+            Ok(value) => Ok(value),
+            Err(error) => Err(FromSqlError::Other(Box::new(error))),
+        }
     }
 }
 
@@ -237,6 +241,20 @@ mod tests {
         let db = Db::new(":memory:")?;
         db.set("hello", 42, Local::now() + Duration::days(1));
         assert_eq!(db.get::<_, f64>("hello"), None);
+        Ok(())
+    }
+
+    #[test]
+    fn select_last_reading() -> Result {
+        let reading = Reading {
+            sensor: "test".into(),
+            value: Value::Counter(42),
+            timestamp: Local.timestamp_millis(1_566_424_128_000),
+            is_persisted: true,
+        };
+        let db = Db::new(":memory:")?;
+        db.insert_reading(&reading);
+        assert_eq!(db.select_last_reading("test").unwrap(), reading);
         Ok(())
     }
 }
