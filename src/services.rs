@@ -22,6 +22,7 @@ pub trait Service: Send {
     /// - `tx`: 0-capacity channel sender.
     /// - `rx`: 0-capacity channel receiver.
     fn spawn(self: Box<Self>, db: Arc<Mutex<Db>>, tx: Sender<Reading>, rx: Receiver<Reading>) -> Vec<JoinHandle>;
+    // TODO: return `Result<Vec<JoinHandle>>`?
 
     /// Convenience function to send multiple readings at once.
     fn send(&self, tx: &Sender<Reading>, readings: Vec<Reading>) {

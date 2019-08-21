@@ -91,17 +91,15 @@ impl From<&Row<'_>> for Reading {
 /// Readings persistence.
 impl Db {
     /// Insert reading into database.
-    pub fn insert_reading(&self, reading: &Reading) {
-        #[rustfmt::skip]
-            self.connection
-            .prepare_cached("INSERT OR REPLACE INTO readings (sensor, ts, value) VALUES (?1, ?2, ?3)")
-            .unwrap()
+    pub fn insert_reading(&self, reading: &Reading) -> Result<(), Error> {
+        self.connection
+            .prepare_cached("INSERT OR REPLACE INTO readings (sensor, ts, value) VALUES (?1, ?2, ?3)")?
             .execute(&[
                 &reading.sensor as &dyn ToSql,
                 &reading.timestamp.timestamp_millis(),
                 &reading.value,
-            ])
-            .unwrap();
+            ])?;
+        Ok(())
     }
 
     /// Select latest reading for each sensor.
@@ -116,21 +114,20 @@ impl Db {
     }
 
     /// Select database size in bytes.
-    pub fn select_size(&self) -> u64 {
-        self.connection
-            .prepare_cached("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()")
-            .unwrap()
-            .query_row(NO_PARAMS, |row| row.get::<_, i64>(0))
-            .unwrap() as u64
+    pub fn select_size(&self) -> Result<u64, Error> {
+        Ok(self
+            .connection
+            .prepare_cached("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()")?
+            .query_row(NO_PARAMS, |row| row.get::<_, i64>(0))? as u64)
     }
 
     /// Select the very last sensor reading.
-    pub fn select_last_reading(&self, sensor: &str) -> Option<Reading> {
-        self.connection
-            .prepare_cached("SELECT sensor, ts, value FROM readings WHERE sensor = ?1 ORDER BY ts DESC LIMIT 1")
-            .unwrap()
+    pub fn select_last_reading(&self, sensor: &str) -> Result<Option<Reading>, Error> {
+        Ok(self
+            .connection
+            .prepare_cached("SELECT sensor, ts, value FROM readings WHERE sensor = ?1 ORDER BY ts DESC LIMIT 1")?
             .query_row(&[&sensor as &dyn ToSql], |row| Ok(Some(Reading::from(row))))
-            .unwrap_or(None)
+            .unwrap_or(None))
     }
 
     /// Select the latest sensor readings within the given time interval.
@@ -218,7 +215,7 @@ mod tests {
     fn set_and_get() -> Result {
         let db = Db::new(":memory:")?;
         db.set("hello", 42, Local::now() + Duration::days(1));
-        assert_eq!(db.get::<_, i32>("hello").unwrap(), 42);
+        assert_eq!(db.get::<_, i32>("hello"), Some(42));
         Ok(())
     }
 
@@ -253,8 +250,8 @@ mod tests {
             is_persisted: true,
         };
         let db = Db::new(":memory:")?;
-        db.insert_reading(&reading);
-        assert_eq!(db.select_last_reading("test").unwrap(), reading);
+        db.insert_reading(&reading)?;
+        assert_eq!(db.select_last_reading("test").unwrap(), Some(reading));
         Ok(())
     }
 }

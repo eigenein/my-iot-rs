@@ -39,7 +39,7 @@ impl Service for Db {
     ) -> Vec<JoinHandle<()>> {
         let sensor = format!("{}:size", &self.service_id);
         vec![threading::spawn(self.service_id.clone(), move || loop {
-            let size = { db.lock().unwrap().select_size() };
+            let size = { db.lock().unwrap().select_size().unwrap() };
 
             #[rustfmt::skip]
             tx.send(Reading {

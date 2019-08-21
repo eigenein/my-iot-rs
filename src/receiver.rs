@@ -18,7 +18,7 @@ fn run(rx: Receiver<Reading>, db: Arc<Mutex<Db>>) {
     for reading in rx.iter() {
         info!("{}: {:?}", &reading.sensor, &reading.value);
         if reading.is_persisted {
-            db.lock().unwrap().insert_reading(&reading);
+            db.lock().unwrap().insert_reading(&reading).unwrap();
         }
     }
     error!("Reading receiver has stopped.");

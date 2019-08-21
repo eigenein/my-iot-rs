@@ -46,7 +46,7 @@ fn get_sensor(db: &ArcMutex<Db>, sensor: &str) -> Response {
     let (last, readings) = {
         let db = db.lock().unwrap();
         (
-            db.select_last_reading(&sensor),
+            db.select_last_reading(&sensor).unwrap(),
             db.select_readings(&sensor, &(Local::now() - Duration::minutes(5))),
         )
     };
@@ -66,7 +66,7 @@ fn get_sensor(db: &ArcMutex<Db>, sensor: &str) -> Response {
 
 /// Get last sensor value JSON response.
 fn get_sensor_json(db: &ArcMutex<Db>, sensor: &str) -> Response {
-    match db.lock().unwrap().select_last_reading(&sensor) {
+    match db.lock().unwrap().select_last_reading(&sensor).unwrap() {
         Some(reading) => Response::json(&json!({
             "value": &reading.value,
             "timestamp": &reading.timestamp,

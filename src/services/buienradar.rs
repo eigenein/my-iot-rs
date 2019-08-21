@@ -7,9 +7,9 @@ use crate::threading::JoinHandle;
 use crate::value::{PointOfTheCompass, Value};
 use chrono::{DateTime, Local};
 use crossbeam_channel::{Receiver, Sender};
+use failure::{format_err, Error};
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::Deserialize;
-use std::error::Error;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -74,7 +74,7 @@ impl Service for Buienradar {
     fn spawn(self: Box<Self>, _db: Arc<Mutex<Db>>, tx: Sender<Reading>, _rx: Receiver<Reading>) -> Vec<JoinHandle> {
         vec![threading::spawn(self.service_id.clone(), move || loop {
             match self.fetch() {
-                Ok(measurement) => self.send_readings(measurement, &tx),
+                Ok(measurement) => self.send_readings(measurement, &tx).unwrap(),
                 Err(error) => {
                     log::error!("Buienradar has failed: {}", error);
                 }
@@ -101,21 +101,20 @@ impl Buienradar {
     }
 
     /// Fetch measurement for the configured station.
-    fn fetch(&self) -> Result<BuienradarStationMeasurement, Box<dyn Error>> {
+    fn fetch(&self) -> Result<BuienradarStationMeasurement, Error> {
         let body = self.client.get(URL).send()?.text()?;
         let feed: BuienradarFeed = serde_json::from_str(&body)?;
-        let measurement = feed
+        Ok(feed
             .actual
             .station_measurements
             .iter()
             .find(|measurement| measurement.station_id == self.station_id)
-            .ok_or_else(|| format!("station {} is not found", self.station_id))?
-            .clone();
-        Ok(measurement)
+            .ok_or_else(|| format_err!("station {} is not found", self.station_id))?
+            .clone())
     }
 
     /// Sends out readings based on Buienradar station measurement.
-    fn send_readings(&self, measurement: BuienradarStationMeasurement, tx: &Sender<Reading>) {
+    fn send_readings(&self, measurement: BuienradarStationMeasurement, tx: &Sender<Reading>) -> Result<(), Error> {
         self.send(
             &tx,
             vec![
@@ -139,8 +138,7 @@ impl Buienradar {
                 value: Value::Celsius(degrees),
                 timestamp: measurement.timestamp,
                 is_persisted: true,
-            })
-            .unwrap();
+            })?;
         }
         if let Some(degrees) = measurement.ground_temperature {
             tx.send(Reading {
@@ -148,8 +146,7 @@ impl Buienradar {
                 value: Value::Celsius(degrees),
                 timestamp: measurement.timestamp,
                 is_persisted: true,
-            })
-            .unwrap();
+            })?;
         }
         if let Some(degrees) = measurement.feel_temperature {
             tx.send(Reading {
@@ -157,8 +154,7 @@ impl Buienradar {
                 value: Value::Celsius(degrees),
                 timestamp: measurement.timestamp,
                 is_persisted: true,
-            })
-            .unwrap();
+            })?;
         }
         if let Some(bft) = measurement.wind_speed_bft {
             tx.send(Reading {
@@ -166,8 +162,7 @@ impl Buienradar {
                 value: Value::Bft(bft),
                 timestamp: measurement.timestamp,
                 is_persisted: true,
-            })
-            .unwrap();
+            })?;
         }
         if let Some(point) = measurement.wind_direction {
             tx.send(Reading {
@@ -175,9 +170,9 @@ impl Buienradar {
                 value: Value::WindDirection(point),
                 timestamp: measurement.timestamp,
                 is_persisted: true,
-            })
-            .unwrap();
+            })?;
         }
+        Ok(())
     }
 }
 
