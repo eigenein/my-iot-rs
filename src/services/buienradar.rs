@@ -70,6 +70,20 @@ pub struct BuienradarStationMeasurement {
     weather_description: String,
 }
 
+impl Service for Buienradar {
+    fn spawn(self: Box<Self>, _db: Arc<Mutex<Db>>, tx: Sender<Reading>, _rx: Receiver<Reading>) -> Vec<JoinHandle> {
+        vec![threading::spawn(self.service_id.clone(), move || loop {
+            match self.fetch() {
+                Ok(measurement) => self.send_readings(measurement, &tx),
+                Err(error) => {
+                    log::error!("Buienradar has failed: {}", error);
+                }
+            }
+            thread::sleep(REFRESH_PERIOD);
+        })]
+    }
+}
+
 impl Buienradar {
     pub fn new(service_id: &str, settings: &Settings) -> Buienradar {
         let mut headers = HeaderMap::new();
@@ -164,20 +178,6 @@ impl Buienradar {
             })
             .unwrap();
         }
-    }
-}
-
-impl Service for Buienradar {
-    fn spawn(self: Box<Self>, _db: Arc<Mutex<Db>>, tx: Sender<Reading>, _rx: Receiver<Reading>) -> Vec<JoinHandle> {
-        vec![threading::spawn(self.service_id.clone(), move || loop {
-            match self.fetch() {
-                Ok(measurement) => self.send_readings(measurement, &tx),
-                Err(error) => {
-                    log::error!("Buienradar has failed: {}", error);
-                }
-            }
-            thread::sleep(REFRESH_PERIOD);
-        })]
     }
 }
 
