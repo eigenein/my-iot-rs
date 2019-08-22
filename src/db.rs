@@ -2,8 +2,8 @@
 
 use crate::reading::Reading;
 use crate::value::Value;
+use crate::Result;
 use chrono::prelude::*;
-use failure::Error;
 use rusqlite::types::*;
 use rusqlite::{Connection, Row, ToSql, NO_PARAMS};
 use std::path::Path;
@@ -49,7 +49,7 @@ pub struct Db {
 
 impl Db {
     /// Create a new database connection.
-    pub fn new<P: AsRef<Path>>(path: P) -> Result<Db, Error> {
+    pub fn new<P: AsRef<Path>>(path: P) -> Result<Db> {
         let connection = Connection::open(path)?;
         connection.execute_batch(SCHEMA)?;
         Ok(Db { connection })
@@ -68,7 +68,7 @@ impl ToSql for Value {
 
 /// De-serializes value from JSON.
 impl FromSql for Value {
-    fn column_result(value: ValueRef) -> Result<Self, FromSqlError> {
+    fn column_result(value: ValueRef) -> FromSqlResult<Self> {
         match serde_json::from_str(value.as_str()?) {
             Ok(value) => Ok(value),
             Err(error) => Err(FromSqlError::Other(Box::new(error))),
@@ -91,7 +91,7 @@ impl From<&Row<'_>> for Reading {
 /// Readings persistence.
 impl Db {
     /// Insert reading into database.
-    pub fn insert_reading(&self, reading: &Reading) -> Result<(), Error> {
+    pub fn insert_reading(&self, reading: &Reading) -> Result<()> {
         self.connection
             .prepare_cached("INSERT OR REPLACE INTO readings (sensor, ts, value) VALUES (?1, ?2, ?3)")?
             .execute(&[
@@ -103,18 +103,17 @@ impl Db {
     }
 
     /// Select latest reading for each sensor.
-    pub fn select_latest_readings(&self) -> Vec<Reading> {
-        self.connection
-            .prepare_cached("SELECT sensor, MAX(ts) as ts, value FROM readings GROUP BY sensor")
-            .unwrap()
-            .query_map(NO_PARAMS, |row| Ok(Reading::from(row)))
-            .unwrap()
+    pub fn select_latest_readings(&self) -> Result<Vec<Reading>> {
+        Ok(self
+            .connection
+            .prepare_cached("SELECT sensor, MAX(ts) as ts, value FROM readings GROUP BY sensor")?
+            .query_map(NO_PARAMS, |row| Ok(Reading::from(row)))?
             .map(|result| result.unwrap())
-            .collect()
+            .collect())
     }
 
     /// Select database size in bytes.
-    pub fn select_size(&self) -> Result<u64, Error> {
+    pub fn select_size(&self) -> Result<u64> {
         Ok(self
             .connection
             .prepare_cached("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()")?
@@ -122,7 +121,7 @@ impl Db {
     }
 
     /// Select the very last sensor reading.
-    pub fn select_last_reading(&self, sensor: &str) -> Result<Option<Reading>, Error> {
+    pub fn select_last_reading(&self, sensor: &str) -> Result<Option<Reading>> {
         Ok(self
             .connection
             .prepare_cached("SELECT sensor, ts, value FROM readings WHERE sensor = ?1 ORDER BY ts DESC LIMIT 1")?
@@ -131,42 +130,41 @@ impl Db {
     }
 
     /// Select the latest sensor readings within the given time interval.
-    pub fn select_readings(&self, sensor: &str, since: &DateTime<Local>) -> Vec<Reading> {
-        self.connection
-            .prepare_cached("SELECT sensor, ts, value FROM readings WHERE sensor = ?1 AND ts >= ?2 ORDER BY ts")
-            .unwrap()
+    pub fn select_readings(&self, sensor: &str, since: &DateTime<Local>) -> Result<Vec<Reading>> {
+        Ok(self
+            .connection
+            .prepare_cached("SELECT sensor, ts, value FROM readings WHERE sensor = ?1 AND ts >= ?2 ORDER BY ts")?
             .query_map(&[&sensor as &dyn ToSql, &since.timestamp_millis()], |row| {
                 Ok(Reading::from(row))
-            })
-            .unwrap()
+            })?
             .map(|result| result.unwrap())
-            .collect()
+            .collect())
     }
 }
 
 /// Key-value store.
 impl Db {
     /// Get an item from the key-value store.
-    pub fn get<K, V>(&self, key: K) -> Option<V>
+    pub fn get<K, V>(&self, key: K) -> Result<Option<V>>
     where
         K: AsRef<str>,
         V: SqliteTypeName + FromSql,
     {
-        self.connection
+        Ok(self
+            .connection
             .prepare_cached(&format!(
                 "SELECT value FROM {}s WHERE `key` = ?1 AND expires > ?2",
                 V::name()
-            ))
-            .unwrap()
+            ))?
             .query_row(
                 &[&key.as_ref() as &dyn ToSql, &Local::now().timestamp_millis()],
                 |row| Ok(Some(row.get_unwrap::<_, V>("value"))),
             )
-            .unwrap_or(None)
+            .unwrap_or(None))
     }
 
     /// Set item in generic key-value store.
-    pub fn set<K, V, E>(&self, key: K, value: V, expires_at: E)
+    pub fn set<K, V, E>(&self, key: K, value: V, expires_at: E) -> Result<()>
     where
         K: AsRef<str>,
         V: SqliteTypeName + ToSql,
@@ -176,14 +174,13 @@ impl Db {
             .prepare_cached(&format!(
                 "INSERT OR REPLACE INTO {}s (`key`, value, expires) VALUES (?1, ?2, ?3)",
                 V::name()
-            ))
-            .unwrap()
+            ))?
             .execute(&[
                 &key.as_ref() as &dyn ToSql,
                 &value,
                 &expires_at.into().timestamp_millis(),
-            ])
-            .unwrap();
+            ])?;
+        Ok(())
     }
 }
 
@@ -209,35 +206,35 @@ mod tests {
     use super::*;
     use chrono::Duration;
 
-    type Result = std::result::Result<(), Error>;
+    type Result = crate::Result<()>;
 
     #[test]
     fn set_and_get() -> Result {
         let db = Db::new(":memory:")?;
-        db.set("hello", 42, Local::now() + Duration::days(1));
-        assert_eq!(db.get::<_, i32>("hello"), Some(42));
+        db.set("hello", 42, Local::now() + Duration::days(1)).unwrap();
+        assert_eq!(db.get::<_, i32>("hello").unwrap(), Some(42));
         Ok(())
     }
 
     #[test]
     fn get_missing_returns_none() -> Result {
-        assert_eq!(Db::new(":memory:")?.get::<_, i32>("missing"), None);
+        assert_eq!(Db::new(":memory:")?.get::<_, i32>("missing").unwrap(), None);
         Ok(())
     }
 
     #[test]
     fn expired_returns_none() -> Result {
         let db = Db::new(":memory:")?;
-        db.set("hello", 42, Local::now());
-        assert_eq!(db.get::<_, i32>("hello"), None);
+        db.set("hello", 42, Local::now()).unwrap();
+        assert_eq!(db.get::<_, i32>("hello").unwrap(), None);
         Ok(())
     }
 
     #[test]
     fn cannot_get_different_type_value() -> Result {
         let db = Db::new(":memory:")?;
-        db.set("hello", 42, Local::now() + Duration::days(1));
-        assert_eq!(db.get::<_, f64>("hello"), None);
+        db.set("hello", 42, Local::now() + Duration::days(1)).unwrap();
+        assert_eq!(db.get::<_, f64>("hello").unwrap(), None);
         Ok(())
     }
 

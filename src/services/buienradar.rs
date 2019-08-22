@@ -5,9 +5,10 @@ use crate::services::Service;
 use crate::threading;
 use crate::threading::JoinHandle;
 use crate::value::{PointOfTheCompass, Value};
+use crate::Result;
 use chrono::{DateTime, Local};
 use crossbeam_channel::{Receiver, Sender};
-use failure::{format_err, Error};
+use failure::format_err;
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::Deserialize;
 use std::sync::{Arc, Mutex};
@@ -85,23 +86,22 @@ impl Service for Buienradar {
 }
 
 impl Buienradar {
-    pub fn new(service_id: &str, settings: &Settings) -> Buienradar {
+    pub fn new(service_id: &str, settings: &Settings) -> Result<Buienradar> {
         let mut headers = HeaderMap::new();
         headers.insert(reqwest::header::USER_AGENT, HeaderValue::from_static(USER_AGENT));
-        Buienradar {
+        Ok(Buienradar {
             service_id: service_id.into(),
             station_id: settings.station_id,
             client: reqwest::Client::builder()
                 .gzip(true)
                 .timeout(Duration::from_secs(10))
                 .default_headers(headers)
-                .build()
-                .unwrap(),
-        }
+                .build()?,
+        })
     }
 
     /// Fetch measurement for the configured station.
-    fn fetch(&self) -> Result<BuienradarStationMeasurement, Error> {
+    fn fetch(&self) -> Result<BuienradarStationMeasurement> {
         let body = self.client.get(URL).send()?.text()?;
         let feed: BuienradarFeed = serde_json::from_str(&body)?;
         Ok(feed
@@ -114,7 +114,7 @@ impl Buienradar {
     }
 
     /// Sends out readings based on Buienradar station measurement.
-    fn send_readings(&self, measurement: BuienradarStationMeasurement, tx: &Sender<Reading>) -> Result<(), Error> {
+    fn send_readings(&self, measurement: BuienradarStationMeasurement, tx: &Sender<Reading>) -> Result<()> {
         self.send(
             &tx,
             vec![
@@ -131,7 +131,7 @@ impl Buienradar {
                     is_persisted: true,
                 },
             ],
-        );
+        )?;
         if let Some(degrees) = measurement.temperature {
             tx.send(Reading {
                 sensor: format!("{}:{}:temperature", &self.service_id, self.station_id),

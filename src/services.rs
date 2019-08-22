@@ -4,6 +4,7 @@ use crate::db::Db;
 use crate::reading::*;
 use crate::settings::*;
 use crate::threading::JoinHandle;
+use crate::Result;
 use crossbeam_channel::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
 
@@ -25,20 +26,21 @@ pub trait Service: Send {
     // TODO: return `Result<Vec<JoinHandle>>`?
 
     /// Convenience function to send multiple readings at once.
-    fn send(&self, tx: &Sender<Reading>, readings: Vec<Reading>) {
+    fn send(&self, tx: &Sender<Reading>, readings: Vec<Reading>) -> Result<()> {
         for reading in readings {
-            tx.send(reading).unwrap();
+            tx.send(reading)?;
         }
+        Ok(())
     }
 }
 
 /// Create a service from the service settings.
-pub fn new(service_id: &str, settings: &ServiceSettings) -> Box<dyn Service> {
+pub fn new(service_id: &str, settings: &ServiceSettings) -> Result<Box<dyn Service>> {
     // FIXME: the following looks really like a job for dynamic dispatching.
     match settings {
-        ServiceSettings::Clock(settings) => Box::new(clock::Clock::new(service_id, settings)),
-        ServiceSettings::Db(settings) => Box::new(db::Db::new(service_id, settings)),
-        ServiceSettings::Buienradar(settings) => Box::new(buienradar::Buienradar::new(service_id, settings)),
-        ServiceSettings::Nest(settings) => Box::new(nest::Nest::new(service_id, settings)),
+        ServiceSettings::Clock(settings) => Ok(Box::new(clock::Clock::new(service_id, settings))),
+        ServiceSettings::Db(settings) => Ok(Box::new(db::Db::new(service_id, settings))),
+        ServiceSettings::Buienradar(settings) => Ok(Box::new(buienradar::Buienradar::new(service_id, settings)?)),
+        ServiceSettings::Nest(settings) => Ok(Box::new(nest::Nest::new(service_id, settings))),
     }
 }

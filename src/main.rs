@@ -57,8 +57,10 @@ pub mod threading;
 pub mod value;
 pub mod web;
 
+type Result<T> = std::result::Result<T, Error>;
+
 /// Entry point.
-fn main() -> Result<(), Error> {
+fn main() -> Result<()> {
     logging::init();
 
     #[rustfmt::skip]
@@ -99,7 +101,9 @@ fn spawn_services(
         .flat_map(|(service_id, settings)| {
             info!("Spawning service `{}`…", service_id);
             debug!("Settings `{}`: {:?}", service_id, settings);
-            let handles = services::new(service_id, settings).spawn(db.clone(), tx.clone(), rx.clone());
+            let handles = services::new(service_id, settings)
+                .unwrap()
+                .spawn(db.clone(), tx.clone(), rx.clone());
             for handle in handles.iter() {
                 info!("Spawned thread `{}`.", handle.thread().name().unwrap_or("anonymous"));
             }

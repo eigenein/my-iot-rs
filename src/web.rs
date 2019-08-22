@@ -32,7 +32,7 @@ pub fn start_server(settings: Settings, db: ArcMutex<Db>) -> ! {
 
 /// Get index page response.
 fn index(db: &ArcMutex<Db>) -> Response {
-    let readings = { db.lock().unwrap().select_latest_readings() };
+    let readings = { db.lock().unwrap().select_latest_readings().unwrap() };
     Response::html(
         base::Base {
             body: Box::new(index::Index { readings }),
@@ -43,13 +43,12 @@ fn index(db: &ArcMutex<Db>) -> Response {
 
 /// Get sensor page response.
 fn get_sensor(db: &ArcMutex<Db>, sensor: &str) -> Response {
-    let (last, readings) = {
-        let db = db.lock().unwrap();
-        (
-            db.select_last_reading(&sensor).unwrap(),
-            db.select_readings(&sensor, &(Local::now() - Duration::minutes(5))),
-        )
-    };
+    let last = db.lock().unwrap().select_last_reading(&sensor).unwrap();
+    let readings = db
+        .lock()
+        .unwrap()
+        .select_readings(&sensor, &(Local::now() - Duration::minutes(5)))
+        .unwrap();
     match last {
         Some(reading) => Response::html(
             base::Base {

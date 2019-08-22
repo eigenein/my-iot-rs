@@ -4,6 +4,7 @@ use crate::services::Service;
 use crate::threading;
 use crate::threading::JoinHandle;
 use crate::value::Value;
+use crate::Result;
 use chrono::Local;
 use crossbeam_channel::{Receiver, Sender};
 use eventsource::reqwest::Client;
@@ -42,7 +43,8 @@ impl Service for Nest {
                 if let Ok(event) = event {
                     if let Some(event_type) = event.event_type {
                         if event_type == "put" {
-                            self.send_readings(&serde_json::from_str(&event.data).unwrap(), &tx);
+                            self.send_readings(&serde_json::from_str(&event.data).unwrap(), &tx)
+                                .unwrap();
                         }
                     }
                 }
@@ -52,7 +54,7 @@ impl Service for Nest {
 }
 
 impl Nest {
-    fn send_readings(&self, event: &NestEvent, tx: &Sender<Reading>) {
+    fn send_readings(&self, event: &NestEvent, tx: &Sender<Reading>) -> Result<()> {
         let now = Local::now();
         for (id, thermostat) in event.data.devices.thermostats.iter() {
             self.send(
@@ -71,8 +73,9 @@ impl Nest {
                         is_persisted: true,
                     },
                 ],
-            );
+            )?;
         }
+        Ok(())
     }
 }
 
