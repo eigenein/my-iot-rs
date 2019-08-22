@@ -2,7 +2,6 @@ use crate::db::Db;
 use crate::reading::Reading;
 use crate::services::Service;
 use crate::threading;
-use crate::threading::JoinHandle;
 use crate::value::Value;
 use crate::Result;
 use chrono::Local;
@@ -36,8 +35,8 @@ impl Nest {
 }
 
 impl Service for Nest {
-    fn spawn(self: Box<Self>, _db: Arc<Mutex<Db>>, tx: Sender<Reading>, _rx: Receiver<Reading>) -> Vec<JoinHandle> {
-        vec![threading::spawn(self.service_id.clone(), move || loop {
+    fn spawn(self: Box<Self>, _db: Arc<Mutex<Db>>, tx: Sender<Reading>, _rx: Receiver<Reading>) -> Result<()> {
+        threading::spawn(self.service_id.clone(), move || loop {
             let client = Client::new(Url::parse_with_params(URL, &[("auth", &self.token)]).unwrap());
             for event in client {
                 if let Ok(event) = event {
@@ -49,7 +48,8 @@ impl Service for Nest {
                     }
                 }
             }
-        })]
+        })?;
+        Ok(())
     }
 }
 

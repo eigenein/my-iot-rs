@@ -2,12 +2,12 @@ use crate::reading::Reading;
 use crate::services::Service;
 use crate::threading;
 use crate::value::Value;
+use crate::Result;
 use chrono::Local;
 use crossbeam_channel::{Receiver, Sender};
 use serde::Deserialize;
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::thread::JoinHandle;
 use std::time::Duration;
 
 pub struct Db {
@@ -36,20 +36,21 @@ impl Service for Db {
         db: Arc<Mutex<crate::db::Db>>,
         tx: Sender<Reading>,
         _rx: Receiver<Reading>,
-    ) -> Vec<JoinHandle<()>> {
+    ) -> Result<()> {
         let sensor = format!("{}:size", &self.service_id);
-        vec![threading::spawn(self.service_id.clone(), move || loop {
+        threading::spawn(self.service_id.clone(), move || loop {
             let size = { db.lock().unwrap().select_size().unwrap() };
 
-            #[rustfmt::skip]
             tx.send(Reading {
                 sensor: sensor.clone(),
                 value: Value::Size(size),
                 timestamp: Local::now(),
                 is_persisted: true,
-            }).unwrap();
+            })
+            .unwrap();
 
             thread::sleep(self.interval);
-        })]
+        })?;
+        Ok(())
     }
 }

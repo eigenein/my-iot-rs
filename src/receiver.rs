@@ -2,15 +2,16 @@
 
 use crate::db::*;
 use crate::reading::*;
-use crate::threading::ArcMutex;
+use crate::threading::{spawn, ArcMutex};
+use crate::Result;
 use crossbeam_channel::Receiver;
 use log::{error, info};
 use std::sync::{Arc, Mutex};
-use std::thread;
 
 /// Start readings receiver thread.
-pub fn start(rx: Receiver<Reading>, db: ArcMutex<Db>) {
-    thread::spawn(move || run(rx, db));
+pub fn start(rx: Receiver<Reading>, db: ArcMutex<Db>) -> Result<()> {
+    spawn("receiver", move || run(rx, db))?;
+    Ok(())
 }
 
 /// Run the receiver.

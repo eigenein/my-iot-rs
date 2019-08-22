@@ -3,7 +3,6 @@
 use crate::db::Db;
 use crate::reading::*;
 use crate::settings::*;
-use crate::threading::JoinHandle;
 use crate::Result;
 use crossbeam_channel::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
@@ -22,8 +21,7 @@ pub trait Service: Send {
     /// - `db`: database.
     /// - `tx`: 0-capacity channel sender.
     /// - `rx`: 0-capacity channel receiver.
-    fn spawn(self: Box<Self>, db: Arc<Mutex<Db>>, tx: Sender<Reading>, rx: Receiver<Reading>) -> Vec<JoinHandle>;
-    // TODO: return `Result<Vec<JoinHandle>>`?
+    fn spawn(self: Box<Self>, db: Arc<Mutex<Db>>, tx: Sender<Reading>, rx: Receiver<Reading>) -> Result<()>;
 
     /// Convenience function to send multiple readings at once.
     fn send(&self, tx: &Sender<Reading>, readings: Vec<Reading>) -> Result<()> {

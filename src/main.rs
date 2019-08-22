@@ -43,7 +43,6 @@ use crossbeam_channel::{bounded, Receiver, Sender};
 use failure::Error;
 use log::{debug, info};
 use std::sync::{Arc, Mutex};
-use std::thread::JoinHandle;
 
 pub mod consts;
 pub mod db;
@@ -63,7 +62,6 @@ type Result<T> = std::result::Result<T, Error>;
 fn main() -> Result<()> {
     logging::init();
 
-    #[rustfmt::skip]
     clap::App::new("My IoT")
         .version(clap::crate_version!())
         .author(clap::crate_authors!("\n"))
@@ -79,35 +77,21 @@ fn main() -> Result<()> {
 
     info!("Starting services…");
     let (tx, rx) = bounded(0);
-    spawn_services(&settings, &db, &tx, &rx);
+    spawn_services(&settings, &db, &tx, &rx)?;
 
     info!("Starting readings receiver…");
-    receiver::start(rx.clone(), db.clone());
+    receiver::start(rx.clone(), db.clone())?;
 
     info!("Starting web server on port {}…", settings.http_port);
     web::start_server(settings, db.clone())
 }
 
 /// Spawn all configured services.
-fn spawn_services(
-    settings: &Settings,
-    db: &ArcMutex<Db>,
-    tx: &Sender<Reading>,
-    rx: &Receiver<Reading>,
-) -> Vec<JoinHandle<()>> {
-    settings
-        .services
-        .iter()
-        .flat_map(|(service_id, settings)| {
-            info!("Spawning service `{}`…", service_id);
-            debug!("Settings `{}`: {:?}", service_id, settings);
-            let handles = services::new(service_id, settings)
-                .unwrap()
-                .spawn(db.clone(), tx.clone(), rx.clone());
-            for handle in handles.iter() {
-                info!("Spawned thread `{}`.", handle.thread().name().unwrap_or("anonymous"));
-            }
-            handles
-        })
-        .collect()
+fn spawn_services(settings: &Settings, db: &ArcMutex<Db>, tx: &Sender<Reading>, rx: &Receiver<Reading>) -> Result<()> {
+    for (service_id, settings) in settings.services.iter() {
+        info!("Spawning service `{}`…", service_id);
+        debug!("Settings `{}`: {:?}", service_id, settings);
+        services::new(service_id, settings)?.spawn(db.clone(), tx.clone(), rx.clone())?;
+    }
+    Ok(())
 }

@@ -3,7 +3,6 @@ use crate::db::Db;
 use crate::reading::Reading;
 use crate::services::Service;
 use crate::threading;
-use crate::threading::JoinHandle;
 use crate::value::{PointOfTheCompass, Value};
 use crate::Result;
 use chrono::{DateTime, Local};
@@ -72,8 +71,8 @@ pub struct BuienradarStationMeasurement {
 }
 
 impl Service for Buienradar {
-    fn spawn(self: Box<Self>, _db: Arc<Mutex<Db>>, tx: Sender<Reading>, _rx: Receiver<Reading>) -> Vec<JoinHandle> {
-        vec![threading::spawn(self.service_id.clone(), move || loop {
+    fn spawn(self: Box<Self>, _db: Arc<Mutex<Db>>, tx: Sender<Reading>, _rx: Receiver<Reading>) -> Result<()> {
+        threading::spawn(self.service_id.clone(), move || loop {
             match self.fetch() {
                 Ok(measurement) => self.send_readings(measurement, &tx).unwrap(),
                 Err(error) => {
@@ -81,7 +80,8 @@ impl Service for Buienradar {
                 }
             }
             thread::sleep(REFRESH_PERIOD);
-        })]
+        })?;
+        Ok(())
     }
 }
 
