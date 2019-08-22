@@ -1,17 +1,19 @@
 //! # Getting started
 //!
 //! Grab a release from [GitHub](https://github.com/eigenein/my-iot-rs/releases) for your architecture
-//! or optionally clone the repo and build it manually:
+//!
+//! or, install it via `cargo`:
+//!
+//! ```sh
+//! cargo install my-iot
+//! ```
+//!
+//! or, clone the repo and build it manually:
 //!
 //! ```sh
 //! git clone https://github.com/eigenein/my-iot-rs.git
 //! cd my-iot-rs
 //! make
-//! ```
-//!
-//! The above should produce a single executable, you can install it to `/usr/local/bin` by running:
-//!
-//! ```sh
 //! sudo make install
 //! ```
 //!

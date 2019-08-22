@@ -1,6 +1,8 @@
 # `my-iot`
 
-## `master`
+## `0.11.0`
+
+- Chore: prepare for publishing
 
 ## `0.10.0`
 

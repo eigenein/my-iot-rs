@@ -133,6 +133,20 @@
 <span id="133">133</span>
 <span id="134">134</span>
 <span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implements sensor reading value.</span>
 
@@ -141,7 +155,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="ident">Display</span>, <span class="ident">Formatter</span>};
 
 <span class="doccomment">/// Sensor reading value.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Value</span> {
     <span class="doccomment">/// Generic counter.</span>
     <span class="ident">Counter</span>(<span class="ident">u64</span>),
@@ -164,29 +178,15 @@
 <span class="kw">impl</span> <span class="ident">markup</span>::<span class="ident">Render</span> <span class="kw">for</span> <span class="ident">Value</span> {
     <span class="doccomment">/// Render value in HTML.</span>
     <span class="kw">fn</span> <span class="ident">render</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="comment">// TODO: implement `icon()` and `std::fmt::Display` for `Value` to separate icon and text rendering.</span>
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="ident">count</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r#&quot;&lt;i class=&quot;fas fa-sort-numeric-up-alt&quot;&gt;&lt;/i&gt; {} times&quot;#</span>, <span class="ident">count</span>),
-            <span class="ident">Value</span>::<span class="ident">Size</span>(<span class="ident">size</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(
-                <span class="ident">f</span>,
-                <span class="string">r#&quot;&lt;i class=&quot;far fa-save&quot;&gt;&lt;/i&gt; {}&quot;#</span>,
-                <span class="ident">size</span>.<span class="ident">file_size</span>(<span class="ident">humansize</span>::<span class="ident">file_size_opts</span>::<span class="ident">DECIMAL</span>).<span class="ident">unwrap</span>()
-            ),
-            <span class="ident">Value</span>::<span class="ident">Text</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r#&quot;&lt;i class=&quot;fas fa-quote-left&quot;&gt;&lt;/i&gt; {}&quot;#</span>, <span class="ident">string</span>),
-            <span class="ident">Value</span>::<span class="ident">Celsius</span>(<span class="ident">degrees</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r#&quot;&lt;i class=&quot;fas fa-thermometer-half&quot;&gt;&lt;/i&gt; {:.1} ℃&quot;#</span>, <span class="ident">degrees</span>),
-            <span class="ident">Value</span>::<span class="ident">Bft</span>(<span class="ident">bft</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r#&quot;&lt;i class=&quot;fas fa-wind&quot;&gt;&lt;/i&gt; {} BFT&quot;#</span>, <span class="ident">bft</span>),
-            <span class="ident">Value</span>::<span class="ident">WindDirection</span>(<span class="ident">point</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r#&quot;&lt;i class=&quot;fas fa-wind&quot;&gt;&lt;/i&gt; {}&quot;#</span>, <span class="ident">point</span>),
-            <span class="ident">Value</span>::<span class="ident">Rh</span>(<span class="ident">percent</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r#&quot;&lt;i class=&quot;fas fa-wateer&quot;&gt;&lt;/i&gt; {}%&quot;#</span>, <span class="ident">percent</span>),
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(),
-        }
+        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{} {}&quot;</span>, <span class="self">self</span>.<span class="ident">icon</span>(), <span class="self">self</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Value</span> {
-    <span class="doccomment">/// Retrieve [CSS color class](https://bulma.io/documentation/modifiers/color-helpers/).</span>
+    <span class="doccomment">/// Get [CSS color class](https://bulma.io/documentation/modifiers/color-helpers/).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Value</span>::<span class="ident">Text</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Value</span>::<span class="ident">Size</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="string">&quot;is-light&quot;</span>,
+            <span class="ident">Value</span>::<span class="ident">Text</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Value</span>::<span class="ident">Size</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Value</span>::<span class="ident">Metres</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="string">&quot;is-light&quot;</span>,
             <span class="ident">Value</span>::<span class="ident">Bft</span>(<span class="ident">number</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">number</span> {
                 <span class="number">0</span> <span class="op">=&gt;</span> <span class="string">&quot;is-light&quot;</span>,
                 <span class="number">1</span>..=<span class="number">3</span> <span class="op">=&gt;</span> <span class="string">&quot;is-success&quot;</span>,
@@ -212,13 +212,41 @@
                 <span class="kw">_</span> <span class="kw">if</span> <span class="number">60.0</span> <span class="op">&lt;=</span> <span class="ident">value</span> <span class="op">=&gt;</span> <span class="string">&quot;is-danger&quot;</span>,
                 <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
             },
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(),
+        }
+    }
+
+    <span class="doccomment">/// Get [Font Awesome](https://fontawesome.com) icon tag.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">icon</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="string">r#&quot;&lt;i class=&quot;fas fa-sort-numeric-up-alt&quot;&gt;&lt;/i&gt;&quot;#</span>,
+            <span class="ident">Value</span>::<span class="ident">Size</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="string">r#&quot;&lt;i class=&quot;far fa-save&quot;&gt;&lt;/i&gt;&quot;#</span>,
+            <span class="ident">Value</span>::<span class="ident">Text</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="string">r#&quot;&lt;i class=&quot;fas fa-quote-left&quot;&gt;&lt;/i&gt;&quot;#</span>,
+            <span class="ident">Value</span>::<span class="ident">Celsius</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="string">r#&quot;&lt;i class=&quot;fas fa-thermometer-half&quot;&gt;&lt;/i&gt;&quot;#</span>,
+            <span class="ident">Value</span>::<span class="ident">Bft</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="string">r#&quot;&lt;i class=&quot;fas fa-wind&quot;&gt;&lt;/i&gt;&quot;#</span>,
+            <span class="ident">Value</span>::<span class="ident">WindDirection</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="string">r#&quot;&lt;i class=&quot;fas fa-wind&quot;&gt;&lt;/i&gt;&quot;#</span>,
+            <span class="ident">Value</span>::<span class="ident">Rh</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="string">r#&quot;&lt;i class=&quot;fas fa-water&quot;&gt;&lt;/i&gt;&quot;#</span>,
+            <span class="ident">Value</span>::<span class="ident">Metres</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="string">r#&quot;&lt;i class=&quot;fas fa-ruler&quot;&gt;&lt;/i&gt;&quot;#</span>,
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Value</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="ident">count</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r&quot;{} times&quot;</span>, <span class="ident">count</span>),
+            <span class="ident">Value</span>::<span class="ident">Size</span>(<span class="ident">size</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r&quot;{}&quot;</span>, <span class="ident">size</span>.<span class="ident">file_size</span>(<span class="ident">humansize</span>::<span class="ident">file_size_opts</span>::<span class="ident">DECIMAL</span>).<span class="ident">unwrap</span>()),
+            <span class="ident">Value</span>::<span class="ident">Text</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r&quot;{}&quot;</span>, <span class="ident">string</span>),
+            <span class="ident">Value</span>::<span class="ident">Celsius</span>(<span class="ident">degrees</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r&quot;{:.1} ℃&quot;</span>, <span class="ident">degrees</span>),
+            <span class="ident">Value</span>::<span class="ident">Bft</span>(<span class="ident">bft</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r&quot;{} BFT&quot;</span>, <span class="ident">bft</span>),
+            <span class="ident">Value</span>::<span class="ident">WindDirection</span>(<span class="ident">point</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r&quot;{}&quot;</span>, <span class="ident">point</span>),
+            <span class="ident">Value</span>::<span class="ident">Rh</span>(<span class="ident">percent</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r&quot;{}%&quot;</span>, <span class="ident">percent</span>),
+            <span class="ident">Value</span>::<span class="ident">Metres</span>(<span class="ident">metres</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r&quot;{} m&quot;</span>, <span class="ident">metres</span>),
         }
     }
 }
 
 <span class="doccomment">/// [Points of the compass](https://en.wikipedia.org/wiki/Points_of_the_compass).</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PointOfTheCompass</span> {
     <span class="doccomment">/// N</span>
     <span class="ident">North</span>,

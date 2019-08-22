@@ -48,12 +48,13 @@
 <span id="48">48</span>
 <span id="49">49</span>
 <span id="50">50</span>
+<span id="51">51</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">db</span>::<span class="ident">Db</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">reading</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">threading</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">threading</span>::<span class="ident">JoinHandle</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">value</span>::<span class="ident">Value</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span>;
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">Local</span>;
 <span class="kw">use</span> <span class="ident">crossbeam_channel</span>::{<span class="ident">Receiver</span>, <span class="ident">Sender</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Deserialize</span>;
@@ -84,19 +85,20 @@
 }
 
 <span class="kw">impl</span> <span class="kw">crate</span>::<span class="ident">services</span>::<span class="ident">Service</span> <span class="kw">for</span> <span class="ident">Clock</span> {
-    <span class="kw">fn</span> <span class="ident">spawn</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">_db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;&gt;</span>, <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>, <span class="ident">_rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JoinHandle</span><span class="op">&gt;</span> {
-        <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">threading</span>::<span class="ident">spawn</span>(<span class="self">self</span>.<span class="ident">service_id</span>.<span class="ident">clone</span>(), <span class="kw">move</span> <span class="op">||</span> <span class="kw">loop</span> {
-            <span class="attribute">#[<span class="ident">rustfmt</span>::<span class="ident">skip</span>]</span>
+    <span class="kw">fn</span> <span class="ident">spawn</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">_db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;&gt;</span>, <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>, <span class="ident">_rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="ident">threading</span>::<span class="ident">spawn</span>(<span class="self">self</span>.<span class="ident">service_id</span>.<span class="ident">clone</span>(), <span class="kw">move</span> <span class="op">||</span> <span class="kw">loop</span> {
             <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">Reading</span> {
                 <span class="ident">sensor</span>: <span class="self">self</span>.<span class="ident">service_id</span>.<span class="ident">clone</span>(),
                 <span class="ident">value</span>: <span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="self">self</span>.<span class="ident">counter</span>),
                 <span class="ident">timestamp</span>: <span class="ident">Local</span>::<span class="ident">now</span>(),
                 <span class="ident">is_persisted</span>: <span class="bool-val">true</span>,
-            }).<span class="ident">unwrap</span>();
+            })
+            .<span class="ident">unwrap</span>();
 
             <span class="self">self</span>.<span class="ident">counter</span> <span class="op">+=</span> <span class="number">1</span>;
             <span class="ident">thread</span>::<span class="ident">sleep</span>(<span class="self">self</span>.<span class="ident">interval</span>);
-        })]
+        })<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
     }
 }
 </pre></div>
