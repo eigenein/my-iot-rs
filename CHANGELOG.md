@@ -2,6 +2,8 @@
 
 ## `master`
 
+## `0.10.0`
+
 - Chore: learn to not use `unwrap()`
 - Chore: implement unimplemented value rendering
 
