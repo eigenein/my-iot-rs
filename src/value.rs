@@ -28,29 +28,15 @@ pub enum Value {
 impl markup::Render for Value {
     /// Render value in HTML.
     fn render(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        // TODO: implement `icon()` and `std::fmt::Display` for `Value` to separate icon and text rendering.
-        match *self {
-            Value::Counter(count) => write!(f, r#"<i class="fas fa-sort-numeric-up-alt"></i> {} times"#, count),
-            Value::Size(size) => write!(
-                f,
-                r#"<i class="far fa-save"></i> {}"#,
-                size.file_size(humansize::file_size_opts::DECIMAL).unwrap()
-            ),
-            Value::Text(ref string) => write!(f, r#"<i class="fas fa-quote-left"></i> {}"#, string),
-            Value::Celsius(degrees) => write!(f, r#"<i class="fas fa-thermometer-half"></i> {:.1} ℃"#, degrees),
-            Value::Bft(bft) => write!(f, r#"<i class="fas fa-wind"></i> {} BFT"#, bft),
-            Value::WindDirection(point) => write!(f, r#"<i class="fas fa-wind"></i> {}"#, point),
-            Value::Rh(percent) => write!(f, r#"<i class="fas fa-wateer"></i> {}%"#, percent),
-            _ => unimplemented!(),
-        }
+        write!(f, "{} {}", self.icon(), self)
     }
 }
 
 impl Value {
-    /// Retrieve [CSS color class](https://bulma.io/documentation/modifiers/color-helpers/).
+    /// Get [CSS color class](https://bulma.io/documentation/modifiers/color-helpers/).
     pub fn class(&self) -> &str {
         match *self {
-            Value::Text(_) | Value::Counter(_) | Value::Size(_) => "is-light",
+            Value::Text(_) | Value::Counter(_) | Value::Size(_) | Value::Metres(_) => "is-light",
             Value::Bft(number) => match number {
                 0 => "is-light",
                 1..=3 => "is-success",
@@ -76,7 +62,35 @@ impl Value {
                 _ if 60.0 <= value => "is-danger",
                 _ => unreachable!(),
             },
-            _ => unimplemented!(),
+        }
+    }
+
+    /// Get [Font Awesome](https://fontawesome.com) icon tag.
+    pub fn icon(&self) -> &'static str {
+        match *self {
+            Value::Counter(_) => r#"<i class="fas fa-sort-numeric-up-alt"></i>"#,
+            Value::Size(_) => r#"<i class="far fa-save"></i>"#,
+            Value::Text(_) => r#"<i class="fas fa-quote-left"></i>"#,
+            Value::Celsius(_) => r#"<i class="fas fa-thermometer-half"></i>"#,
+            Value::Bft(_) => r#"<i class="fas fa-wind"></i>"#,
+            Value::WindDirection(_) => r#"<i class="fas fa-wind"></i>"#,
+            Value::Rh(_) => r#"<i class="fas fa-water"></i>"#,
+            Value::Metres(_) => r#"<i class="fas fa-ruler"></i>"#,
+        }
+    }
+}
+
+impl std::fmt::Display for Value {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        match *self {
+            Value::Counter(count) => write!(f, r"{} times", count),
+            Value::Size(size) => write!(f, r"{}", size.file_size(humansize::file_size_opts::DECIMAL).unwrap()),
+            Value::Text(ref string) => write!(f, r"{}", string),
+            Value::Celsius(degrees) => write!(f, r"{:.1} ℃", degrees),
+            Value::Bft(bft) => write!(f, r"{} BFT", bft),
+            Value::WindDirection(point) => write!(f, r"{}", point),
+            Value::Rh(percent) => write!(f, r"{}%", percent),
+            Value::Metres(metres) => write!(f, r"{} m", metres),
         }
     }
 }

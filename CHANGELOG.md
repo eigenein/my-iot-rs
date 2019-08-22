@@ -3,6 +3,7 @@
 ## `master`
 
 - Chore: learn to not use `unwrap()`
+- Chore: implement unimplemented value rendering
 
 ## `0.9.0`
 
