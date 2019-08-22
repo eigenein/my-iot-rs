@@ -104,20 +104,20 @@ impl Db {
 
     /// Select latest reading for each sensor.
     pub fn select_latest_readings(&self) -> Result<Vec<Reading>> {
-        Ok(self
-            .connection
+        self.connection
             .prepare_cached("SELECT sensor, MAX(ts) as ts, value FROM readings GROUP BY sensor")?
             .query_map(NO_PARAMS, |row| Ok(Reading::from(row)))?
-            .map(|result| result.unwrap())
-            .collect())
+            .map(|result| result.map_err(|e| e.into()))
+            .collect()
     }
 
     /// Select database size in bytes.
     pub fn select_size(&self) -> Result<u64> {
-        Ok(self
-            .connection
+        self.connection
             .prepare_cached("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()")?
-            .query_row(NO_PARAMS, |row| row.get::<_, i64>(0))? as u64)
+            .query_row(NO_PARAMS, |row| row.get::<_, i64>(0))
+            .map(|v| v as u64)
+            .map_err(|e| e.into())
     }
 
     /// Select the very last sensor reading.
