@@ -21,13 +21,14 @@
 //! ```
 
 use crate::services;
+use crate::Result;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs::File;
 
 /// Read the settings file.
-pub fn read() -> Settings {
-    serde_yaml::from_reader(File::open("settings.yml").unwrap()).unwrap()
+pub fn read() -> Result<Settings> {
+    Ok(serde_yaml::from_reader(File::open("settings.yml")?)?)
 }
 
 /// Represents a root settings object.

@@ -71,7 +71,7 @@ fn main() -> Result<()> {
         .get_matches();
 
     info!("Reading settings…");
-    let settings = settings::read(); // TODO: CLI parameter.
+    let settings = settings::read()?; // TODO: CLI parameter.
     debug!("Settings: {:?}", &settings);
 
     info!("Opening database…");
