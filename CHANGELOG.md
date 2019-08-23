@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- New: `human_format` for human-readable value formatting
+
 ## `0.12.0`
 
 - Chore: remove some `unwrap()`s
