@@ -1,8 +1,10 @@
 # `my-iot`
 
-## `master`
+## `0.12.0`
 
 - Chore: remove some `unwrap()`s
+- New: `--settings` command-line option
+- New: `--db` command-line option
 
 ## `0.11.0`
 

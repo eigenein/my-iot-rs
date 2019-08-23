@@ -25,10 +25,11 @@ use crate::Result;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs::File;
+use std::path::Path;
 
 /// Read the settings file.
-pub fn read() -> Result<Settings> {
-    Ok(serde_yaml::from_reader(File::open("settings.yml")?)?)
+pub fn read<P: AsRef<Path>>(path: P) -> Result<Settings> {
+    Ok(serde_yaml::from_reader(File::open(path)?)?)
 }
 
 /// Represents a root settings object.

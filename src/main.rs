@@ -41,6 +41,7 @@ use crate::db::Db;
 use crate::reading::Reading;
 use crate::settings::Settings;
 use crate::threading::ArcMutex;
+use clap::Arg;
 use crossbeam_channel::{bounded, Receiver, Sender};
 use failure::Error;
 use log::{debug, info};
@@ -60,22 +61,38 @@ pub mod web;
 
 type Result<T> = std::result::Result<T, Error>;
 
+const DEFAULT_SETTINGS_PATH: &str = "settings.yml";
+const DEFAULT_DB_PATH: &str = "my-iot.sqlite3";
+
 /// Entry point.
 fn main() -> Result<()> {
     logging::init();
 
-    clap::App::new("My IoT")
+    let matches = clap::App::new("My IoT")
         .version(clap::crate_version!())
         .author(clap::crate_authors!("\n"))
         .about(clap::crate_description!())
+        .arg(
+            Arg::with_name("settings")
+                .short("s")
+                .long("settings")
+                .takes_value(true)
+                .help(&format!("Settings file path (default: {})", DEFAULT_SETTINGS_PATH)),
+        )
+        .arg(
+            Arg::with_name("db")
+                .long("--db")
+                .takes_value(true)
+                .help(&format!("Database file path (default: {})", DEFAULT_DB_PATH)),
+        )
         .get_matches();
 
     info!("Reading settings…");
-    let settings = settings::read()?; // TODO: CLI parameter.
+    let settings = settings::read(matches.value_of("settings").unwrap_or(DEFAULT_SETTINGS_PATH))?;
     debug!("Settings: {:?}", &settings);
 
     info!("Opening database…");
-    let db = Arc::new(Mutex::new(Db::new("my-iot.sqlite3")?));
+    let db = Arc::new(Mutex::new(Db::new(matches.value_of("db").unwrap_or(DEFAULT_DB_PATH))?));
 
     info!("Starting services…");
     let (tx, rx) = bounded(0);

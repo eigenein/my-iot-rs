@@ -466,30 +466,30 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">set_and_get</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Db</span>::<span class="ident">new</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>;
-        <span class="ident">db</span>.<span class="ident">set</span>(<span class="string">&quot;hello&quot;</span>, <span class="number">42</span>, <span class="ident">Local</span>::<span class="ident">now</span>() <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">days</span>(<span class="number">1</span>)).<span class="ident">unwrap</span>();
+        <span class="ident">db</span>.<span class="ident">set</span>(<span class="string">&quot;hello&quot;</span>, <span class="number">42</span>, <span class="ident">Local</span>::<span class="ident">now</span>() <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">days</span>(<span class="number">1</span>))<span class="question-mark">?</span>;
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">db</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">i32</span><span class="op">&gt;</span>(<span class="string">&quot;hello&quot;</span>).<span class="ident">unwrap</span>(), <span class="prelude-val">Some</span>(<span class="number">42</span>));
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">get_missing_returns_none</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span> {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Db</span>::<span class="ident">new</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">i32</span><span class="op">&gt;</span>(<span class="string">&quot;missing&quot;</span>).<span class="ident">unwrap</span>(), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Db</span>::<span class="ident">new</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">i32</span><span class="op">&gt;</span>(<span class="string">&quot;missing&quot;</span>)<span class="question-mark">?</span>, <span class="prelude-val">None</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">expired_returns_none</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Db</span>::<span class="ident">new</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>;
-        <span class="ident">db</span>.<span class="ident">set</span>(<span class="string">&quot;hello&quot;</span>, <span class="number">42</span>, <span class="ident">Local</span>::<span class="ident">now</span>()).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">db</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">i32</span><span class="op">&gt;</span>(<span class="string">&quot;hello&quot;</span>).<span class="ident">unwrap</span>(), <span class="prelude-val">None</span>);
+        <span class="ident">db</span>.<span class="ident">set</span>(<span class="string">&quot;hello&quot;</span>, <span class="number">42</span>, <span class="ident">Local</span>::<span class="ident">now</span>())<span class="question-mark">?</span>;
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">db</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">i32</span><span class="op">&gt;</span>(<span class="string">&quot;hello&quot;</span>)<span class="question-mark">?</span>, <span class="prelude-val">None</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">cannot_get_different_type_value</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Db</span>::<span class="ident">new</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>;
-        <span class="ident">db</span>.<span class="ident">set</span>(<span class="string">&quot;hello&quot;</span>, <span class="number">42</span>, <span class="ident">Local</span>::<span class="ident">now</span>() <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">days</span>(<span class="number">1</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">db</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">f64</span><span class="op">&gt;</span>(<span class="string">&quot;hello&quot;</span>).<span class="ident">unwrap</span>(), <span class="prelude-val">None</span>);
+        <span class="ident">db</span>.<span class="ident">set</span>(<span class="string">&quot;hello&quot;</span>, <span class="number">42</span>, <span class="ident">Local</span>::<span class="ident">now</span>() <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">days</span>(<span class="number">1</span>))<span class="question-mark">?</span>;
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">db</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">f64</span><span class="op">&gt;</span>(<span class="string">&quot;hello&quot;</span>)<span class="question-mark">?</span>, <span class="prelude-val">None</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -503,7 +503,7 @@
         };
         <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Db</span>::<span class="ident">new</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>;
         <span class="ident">db</span>.<span class="ident">insert_reading</span>(<span class="kw-2">&amp;</span><span class="ident">reading</span>)<span class="question-mark">?</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">db</span>.<span class="ident">select_last_reading</span>(<span class="string">&quot;test&quot;</span>).<span class="ident">unwrap</span>(), <span class="prelude-val">Some</span>(<span class="ident">reading</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">db</span>.<span class="ident">select_last_reading</span>(<span class="string">&quot;test&quot;</span>)<span class="question-mark">?</span>, <span class="prelude-val">Some</span>(<span class="ident">reading</span>));
         <span class="prelude-val">Ok</span>(())
     }
 }

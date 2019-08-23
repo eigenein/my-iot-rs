@@ -1,6 +1,5 @@
 //! Implements web server.
 
-use crate::consts;
 use crate::db::Db;
 use crate::settings::Settings;
 use crate::templates::*;
@@ -11,6 +10,13 @@ use rouille::{router, Response};
 use serde_json::json;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
+pub const FAVICON: &[u8] = include_bytes!("statics/favicon.ico");
+pub const FAVICON_16: &[u8] = include_bytes!("statics/favicon-16x16.png");
+pub const FAVICON_32: &[u8] = include_bytes!("statics/favicon-32x32.png");
+pub const APPLE_TOUCH_ICON: &[u8] = include_bytes!("statics/apple-touch-icon.png");
+pub const ANDROID_CHROME_192: &[u8] = include_bytes!("statics/android-chrome-192x192.png");
+pub const ANDROID_CHROME_512: &[u8] = include_bytes!("statics/android-chrome-512x512.png");
+
 /// Start the web application.
 pub fn start_server(settings: Settings, db: ArcMutex<Db>) -> ! {
     rouille::start_server(
@@ -20,10 +26,10 @@ pub fn start_server(settings: Settings, db: ArcMutex<Db>) -> ! {
                 (GET) ["/"] => index(&db),
                 (GET) ["/sensors/{sensor}", sensor: String] => get_sensor(&db, &sensor),
                 (GET) ["/sensors/{sensor}/json", sensor: String] => get_sensor_json(&db, &sensor),
-                (GET) ["/favicon.ico"] => Response::from_data("image/x-icon", consts::FAVICON.to_vec()),
-                (GET) ["/apple-touch-icon.png"] => Response::from_data("image/png", consts::APPLE_TOUCH_ICON.to_vec()),
-                (GET) ["/favicon-32x32.png"] => Response::from_data("image/png", consts::FAVICON_32.to_vec()),
-                (GET) ["/favicon-16x16.png"] => Response::from_data("image/png", consts::FAVICON_16.to_vec()),
+                (GET) ["/favicon.ico"] => Response::from_data("image/x-icon", FAVICON.to_vec()),
+                (GET) ["/apple-touch-icon.png"] => Response::from_data("image/png", APPLE_TOUCH_ICON.to_vec()),
+                (GET) ["/favicon-32x32.png"] => Response::from_data("image/png", FAVICON_32.to_vec()),
+                (GET) ["/favicon-16x16.png"] => Response::from_data("image/png", FAVICON_16.to_vec()),
                 _ => Response::empty_404(),
             )
         },
