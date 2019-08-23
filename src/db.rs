@@ -211,30 +211,30 @@ mod tests {
     #[test]
     fn set_and_get() -> Result {
         let db = Db::new(":memory:")?;
-        db.set("hello", 42, Local::now() + Duration::days(1)).unwrap();
+        db.set("hello", 42, Local::now() + Duration::days(1))?;
         assert_eq!(db.get::<_, i32>("hello").unwrap(), Some(42));
         Ok(())
     }
 
     #[test]
     fn get_missing_returns_none() -> Result {
-        assert_eq!(Db::new(":memory:")?.get::<_, i32>("missing").unwrap(), None);
+        assert_eq!(Db::new(":memory:")?.get::<_, i32>("missing")?, None);
         Ok(())
     }
 
     #[test]
     fn expired_returns_none() -> Result {
         let db = Db::new(":memory:")?;
-        db.set("hello", 42, Local::now()).unwrap();
-        assert_eq!(db.get::<_, i32>("hello").unwrap(), None);
+        db.set("hello", 42, Local::now())?;
+        assert_eq!(db.get::<_, i32>("hello")?, None);
         Ok(())
     }
 
     #[test]
     fn cannot_get_different_type_value() -> Result {
         let db = Db::new(":memory:")?;
-        db.set("hello", 42, Local::now() + Duration::days(1)).unwrap();
-        assert_eq!(db.get::<_, f64>("hello").unwrap(), None);
+        db.set("hello", 42, Local::now() + Duration::days(1))?;
+        assert_eq!(db.get::<_, f64>("hello")?, None);
         Ok(())
     }
 
@@ -248,7 +248,7 @@ mod tests {
         };
         let db = Db::new(":memory:")?;
         db.insert_reading(&reading)?;
-        assert_eq!(db.select_last_reading("test").unwrap(), Some(reading));
+        assert_eq!(db.select_last_reading("test")?, Some(reading));
         Ok(())
     }
 }

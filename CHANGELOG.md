@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Chore: remove some `unwrap()`s
+
 ## `0.11.0`
 
 - Chore: prepare for publishing
