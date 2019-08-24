@@ -3,6 +3,7 @@
 ## `master`
 
 - New: `human_format` for human-readable value formatting
+- Chore: basic unit test for `Buienradar`
 
 ## `0.12.0`
 
