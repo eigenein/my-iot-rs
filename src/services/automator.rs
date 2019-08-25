@@ -116,9 +116,9 @@ impl Condition {
     pub fn is_met(&self, reading: &Reading) -> bool {
         match self {
             Condition::Sensor(sensor) => &reading.sensor == sensor,
-            Condition::SensorEndsWith(suffix) => reading.sensor.ends_with(&suffix),
-            Condition::SensorStartsWith(prefix) => reading.sensor.starts_with(&prefix),
-            Condition::SensorContains(infix) => reading.sensor.contains(&infix),
+            Condition::SensorEndsWith(suffix) => reading.sensor.ends_with(suffix),
+            Condition::SensorStartsWith(prefix) => reading.sensor.starts_with(prefix),
+            Condition::SensorContains(infix) => reading.sensor.contains(infix),
         }
     }
 }
