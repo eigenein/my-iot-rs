@@ -61,13 +61,13 @@ impl Nest {
                 tx,
                 vec![
                     Reading {
-                        sensor: format!("{}:{}:ambient_temperature", &self.service_id, &id),
+                        sensor: format!("{}::{}::ambient_temperature", &self.service_id, &id),
                         value: Value::Celsius(thermostat.ambient_temperature_c),
                         timestamp: now,
                         is_persisted: true,
                     },
                     Reading {
-                        sensor: format!("{}:{}:humidity", &self.service_id, &id),
+                        sensor: format!("{}::{}::humidity", &self.service_id, &id),
                         value: Value::Rh(thermostat.humidity),
                         timestamp: now,
                         is_persisted: true,

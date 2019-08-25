@@ -119,13 +119,13 @@ impl Buienradar {
             &tx,
             vec![
                 Reading {
-                    sensor: format!("{}:{}:name", &self.service_id, self.station_id),
+                    sensor: format!("{}::{}::name", &self.service_id, self.station_id),
                     value: Value::Text(measurement.name.clone()),
                     timestamp: measurement.timestamp,
                     is_persisted: true,
                 },
                 Reading {
-                    sensor: format!("{}:{}:weather_description", &self.service_id, self.station_id),
+                    sensor: format!("{}::{}::weather_description", &self.service_id, self.station_id),
                     value: Value::Text(measurement.weather_description.clone()),
                     timestamp: measurement.timestamp,
                     is_persisted: true,
@@ -134,7 +134,7 @@ impl Buienradar {
         )?;
         if let Some(degrees) = measurement.temperature {
             tx.send(Reading {
-                sensor: format!("{}:{}:temperature", &self.service_id, self.station_id),
+                sensor: format!("{}::{}::temperature", &self.service_id, self.station_id),
                 value: Value::Celsius(degrees),
                 timestamp: measurement.timestamp,
                 is_persisted: true,
@@ -142,7 +142,7 @@ impl Buienradar {
         }
         if let Some(degrees) = measurement.ground_temperature {
             tx.send(Reading {
-                sensor: format!("{}:{}:ground_temperature", &self.service_id, self.station_id),
+                sensor: format!("{}::{}::ground_temperature", &self.service_id, self.station_id),
                 value: Value::Celsius(degrees),
                 timestamp: measurement.timestamp,
                 is_persisted: true,
@@ -150,7 +150,7 @@ impl Buienradar {
         }
         if let Some(degrees) = measurement.feel_temperature {
             tx.send(Reading {
-                sensor: format!("{}:{}:feel_temperature", &self.service_id, self.station_id),
+                sensor: format!("{}::{}::feel_temperature", &self.service_id, self.station_id),
                 value: Value::Celsius(degrees),
                 timestamp: measurement.timestamp,
                 is_persisted: true,
@@ -158,7 +158,7 @@ impl Buienradar {
         }
         if let Some(bft) = measurement.wind_speed_bft {
             tx.send(Reading {
-                sensor: format!("{}:{}:wind_speed_bft", &self.service_id, self.station_id),
+                sensor: format!("{}::{}::wind_speed_bft", &self.service_id, self.station_id),
                 value: Value::Bft(bft),
                 timestamp: measurement.timestamp,
                 is_persisted: true,
@@ -166,7 +166,7 @@ impl Buienradar {
         }
         if let Some(point) = measurement.wind_direction {
             tx.send(Reading {
-                sensor: format!("{}:{}:wind_direction", &self.service_id, self.station_id),
+                sensor: format!("{}::{}::wind_direction", &self.service_id, self.station_id),
                 value: Value::WindDirection(point),
                 timestamp: measurement.timestamp,
                 is_persisted: true,

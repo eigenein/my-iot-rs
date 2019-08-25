@@ -37,7 +37,7 @@ impl Service for Db {
         tx: Sender<Reading>,
         _rx: Receiver<Reading>,
     ) -> Result<()> {
-        let sensor = format!("{}:size", &self.service_id);
+        let sensor = format!("{}::size", &self.service_id);
         threading::spawn(self.service_id.clone(), move || loop {
             let size = { db.lock().unwrap().select_size().unwrap() };
 

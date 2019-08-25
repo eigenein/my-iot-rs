@@ -4,6 +4,7 @@
 
 - New: `human_format` for human-readable value formatting
 - Chore: basic unit test for `Buienradar`
+- Break: change `:` sensor separator to `::`
 
 ## `0.12.0`
 
