@@ -3,6 +3,7 @@
 ## `master`
 
 - New: `human_format` for human-readable value formatting
+- New: `Automator` service, unusable yet
 - Chore: basic unit test for `Buienradar`
 - Break: change `:` sensor separator to `::`
 

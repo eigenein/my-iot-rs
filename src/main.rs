@@ -95,6 +95,8 @@ fn main() -> Result<()> {
     let db = Arc::new(Mutex::new(Db::new(matches.value_of("db").unwrap_or(DEFAULT_DB_PATH))?));
 
     info!("Starting services…");
+    // FIXME: `crossbeam` doesn't provide broadcasting.
+    // FIXME: take a look at https://docs.rs/multiqueue/0.3.2/multiqueue/.
     let (tx, rx) = bounded(0);
     spawn_services(&settings, &db, &tx, &rx)?;
 

@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["_IMPL_DESERIALIZE_FOR_Action",""],["_IMPL_DESERIALIZE_FOR_Condition",""],["_IMPL_DESERIALIZE_FOR_Scenario",""],["_IMPL_DESERIALIZE_FOR_Settings",""]],"enum":[["Action",""],["Condition",""]],"struct":[["Automator","Automation service."],["Scenario","Single automation scenario."],["Settings","Automator settings."]]});

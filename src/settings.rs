@@ -56,6 +56,8 @@ pub enum ServiceSettings {
     Buienradar(services::buienradar::Settings),
     /// Nest API.
     Nest(services::nest::Settings),
+    /// Automation.
+    Automator(services::automator::Settings),
 }
 
 fn default_http_port() -> u16 {

@@ -42,6 +42,8 @@
 <span id="42">42</span>
 <span id="43">43</span>
 <span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implements generic `Service` trait.</span>
 
@@ -52,6 +54,7 @@
 <span class="kw">use</span> <span class="ident">crossbeam_channel</span>::{<span class="ident">Receiver</span>, <span class="ident">Sender</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
 
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">automator</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">buienradar</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">clock</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">db</span>;
@@ -85,6 +88,7 @@
         <span class="ident">ServiceSettings</span>::<span class="ident">Db</span>(<span class="ident">settings</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">db</span>::<span class="ident">Db</span>::<span class="ident">new</span>(<span class="ident">service_id</span>, <span class="ident">settings</span>))),
         <span class="ident">ServiceSettings</span>::<span class="ident">Buienradar</span>(<span class="ident">settings</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">buienradar</span>::<span class="ident">Buienradar</span>::<span class="ident">new</span>(<span class="ident">service_id</span>, <span class="ident">settings</span>)<span class="question-mark">?</span>)),
         <span class="ident">ServiceSettings</span>::<span class="ident">Nest</span>(<span class="ident">settings</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">nest</span>::<span class="ident">Nest</span>::<span class="ident">new</span>(<span class="ident">service_id</span>, <span class="ident">settings</span>))),
+        <span class="ident">ServiceSettings</span>::<span class="ident">Automator</span>(<span class="ident">settings</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">automator</span>::<span class="ident">Automator</span>::<span class="ident">new</span>(<span class="ident">service_id</span>, <span class="ident">settings</span>))),
     }
 }
 </pre></div>

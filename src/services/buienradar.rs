@@ -31,18 +31,18 @@ pub struct Buienradar {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct BuienradarFeed {
+struct BuienradarFeed {
     actual: BuienradarFeedActual,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct BuienradarFeedActual {
+struct BuienradarFeedActual {
     #[serde(rename = "stationmeasurements")]
     station_measurements: Vec<BuienradarStationMeasurement>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
-pub struct BuienradarStationMeasurement {
+struct BuienradarStationMeasurement {
     #[serde(rename = "stationid")]
     station_id: u32,
 
