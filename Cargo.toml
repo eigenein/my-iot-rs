@@ -19,7 +19,6 @@ travis-ci = { repository = "eigenein/my-iot-rs" }
 chrono = { version = "0.4.7", features = ["serde"] }
 chrono-tz = { version = "0.5.1", features = ["serde"] }
 openssl = { version = "0.10" }
-humansize = "1.1.0"
 clap = "2.33.0"
 reqwest = "0.9.18"
 rouille = "3.0.0"

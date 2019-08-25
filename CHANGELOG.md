@@ -4,6 +4,7 @@
 
 - New: Nest camera snapshot URL
 - Break: change Nest sensors to include device type
+- Chore: get rid of `humansize` crate
 
 ## `0.14.0`
 

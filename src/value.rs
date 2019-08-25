@@ -1,6 +1,5 @@
 //! Implements sensor reading value.
 
-use humansize::FileSize;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
@@ -85,8 +84,7 @@ impl std::fmt::Display for Value {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
             Value::Counter(count) => write!(f, r"{} times", count),
-            // TODO: use `human_format` instead.
-            Value::Size(size) => f.write_str(&size.file_size(humansize::file_size_opts::DECIMAL).unwrap()),
+            Value::Size(size) => f.write_str(&human_format(*size as f64, "B")),
             Value::Text(ref string) => write!(f, r"{}", string),
             Value::Celsius(degrees) => write!(f, r"{:.1} ℃", degrees),
             Value::Bft(bft) => write!(f, r"{} BFT", bft),
