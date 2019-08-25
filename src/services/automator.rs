@@ -34,6 +34,17 @@ pub struct Settings {
 }
 
 /// Single automation scenario.
+///
+/// # Example
+///
+/// ```yaml
+/// scenarios:
+///   - description: Re-emit heartbeat readings
+///     conditions:
+///       - Sensor: heartbeat
+///     actions:
+///       - Reading: []
+/// ```
 #[derive(Deserialize, Debug, Clone)]
 pub struct Scenario {
     /// User-defined description. Brings no functional effect, but helps to debug scenarios.
@@ -51,13 +62,26 @@ pub struct Scenario {
 #[derive(Deserialize, Debug, Clone)]
 pub enum Condition {
     /// Sensor matches a specified string.
+    ///
+    /// # Example
+    ///
+    /// ```yaml
+    /// conditions:
+    //    - Sensor: heartbeat
+    /// ```
     Sensor(String),
+
     /// Sensor ends with a specified string.
     SensorEndsWith(String),
+
     /// Sensor starts with a specified string.
     SensorStartsWith(String),
+
     /// Sensor contains a specified string.
     SensorContains(String),
+
+    /// At least one of conditions is met.
+    Or(Box<Condition>, Box<Condition>),
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -96,12 +120,12 @@ impl Service for Automator {
             for reading in rx {
                 for scenario in self.settings.scenarios.iter() {
                     if scenario.conditions.iter().all(|c| c.is_met(&reading)) {
-                        info!(r#"Running scenario: "{}"."#, scenario.description);
+                        info!(r#"{} triggered scenario: "{}"."#, &reading.sensor, scenario.description);
                         for action in scenario.actions.iter() {
                             action.execute(&self.service_id, &reading, &tx).unwrap();
                         }
                     } else {
-                        debug!(r#"Conditions are not met for scenario: "{}"."#, scenario.description)
+                        debug!("Skipped: {}.", &reading.sensor);
                     }
                 }
             }
@@ -119,6 +143,7 @@ impl Condition {
             Condition::SensorEndsWith(suffix) => reading.sensor.ends_with(suffix),
             Condition::SensorStartsWith(prefix) => reading.sensor.starts_with(prefix),
             Condition::SensorContains(infix) => reading.sensor.contains(infix),
+            Condition::Or(condition_1, condition_2) => condition_1.is_met(&reading) || condition_2.is_met(&reading),
         }
     }
 }
