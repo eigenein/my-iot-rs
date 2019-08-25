@@ -52,6 +52,12 @@ pub struct Scenario {
 pub enum Condition {
     /// Sensor matches a specified string.
     Sensor(String),
+    /// Sensor ends with a specified string.
+    SensorEndsWith(String),
+    /// Sensor starts with a specified string.
+    SensorStartsWith(String),
+    /// Sensor contains a specified string.
+    SensorContains(String),
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -110,6 +116,9 @@ impl Condition {
     pub fn is_met(&self, reading: &Reading) -> bool {
         match self {
             Condition::Sensor(sensor) => &reading.sensor == sensor,
+            Condition::SensorEndsWith(suffix) => reading.sensor.ends_with(&suffix),
+            Condition::SensorStartsWith(prefix) => reading.sensor.starts_with(&prefix),
+            Condition::SensorContains(infix) => reading.sensor.contains(&infix),
         }
     }
 }

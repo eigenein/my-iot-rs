@@ -3,6 +3,7 @@
 ## `0.14.0`
 
 - Break: replace `crossbeam-channel` with `multiqueue` for the broadcasting
+- New: more automator conditions
 
 ## `0.13.0`
 
