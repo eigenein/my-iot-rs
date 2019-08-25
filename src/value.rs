@@ -23,6 +23,8 @@ pub enum Value {
     Metres(f64),
     /// [Relative humidity](https://en.wikipedia.org/wiki/Relative_humidity) in percents.
     Rh(f64),
+    /// Image URL.
+    ImageUrl(String),
 }
 
 impl markup::Render for Value {
@@ -36,7 +38,7 @@ impl Value {
     /// Get [CSS color class](https://bulma.io/documentation/modifiers/color-helpers/).
     pub fn class(&self) -> &str {
         match *self {
-            Value::Text(_) | Value::Counter(_) | Value::Size(_) | Value::Metres(_) => "is-light",
+            Value::Text(_) | Value::Counter(_) | Value::Size(_) | Value::Metres(_) | Value::ImageUrl(_) => "is-light",
             Value::Bft(number) => match number {
                 0 => "is-light",
                 1..=3 => "is-success",
@@ -76,13 +78,14 @@ impl Value {
             Value::WindDirection(_) => r#"<i class="fas fa-wind"></i>"#,
             Value::Rh(_) => r#"<i class="fas fa-water"></i>"#,
             Value::Metres(_) => r#"<i class="fas fa-ruler"></i>"#,
+            Value::ImageUrl(_) => r#"<i class="fas fa-camera"></i>"#,
         }
     }
 }
 
 impl std::fmt::Display for Value {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        match *self {
+        match self {
             Value::Counter(count) => write!(f, r"{} times", count),
             // TODO: use `human_format` instead.
             Value::Size(size) => f.write_str(&size.file_size(humansize::file_size_opts::DECIMAL).unwrap()),
@@ -91,7 +94,8 @@ impl std::fmt::Display for Value {
             Value::Bft(bft) => write!(f, r"{} BFT", bft),
             Value::WindDirection(point) => write!(f, r"{}", point),
             Value::Rh(percent) => write!(f, r"{}%", percent),
-            Value::Metres(metres) => f.write_str(&human_format(metres, "m")),
+            Value::Metres(metres) => f.write_str(&human_format(*metres, "m")),
+            Value::ImageUrl(url) => write!(f, r#"<img src="{}">"#, url),
         }
     }
 }

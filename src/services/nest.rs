@@ -62,50 +62,61 @@ impl Service for Nest {
 impl Nest {
     fn send_readings(&self, event: &NestEvent, tx: &BroadcastSender<Reading>) -> Result<()> {
         let now = Local::now();
+
         for (id, thermostat) in event.data.devices.thermostats.iter() {
-            self.send(
-                tx,
-                vec![
-                    Reading {
-                        sensor: format!("{}::{}::ambient_temperature", &self.service_id, &id),
-                        value: Value::Celsius(thermostat.ambient_temperature_c),
-                        timestamp: now,
-                        is_persisted: true,
-                    },
-                    Reading {
-                        sensor: format!("{}::{}::humidity", &self.service_id, &id),
-                        value: Value::Rh(thermostat.humidity),
-                        timestamp: now,
-                        is_persisted: true,
-                    },
-                ],
-            )?;
+            tx.try_send(Reading {
+                sensor: format!("{}::thermostat::{}::ambient_temperature", &self.service_id, &id),
+                value: Value::Celsius(thermostat.ambient_temperature_c),
+                timestamp: now,
+                is_persisted: true,
+            })?;
+            tx.try_send(Reading {
+                sensor: format!("{}::thermostat::{}::humidity", &self.service_id, &id),
+                value: Value::Rh(thermostat.humidity),
+                timestamp: now,
+                is_persisted: true,
+            })?;
         }
+
+        for (id, camera) in event.data.devices.cameras.iter() {
+            tx.try_send(Reading {
+                sensor: format!("{}::camera::{}::snapshot_url", &self.service_id, &id),
+                value: Value::ImageUrl(camera.snapshot_url.clone()),
+                timestamp: now,
+                is_persisted: true,
+            })?;
+        }
+
         Ok(())
     }
 }
 
 /// Server-side `put` event.
 #[derive(Deserialize, Debug)]
-pub struct NestEvent {
+struct NestEvent {
     data: NestData,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct NestData {
+struct NestData {
     devices: NestDevices,
     // TODO: structures.
 }
 
 #[derive(Deserialize, Debug)]
-pub struct NestDevices {
+struct NestDevices {
     thermostats: HashMap<String, NestThermostat>,
+    cameras: HashMap<String, NestCamera>,
     // TODO: smoke_co_alarms
-    // TODO: cameras
 }
 
 #[derive(Deserialize, Debug)]
-pub struct NestThermostat {
+struct NestThermostat {
     ambient_temperature_c: f64,
     humidity: f64,
+}
+
+#[derive(Deserialize, Debug)]
+struct NestCamera {
+    snapshot_url: String,
 }

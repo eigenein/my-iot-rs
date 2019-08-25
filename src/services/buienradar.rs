@@ -123,23 +123,18 @@ impl Buienradar {
 
     /// Sends out readings based on Buienradar station measurement.
     fn send_readings(&self, measurement: BuienradarStationMeasurement, tx: &BroadcastSender<Reading>) -> Result<()> {
-        self.send(
-            &tx,
-            vec![
-                Reading {
-                    sensor: format!("{}::{}::name", &self.service_id, self.station_id),
-                    value: Value::Text(measurement.name.clone()),
-                    timestamp: measurement.timestamp,
-                    is_persisted: true,
-                },
-                Reading {
-                    sensor: format!("{}::{}::weather_description", &self.service_id, self.station_id),
-                    value: Value::Text(measurement.weather_description.clone()),
-                    timestamp: measurement.timestamp,
-                    is_persisted: true,
-                },
-            ],
-        )?;
+        tx.try_send(Reading {
+            sensor: format!("{}::{}::name", &self.service_id, self.station_id),
+            value: Value::Text(measurement.name.clone()),
+            timestamp: measurement.timestamp,
+            is_persisted: true,
+        })?;
+        tx.try_send(Reading {
+            sensor: format!("{}::{}::weather_description", &self.service_id, self.station_id),
+            value: Value::Text(measurement.weather_description.clone()),
+            timestamp: measurement.timestamp,
+            is_persisted: true,
+        })?;
         if let Some(degrees) = measurement.temperature {
             tx.try_send(Reading {
                 sensor: format!("{}::{}::temperature", &self.service_id, self.station_id),

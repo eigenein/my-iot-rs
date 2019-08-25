@@ -28,14 +28,6 @@ pub trait Service: Send {
         tx: &BroadcastSender<Reading>,
         rx: &BroadcastReceiver<Reading>,
     ) -> Result<()>;
-
-    /// Convenience function to send multiple readings at once.
-    fn send(&self, tx: &BroadcastSender<Reading>, readings: Vec<Reading>) -> Result<()> {
-        for reading in readings {
-            tx.try_send(reading)?;
-        }
-        Ok(())
-    }
 }
 
 /// Create a service from the service settings.

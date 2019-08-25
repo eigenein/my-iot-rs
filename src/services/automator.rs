@@ -1,4 +1,12 @@
 //! Automation service.
+//!
+//! Automation _is not_ a special core functionality. Instead, it's implemented as a service,
+//! that listens to other services readings and reacts by emitting its own readings.
+//!
+//! The latter ones, automator-generated readings, are treated in the same way, allowing those to be
+//! displayed on the dashboard or caught by other services.
+//!
+//! Basically, this is a case of "multi-producer multi-consumer" pattern.
 
 use crate::db::Db;
 use crate::reading::Reading;

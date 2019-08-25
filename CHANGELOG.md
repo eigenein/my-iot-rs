@@ -1,5 +1,10 @@
 # `my-iot`
 
+## `master`
+
+- New: Nest camera snapshot URL
+- Break: change Nest sensors to include device type
+
 ## `0.14.0`
 
 - Break: replace `crossbeam-channel` with `multiqueue` for the broadcasting
