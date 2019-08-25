@@ -44,6 +44,11 @@
 <span id="44">44</span>
 <span id="45">45</span>
 <span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implements generic `Service` trait.</span>
 
@@ -51,7 +56,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">reading</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">settings</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span>;
-<span class="kw">use</span> <span class="ident">crossbeam_channel</span>::{<span class="ident">Receiver</span>, <span class="ident">Sender</span>};
+<span class="kw">use</span> <span class="ident">multiqueue</span>::{<span class="ident">BroadcastReceiver</span>, <span class="ident">BroadcastSender</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">automator</span>;
@@ -69,12 +74,17 @@
     <span class="doccomment">/// - `db`: database.</span>
     <span class="doccomment">/// - `tx`: 0-capacity channel sender.</span>
     <span class="doccomment">/// - `rx`: 0-capacity channel receiver.</span>
-    <span class="kw">fn</span> <span class="ident">spawn</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;&gt;</span>, <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>, <span class="ident">rx</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">spawn</span>(
+        <span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
+        <span class="ident">db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;&gt;</span>,
+        <span class="ident">tx</span>: <span class="kw-2">&amp;</span><span class="ident">BroadcastSender</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>,
+        <span class="ident">rx</span>: <span class="kw-2">&amp;</span><span class="ident">BroadcastReceiver</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>,
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
     <span class="doccomment">/// Convenience function to send multiple readings at once.</span>
-    <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tx</span>: <span class="kw-2">&amp;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>, <span class="ident">readings</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tx</span>: <span class="kw-2">&amp;</span><span class="ident">BroadcastSender</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>, <span class="ident">readings</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">for</span> <span class="ident">reading</span> <span class="kw">in</span> <span class="ident">readings</span> {
-            <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">reading</span>)<span class="question-mark">?</span>;
+            <span class="ident">tx</span>.<span class="ident">try_send</span>(<span class="ident">reading</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }

@@ -40,11 +40,10 @@
 use crate::db::Db;
 use crate::reading::Reading;
 use crate::settings::Settings;
-use crate::threading::ArcMutex;
 use clap::Arg;
-use crossbeam_channel::{bounded, Receiver, Sender};
 use failure::Error;
 use log::{debug, info};
+use multiqueue::{broadcast_queue, BroadcastReceiver, BroadcastSender};
 use std::sync::{Arc, Mutex};
 
 pub mod consts;
@@ -94,25 +93,36 @@ fn main() -> Result<()> {
     info!("Opening database…");
     let db = Arc::new(Mutex::new(Db::new(matches.value_of("db").unwrap_or(DEFAULT_DB_PATH))?));
 
+    // This is where all the magic happens.
+    // Services send readings to each other with the MPMC queue.
+    // TODO: which capacity should I use?
+    // TODO: implement back pressure for `try_send`?
     info!("Starting services…");
-    // FIXME: `crossbeam` doesn't provide broadcasting.
-    // FIXME: take a look at https://docs.rs/multiqueue/0.3.2/multiqueue/.
-    let (tx, rx) = bounded(0);
+    let (tx, rx) = broadcast_queue(1024);
     spawn_services(&settings, &db, &tx, &rx)?;
 
     info!("Starting readings receiver…");
-    receiver::start(rx.clone(), db.clone())?;
+    receiver::start(&rx, db.clone())?;
+
+    // According to the `multiqueue` docs, here we should drop the original sender and receiver.
+    drop(tx);
+    rx.unsubscribe();
 
     info!("Starting web server on port {}…", settings.http_port);
     web::start_server(settings, db.clone())
 }
 
 /// Spawn all configured services.
-fn spawn_services(settings: &Settings, db: &ArcMutex<Db>, tx: &Sender<Reading>, rx: &Receiver<Reading>) -> Result<()> {
+fn spawn_services(
+    settings: &Settings,
+    db: &Arc<Mutex<Db>>,
+    tx: &BroadcastSender<Reading>,
+    rx: &BroadcastReceiver<Reading>,
+) -> Result<()> {
     for (service_id, settings) in settings.services.iter() {
         info!("Spawning service `{}`…", service_id);
         debug!("Settings `{}`: {:?}", service_id, settings);
-        services::new(service_id, settings)?.spawn(db.clone(), tx.clone(), rx.clone())?;
+        services::new(service_id, settings)?.spawn(db.clone(), &tx, &rx)?;
     }
     Ok(())
 }

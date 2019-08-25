@@ -6,8 +6,8 @@ use crate::threading;
 use crate::value::{PointOfTheCompass, Value};
 use crate::Result;
 use chrono::{DateTime, Local};
-use crossbeam_channel::{Receiver, Sender};
 use failure::format_err;
+use multiqueue::{BroadcastReceiver, BroadcastSender};
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::Deserialize;
 use std::sync::{Arc, Mutex};
@@ -71,7 +71,14 @@ struct BuienradarStationMeasurement {
 }
 
 impl Service for Buienradar {
-    fn spawn(self: Box<Self>, _db: Arc<Mutex<Db>>, tx: Sender<Reading>, _rx: Receiver<Reading>) -> Result<()> {
+    fn spawn(
+        self: Box<Self>,
+        _db: Arc<Mutex<Db>>,
+        tx: &BroadcastSender<Reading>,
+        _rx: &BroadcastReceiver<Reading>,
+    ) -> Result<()> {
+        let tx = tx.clone();
+
         threading::spawn(self.service_id.clone(), move || loop {
             match self.fetch() {
                 Ok(measurement) => self.send_readings(measurement, &tx).unwrap(),
@@ -81,6 +88,7 @@ impl Service for Buienradar {
             }
             thread::sleep(REFRESH_PERIOD);
         })?;
+
         Ok(())
     }
 }
@@ -114,7 +122,7 @@ impl Buienradar {
     }
 
     /// Sends out readings based on Buienradar station measurement.
-    fn send_readings(&self, measurement: BuienradarStationMeasurement, tx: &Sender<Reading>) -> Result<()> {
+    fn send_readings(&self, measurement: BuienradarStationMeasurement, tx: &BroadcastSender<Reading>) -> Result<()> {
         self.send(
             &tx,
             vec![
@@ -133,7 +141,7 @@ impl Buienradar {
             ],
         )?;
         if let Some(degrees) = measurement.temperature {
-            tx.send(Reading {
+            tx.try_send(Reading {
                 sensor: format!("{}::{}::temperature", &self.service_id, self.station_id),
                 value: Value::Celsius(degrees),
                 timestamp: measurement.timestamp,
@@ -141,7 +149,7 @@ impl Buienradar {
             })?;
         }
         if let Some(degrees) = measurement.ground_temperature {
-            tx.send(Reading {
+            tx.try_send(Reading {
                 sensor: format!("{}::{}::ground_temperature", &self.service_id, self.station_id),
                 value: Value::Celsius(degrees),
                 timestamp: measurement.timestamp,
@@ -149,7 +157,7 @@ impl Buienradar {
             })?;
         }
         if let Some(degrees) = measurement.feel_temperature {
-            tx.send(Reading {
+            tx.try_send(Reading {
                 sensor: format!("{}::{}::feel_temperature", &self.service_id, self.station_id),
                 value: Value::Celsius(degrees),
                 timestamp: measurement.timestamp,
@@ -157,7 +165,7 @@ impl Buienradar {
             })?;
         }
         if let Some(bft) = measurement.wind_speed_bft {
-            tx.send(Reading {
+            tx.try_send(Reading {
                 sensor: format!("{}::{}::wind_speed_bft", &self.service_id, self.station_id),
                 value: Value::Bft(bft),
                 timestamp: measurement.timestamp,
@@ -165,7 +173,7 @@ impl Buienradar {
             })?;
         }
         if let Some(point) = measurement.wind_direction {
-            tx.send(Reading {
+            tx.try_send(Reading {
                 sensor: format!("{}::{}::wind_direction", &self.service_id, self.station_id),
                 value: Value::WindDirection(point),
                 timestamp: measurement.timestamp,

@@ -4,7 +4,7 @@ use crate::threading;
 use crate::value::Value;
 use crate::Result;
 use chrono::Local;
-use crossbeam_channel::{Receiver, Sender};
+use multiqueue::{BroadcastReceiver, BroadcastSender};
 use serde::Deserialize;
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -34,14 +34,16 @@ impl Service for Db {
     fn spawn(
         self: Box<Self>,
         db: Arc<Mutex<crate::db::Db>>,
-        tx: Sender<Reading>,
-        _rx: Receiver<Reading>,
+        tx: &BroadcastSender<Reading>,
+        _rx: &BroadcastReceiver<Reading>,
     ) -> Result<()> {
+        let tx = tx.clone();
         let sensor = format!("{}::size", &self.service_id);
+
         threading::spawn(self.service_id.clone(), move || loop {
             let size = { db.lock().unwrap().select_size().unwrap() };
 
-            tx.send(Reading {
+            tx.try_send(Reading {
                 sensor: sensor.clone(),
                 value: Value::Size(size),
                 timestamp: Local::now(),
@@ -51,6 +53,7 @@ impl Service for Db {
 
             thread::sleep(self.interval);
         })?;
+
         Ok(())
     }
 }

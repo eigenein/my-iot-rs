@@ -5,8 +5,8 @@ use crate::threading;
 use crate::value::Value;
 use crate::Result;
 use chrono::Local;
-use crossbeam_channel::{Receiver, Sender};
 use eventsource::reqwest::Client;
+use multiqueue::{BroadcastReceiver, BroadcastSender};
 use rouille::url::Url;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -35,7 +35,13 @@ impl Nest {
 }
 
 impl Service for Nest {
-    fn spawn(self: Box<Self>, _db: Arc<Mutex<Db>>, tx: Sender<Reading>, _rx: Receiver<Reading>) -> Result<()> {
+    fn spawn(
+        self: Box<Self>,
+        _db: Arc<Mutex<Db>>,
+        tx: &BroadcastSender<Reading>,
+        _rx: &BroadcastReceiver<Reading>,
+    ) -> Result<()> {
+        let tx = tx.clone();
         threading::spawn(self.service_id.clone(), move || loop {
             let client = Client::new(Url::parse_with_params(URL, &[("auth", &self.token)]).unwrap());
             for event in client {
@@ -54,7 +60,7 @@ impl Service for Nest {
 }
 
 impl Nest {
-    fn send_readings(&self, event: &NestEvent, tx: &Sender<Reading>) -> Result<()> {
+    fn send_readings(&self, event: &NestEvent, tx: &BroadcastSender<Reading>) -> Result<()> {
         let now = Local::now();
         for (id, thermostat) in event.data.devices.thermostats.iter() {
             self.send(

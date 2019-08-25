@@ -2,25 +2,23 @@
 
 use crate::db::*;
 use crate::reading::*;
-use crate::threading::{spawn, ArcMutex};
+use crate::threading::spawn;
 use crate::Result;
-use crossbeam_channel::Receiver;
-use log::{error, info};
+use log::info;
+use multiqueue::BroadcastReceiver;
 use std::sync::{Arc, Mutex};
 
 /// Start readings receiver thread.
-pub fn start(rx: Receiver<Reading>, db: ArcMutex<Db>) -> Result<()> {
-    spawn("receiver", move || run(rx, db))?;
-    Ok(())
-}
-
-/// Run the receiver.
-fn run(rx: Receiver<Reading>, db: Arc<Mutex<Db>>) {
-    for reading in rx.iter() {
-        info!("{}: {:?}", &reading.sensor, &reading.value);
-        if reading.is_persisted {
-            db.lock().unwrap().insert_reading(&reading).unwrap();
+pub fn start(rx: &BroadcastReceiver<Reading>, db: Arc<Mutex<Db>>) -> Result<()> {
+    let rx = rx.add_stream().into_single().unwrap();
+    spawn("receiver", move || {
+        for reading in rx {
+            info!("{}: {:?}", &reading.sensor, &reading.value);
+            if reading.is_persisted {
+                db.lock().unwrap().insert_reading(&reading).unwrap();
+            }
         }
-    }
-    error!("Reading receiver has stopped.");
+        unreachable!();
+    })?;
+    Ok(())
 }

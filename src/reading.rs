@@ -6,7 +6,7 @@ use crate::value::Value;
 use chrono::prelude::*;
 
 /// A sensor reading.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Reading {
     /// A sensor. For example: `buienradar::6240::wind_speed_bft`.
     ///

@@ -4,7 +4,7 @@ use crate::db::Db;
 use crate::reading::*;
 use crate::settings::*;
 use crate::Result;
-use crossbeam_channel::{Receiver, Sender};
+use multiqueue::{BroadcastReceiver, BroadcastSender};
 use std::sync::{Arc, Mutex};
 
 pub mod automator;
@@ -22,12 +22,17 @@ pub trait Service: Send {
     /// - `db`: database.
     /// - `tx`: 0-capacity channel sender.
     /// - `rx`: 0-capacity channel receiver.
-    fn spawn(self: Box<Self>, db: Arc<Mutex<Db>>, tx: Sender<Reading>, rx: Receiver<Reading>) -> Result<()>;
+    fn spawn(
+        self: Box<Self>,
+        db: Arc<Mutex<Db>>,
+        tx: &BroadcastSender<Reading>,
+        rx: &BroadcastReceiver<Reading>,
+    ) -> Result<()>;
 
     /// Convenience function to send multiple readings at once.
-    fn send(&self, tx: &Sender<Reading>, readings: Vec<Reading>) -> Result<()> {
+    fn send(&self, tx: &BroadcastSender<Reading>, readings: Vec<Reading>) -> Result<()> {
         for reading in readings {
-            tx.send(reading)?;
+            tx.try_send(reading)?;
         }
         Ok(())
     }

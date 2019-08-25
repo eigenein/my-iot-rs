@@ -5,8 +5,8 @@ use crate::reading::Reading;
 use crate::services::Service;
 use crate::{threading, Result};
 use chrono::Local;
-use crossbeam_channel::{Receiver, Sender};
 use log::{debug, info};
+use multiqueue::{BroadcastReceiver, BroadcastSender};
 use serde::Deserialize;
 use std::sync::{Arc, Mutex};
 
@@ -77,11 +77,19 @@ impl Automator {
 }
 
 impl Service for Automator {
-    fn spawn(self: Box<Self>, _db: Arc<Mutex<Db>>, tx: Sender<Reading>, rx: Receiver<Reading>) -> Result<()> {
-        threading::spawn(self.service_id.clone(), move || loop {
-            for reading in rx.iter() {
+    fn spawn(
+        self: Box<Self>,
+        _db: Arc<Mutex<Db>>,
+        tx: &BroadcastSender<Reading>,
+        rx: &BroadcastReceiver<Reading>,
+    ) -> Result<()> {
+        let tx = tx.clone();
+        let rx = rx.add_stream().into_single().unwrap();
+
+        threading::spawn(self.service_id.clone(), move || {
+            for reading in rx {
                 for scenario in self.settings.scenarios.iter() {
-                    if scenario.conditions.iter().all(|s| s.is_met(&reading)) {
+                    if scenario.conditions.iter().all(|c| c.is_met(&reading)) {
                         info!(r#"Running scenario: "{}"."#, scenario.description);
                         for action in scenario.actions.iter() {
                             action.execute(&self.service_id, &reading, &tx).unwrap();
@@ -91,7 +99,9 @@ impl Service for Automator {
                     }
                 }
             }
+            unreachable!();
         })?;
+
         Ok(())
     }
 }
@@ -105,10 +115,10 @@ impl Condition {
 }
 
 impl Action {
-    pub fn execute(&self, service_id: &str, reading: &Reading, tx: &Sender<Reading>) -> Result<()> {
+    pub fn execute(&self, service_id: &str, reading: &Reading, tx: &BroadcastSender<Reading>) -> Result<()> {
         match self {
             Action::Reading() => tx
-                .send(Reading {
+                .try_send(Reading {
                     sensor: format!("{}::{}", &service_id, &reading.sensor),
                     timestamp: Local::now(),
                     value: reading.value.clone(),

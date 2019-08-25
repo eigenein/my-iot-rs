@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.14.0`
+
+- Break: replace `crossbeam-channel` with `multiqueue` for the broadcasting
+
 ## `0.13.0`
 
 - New: `human_format` for human-readable value formatting

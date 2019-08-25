@@ -116,6 +116,16 @@
 <span id="116">116</span>
 <span id="117">117</span>
 <span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Getting started</span>
 <span class="doccomment">//!</span>
@@ -159,11 +169,10 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">db</span>::<span class="ident">Db</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">reading</span>::<span class="ident">Reading</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">settings</span>::<span class="ident">Settings</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">threading</span>::<span class="ident">ArcMutex</span>;
 <span class="kw">use</span> <span class="ident">clap</span>::<span class="ident">Arg</span>;
-<span class="kw">use</span> <span class="ident">crossbeam_channel</span>::{<span class="ident">bounded</span>, <span class="ident">Receiver</span>, <span class="ident">Sender</span>};
 <span class="kw">use</span> <span class="ident">failure</span>::<span class="ident">Error</span>;
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">info</span>};
+<span class="kw">use</span> <span class="ident">multiqueue</span>::{<span class="ident">broadcast_queue</span>, <span class="ident">BroadcastReceiver</span>, <span class="ident">BroadcastSender</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">consts</span>;
@@ -213,25 +222,36 @@
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Opening database…&quot;</span>);
     <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">Db</span>::<span class="ident">new</span>(<span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;db&quot;</span>).<span class="ident">unwrap_or</span>(<span class="ident">DEFAULT_DB_PATH</span>))<span class="question-mark">?</span>));
 
+    <span class="comment">// This is where all the magic happens.</span>
+    <span class="comment">// Services send readings to each other with the MPMC queue.</span>
+    <span class="comment">// TODO: which capacity should I use?</span>
+    <span class="comment">// TODO: implement back pressure for `try_send`?</span>
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Starting services…&quot;</span>);
-    <span class="comment">// FIXME: `crossbeam` doesn&#39;t provide broadcasting.</span>
-    <span class="comment">// FIXME: take a look at https://docs.rs/multiqueue/0.3.2/multiqueue/.</span>
-    <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">bounded</span>(<span class="number">0</span>);
+    <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">broadcast_queue</span>(<span class="number">1024</span>);
     <span class="ident">spawn_services</span>(<span class="kw-2">&amp;</span><span class="ident">settings</span>, <span class="kw-2">&amp;</span><span class="ident">db</span>, <span class="kw-2">&amp;</span><span class="ident">tx</span>, <span class="kw-2">&amp;</span><span class="ident">rx</span>)<span class="question-mark">?</span>;
 
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Starting readings receiver…&quot;</span>);
-    <span class="ident">receiver</span>::<span class="ident">start</span>(<span class="ident">rx</span>.<span class="ident">clone</span>(), <span class="ident">db</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
+    <span class="ident">receiver</span>::<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">rx</span>, <span class="ident">db</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
+
+    <span class="comment">// According to the `multiqueue` docs, here we should drop the original sender and receiver.</span>
+    <span class="ident">drop</span>(<span class="ident">tx</span>);
+    <span class="ident">rx</span>.<span class="ident">unsubscribe</span>();
 
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Starting web server on port {}…&quot;</span>, <span class="ident">settings</span>.<span class="ident">http_port</span>);
     <span class="ident">web</span>::<span class="ident">start_server</span>(<span class="ident">settings</span>, <span class="ident">db</span>.<span class="ident">clone</span>())
 }
 
 <span class="doccomment">/// Spawn all configured services.</span>
-<span class="kw">fn</span> <span class="ident">spawn_services</span>(<span class="ident">settings</span>: <span class="kw-2">&amp;</span><span class="ident">Settings</span>, <span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="ident">ArcMutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;</span>, <span class="ident">tx</span>: <span class="kw-2">&amp;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>, <span class="ident">rx</span>: <span class="kw-2">&amp;</span><span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">spawn_services</span>(
+    <span class="ident">settings</span>: <span class="kw-2">&amp;</span><span class="ident">Settings</span>,
+    <span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">tx</span>: <span class="kw-2">&amp;</span><span class="ident">BroadcastSender</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>,
+    <span class="ident">rx</span>: <span class="kw-2">&amp;</span><span class="ident">BroadcastReceiver</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>,
+) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">for</span> (<span class="ident">service_id</span>, <span class="ident">settings</span>) <span class="kw">in</span> <span class="ident">settings</span>.<span class="ident">services</span>.<span class="ident">iter</span>() {
         <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Spawning service `{}`…&quot;</span>, <span class="ident">service_id</span>);
         <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Settings `{}`: {:?}&quot;</span>, <span class="ident">service_id</span>, <span class="ident">settings</span>);
-        <span class="ident">services</span>::<span class="ident">new</span>(<span class="ident">service_id</span>, <span class="ident">settings</span>)<span class="question-mark">?</span>.<span class="ident">spawn</span>(<span class="ident">db</span>.<span class="ident">clone</span>(), <span class="ident">tx</span>.<span class="ident">clone</span>(), <span class="ident">rx</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
+        <span class="ident">services</span>::<span class="ident">new</span>(<span class="ident">service_id</span>, <span class="ident">settings</span>)<span class="question-mark">?</span>.<span class="ident">spawn</span>(<span class="ident">db</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">tx</span>, <span class="kw-2">&amp;</span><span class="ident">rx</span>)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }
