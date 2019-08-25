@@ -5,6 +5,7 @@
 - New: Nest camera snapshot URL
 - Break: change Nest sensors to include device type
 - Chore: get rid of `humansize` crate
+- Fix: render inline and non-inline items differently
 
 ## `0.14.0`
 

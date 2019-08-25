@@ -1,5 +1,7 @@
 //! Implements sensor reading value.
 
+use crate::Result;
+use failure::format_err;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
@@ -29,7 +31,7 @@ pub enum Value {
 impl markup::Render for Value {
     /// Render value in HTML.
     fn render(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{} {}", self.icon(), self)
+        write!(f, "{} {}", self.icon().unwrap_or(""), self)
     }
 }
 
@@ -65,17 +67,25 @@ impl Value {
     }
 
     /// Get [Font Awesome](https://fontawesome.com) icon tag.
-    pub fn icon(&self) -> &'static str {
+    pub fn icon(&self) -> Result<&'static str> {
         match *self {
-            Value::Counter(_) => r#"<i class="fas fa-sort-numeric-up-alt"></i>"#,
-            Value::Size(_) => r#"<i class="far fa-save"></i>"#,
-            Value::Text(_) => r#"<i class="fas fa-quote-left"></i>"#,
-            Value::Celsius(_) => r#"<i class="fas fa-thermometer-half"></i>"#,
-            Value::Bft(_) => r#"<i class="fas fa-wind"></i>"#,
-            Value::WindDirection(_) => r#"<i class="fas fa-wind"></i>"#,
-            Value::Rh(_) => r#"<i class="fas fa-water"></i>"#,
-            Value::Metres(_) => r#"<i class="fas fa-ruler"></i>"#,
-            Value::ImageUrl(_) => r#"<i class="fas fa-camera"></i>"#,
+            Value::Counter(_) => Ok(r#"<i class="fas fa-sort-numeric-up-alt"></i>"#),
+            Value::Size(_) => Ok(r#"<i class="far fa-save"></i>"#),
+            Value::Text(_) => Ok(r#"<i class="fas fa-quote-left"></i>"#),
+            Value::Celsius(_) => Ok(r#"<i class="fas fa-thermometer-half"></i>"#),
+            Value::Bft(_) => Ok(r#"<i class="fas fa-wind"></i>"#),
+            Value::WindDirection(_) => Ok(r#"<i class="fas fa-wind"></i>"#),
+            Value::Rh(_) => Ok(r#"<i class="fas fa-water"></i>"#),
+            Value::Metres(_) => Ok(r#"<i class="fas fa-ruler"></i>"#),
+            _ => Err(format_err!("value has no icon")),
+        }
+    }
+
+    /// Get whether value could be rendered inline.
+    pub fn is_inline(&self) -> bool {
+        match self {
+            Value::ImageUrl(_) => false,
+            _ => true,
         }
     }
 }

@@ -14,10 +14,16 @@ markup::define! {
             div."hero-body" {
                 div.container {
                     h1.title."is-4"[title = {format!("{:?}", &last.value)}] {
-                        {&last.value}
+                        @if last.value.is_inline() {
+                            {&last.value}
+                        } else {
+                            {&last.sensor}
+                        }
                     }
                     h2.subtitle."is-6" {
-                        {&last.sensor} " "
+                        @if last.value.is_inline() {
+                            {&last.sensor} " "
+                        }
                         span { i.far."fa-clock" {} } " "
                         span[title = {&last.timestamp.to_string()}] {
                             {&last.timestamp.format(DATE_FORMAT).to_string()}
@@ -26,6 +32,19 @@ markup::define! {
                 }
             }
         }
+
+        @if !last.value.is_inline() {
+            section.section {
+                div.container {
+                    div.message {
+                        div."message-body" {
+                            {&last.value}
+                        }
+                    }
+                }
+            }
+        }
+
         section.section {
             div.container {
                 h3.title."is-5" { "Latest reading" }
@@ -41,6 +60,7 @@ markup::define! {
                 }
             }
         }
+
         section.section {
             div.container {
                 h3.title."is-5" { "JSON" }
