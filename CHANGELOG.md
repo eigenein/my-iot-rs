@@ -1,6 +1,6 @@
 # `my-iot`
 
-## `master`
+## `0.13.0`
 
 - New: `human_format` for human-readable value formatting
 - New: `Automator` service, unusable yet
