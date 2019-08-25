@@ -1,6 +1,6 @@
 # `my-iot`
 
-## `master`
+## `0.15.0`
 
 - New: Nest camera snapshot URL
 - Break: change Nest sensors to include device type
