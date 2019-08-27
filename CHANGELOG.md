@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- New: add danger zone #9
+
 ## `0.15.0`
 
 - New: Nest camera snapshot URL

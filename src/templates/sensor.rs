@@ -86,5 +86,29 @@ markup::define! {
                 }
             }
         }
+
+        section.section {
+            div.container {
+                h3.title."is-5" { "Danger zone" }
+
+                div.message."is-danger" {
+                    div."message-header" {
+                        p { "Delete" }
+                    }
+                    div."message-body" {
+                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                    }
+                }
+
+                div.message."is-danger" {
+                    div."message-header" {
+                        p { "Rename" }
+                    }
+                    div."message-body" {
+                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                    }
+                }
+            }
+        }
     }
 }
