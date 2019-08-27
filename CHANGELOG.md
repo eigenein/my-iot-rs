@@ -3,6 +3,7 @@
 ## `master`
 
 - New: add danger zone #9
+- Opt: add `loading="lazy"` to the `ImageUrl` renderer
 
 ## `0.15.0`
 
