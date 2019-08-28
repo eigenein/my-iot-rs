@@ -4,9 +4,10 @@ use crate::services::Service;
 use crate::threading;
 use crate::value::Value;
 use crate::Result;
+use bus::Bus;
 use chrono::Local;
+use crossbeam_channel::Sender;
 use eventsource::reqwest::Client;
-use multiqueue::{BroadcastReceiver, BroadcastSender};
 use rouille::url::Url;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -35,12 +36,7 @@ impl Nest {
 }
 
 impl Service for Nest {
-    fn spawn(
-        self: Box<Self>,
-        _db: Arc<Mutex<Db>>,
-        tx: &BroadcastSender<Message>,
-        _rx: &BroadcastReceiver<Message>,
-    ) -> Result<()> {
+    fn spawn(self: Box<Self>, _db: Arc<Mutex<Db>>, tx: &Sender<Message>, _rx: &mut Bus<Message>) -> Result<()> {
         let tx = tx.clone();
         threading::spawn(format!("my-iot::nest:{}", &self.service_id), move || loop {
             let client = Client::new(Url::parse_with_params(URL, &[("auth", &self.token)]).unwrap());
@@ -60,7 +56,7 @@ impl Service for Nest {
 }
 
 impl Nest {
-    fn send_readings(&self, event: &NestEvent, tx: &BroadcastSender<Message>) -> Result<()> {
+    fn send_readings(&self, event: &NestEvent, tx: &Sender<Message>) -> Result<()> {
         let now = Local::now();
 
         for (id, thermostat) in event.data.devices.thermostats.iter() {

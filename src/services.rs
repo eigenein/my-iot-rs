@@ -4,7 +4,8 @@ use crate::db::Db;
 use crate::reading::*;
 use crate::settings::*;
 use crate::Result;
-use multiqueue::{BroadcastReceiver, BroadcastSender};
+use bus::Bus;
+use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
 
 pub mod automator;
@@ -20,14 +21,9 @@ pub trait Service: Send {
     /// Service may spawn as much threads as needed and must take care of their health.
     ///
     /// - `db`: database.
-    /// - `tx`: 0-capacity channel sender.
-    /// - `rx`: 0-capacity channel receiver.
-    fn spawn(
-        self: Box<Self>,
-        db: Arc<Mutex<Db>>,
-        tx: &BroadcastSender<Message>,
-        rx: &BroadcastReceiver<Message>,
-    ) -> Result<()>;
+    /// - `tx`: message bus sender.
+    /// - `rx`: message bus receiver.
+    fn spawn(self: Box<Self>, db: Arc<Mutex<Db>>, tx: &Sender<Message>, rx: &mut Bus<Message>) -> Result<()>;
 }
 
 /// Create a service from the service settings.

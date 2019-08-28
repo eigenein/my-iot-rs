@@ -3,8 +3,9 @@ use crate::services::Service;
 use crate::threading;
 use crate::value::Value;
 use crate::Result;
+use bus::Bus;
 use chrono::Local;
-use multiqueue::{BroadcastReceiver, BroadcastSender};
+use crossbeam_channel::Sender;
 use serde::Deserialize;
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -34,8 +35,8 @@ impl Service for Db {
     fn spawn(
         self: Box<Self>,
         db: Arc<Mutex<crate::db::Db>>,
-        tx: &BroadcastSender<Message>,
-        _rx: &BroadcastReceiver<Message>,
+        tx: &Sender<Message>,
+        _rx: &mut Bus<Message>,
     ) -> Result<()> {
         let tx = tx.clone();
         let sensor = format!("{}::size", &self.service_id);

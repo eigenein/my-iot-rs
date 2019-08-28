@@ -2,16 +2,17 @@
 
 use crate::db::*;
 use crate::reading::*;
-use crate::threading::spawn;
+use crate::threading;
 use crate::Result;
+use bus::Bus;
 use log::info;
-use multiqueue::BroadcastReceiver;
 use std::sync::{Arc, Mutex};
 
 /// Start readings receiver thread.
-pub fn start(rx: &BroadcastReceiver<Message>, db: Arc<Mutex<Db>>) -> Result<()> {
-    let rx = rx.add_stream().into_single().unwrap();
-    spawn("my-iot::receiver", move || {
+pub fn spawn(bus: &mut Bus<Message>, db: Arc<Mutex<Db>>) -> Result<()> {
+    info!("Spawning message receiver…");
+    let rx = bus.add_rx();
+    threading::spawn("my-iot::receiver", move || {
         for message in rx {
             info!("{}: {:?}", &message.reading.sensor, &message.reading.value);
             if message.type_ == Type::Actual {

@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["start","Start readings receiver thread."]]});
+initSidebarItems({"fn":[["spawn","Start readings receiver thread."]]});

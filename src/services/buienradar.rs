@@ -5,9 +5,10 @@ use crate::services::Service;
 use crate::threading;
 use crate::value::{PointOfTheCompass, Value};
 use crate::Result;
+use bus::Bus;
 use chrono::{DateTime, Local};
+use crossbeam_channel::Sender;
 use failure::format_err;
-use multiqueue::{BroadcastReceiver, BroadcastSender};
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::Deserialize;
 use std::sync::{Arc, Mutex};
@@ -71,12 +72,7 @@ struct BuienradarStationMeasurement {
 }
 
 impl Service for Buienradar {
-    fn spawn(
-        self: Box<Self>,
-        _db: Arc<Mutex<Db>>,
-        tx: &BroadcastSender<Message>,
-        _rx: &BroadcastReceiver<Message>,
-    ) -> Result<()> {
+    fn spawn(self: Box<Self>, _db: Arc<Mutex<Db>>, tx: &Sender<Message>, _rx: &mut Bus<Message>) -> Result<()> {
         let tx = tx.clone();
 
         threading::spawn(format!("my-iot::buienradar:{}", &self.service_id), move || loop {
@@ -122,7 +118,7 @@ impl Buienradar {
     }
 
     /// Sends out readings based on Buienradar station measurement.
-    fn send_readings(&self, measurement: BuienradarStationMeasurement, tx: &BroadcastSender<Message>) -> Result<()> {
+    fn send_readings(&self, measurement: BuienradarStationMeasurement, tx: &Sender<Message>) -> Result<()> {
         tx.try_send(Message {
             type_: Type::Actual,
             reading: Reading {

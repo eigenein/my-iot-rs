@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.17.0`
+
+- Opt: use `bus` with `std::sync::mpsc` instead of `multiqueue` to reduce CPU usage
+
 ## `0.16.2`
 
 - Fix: thread names

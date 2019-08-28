@@ -12,9 +12,10 @@ use crate::db::Db;
 use crate::reading::{Message, Reading, Type};
 use crate::services::Service;
 use crate::{threading, Result};
+use bus::Bus;
 use chrono::Local;
+use crossbeam_channel::Sender;
 use log::{debug, info};
-use multiqueue::{BroadcastReceiver, BroadcastSender};
 use serde::Deserialize;
 use std::sync::{Arc, Mutex};
 
@@ -115,14 +116,9 @@ impl Automator {
 }
 
 impl Service for Automator {
-    fn spawn(
-        self: Box<Self>,
-        _db: Arc<Mutex<Db>>,
-        tx: &BroadcastSender<Message>,
-        rx: &BroadcastReceiver<Message>,
-    ) -> Result<()> {
+    fn spawn(self: Box<Self>, _db: Arc<Mutex<Db>>, tx: &Sender<Message>, bus: &mut Bus<Message>) -> Result<()> {
         let tx = tx.clone();
-        let rx = rx.add_stream().into_single().unwrap();
+        let rx = bus.add_rx();
 
         threading::spawn(format!("my-iot::automator:{}", &self.service_id), move || {
             for message in rx {
@@ -160,7 +156,7 @@ impl Condition {
 }
 
 impl Action {
-    pub fn execute(&self, service_id: &str, reading: &Reading, tx: &BroadcastSender<Message>) -> Result<()> {
+    pub fn execute(&self, service_id: &str, reading: &Reading, tx: &Sender<Message>) -> Result<()> {
         match self {
             Action::Message(type_) => tx
                 .try_send(Message {

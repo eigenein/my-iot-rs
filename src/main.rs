@@ -40,10 +40,11 @@
 use crate::db::Db;
 use crate::reading::Message;
 use crate::settings::Settings;
+use bus::Bus;
 use clap::Arg;
+use crossbeam_channel::{Receiver, Sender};
 use failure::Error;
 use log::{debug, info};
-use multiqueue::{broadcast_queue, BroadcastReceiver, BroadcastSender};
 use std::sync::{Arc, Mutex};
 
 pub mod consts;
@@ -93,20 +94,13 @@ fn main() -> Result<()> {
     info!("Opening database…");
     let db = Arc::new(Mutex::new(Db::new(matches.value_of("db").unwrap_or(DEFAULT_DB_PATH))?));
 
-    // This is where all the magic happens.
-    // Services send readings to each other with the MPMC queue.
-    // TODO: which capacity should I use?
-    // TODO: implement back pressure for `try_send`?
     info!("Starting services…");
-    let (tx, rx) = broadcast_queue(1024);
-    spawn_services(&settings, &db, &tx, &rx)?;
-
-    info!("Starting readings receiver…");
-    receiver::start(&rx, db.clone())?;
-
-    // According to the `multiqueue` docs, here we should drop the original sender and receiver.
-    drop(tx);
-    rx.unsubscribe();
+    // Starting up multi-producer multi-consumer bus.
+    let (tx, rx) = crossbeam_channel::bounded(1024);
+    let mut bus = Bus::new(1024);
+    receiver::spawn(&mut bus, db.clone())?;
+    spawn_services(&settings, &db, &tx, &mut bus)?;
+    spawn_dispatcher(rx, bus)?;
 
     info!("Starting web server on port {}…", settings.http_port);
     web::start_server(settings, db.clone())
@@ -116,13 +110,24 @@ fn main() -> Result<()> {
 fn spawn_services(
     settings: &Settings,
     db: &Arc<Mutex<Db>>,
-    tx: &BroadcastSender<Message>,
-    rx: &BroadcastReceiver<Message>,
+    tx: &Sender<Message>,
+    bus: &mut Bus<Message>,
 ) -> Result<()> {
     for (service_id, settings) in settings.services.iter() {
         info!("Spawning service `{}`…", service_id);
         debug!("Settings `{}`: {:?}", service_id, settings);
-        services::new(service_id, settings)?.spawn(db.clone(), &tx, &rx)?;
+        services::new(service_id, settings)?.spawn(db.clone(), &tx, bus)?;
     }
+    Ok(())
+}
+
+/// Spawn message dispatcher that broadcasts every received message to emulate
+/// multi-producer multi-consumer queue.
+/// Thus, services exchange messages with each other.
+fn spawn_dispatcher(rx: Receiver<Message>, mut bus: Bus<Message>) -> Result<()> {
+    info!("Spawning message dispatcher…");
+    threading::spawn("my-iot::dispatcher", move || loop {
+        bus.broadcast(rx.recv().unwrap());
+    })?;
     Ok(())
 }

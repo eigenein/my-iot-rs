@@ -3,8 +3,9 @@ use crate::reading::*;
 use crate::threading;
 use crate::value::Value;
 use crate::Result;
+use bus::Bus;
 use chrono::Local;
-use multiqueue::{BroadcastReceiver, BroadcastSender};
+use crossbeam_channel::Sender;
 use serde::Deserialize;
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -33,12 +34,7 @@ impl Clock {
 }
 
 impl crate::services::Service for Clock {
-    fn spawn(
-        mut self: Box<Self>,
-        _db: Arc<Mutex<Db>>,
-        tx: &BroadcastSender<Message>,
-        _rx: &BroadcastReceiver<Message>,
-    ) -> Result<()> {
+    fn spawn(mut self: Box<Self>, _db: Arc<Mutex<Db>>, tx: &Sender<Message>, _rx: &mut Bus<Message>) -> Result<()> {
         let tx = tx.clone();
 
         threading::spawn(format!("my-iot::clock:{}", &self.service_id), move || loop {
