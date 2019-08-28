@@ -101,7 +101,7 @@ impl std::fmt::Display for Value {
             Value::WindDirection(point) => write!(f, r"{}", point),
             Value::Rh(percent) => write!(f, r"{}%", percent),
             Value::Metres(metres) => f.write_str(&human_format(*metres, "m")),
-            Value::ImageUrl(url) => write!(f, r#"<img src="{}" loading="lazy">"#, url),
+            Value::ImageUrl(url) => write!(f, r#"<img src="{}">"#, url),
         }
     }
 }

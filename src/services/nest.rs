@@ -1,5 +1,5 @@
 use crate::db::Db;
-use crate::reading::Reading;
+use crate::reading::{Message, Reading, Type};
 use crate::services::Service;
 use crate::threading;
 use crate::value::Value;
@@ -38,8 +38,8 @@ impl Service for Nest {
     fn spawn(
         self: Box<Self>,
         _db: Arc<Mutex<Db>>,
-        tx: &BroadcastSender<Reading>,
-        _rx: &BroadcastReceiver<Reading>,
+        tx: &BroadcastSender<Message>,
+        _rx: &BroadcastReceiver<Message>,
     ) -> Result<()> {
         let tx = tx.clone();
         threading::spawn(self.service_id.clone(), move || loop {
@@ -60,30 +60,36 @@ impl Service for Nest {
 }
 
 impl Nest {
-    fn send_readings(&self, event: &NestEvent, tx: &BroadcastSender<Reading>) -> Result<()> {
+    fn send_readings(&self, event: &NestEvent, tx: &BroadcastSender<Message>) -> Result<()> {
         let now = Local::now();
 
         for (id, thermostat) in event.data.devices.thermostats.iter() {
-            tx.try_send(Reading {
-                sensor: format!("{}::thermostat::{}::ambient_temperature", &self.service_id, &id),
-                value: Value::Celsius(thermostat.ambient_temperature_c),
-                timestamp: now,
-                is_persisted: true,
+            tx.try_send(Message {
+                type_: Type::Actual,
+                reading: Reading {
+                    sensor: format!("{}::thermostat::{}::ambient_temperature", &self.service_id, &id),
+                    value: Value::Celsius(thermostat.ambient_temperature_c),
+                    timestamp: now,
+                },
             })?;
-            tx.try_send(Reading {
-                sensor: format!("{}::thermostat::{}::humidity", &self.service_id, &id),
-                value: Value::Rh(thermostat.humidity),
-                timestamp: now,
-                is_persisted: true,
+            tx.try_send(Message {
+                type_: Type::Actual,
+                reading: Reading {
+                    sensor: format!("{}::thermostat::{}::humidity", &self.service_id, &id),
+                    value: Value::Rh(thermostat.humidity),
+                    timestamp: now,
+                },
             })?;
         }
 
         for (id, camera) in event.data.devices.cameras.iter() {
-            tx.try_send(Reading {
-                sensor: format!("{}::camera::{}::snapshot_url", &self.service_id, &id),
-                value: Value::ImageUrl(camera.snapshot_url.clone()),
-                timestamp: now,
-                is_persisted: true,
+            tx.try_send(Message {
+                type_: Type::Actual,
+                reading: Reading {
+                    sensor: format!("{}::camera::{}::snapshot_url", &self.service_id, &id),
+                    value: Value::ImageUrl(camera.snapshot_url.clone()),
+                    timestamp: now,
+                },
             })?;
         }
 

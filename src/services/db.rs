@@ -1,4 +1,4 @@
-use crate::reading::Reading;
+use crate::reading::{Message, Reading, Type};
 use crate::services::Service;
 use crate::threading;
 use crate::value::Value;
@@ -34,8 +34,8 @@ impl Service for Db {
     fn spawn(
         self: Box<Self>,
         db: Arc<Mutex<crate::db::Db>>,
-        tx: &BroadcastSender<Reading>,
-        _rx: &BroadcastReceiver<Reading>,
+        tx: &BroadcastSender<Message>,
+        _rx: &BroadcastReceiver<Message>,
     ) -> Result<()> {
         let tx = tx.clone();
         let sensor = format!("{}::size", &self.service_id);
@@ -43,11 +43,13 @@ impl Service for Db {
         threading::spawn(self.service_id.clone(), move || loop {
             let size = { db.lock().unwrap().select_size().unwrap() };
 
-            tx.try_send(Reading {
-                sensor: sensor.clone(),
-                value: Value::Size(size),
-                timestamp: Local::now(),
-                is_persisted: true,
+            tx.try_send(Message {
+                type_: Type::Actual,
+                reading: Reading {
+                    sensor: sensor.clone(),
+                    value: Value::Size(size),
+                    timestamp: Local::now(),
+                },
             })
             .unwrap();
 

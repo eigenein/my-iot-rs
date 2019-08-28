@@ -170,6 +170,11 @@
 <span id="170">170</span>
 <span id="171">171</span>
 <span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Automation service.</span>
 <span class="doccomment">//!</span>
@@ -182,7 +187,7 @@
 <span class="doccomment">//! Basically, this is a case of &quot;multi-producer multi-consumer&quot; pattern.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">db</span>::<span class="ident">Db</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">reading</span>::<span class="ident">Reading</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">reading</span>::{<span class="ident">Message</span>, <span class="ident">Reading</span>, <span class="ident">Type</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">services</span>::<span class="ident">Service</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">threading</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">Local</span>;
@@ -207,7 +212,7 @@
 <span class="doccomment">///           conditions:</span>
 <span class="doccomment">///             - Sensor: heartbeat</span>
 <span class="doccomment">///           actions:</span>
-<span class="doccomment">///             - Reading: []</span>
+<span class="doccomment">///             - Message: OneOff</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Settings</span> {
@@ -224,7 +229,7 @@
 <span class="doccomment">///     conditions:</span>
 <span class="doccomment">///       - Sensor: heartbeat</span>
 <span class="doccomment">///     actions:</span>
-<span class="doccomment">///       - Reading: []</span>
+<span class="doccomment">///       - Message: OneOff</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Scenario</span> {
@@ -269,7 +274,7 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
     <span class="doccomment">/// Emit a simple reading with original reading value and sensor concatenated from the automator</span>
     <span class="doccomment">/// service ID and original sensor.</span>
-    <span class="ident">Reading</span>(),
+    <span class="ident">Message</span>(<span class="ident">Type</span>),
 }
 
 <span class="doccomment">/// Automation service.</span>
@@ -291,22 +296,25 @@
     <span class="kw">fn</span> <span class="ident">spawn</span>(
         <span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">_db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;&gt;</span>,
-        <span class="ident">tx</span>: <span class="kw-2">&amp;</span><span class="ident">BroadcastSender</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>,
-        <span class="ident">rx</span>: <span class="kw-2">&amp;</span><span class="ident">BroadcastReceiver</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>,
+        <span class="ident">tx</span>: <span class="kw-2">&amp;</span><span class="ident">BroadcastSender</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
+        <span class="ident">rx</span>: <span class="kw-2">&amp;</span><span class="ident">BroadcastReceiver</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
     ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">add_stream</span>().<span class="ident">into_single</span>().<span class="ident">unwrap</span>();
 
         <span class="ident">threading</span>::<span class="ident">spawn</span>(<span class="self">self</span>.<span class="ident">service_id</span>.<span class="ident">clone</span>(), <span class="kw">move</span> <span class="op">||</span> {
-            <span class="kw">for</span> <span class="ident">reading</span> <span class="kw">in</span> <span class="ident">rx</span> {
+            <span class="kw">for</span> <span class="ident">message</span> <span class="kw">in</span> <span class="ident">rx</span> {
                 <span class="kw">for</span> <span class="ident">scenario</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">settings</span>.<span class="ident">scenarios</span>.<span class="ident">iter</span>() {
-                    <span class="kw">if</span> <span class="ident">scenario</span>.<span class="ident">conditions</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">is_met</span>(<span class="kw-2">&amp;</span><span class="ident">reading</span>)) {
-                        <span class="macro">info</span><span class="macro">!</span>(<span class="string">r#&quot;{} triggered scenario: &quot;{}&quot;.&quot;#</span>, <span class="kw-2">&amp;</span><span class="ident">reading</span>.<span class="ident">sensor</span>, <span class="ident">scenario</span>.<span class="ident">description</span>);
+                    <span class="kw">if</span> <span class="ident">scenario</span>.<span class="ident">conditions</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">is_met</span>(<span class="kw-2">&amp;</span><span class="ident">message</span>.<span class="ident">reading</span>)) {
+                        <span class="macro">info</span><span class="macro">!</span>(
+                            <span class="string">r#&quot;{} triggered scenario: &quot;{}&quot;.&quot;#</span>,
+                            <span class="kw-2">&amp;</span><span class="ident">message</span>.<span class="ident">reading</span>.<span class="ident">sensor</span>, <span class="ident">scenario</span>.<span class="ident">description</span>
+                        );
                         <span class="kw">for</span> <span class="ident">action</span> <span class="kw">in</span> <span class="ident">scenario</span>.<span class="ident">actions</span>.<span class="ident">iter</span>() {
-                            <span class="ident">action</span>.<span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">service_id</span>, <span class="kw-2">&amp;</span><span class="ident">reading</span>, <span class="kw-2">&amp;</span><span class="ident">tx</span>).<span class="ident">unwrap</span>();
+                            <span class="ident">action</span>.<span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">service_id</span>, <span class="kw-2">&amp;</span><span class="ident">message</span>.<span class="ident">reading</span>, <span class="kw-2">&amp;</span><span class="ident">tx</span>).<span class="ident">unwrap</span>();
                         }
                     } <span class="kw">else</span> {
-                        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Skipped: {}.&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">reading</span>.<span class="ident">sensor</span>);
+                        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Skipped: {}.&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">message</span>.<span class="ident">reading</span>.<span class="ident">sensor</span>);
                     }
                 }
             }
@@ -330,14 +338,16 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Action</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">service_id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">reading</span>: <span class="kw-2">&amp;</span><span class="ident">Reading</span>, <span class="ident">tx</span>: <span class="kw-2">&amp;</span><span class="ident">BroadcastSender</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">service_id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">reading</span>: <span class="kw-2">&amp;</span><span class="ident">Reading</span>, <span class="ident">tx</span>: <span class="kw-2">&amp;</span><span class="ident">BroadcastSender</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Action</span>::<span class="ident">Reading</span>() <span class="op">=&gt;</span> <span class="ident">tx</span>
-                .<span class="ident">try_send</span>(<span class="ident">Reading</span> {
-                    <span class="ident">sensor</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">service_id</span>, <span class="kw-2">&amp;</span><span class="ident">reading</span>.<span class="ident">sensor</span>),
-                    <span class="ident">timestamp</span>: <span class="ident">Local</span>::<span class="ident">now</span>(),
-                    <span class="ident">value</span>: <span class="ident">reading</span>.<span class="ident">value</span>.<span class="ident">clone</span>(),
-                    <span class="ident">is_persisted</span>: <span class="bool-val">false</span>,
+            <span class="ident">Action</span>::<span class="ident">Message</span>(<span class="ident">type_</span>) <span class="op">=&gt;</span> <span class="ident">tx</span>
+                .<span class="ident">try_send</span>(<span class="ident">Message</span> {
+                    <span class="ident">type_</span>: <span class="kw-2">*</span><span class="ident">type_</span>,
+                    <span class="ident">reading</span>: <span class="ident">Reading</span> {
+                        <span class="ident">sensor</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">service_id</span>, <span class="kw-2">&amp;</span><span class="ident">reading</span>.<span class="ident">sensor</span>),
+                        <span class="ident">timestamp</span>: <span class="ident">Local</span>::<span class="ident">now</span>(),
+                        <span class="ident">value</span>: <span class="ident">reading</span>.<span class="ident">value</span>.<span class="ident">clone</span>(),
+                    },
                 })
                 .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">into</span>()),
         }

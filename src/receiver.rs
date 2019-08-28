@@ -9,13 +9,13 @@ use multiqueue::BroadcastReceiver;
 use std::sync::{Arc, Mutex};
 
 /// Start readings receiver thread.
-pub fn start(rx: &BroadcastReceiver<Reading>, db: Arc<Mutex<Db>>) -> Result<()> {
+pub fn start(rx: &BroadcastReceiver<Message>, db: Arc<Mutex<Db>>) -> Result<()> {
     let rx = rx.add_stream().into_single().unwrap();
     spawn("receiver", move || {
-        for reading in rx {
-            info!("{}: {:?}", &reading.sensor, &reading.value);
-            if reading.is_persisted {
-                db.lock().unwrap().insert_reading(&reading).unwrap();
+        for message in rx {
+            info!("{}: {:?}", &message.reading.sensor, &message.reading.value);
+            if message.type_ == Type::Actual {
+                db.lock().unwrap().insert_reading(&message.reading).unwrap();
             }
         }
         unreachable!();

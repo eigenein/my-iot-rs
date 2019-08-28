@@ -69,8 +69,8 @@
     <span class="kw">fn</span> <span class="ident">spawn</span>(
         <span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;&gt;</span>,
-        <span class="ident">tx</span>: <span class="kw-2">&amp;</span><span class="ident">BroadcastSender</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>,
-        <span class="ident">rx</span>: <span class="kw-2">&amp;</span><span class="ident">BroadcastReceiver</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>,
+        <span class="ident">tx</span>: <span class="kw-2">&amp;</span><span class="ident">BroadcastSender</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
+        <span class="ident">rx</span>: <span class="kw-2">&amp;</span><span class="ident">BroadcastReceiver</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
     ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 }
 

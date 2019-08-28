@@ -1,6 +1,6 @@
 use crate::consts::USER_AGENT;
 use crate::db::Db;
-use crate::reading::Reading;
+use crate::reading::{Message, Reading, Type};
 use crate::services::Service;
 use crate::threading;
 use crate::value::{PointOfTheCompass, Value};
@@ -74,8 +74,8 @@ impl Service for Buienradar {
     fn spawn(
         self: Box<Self>,
         _db: Arc<Mutex<Db>>,
-        tx: &BroadcastSender<Reading>,
-        _rx: &BroadcastReceiver<Reading>,
+        tx: &BroadcastSender<Message>,
+        _rx: &BroadcastReceiver<Message>,
     ) -> Result<()> {
         let tx = tx.clone();
 
@@ -122,57 +122,71 @@ impl Buienradar {
     }
 
     /// Sends out readings based on Buienradar station measurement.
-    fn send_readings(&self, measurement: BuienradarStationMeasurement, tx: &BroadcastSender<Reading>) -> Result<()> {
-        tx.try_send(Reading {
-            sensor: format!("{}::{}::name", &self.service_id, self.station_id),
-            value: Value::Text(measurement.name.clone()),
-            timestamp: measurement.timestamp,
-            is_persisted: true,
+    fn send_readings(&self, measurement: BuienradarStationMeasurement, tx: &BroadcastSender<Message>) -> Result<()> {
+        tx.try_send(Message {
+            type_: Type::Actual,
+            reading: Reading {
+                sensor: format!("{}::{}::name", &self.service_id, self.station_id),
+                value: Value::Text(measurement.name.clone()),
+                timestamp: measurement.timestamp,
+            },
         })?;
-        tx.try_send(Reading {
-            sensor: format!("{}::{}::weather_description", &self.service_id, self.station_id),
-            value: Value::Text(measurement.weather_description.clone()),
-            timestamp: measurement.timestamp,
-            is_persisted: true,
+        tx.try_send(Message {
+            type_: Type::Actual,
+            reading: Reading {
+                sensor: format!("{}::{}::weather_description", &self.service_id, self.station_id),
+                value: Value::Text(measurement.weather_description.clone()),
+                timestamp: measurement.timestamp,
+            },
         })?;
         if let Some(degrees) = measurement.temperature {
-            tx.try_send(Reading {
-                sensor: format!("{}::{}::temperature", &self.service_id, self.station_id),
-                value: Value::Celsius(degrees),
-                timestamp: measurement.timestamp,
-                is_persisted: true,
+            tx.try_send(Message {
+                type_: Type::Actual,
+                reading: Reading {
+                    sensor: format!("{}::{}::temperature", &self.service_id, self.station_id),
+                    value: Value::Celsius(degrees),
+                    timestamp: measurement.timestamp,
+                },
             })?;
         }
         if let Some(degrees) = measurement.ground_temperature {
-            tx.try_send(Reading {
-                sensor: format!("{}::{}::ground_temperature", &self.service_id, self.station_id),
-                value: Value::Celsius(degrees),
-                timestamp: measurement.timestamp,
-                is_persisted: true,
+            tx.try_send(Message {
+                type_: Type::Actual,
+                reading: Reading {
+                    sensor: format!("{}::{}::ground_temperature", &self.service_id, self.station_id),
+                    value: Value::Celsius(degrees),
+                    timestamp: measurement.timestamp,
+                },
             })?;
         }
         if let Some(degrees) = measurement.feel_temperature {
-            tx.try_send(Reading {
-                sensor: format!("{}::{}::feel_temperature", &self.service_id, self.station_id),
-                value: Value::Celsius(degrees),
-                timestamp: measurement.timestamp,
-                is_persisted: true,
+            tx.try_send(Message {
+                type_: Type::Actual,
+                reading: Reading {
+                    sensor: format!("{}::{}::feel_temperature", &self.service_id, self.station_id),
+                    value: Value::Celsius(degrees),
+                    timestamp: measurement.timestamp,
+                },
             })?;
         }
         if let Some(bft) = measurement.wind_speed_bft {
-            tx.try_send(Reading {
-                sensor: format!("{}::{}::wind_speed_bft", &self.service_id, self.station_id),
-                value: Value::Bft(bft),
-                timestamp: measurement.timestamp,
-                is_persisted: true,
+            tx.try_send(Message {
+                type_: Type::Actual,
+                reading: Reading {
+                    sensor: format!("{}::{}::wind_speed_bft", &self.service_id, self.station_id),
+                    value: Value::Bft(bft),
+                    timestamp: measurement.timestamp,
+                },
             })?;
         }
         if let Some(point) = measurement.wind_direction {
-            tx.try_send(Reading {
-                sensor: format!("{}::{}::wind_direction", &self.service_id, self.station_id),
-                value: Value::WindDirection(point),
-                timestamp: measurement.timestamp,
-                is_persisted: true,
+            tx.try_send(Message {
+                type_: Type::Actual,
+                reading: Reading {
+                    sensor: format!("{}::{}::wind_direction", &self.service_id, self.station_id),
+                    value: Value::WindDirection(point),
+                    timestamp: measurement.timestamp,
+                },
             })?;
         }
         Ok(())

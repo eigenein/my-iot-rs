@@ -36,17 +36,19 @@ impl crate::services::Service for Clock {
     fn spawn(
         mut self: Box<Self>,
         _db: Arc<Mutex<Db>>,
-        tx: &BroadcastSender<Reading>,
-        _rx: &BroadcastReceiver<Reading>,
+        tx: &BroadcastSender<Message>,
+        _rx: &BroadcastReceiver<Message>,
     ) -> Result<()> {
         let tx = tx.clone();
 
         threading::spawn(self.service_id.clone(), move || loop {
-            tx.try_send(Reading {
-                sensor: self.service_id.clone(),
-                value: Value::Counter(self.counter),
-                timestamp: Local::now(),
-                is_persisted: true,
+            tx.try_send(Message {
+                type_: Type::Actual,
+                reading: Reading {
+                    sensor: self.service_id.clone(),
+                    value: Value::Counter(self.counter),
+                    timestamp: Local::now(),
+                },
             })
             .unwrap();
 

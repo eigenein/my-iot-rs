@@ -83,7 +83,6 @@ impl From<&Row<'_>> for Reading {
             sensor: row.get_unwrap("sensor"),
             timestamp: Local.timestamp_millis(row.get_unwrap("ts")),
             value: row.get_unwrap("value"),
-            is_persisted: true,
         }
     }
 }
@@ -244,7 +243,6 @@ mod tests {
             sensor: "test".into(),
             value: Value::Counter(42),
             timestamp: Local.timestamp_millis(1_566_424_128_000),
-            is_persisted: true,
         };
         let db = Db::new(":memory:")?;
         db.insert_reading(&reading)?;

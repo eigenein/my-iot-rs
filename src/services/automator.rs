@@ -9,7 +9,7 @@
 //! Basically, this is a case of "multi-producer multi-consumer" pattern.
 
 use crate::db::Db;
-use crate::reading::Reading;
+use crate::reading::{Message, Reading, Type};
 use crate::services::Service;
 use crate::{threading, Result};
 use chrono::Local;
@@ -34,7 +34,7 @@ use std::sync::{Arc, Mutex};
 ///           conditions:
 ///             - Sensor: heartbeat
 ///           actions:
-///             - Reading: []
+///             - Message: OneOff
 /// ```
 #[derive(Deserialize, Debug, Clone)]
 pub struct Settings {
@@ -51,7 +51,7 @@ pub struct Settings {
 ///     conditions:
 ///       - Sensor: heartbeat
 ///     actions:
-///       - Reading: []
+///       - Message: OneOff
 /// ```
 #[derive(Deserialize, Debug, Clone)]
 pub struct Scenario {
@@ -96,7 +96,7 @@ pub enum Condition {
 pub enum Action {
     /// Emit a simple reading with original reading value and sensor concatenated from the automator
     /// service ID and original sensor.
-    Reading(),
+    Message(Type),
 }
 
 /// Automation service.
@@ -118,22 +118,25 @@ impl Service for Automator {
     fn spawn(
         self: Box<Self>,
         _db: Arc<Mutex<Db>>,
-        tx: &BroadcastSender<Reading>,
-        rx: &BroadcastReceiver<Reading>,
+        tx: &BroadcastSender<Message>,
+        rx: &BroadcastReceiver<Message>,
     ) -> Result<()> {
         let tx = tx.clone();
         let rx = rx.add_stream().into_single().unwrap();
 
         threading::spawn(self.service_id.clone(), move || {
-            for reading in rx {
+            for message in rx {
                 for scenario in self.settings.scenarios.iter() {
-                    if scenario.conditions.iter().all(|c| c.is_met(&reading)) {
-                        info!(r#"{} triggered scenario: "{}"."#, &reading.sensor, scenario.description);
+                    if scenario.conditions.iter().all(|c| c.is_met(&message.reading)) {
+                        info!(
+                            r#"{} triggered scenario: "{}"."#,
+                            &message.reading.sensor, scenario.description
+                        );
                         for action in scenario.actions.iter() {
-                            action.execute(&self.service_id, &reading, &tx).unwrap();
+                            action.execute(&self.service_id, &message.reading, &tx).unwrap();
                         }
                     } else {
-                        debug!("Skipped: {}.", &reading.sensor);
+                        debug!("Skipped: {}.", &message.reading.sensor);
                     }
                 }
             }
@@ -157,14 +160,16 @@ impl Condition {
 }
 
 impl Action {
-    pub fn execute(&self, service_id: &str, reading: &Reading, tx: &BroadcastSender<Reading>) -> Result<()> {
+    pub fn execute(&self, service_id: &str, reading: &Reading, tx: &BroadcastSender<Message>) -> Result<()> {
         match self {
-            Action::Reading() => tx
-                .try_send(Reading {
-                    sensor: format!("{}::{}", &service_id, &reading.sensor),
-                    timestamp: Local::now(),
-                    value: reading.value.clone(),
-                    is_persisted: false,
+            Action::Message(type_) => tx
+                .try_send(Message {
+                    type_: *type_,
+                    reading: Reading {
+                        sensor: format!("{}::{}", &service_id, &reading.sensor),
+                        timestamp: Local::now(),
+                        value: reading.value.clone(),
+                    },
                 })
                 .map_err(|e| e.into()),
         }

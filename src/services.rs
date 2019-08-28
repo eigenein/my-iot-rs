@@ -25,8 +25,8 @@ pub trait Service: Send {
     fn spawn(
         self: Box<Self>,
         db: Arc<Mutex<Db>>,
-        tx: &BroadcastSender<Reading>,
-        rx: &BroadcastReceiver<Reading>,
+        tx: &BroadcastSender<Message>,
+        rx: &BroadcastReceiver<Message>,
     ) -> Result<()>;
 }
 

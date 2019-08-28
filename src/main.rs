@@ -38,7 +38,7 @@
 //! This is needed to use some low-level protocols (for instance, ICMP) as a non-root user.
 
 use crate::db::Db;
-use crate::reading::Reading;
+use crate::reading::Message;
 use crate::settings::Settings;
 use clap::Arg;
 use failure::Error;
@@ -116,8 +116,8 @@ fn main() -> Result<()> {
 fn spawn_services(
     settings: &Settings,
     db: &Arc<Mutex<Db>>,
-    tx: &BroadcastSender<Reading>,
-    rx: &BroadcastReceiver<Reading>,
+    tx: &BroadcastSender<Message>,
+    rx: &BroadcastReceiver<Message>,
 ) -> Result<()> {
     for (service_id, settings) in settings.services.iter() {
         info!("Spawning service `{}`…", service_id);

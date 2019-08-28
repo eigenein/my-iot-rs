@@ -4,6 +4,7 @@
 
 - New: add danger zone #9
 - Opt: add `loading="lazy"` to the `ImageUrl` renderer
+- Break: services will exchange messages instead of readings
 
 ## `0.15.0`
 

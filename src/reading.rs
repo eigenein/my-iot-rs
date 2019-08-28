@@ -1,11 +1,20 @@
-//! Describes a sensor reading.
-//!
-//! This is a key data structure. All the data is stored as a single list of all readings from all services.
+//! Describes a sensor reading and related structures.
 
 use crate::value::Value;
 use chrono::prelude::*;
+use serde::Deserialize;
 
-/// A sensor reading.
+/// Services use messages to exchange sensor readings between each other.
+#[derive(Debug, Clone)]
+pub struct Message {
+    pub reading: Reading,
+
+    pub type_: Type,
+}
+
+/// Single sensor reading.
+///
+/// All the sensor data is stored as a single collection of all readings from all services.
 #[derive(Debug, PartialEq, Clone)]
 pub struct Reading {
     /// A sensor. For example: `buienradar::6240::wind_speed_bft`.
@@ -20,7 +29,18 @@ pub struct Reading {
 
     /// Timestamp when the value was actually measured. This may be earlier than moment of emitting a reading.
     pub timestamp: DateTime<Local>,
+}
 
-    /// Should the reading be persisted in the database.
-    pub is_persisted: bool,
+/// Message type.
+#[derive(Clone, Copy, PartialEq, Debug, Deserialize)]
+pub enum Type {
+    /// Actual sensor reading, which should be persisted in the database and displayed on the dashboard.
+    Actual,
+
+    /// Sensor reading which become non-actual just right after it was sent.
+    /// Think of, for example, a single camera snapshot.
+    OneOff,
+
+    /// Used to control other services. One service may send this to control a sensor of another service.
+    Control,
 }
