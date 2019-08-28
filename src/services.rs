@@ -4,7 +4,7 @@ use crate::db::Db;
 use crate::reading::*;
 use crate::settings::*;
 use crate::Result;
-use multiqueue::{BroadcastReceiver, BroadcastSender};
+use multiqueue2::{BroadcastReceiver, BroadcastSender};
 use std::sync::{Arc, Mutex};
 
 pub mod automator;

@@ -5,7 +5,7 @@ use crate::reading::*;
 use crate::threading::spawn;
 use crate::Result;
 use log::info;
-use multiqueue::BroadcastReceiver;
+use multiqueue2::BroadcastReceiver;
 use std::sync::{Arc, Mutex};
 
 /// Start readings receiver thread.

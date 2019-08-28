@@ -6,7 +6,7 @@ use crate::value::Value;
 use crate::Result;
 use chrono::Local;
 use eventsource::reqwest::Client;
-use multiqueue::{BroadcastReceiver, BroadcastSender};
+use multiqueue2::{BroadcastReceiver, BroadcastSender};
 use rouille::url::Url;
 use serde::Deserialize;
 use std::collections::HashMap;
