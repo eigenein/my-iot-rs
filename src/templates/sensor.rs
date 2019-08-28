@@ -91,7 +91,6 @@ markup::define! {
             div.container {
                 h3.title."is-5" { "Danger zone" }
 
-                h4.title."is-6" { "Rename" }
                 div.message."is-danger" {
                     div."message-body" {
                         p {
@@ -100,30 +99,29 @@ markup::define! {
                         p {
                             "You may need that if you renamed a service and you want to move old readings to the new sensor."
                         }
-                    }
-                }
-                form.notification."is-danger" {
-                    div.field."has-addons" {
-                        div.control {
-                            input[class = "input", type = "text", value = {&last.sensor}, placeholder = "Sensor"];
-                        }
-                        div.control {
-                            a.button."is-danger" { "Rename" }
+                        form {
+                            div.field."has-addons" {
+                                div.control {
+                                    input[class = "input", type = "text", value = {&last.sensor}, placeholder = "Sensor"];
+                                }
+                                div.control {
+                                    a.button."is-danger" { "Rename" }
+                                }
+                            }
                         }
                     }
                 }
 
-                h4.title."is-6" { "Delete" }
                 div.message."is-danger" {
                     div."message-body" {
                         p {
                             "This will " strong { "permanently delete" } " all the sensor readings."
                         }
-                    }
-                }
-                form {
-                    div.control {
-                        button.button."is-danger" { "Delete" }
+                        form {
+                            div.control {
+                                button.button."is-danger" { "Delete" }
+                            }
+                        }
                     }
                 }
             }

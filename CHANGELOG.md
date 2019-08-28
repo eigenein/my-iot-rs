@@ -2,7 +2,7 @@
 
 ## `master`
 
-- New: add danger zone #9
+- New: add danger zone #9, not functional yet
 - Opt: add `loading="lazy"` to the `ImageUrl` renderer
 - Break: services will exchange messages instead of readings
 
