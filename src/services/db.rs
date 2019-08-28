@@ -40,7 +40,7 @@ impl Service for Db {
         let tx = tx.clone();
         let sensor = format!("{}::size", &self.service_id);
 
-        threading::spawn(format!("{}:{}", module_path!(), &self.service_id), move || loop {
+        threading::spawn(format!("my-iot::db:{}", &self.service_id), move || loop {
             let size = { db.lock().unwrap().select_size().unwrap() };
 
             tx.try_send(Message {

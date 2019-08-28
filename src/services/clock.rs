@@ -41,7 +41,7 @@ impl crate::services::Service for Clock {
     ) -> Result<()> {
         let tx = tx.clone();
 
-        threading::spawn(format!("{}:{}", module_path!(), &self.service_id), move || loop {
+        threading::spawn(format!("my-iot::clock:{}", &self.service_id), move || loop {
             tx.try_send(Message {
                 type_: Type::Actual,
                 reading: Reading {

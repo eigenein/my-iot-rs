@@ -124,7 +124,7 @@ impl Service for Automator {
         let tx = tx.clone();
         let rx = rx.add_stream().into_single().unwrap();
 
-        threading::spawn(format!("{}:{}", module_path!(), &self.service_id), move || {
+        threading::spawn(format!("my-iot::automator:{}", &self.service_id), move || {
             for message in rx {
                 for scenario in self.settings.scenarios.iter() {
                     if scenario.conditions.iter().all(|c| c.is_met(&message.reading)) {

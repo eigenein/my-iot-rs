@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.16.2`
+
+- Fix: thread names
+
 ## `0.16.1`
 
 - Opt: switch back to `multiqueue`

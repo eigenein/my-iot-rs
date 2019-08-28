@@ -79,7 +79,7 @@ impl Service for Buienradar {
     ) -> Result<()> {
         let tx = tx.clone();
 
-        threading::spawn(format!("{}:{}", module_path!(), &self.service_id), move || loop {
+        threading::spawn(format!("my-iot::buienradar:{}", &self.service_id), move || loop {
             match self.fetch() {
                 Ok(measurement) => self.send_readings(measurement, &tx).unwrap(),
                 Err(error) => {
