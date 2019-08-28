@@ -305,7 +305,7 @@
             <span class="ident">Value</span>::<span class="ident">WindDirection</span>(<span class="ident">point</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r&quot;{}&quot;</span>, <span class="ident">point</span>),
             <span class="ident">Value</span>::<span class="ident">Rh</span>(<span class="ident">percent</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r&quot;{}%&quot;</span>, <span class="ident">percent</span>),
             <span class="ident">Value</span>::<span class="ident">Metres</span>(<span class="ident">metres</span>) <span class="op">=&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="ident">human_format</span>(<span class="kw-2">*</span><span class="ident">metres</span>, <span class="string">&quot;m&quot;</span>)),
-            <span class="ident">Value</span>::<span class="ident">ImageUrl</span>(<span class="ident">url</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r#&quot;&lt;img src=&quot;{}&quot; loading=&quot;lazy&quot;&gt;&quot;#</span>, <span class="ident">url</span>),
+            <span class="ident">Value</span>::<span class="ident">ImageUrl</span>(<span class="ident">url</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r#&quot;&lt;img src=&quot;{}&quot;&gt;&quot;#</span>, <span class="ident">url</span>),
         }
     }
 }
