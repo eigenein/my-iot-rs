@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex};
 /// Start readings receiver thread.
 pub fn start(rx: &BroadcastReceiver<Message>, db: Arc<Mutex<Db>>) -> Result<()> {
     let rx = rx.add_stream().into_single().unwrap();
-    spawn("receiver", move || {
+    spawn(module_path!(), move || {
         for message in rx {
             info!("{}: {:?}", &message.reading.sensor, &message.reading.value);
             if message.type_ == Type::Actual {

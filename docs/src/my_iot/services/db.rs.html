@@ -66,7 +66,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">value</span>::<span class="ident">Value</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span>;
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">Local</span>;
-<span class="kw">use</span> <span class="ident">multiqueue2</span>::{<span class="ident">BroadcastReceiver</span>, <span class="ident">BroadcastSender</span>};
+<span class="kw">use</span> <span class="ident">multiqueue</span>::{<span class="ident">BroadcastReceiver</span>, <span class="ident">BroadcastSender</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Deserialize</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread</span>;
@@ -102,7 +102,7 @@
         <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">sensor</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::size&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">service_id</span>);
 
-        <span class="ident">threading</span>::<span class="ident">spawn</span>(<span class="self">self</span>.<span class="ident">service_id</span>.<span class="ident">clone</span>(), <span class="kw">move</span> <span class="op">||</span> <span class="kw">loop</span> {
+        <span class="ident">threading</span>::<span class="ident">spawn</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}:{}&quot;</span>, <span class="macro">module_path</span><span class="macro">!</span>(), <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">service_id</span>), <span class="kw">move</span> <span class="op">||</span> <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> { <span class="ident">db</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">select_size</span>().<span class="ident">unwrap</span>() };
 
             <span class="ident">tx</span>.<span class="ident">try_send</span>(<span class="ident">Message</span> {

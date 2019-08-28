@@ -3,6 +3,7 @@
 ## `0.16.1`
 
 - Opt: switch back to `multiqueue`
+- Chore: use module path plus service ID as thread name
 
 ## `0.16.0`
 

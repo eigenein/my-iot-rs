@@ -42,7 +42,7 @@ impl Service for Nest {
         _rx: &BroadcastReceiver<Message>,
     ) -> Result<()> {
         let tx = tx.clone();
-        threading::spawn(self.service_id.clone(), move || loop {
+        threading::spawn(format!("{}:{}", module_path!(), &self.service_id), move || loop {
             let client = Client::new(Url::parse_with_params(URL, &[("auth", &self.token)]).unwrap());
             for event in client {
                 if let Ok(event) = event {
