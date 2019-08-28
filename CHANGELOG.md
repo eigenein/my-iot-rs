@@ -1,6 +1,6 @@
 # `my-iot`
 
-## `master`
+## `0.16.0`
 
 - New: add danger zone #9, not functional yet
 - Opt: add `loading="lazy"` to the `ImageUrl` renderer
