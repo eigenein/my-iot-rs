@@ -4,7 +4,7 @@ use crate::threading;
 use crate::value::Value;
 use crate::Result;
 use chrono::Local;
-use multiqueue2::{BroadcastReceiver, BroadcastSender};
+use multiqueue::{BroadcastReceiver, BroadcastSender};
 use serde::Deserialize;
 use std::sync::{Arc, Mutex};
 use std::thread;

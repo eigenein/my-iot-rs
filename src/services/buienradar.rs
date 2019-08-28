@@ -7,7 +7,7 @@ use crate::value::{PointOfTheCompass, Value};
 use crate::Result;
 use chrono::{DateTime, Local};
 use failure::format_err;
-use multiqueue2::{BroadcastReceiver, BroadcastSender};
+use multiqueue::{BroadcastReceiver, BroadcastSender};
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::Deserialize;
 use std::sync::{Arc, Mutex};

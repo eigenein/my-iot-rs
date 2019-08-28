@@ -14,7 +14,7 @@ use crate::services::Service;
 use crate::{threading, Result};
 use chrono::Local;
 use log::{debug, info};
-use multiqueue2::{BroadcastReceiver, BroadcastSender};
+use multiqueue::{BroadcastReceiver, BroadcastSender};
 use serde::Deserialize;
 use std::sync::{Arc, Mutex};
 

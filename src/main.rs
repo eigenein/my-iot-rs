@@ -43,7 +43,7 @@ use crate::settings::Settings;
 use clap::Arg;
 use failure::Error;
 use log::{debug, info};
-use multiqueue2::{broadcast_queue, BroadcastReceiver, BroadcastSender};
+use multiqueue::{broadcast_queue, BroadcastReceiver, BroadcastSender};
 use std::sync::{Arc, Mutex};
 
 pub mod consts;

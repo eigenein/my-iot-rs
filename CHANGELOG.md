@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.16.1`
+
+- Opt: switch back to `multiqueue`
+
 ## `0.16.0`
 
 - New: add danger zone #9, not functional yet
