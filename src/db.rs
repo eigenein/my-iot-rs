@@ -3,6 +3,7 @@
 use crate::reading::Reading;
 use crate::value::Value;
 use crate::Result;
+use chashmap::CHashMap;
 use chrono::prelude::*;
 use rusqlite::types::*;
 use rusqlite::{Connection, Row, ToSql, NO_PARAMS};
@@ -45,6 +46,9 @@ const SCHEMA: &str = "
 pub struct Db {
     /// Wrapped SQLite connection.
     connection: Connection,
+
+    /// Readings cache. Stores the latest reading for each sensor.
+    _cache: CHashMap<String, Reading>,
 }
 
 impl Db {
@@ -52,7 +56,10 @@ impl Db {
     pub fn new<P: AsRef<Path>>(path: P) -> Result<Db> {
         let connection = Connection::open(path)?;
         connection.execute_batch(SCHEMA)?;
-        Ok(Db { connection })
+        Ok(Db {
+            connection,
+            _cache: CHashMap::new(),
+        })
     }
 }
 
