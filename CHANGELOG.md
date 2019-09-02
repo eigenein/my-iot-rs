@@ -3,6 +3,7 @@
 ## `master`
 
 - Chore: bump Bulma to 0.7.5
+- Chore: `cargo update`
 
 ## `0.17.0`
 
