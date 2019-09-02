@@ -93,15 +93,18 @@ markup::define! {
 
                 div.message."is-danger" {
                     div."message-body" {
-                        p {
-                            "All readings from this sensor will get the specified sensor."
+                        div.content {
+                            p {
+                                "All readings from this sensor will get the specified sensor."
+                            }
+                            p {
+                                "You may need that if you renamed a service and you want to move old readings to the new sensor."
+                            }
                         }
-                        p {
-                            "You may need that if you renamed a service and you want to move old readings to the new sensor."
-                        }
+
                         form {
                             div.field."has-addons" {
-                                div.control {
+                                div.control."is-expanded" {
                                     input[class = "input", type = "text", value = {&last.sensor}, placeholder = "Sensor"];
                                 }
                                 div.control {
@@ -114,12 +117,17 @@ markup::define! {
 
                 div.message."is-danger" {
                     div."message-body" {
-                        p {
-                            "This will " strong { "permanently delete" } " all the sensor readings."
+                        div.content {
+                            p {
+                                "This will " strong { "permanently delete" } " all the sensor readings."
+                            }
                         }
+
                         form {
-                            div.control {
-                                button.button."is-danger" { "Delete" }
+                            div.field {
+                                div.control {
+                                    button.button."is-danger" { "Delete" }
+                                }
                             }
                         }
                     }

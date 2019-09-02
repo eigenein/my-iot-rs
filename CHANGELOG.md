@@ -4,6 +4,7 @@
 
 - Chore: bump Bulma to 0.7.5
 - Chore: `cargo update`
+- Fix: danger zone layout
 
 ## `0.17.0`
 
