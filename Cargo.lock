@@ -967,7 +967,7 @@ dependencies = [
 
 [[package]]
 name = "my-iot"
-version = "0.17.0"
+version = "0.18.0"
 dependencies = [
  "bus 2.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "chashmap 2.2.2 (registry+https://github.com/rust-lang/crates.io-index)",

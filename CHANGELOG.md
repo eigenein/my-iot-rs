@@ -1,6 +1,6 @@
 # `my-iot`
 
-## `master`
+## `0.18.0`
 
 - Chore: bump Bulma to 0.7.5
 - Chore: `cargo update`
