@@ -20,13 +20,6 @@
 //! Then, you'll need to create a configuration file `settings.yml`. It must contain exactly one object,
 //! please read the [`settings`](settings/index.html) documentation.
 //!
-//! ## OpenSSL
-//!
-//! Compiling My IoT may require you to install `pkg-config` and OpenSSL. Most likely, `libssl-dev`
-//! is not installed by default on Raspbian.
-//!
-//! See <https://docs.rs/openssl/0.10.24/openssl/#automatic> for more information.
-//!
 //! ## File capabilities
 //!
 //! If you're not using `make`, you may need to manually set capabilities on the produced binary:

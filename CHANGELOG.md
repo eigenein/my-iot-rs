@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.19.0`
+
+- Opt: remove `openssl` dependency
+
 ## `0.18.0`
 
 - Chore: bump Bulma to 0.7.5
