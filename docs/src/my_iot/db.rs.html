@@ -250,12 +250,20 @@
 <span id="250">250</span>
 <span id="251">251</span>
 <span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Database interface.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">reading</span>::<span class="ident">Reading</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">value</span>::<span class="ident">Value</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span>;
+<span class="kw">use</span> <span class="ident">chashmap</span>::<span class="ident">CHashMap</span>;
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">rusqlite</span>::<span class="ident">types</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">rusqlite</span>::{<span class="ident">Connection</span>, <span class="ident">Row</span>, <span class="ident">ToSql</span>, <span class="ident">NO_PARAMS</span>};
@@ -298,6 +306,9 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Db</span> {
     <span class="doccomment">/// Wrapped SQLite connection.</span>
     <span class="ident">connection</span>: <span class="ident">Connection</span>,
+
+    <span class="doccomment">/// Readings cache. Stores the latest reading for each sensor.</span>
+    <span class="ident">_cache</span>: <span class="ident">CHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Reading</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Db</span> {
@@ -305,7 +316,10 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Db</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">connection</span> <span class="op">=</span> <span class="ident">Connection</span>::<span class="ident">open</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
         <span class="ident">connection</span>.<span class="ident">execute_batch</span>(<span class="ident">SCHEMA</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">Db</span> { <span class="ident">connection</span> })
+        <span class="prelude-val">Ok</span>(<span class="ident">Db</span> {
+            <span class="ident">connection</span>,
+            <span class="ident">_cache</span>: <span class="ident">CHashMap</span>::<span class="ident">new</span>(),
+        })
     }
 }
 
