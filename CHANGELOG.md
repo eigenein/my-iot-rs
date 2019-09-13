@@ -3,6 +3,7 @@
 ## `0.19.0`
 
 - Opt: remove `openssl` dependency
+- Chore: `cargo update`
 
 ## `0.18.0`
 
