@@ -25,7 +25,7 @@
 //! Compiling My IoT may require you to install `pkg-config` and OpenSSL. Most likely, `libssl-dev`
 //! is not installed by default on Raspbian.
 //!
-//! See https://docs.rs/openssl/0.10.24/openssl/#automatic for more information.
+//! See <https://docs.rs/openssl/0.10.24/openssl/#automatic> for more information.
 //!
 //! ## File capabilities
 //!
