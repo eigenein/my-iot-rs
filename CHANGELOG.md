@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.19.2`
+
+- Fix: rollback to `eventsource` from crates.io
+
 ## `0.19.1`
 
 - Fix: bump `eventsource` to fix build on Raspberry Pi
