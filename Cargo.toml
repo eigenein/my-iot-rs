@@ -1,7 +1,7 @@
 [package]
 name = "my-iot"
 description = "Yet another home automation"
-version = "0.19.0"
+version = "0.19.1"
 authors = ["Pavel Perestoronin <eigenein@gmail.com>"]
 edition = "2018"
 homepage = "https://github.com/eigenein/my-iot-rs"
@@ -29,7 +29,7 @@ log = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 serde_json = "1.0"
-eventsource = "0.3.0"
+eventsource = { git = "https://github.com/lluchs/eventsource", rev = "082effa468838e01eef1ee26fe0f3af20d763dd3" }
 failure = "0.1.5"
 crossbeam-channel = "0.3.9"
 bus = "2.2.2"

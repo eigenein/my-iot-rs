@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.19.1`
+
+- Fix: bump `eventsource` to fix build on Raspberry Pi
+
 ## `0.19.0`
 
 - Opt: remove `openssl` dependency
