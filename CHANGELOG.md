@@ -1,5 +1,10 @@
 # `my-iot`
 
+## `0.19.3`
+
+- Fix: bump `eventsource` to `0.4.0`
+- Chore: `cargo update`
+
 ## `0.19.2`
 
 - Fix: rollback to `eventsource` from crates.io
