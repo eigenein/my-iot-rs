@@ -1,4 +1,4 @@
-# My [Internet of Things](https://en.wikipedia.org/wiki/Internet_of_things)
+# My Internet of Things
 
 Yet another [home automation](https://en.wikipedia.org/wiki/Home_automation). Written in [Rust](https://www.rust-lang.org/).
 
