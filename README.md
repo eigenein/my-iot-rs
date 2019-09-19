@@ -10,7 +10,7 @@ Yet another home automation. Written in Rust.
 [![Build Status](https://travis-ci.com/eigenein/my-iot-rs.svg?branch=master)](https://travis-ci.com/eigenein/my-iot-rs)
 [![GitHub last commit](https://img.shields.io/github/last-commit/eigenein/my-iot-rs)](https://github.com/eigenein/my-iot-rs/commits/master)
 [![GitHub issues](https://img.shields.io/github/issues-raw/eigenein/my-iot-rs)](https://github.com/eigenein/my-iot-rs/issues)
-[![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/eigenein/my-iot-rs)](https://github.com/eigenein/my-iot-rs/issues?q=is%3Aissue+is%3Aclosed)
+[![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/eigenein/my-iot-rs?color=green)](https://github.com/eigenein/my-iot-rs/issues?q=is%3Aissue+is%3Aclosed)
 
 ## Getting started
 
