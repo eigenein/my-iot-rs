@@ -1,6 +1,6 @@
 # My Internet of Things
 
-Yet another home automation. Written in Rust.
+Yet another [home automation](https://en.wikipedia.org/wiki/Home_automation). Written in [Rust](https://www.rust-lang.org/).
 
 [![Wiki](https://img.shields.io/badge/-Wiki-orange.svg)](https://github.com/eigenein/my-iot-rs/wiki)
 [![rustdoc](https://img.shields.io/badge/-rustdoc-lightgray.svg)](https://eigenein.github.io/my-iot-rs/my_iot/)
