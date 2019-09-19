@@ -14,4 +14,4 @@ Yet another home automation. Written in Rust.
 
 ## Getting started
 
-Check out [rustdoc](https://eigenein.github.io/my-iot-rs/my_iot/).
+Check out [rustdoc](https://eigenein.github.io/my-iot-rs/my_iot/) and [Wiki](https://github.com/eigenein/my-iot-rs/wiki).
