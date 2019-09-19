@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Chore: `cargo update`
+
 ## `0.19.3`
 
 - Fix: bump `eventsource` to `0.4.0`
