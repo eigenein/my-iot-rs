@@ -14,7 +14,6 @@ categories = ["command-line-utilities"]
 license = "MIT"
 
 [badges]
-travis-ci = { repository = "eigenein/my-iot-rs" }
 is-it-maintained-issue-resolution = { repository = "eigenein/my-iot-rs" }
 is-it-maintained-open-issues = { repository = "eigenein/my-iot-rs" }
 
