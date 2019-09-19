@@ -15,3 +15,11 @@ jobs:
       run: make
     - name: Check
       run: cmake check
+    - uses: actions/upload-artifact@master
+      with:
+        name: cargo-home
+        path: ${HOME}/.cargo
+    - uses: actions/upload-artifact@master
+      with:
+        name: target
+        path: ${GITHUB_WORKSPACE}/target
