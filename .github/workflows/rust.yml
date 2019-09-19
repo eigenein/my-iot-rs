@@ -8,9 +8,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: apt
+    - name: APT
       run: sudo apt-get install -y libsqlite3-dev
-    - name: rustup
+    - name: Rustup
       run: rustup component add rustfmt clippy
     - uses: actions/checkout@v1
     - name: Make
