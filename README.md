@@ -12,12 +12,6 @@ Yet another home automation. Written in Rust.
 ![GitHub issues](https://img.shields.io/github/issues-raw/eigenein/my-iot-rs)
 ![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/eigenein/my-iot-rs)
 
-## Why?
-
-- I want to learn Rust
-- I want it to be as less configurable as possible
-- I want it to run fast on my Raspberry Pi Zero W
-
 ## Getting started
 
 Check out [rustdoc](https://eigenein.github.io/my-iot-rs/my_iot/).
