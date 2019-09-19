@@ -12,6 +12,6 @@ Yet another [home automation](https://en.wikipedia.org/wiki/Home_automation). Wr
 [![GitHub issues](https://img.shields.io/github/issues-raw/eigenein/my-iot-rs)](https://github.com/eigenein/my-iot-rs/issues)
 [![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/eigenein/my-iot-rs?color=green)](https://github.com/eigenein/my-iot-rs/issues?q=is%3Aissue+is%3Aclosed)
 
-## Getting started
+## Getting Started
 
 Check out [rustdoc](https://eigenein.github.io/my-iot-rs/my_iot/) and [Wiki](https://github.com/eigenein/my-iot-rs/wiki).
