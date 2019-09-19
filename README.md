@@ -2,8 +2,15 @@
 
 Yet another home automation. Written in Rust.
 
+[![Wiki](https://img.shields.io/badge/-Wiki-orange.svg)](https://github.com/eigenein/my-iot-rs/wiki)
+[![rustdoc](https://img.shields.io/badge/-rustdoc-lightgray.svg)](https://eigenein.github.io/my-iot-rs/my_iot/)
+![Crates.io](https://img.shields.io/crates/v/my-iot)
+![Crates.io](https://img.shields.io/crates/l/my-iot)
+
 [![Build Status](https://travis-ci.com/eigenein/my-iot-rs.svg?branch=master)](https://travis-ci.com/eigenein/my-iot-rs)
-[![Documentation](https://img.shields.io/badge/-Documentation-important.svg)](https://eigenein.github.io/my-iot-rs/my_iot/)
+![GitHub last commit](https://img.shields.io/github/last-commit/eigenein/my-iot-rs)
+![GitHub issues](https://img.shields.io/github/issues-raw/eigenein/my-iot-rs)
+![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/eigenein/my-iot-rs)
 
 ## Why?
 
@@ -13,7 +20,7 @@ Yet another home automation. Written in Rust.
 
 ## Getting started
 
-Check out the [crate documentation](https://eigenein.github.io/my-iot-rs/my_iot/).
+Check out [rustdoc](https://eigenein.github.io/my-iot-rs/my_iot/).
 
 ## How it looks like
 
