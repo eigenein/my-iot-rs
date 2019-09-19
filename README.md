@@ -6,7 +6,6 @@ Yet another [home automation](https://en.wikipedia.org/wiki/Home_automation). Wr
 [![rustdoc](https://img.shields.io/badge/-rustdoc-lightgray.svg?logo=rust)](https://eigenein.github.io/my-iot-rs/my_iot/)
 [![Crates.io](https://img.shields.io/crates/v/my-iot?logo=rust)](https://crates.io/crates/my-iot)
 [![Crates.io](https://img.shields.io/crates/l/my-iot)](https://crates.io/crates/my-iot)
-
 [![Build Status](https://github.com/eigenein/my-iot-rs/workflows/build/badge.svg)](https://github.com/eigenein/my-iot-rs/actions)
 [![GitHub last commit](https://img.shields.io/github/last-commit/eigenein/my-iot-rs?logo=github)](https://github.com/eigenein/my-iot-rs/commits/master)
 [![GitHub issues](https://img.shields.io/github/issues-raw/eigenein/my-iot-rs?logo=github)](https://github.com/eigenein/my-iot-rs/issues)
