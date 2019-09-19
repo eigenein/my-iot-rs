@@ -16,7 +16,7 @@ jobs:
     - name: Make
       run: make
     - name: Check
-      run: cmake check
+      run: make check
     - uses: actions/upload-artifact@master
       with:
         name: cargo-home
