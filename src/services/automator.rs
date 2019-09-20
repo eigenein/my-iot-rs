@@ -20,40 +20,12 @@ use serde::Deserialize;
 use std::sync::{Arc, Mutex};
 
 /// Automator settings.
-///
-/// # Example
-///
-/// ```yaml
-/// services:
-///   heartbeat:
-///     Clock:
-///       interval_ms: 2000
-///   automator:
-///     Automator:
-///       scenarios:
-///         - description: re-emit heartbeat readings
-///           conditions:
-///             - Sensor: heartbeat
-///           actions:
-///             - Message: OneOff
-/// ```
 #[derive(Deserialize, Debug, Clone)]
 pub struct Settings {
     scenarios: Vec<Scenario>,
 }
 
 /// Single automation scenario.
-///
-/// # Example
-///
-/// ```yaml
-/// scenarios:
-///   - description: Re-emit heartbeat readings
-///     conditions:
-///       - Sensor: heartbeat
-///     actions:
-///       - Message: OneOff
-/// ```
 #[derive(Deserialize, Debug, Clone)]
 pub struct Scenario {
     /// User-defined description. Brings no functional effect, but helps to debug scenarios.

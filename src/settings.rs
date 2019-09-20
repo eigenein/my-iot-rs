@@ -1,24 +1,4 @@
-//! # Settings
-//!
-//! My IoT is configured with a single YAML file
-//! which must contain exactly one [`Settings`](struct.Settings.html) object.
-//!
-//! ## Example
-//!
-//! ```yaml
-//! http_port: 8080
-//! services:
-//!   heartbeat_clock:
-//!     Clock:
-//!       interval_ms: 2000
-//!       suffix: heartbeat
-//!   database:
-//!     Db:
-//!       interval_ms: 2000
-//!   schiphol_buienradar:
-//!     Buienradar:
-//!       station_id: 6240
-//! ```
+//! Settings structs.
 
 use crate::services;
 use crate::Result;

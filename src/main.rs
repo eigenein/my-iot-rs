@@ -1,34 +1,4 @@
-//! # Getting started
-//!
-//! Grab a release from [GitHub](https://github.com/eigenein/my-iot-rs/releases) for your architecture
-//!
-//! or, install it via `cargo`:
-//!
-//! ```sh
-//! cargo install my-iot
-//! ```
-//!
-//! or, clone the repo and build it manually:
-//!
-//! ```sh
-//! git clone https://github.com/eigenein/my-iot-rs.git
-//! cd my-iot-rs
-//! make
-//! sudo make install
-//! ```
-//!
-//! Then, you'll need to create a configuration file `settings.yml`. It must contain exactly one object,
-//! please read the [`settings`](settings/index.html) documentation.
-//!
-//! ## File capabilities
-//!
-//! If you're not using `make`, you may need to manually set capabilities on the produced binary:
-//!
-//! ```sh
-//! setcap cap_net_raw+ep /usr/local/bin/my-iot
-//! ```
-//!
-//! This is needed to use some low-level protocols (for instance, ICMP) as a non-root user.
+//! Entry point.
 
 use crate::db::Db;
 use crate::reading::Message;

@@ -1,11 +1,11 @@
 [package]
 name = "my-iot"
 description = "Yet another home automation"
-version = "0.19.4"
+version = "0.19.5"
 authors = ["Pavel Perestoronin <eigenein@gmail.com>"]
 edition = "2018"
 homepage = "https://github.com/eigenein/my-iot-rs"
-documentation = "https://eigenein.github.io/my-iot-rs/my_iot/"
+documentation = "https://github.com/eigenein/my-iot-rs/wiki"
 repository = "https://github.com/eigenein/my-iot-rs"
 publish = true
 readme = "README.md"

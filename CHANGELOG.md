@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.19.5`
+
+- Chore: move docs to Wiki
+
 ## `0.19.4`
 
 - Chore: `cargo update`
