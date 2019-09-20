@@ -1,6 +1,10 @@
 name: build
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
+  pull_request: {}
 
 jobs:
   build:
@@ -13,7 +17,7 @@ jobs:
     - name: Rustup
       run: rustup component add rustfmt clippy
     - uses: actions/checkout@v1
-    - name: Make
-      run: make
+      with:
+        fetch-depth: 1
     - name: Check
       run: make check
