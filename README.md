@@ -10,7 +10,3 @@ Yet another [home automation](https://en.wikipedia.org/wiki/Home_automation). Wr
 [![GitHub last commit](https://img.shields.io/github/last-commit/eigenein/my-iot-rs?logo=github)](https://github.com/eigenein/my-iot-rs/commits/master)
 [![GitHub issues](https://img.shields.io/github/issues-raw/eigenein/my-iot-rs?logo=github)](https://github.com/eigenein/my-iot-rs/issues)
 [![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/eigenein/my-iot-rs?color=green&logo=github)](https://github.com/eigenein/my-iot-rs/issues?q=is%3Aissue+is%3Aclosed)
-
-## Getting Started
-
-Check out [rustdoc](https://eigenein.github.io/my-iot-rs/my_iot/) and [Wiki](https://github.com/eigenein/my-iot-rs/wiki).
