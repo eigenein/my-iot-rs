@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Chore: add `crossorigin="anonymous"` to Font Awesome script
+
 ## `0.19.5`
 
 - Chore: move docs to Wiki
