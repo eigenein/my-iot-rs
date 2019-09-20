@@ -1,3 +1,12 @@
+## Workflow
+
+- Latest code is always in `master`
+- I commit directly to `master` because I don't care (and because I run `make check` locally)
+- Feature branches are deleted after merging
+- Releases are tagged with [annotated tags](https://git-scm.com/book/en/v2/Git-Basics-Tagging)
+- `CHANGELOG.md` is really maintained
+- [Semantic Versioning](https://semver.org/) is used, almost
+
 ## Principles
 
 - Clean code, because it's a learning project
