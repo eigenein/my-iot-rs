@@ -7,6 +7,7 @@
 - Releases are tagged with [annotated tags](https://git-scm.com/book/en/v2/Git-Basics-Tagging)
 - `CHANGELOG.md` is really maintained
 - [Semantic Versioning](https://semver.org/) is used, well… almost
+- Refer to issues in commit messages
 
 ## Principles
 
