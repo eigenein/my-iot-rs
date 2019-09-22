@@ -3,6 +3,7 @@
 ## `master`
 
 - Chore: add `crossorigin="anonymous"` to Font Awesome script
+- Chore: update docs and add redirect to `my_iot`
 
 ## `0.19.5`
 

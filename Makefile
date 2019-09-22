@@ -31,3 +31,4 @@ uninstall:
 html docs:
 	@cargo doc --document-private-items --no-deps
 	@rsync -a --delete target/doc/ docs
+	@echo '<html><head><meta http-equiv="refresh" content="0; url=my_iot"></head></html>' > docs/index.html
