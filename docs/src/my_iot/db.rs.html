@@ -257,10 +257,12 @@
 <span id="257">257</span>
 <span id="258">258</span>
 <span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Database interface.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">reading</span>::<span class="ident">Reading</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">message</span>::<span class="ident">Reading</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">value</span>::<span class="ident">Value</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span>;
 <span class="kw">use</span> <span class="ident">chashmap</span>::<span class="ident">CHashMap</span>;
@@ -300,6 +302,8 @@
         value BLOB,
         expires INTEGER NOT NULL
     );
+
+    -- VACUUM;
 &quot;</span>;
 
 <span class="doccomment">/// A database connection.</span>

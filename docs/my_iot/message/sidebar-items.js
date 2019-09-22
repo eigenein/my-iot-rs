@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["_IMPL_DESERIALIZE_FOR_Type",""]],"enum":[["Type","Message type."]],"struct":[["Message","Services use messages to exchange sensor readings between each other."],["Reading","Single sensor reading."]]});

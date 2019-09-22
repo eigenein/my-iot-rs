@@ -1,6 +1,6 @@
 //! Database interface.
 
-use crate::reading::Reading;
+use crate::message::Reading;
 use crate::value::Value;
 use crate::Result;
 use chashmap::CHashMap;

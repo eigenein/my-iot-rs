@@ -1,6 +1,6 @@
 //! Sensor page.
 
-use crate::reading::Reading;
+use crate::message::Reading;
 use crate::templates;
 use crate::templates::DATE_FORMAT;
 use crate::value::Value;

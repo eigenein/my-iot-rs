@@ -3,6 +3,7 @@
 ## `master`
 
 - Chore: `cargo update`
+- Chore: rename `crate::reading` into `crate::message`
 
 ## `0.20.0`
 

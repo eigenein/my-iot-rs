@@ -3,7 +3,7 @@
 use crate::templates;
 
 markup::define! {
-    Index(readings: Vec<crate::reading::Reading>) {
+    Index(readings: Vec<crate::message::Reading>) {
         section.hero."is-info" {
             div."hero-head" { {templates::navbar::NavBar {}} }
             div."hero-body" {

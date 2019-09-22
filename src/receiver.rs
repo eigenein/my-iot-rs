@@ -1,7 +1,7 @@
 //! Readings receiver that actually processes all readings coming from services.
 
 use crate::db::*;
-use crate::reading::*;
+use crate::message::*;
 use crate::threading;
 use crate::Result;
 use bus::Bus;

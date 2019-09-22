@@ -9,7 +9,7 @@
 //! Basically, this is a case of "multi-producer multi-consumer" pattern.
 
 use crate::db::Db;
-use crate::reading::{Message, Reading, Type};
+use crate::message::{Message, Reading, Type};
 use crate::services::Service;
 use crate::{threading, Result};
 use bus::Bus;

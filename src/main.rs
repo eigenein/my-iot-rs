@@ -1,7 +1,7 @@
 //! Entry point.
 
 use crate::db::Db;
-use crate::reading::Message;
+use crate::message::Message;
 use crate::settings::Settings;
 use bus::Bus;
 use clap::Arg;
@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex};
 pub mod consts;
 pub mod db;
 pub mod logging;
-pub mod reading;
+pub mod message;
 pub mod receiver;
 pub mod services;
 pub mod settings;
