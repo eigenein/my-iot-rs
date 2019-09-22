@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Chore: `cargo update`
+
 ## `0.20.0`
 
 - Chore: add `crossorigin="anonymous"` to Font Awesome script
