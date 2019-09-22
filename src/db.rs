@@ -40,6 +40,8 @@ const SCHEMA: &str = "
         value BLOB,
         expires INTEGER NOT NULL
     );
+
+    -- VACUUM;
 ";
 
 /// A database connection.

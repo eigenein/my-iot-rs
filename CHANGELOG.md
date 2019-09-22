@@ -4,6 +4,7 @@
 
 - Chore: add `crossorigin="anonymous"` to Font Awesome script
 - Chore: update docs and add redirect to `my_iot`
+- Opt: vacuum database on startup #14
 
 ## `0.19.5`
 
