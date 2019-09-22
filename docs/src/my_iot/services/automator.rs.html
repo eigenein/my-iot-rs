@@ -208,7 +208,7 @@
     <span class="ident">SensorContains</span>(<span class="ident">String</span>),
 
     <span class="doccomment">/// At least one of conditions is met.</span>
-    <span class="ident">Or</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Condition</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Condition</span><span class="op">&gt;</span>),
+    <span class="ident">Or</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Condition</span><span class="op">&gt;</span>),
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
@@ -268,7 +268,7 @@
             <span class="ident">Condition</span>::<span class="ident">SensorEndsWith</span>(<span class="ident">suffix</span>) <span class="op">=&gt;</span> <span class="ident">reading</span>.<span class="ident">sensor</span>.<span class="ident">ends_with</span>(<span class="ident">suffix</span>),
             <span class="ident">Condition</span>::<span class="ident">SensorStartsWith</span>(<span class="ident">prefix</span>) <span class="op">=&gt;</span> <span class="ident">reading</span>.<span class="ident">sensor</span>.<span class="ident">starts_with</span>(<span class="ident">prefix</span>),
             <span class="ident">Condition</span>::<span class="ident">SensorContains</span>(<span class="ident">infix</span>) <span class="op">=&gt;</span> <span class="ident">reading</span>.<span class="ident">sensor</span>.<span class="ident">contains</span>(<span class="ident">infix</span>),
-            <span class="ident">Condition</span>::<span class="ident">Or</span>(<span class="ident">condition_1</span>, <span class="ident">condition_2</span>) <span class="op">=&gt;</span> <span class="ident">condition_1</span>.<span class="ident">is_met</span>(<span class="kw-2">&amp;</span><span class="ident">reading</span>) <span class="op">||</span> <span class="ident">condition_2</span>.<span class="ident">is_met</span>(<span class="kw-2">&amp;</span><span class="ident">reading</span>),
+            <span class="ident">Condition</span>::<span class="ident">Or</span>(<span class="ident">conditions</span>) <span class="op">=&gt;</span> <span class="ident">conditions</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">is_met</span>(<span class="kw-2">&amp;</span><span class="ident">reading</span>)),
         }
     }
 }

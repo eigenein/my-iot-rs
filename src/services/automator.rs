@@ -62,7 +62,7 @@ pub enum Condition {
     SensorContains(String),
 
     /// At least one of conditions is met.
-    Or(Box<Condition>, Box<Condition>),
+    Or(Vec<Condition>),
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -122,7 +122,7 @@ impl Condition {
             Condition::SensorEndsWith(suffix) => reading.sensor.ends_with(suffix),
             Condition::SensorStartsWith(prefix) => reading.sensor.starts_with(prefix),
             Condition::SensorContains(infix) => reading.sensor.contains(infix),
-            Condition::Or(condition_1, condition_2) => condition_1.is_met(&reading) || condition_2.is_met(&reading),
+            Condition::Or(conditions) => conditions.iter().any(|c| c.is_met(&reading)),
         }
     }
 }

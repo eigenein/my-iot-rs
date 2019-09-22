@@ -4,6 +4,7 @@
 
 - Chore: `cargo update`
 - Chore: rename `crate::reading` into `crate::message`
+- New: `Condition::Or` is able to accept any number of child conditions
 
 ## `0.20.0`
 
