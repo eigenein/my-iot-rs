@@ -77,10 +77,8 @@ impl Service for Buienradar {
 
         threading::spawn(format!("my-iot::buienradar:{}", &self.service_id), move || loop {
             match self.fetch() {
-                Ok(measurement) => self.send_readings(measurement, &tx).unwrap(),
-                Err(error) => {
-                    log::error!("Buienradar has failed: {}", error);
-                }
+                Ok(measurement) => self.send(measurement, &tx).unwrap(),
+                Err(error) => log::error!("Buienradar has failed: {}", error),
             }
             thread::sleep(REFRESH_PERIOD);
         })?;
@@ -106,19 +104,20 @@ impl Buienradar {
 
     /// Fetch measurement for the configured station.
     fn fetch(&self) -> Result<BuienradarStationMeasurement> {
-        let body = self.client.get(URL).send()?.text()?;
-        let feed: BuienradarFeed = serde_json::from_str(&body)?;
-        Ok(feed
+        self.client
+            .get(URL)
+            .send()?
+            .json::<BuienradarFeed>()?
             .actual
             .station_measurements
             .iter()
             .find(|measurement| measurement.station_id == self.station_id)
-            .ok_or_else(|| format_err!("station {} is not found", self.station_id))?
-            .clone())
+            .cloned()
+            .ok_or_else(|| format_err!("station {} is not found", self.station_id))
     }
 
     /// Sends out readings based on Buienradar station measurement.
-    fn send_readings(&self, measurement: BuienradarStationMeasurement, tx: &Sender<Message>) -> Result<()> {
+    fn send(&self, measurement: BuienradarStationMeasurement, tx: &Sender<Message>) -> Result<()> {
         tx.try_send(Message {
             type_: Type::Actual,
             reading: Reading {

@@ -14,7 +14,7 @@ pub fn spawn(bus: &mut Bus<Message>, db: Arc<Mutex<Db>>) -> Result<()> {
     let rx = bus.add_rx();
     threading::spawn("my-iot::receiver", move || {
         for message in rx {
-            info!("{}: {:?}", &message.reading.sensor, &message.reading.value);
+            info!("{:?}", &message);
             if message.type_ == Type::Actual {
                 db.lock().unwrap().insert_reading(&message.reading).unwrap();
             }

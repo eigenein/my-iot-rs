@@ -43,13 +43,18 @@
 <span id="43">43</span>
 <span id="44">44</span>
 <span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Settings structs.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">services</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Deserialize</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
 
@@ -69,6 +74,9 @@
     <span class="doccomment">/// Each entry is a pair of service ID (defined by user) and service settings.</span>
     <span class="doccomment">/// Service ID is normally used as a sensor prefix, for instance: `service_id:service_sensor`.</span>
     <span class="kw">pub</span> <span class="ident">services</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">ServiceSettings</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// Service IDs to disable.</span>
+    <span class="kw">pub</span> <span class="ident">disabled_services</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// A service configuration.</span>
@@ -84,6 +92,8 @@
     <span class="ident">Nest</span>(<span class="ident">services</span>::<span class="ident">nest</span>::<span class="ident">Settings</span>),
     <span class="doccomment">/// Automation.</span>
     <span class="ident">Automator</span>(<span class="ident">services</span>::<span class="ident">automator</span>::<span class="ident">Settings</span>),
+    <span class="doccomment">/// [Telegram bot](https://core.telegram.org/bots/api) service.</span>
+    <span class="ident">Telegram</span>(<span class="ident">services</span>::<span class="ident">telegram</span>::<span class="ident">Settings</span>),
 }
 
 <span class="kw">fn</span> <span class="ident">default_http_port</span>() <span class="op">-&gt;</span> <span class="ident">u16</span> {

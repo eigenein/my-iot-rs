@@ -3,7 +3,7 @@
 use crate::services;
 use crate::Result;
 use serde::Deserialize;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::path::Path;
 
@@ -23,6 +23,9 @@ pub struct Settings {
     /// Each entry is a pair of service ID (defined by user) and service settings.
     /// Service ID is normally used as a sensor prefix, for instance: `service_id:service_sensor`.
     pub services: HashMap<String, ServiceSettings>,
+
+    /// Service IDs to disable.
+    pub disabled_services: HashSet<String>,
 }
 
 /// A service configuration.
@@ -38,6 +41,8 @@ pub enum ServiceSettings {
     Nest(services::nest::Settings),
     /// Automation.
     Automator(services::automator::Settings),
+    /// [Telegram bot](https://core.telegram.org/bots/api) service.
+    Telegram(services::telegram::Settings),
 }
 
 fn default_http_port() -> u16 {

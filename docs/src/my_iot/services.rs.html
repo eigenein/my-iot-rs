@@ -37,6 +37,8 @@
 <span id="37">37</span>
 <span id="38">38</span>
 <span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implements generic `Service` trait.</span>
 
@@ -53,6 +55,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">clock</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">db</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">nest</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">telegram</span>;
 
 <span class="doccomment">/// A generic service.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Service</span>: <span class="ident">Send</span> {
@@ -75,6 +78,7 @@
         <span class="ident">ServiceSettings</span>::<span class="ident">Buienradar</span>(<span class="ident">settings</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">buienradar</span>::<span class="ident">Buienradar</span>::<span class="ident">new</span>(<span class="ident">service_id</span>, <span class="ident">settings</span>)<span class="question-mark">?</span>)),
         <span class="ident">ServiceSettings</span>::<span class="ident">Nest</span>(<span class="ident">settings</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">nest</span>::<span class="ident">Nest</span>::<span class="ident">new</span>(<span class="ident">service_id</span>, <span class="ident">settings</span>))),
         <span class="ident">ServiceSettings</span>::<span class="ident">Automator</span>(<span class="ident">settings</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">automator</span>::<span class="ident">Automator</span>::<span class="ident">new</span>(<span class="ident">service_id</span>, <span class="ident">settings</span>))),
+        <span class="ident">ServiceSettings</span>::<span class="ident">Telegram</span>(<span class="ident">settings</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">telegram</span>::<span class="ident">Telegram</span>::<span class="ident">new</span>(<span class="ident">service_id</span>, <span class="ident">settings</span>)<span class="question-mark">?</span>)),
     }
 }
 </pre></div>

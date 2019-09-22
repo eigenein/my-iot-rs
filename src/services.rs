@@ -13,6 +13,7 @@ pub mod buienradar;
 pub mod clock;
 pub mod db;
 pub mod nest;
+pub mod telegram;
 
 /// A generic service.
 pub trait Service: Send {
@@ -35,5 +36,6 @@ pub fn new(service_id: &str, settings: &ServiceSettings) -> Result<Box<dyn Servi
         ServiceSettings::Buienradar(settings) => Ok(Box::new(buienradar::Buienradar::new(service_id, settings)?)),
         ServiceSettings::Nest(settings) => Ok(Box::new(nest::Nest::new(service_id, settings))),
         ServiceSettings::Automator(settings) => Ok(Box::new(automator::Automator::new(service_id, settings))),
+        ServiceSettings::Telegram(settings) => Ok(Box::new(telegram::Telegram::new(service_id, settings)?)),
     }
 }

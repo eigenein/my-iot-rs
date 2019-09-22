@@ -2,9 +2,10 @@
 
 ## `master`
 
+- New: initial Telegram support #18
+- New: `Condition::Or` is able to accept any number of child conditions
 - Chore: `cargo update`
 - Chore: rename `crate::reading` into `crate::message`
-- New: `Condition::Or` is able to accept any number of child conditions
 
 ## `0.20.0`
 

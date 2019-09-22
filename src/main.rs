@@ -7,7 +7,7 @@ use bus::Bus;
 use clap::Arg;
 use crossbeam_channel::{Receiver, Sender};
 use failure::Error;
-use log::{debug, info};
+use log::{debug, info, warn};
 use std::sync::{Arc, Mutex};
 
 pub mod consts;
@@ -76,10 +76,14 @@ fn spawn_services(
     tx: &Sender<Message>,
     bus: &mut Bus<Message>,
 ) -> Result<()> {
-    for (service_id, settings) in settings.services.iter() {
-        info!("Spawning service `{}`…", service_id);
-        debug!("Settings `{}`: {:?}", service_id, settings);
-        services::new(service_id, settings)?.spawn(db.clone(), &tx, bus)?;
+    for (service_id, service_settings) in settings.services.iter() {
+        if !settings.disabled_services.contains(service_id.as_str()) {
+            info!("Spawning service `{}`…", service_id);
+            debug!("Settings `{}`: {:?}", service_id, service_settings);
+            services::new(service_id, service_settings)?.spawn(db.clone(), &tx, bus)?;
+        } else {
+            warn!("Service `{}` is disabled.", &service_id);
+        }
     }
     Ok(())
 }

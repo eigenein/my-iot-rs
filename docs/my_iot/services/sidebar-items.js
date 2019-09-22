@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["new","Create a service from the service settings."]],"mod":[["automator","Automation service."],["buienradar",""],["clock",""],["db",""],["nest",""]],"trait":[["Service","A generic service."]]});
+initSidebarItems({"fn":[["new","Create a service from the service settings."]],"mod":[["automator","Automation service."],["buienradar",""],["clock",""],["db",""],["nest",""],["telegram","Telegram bot service able to receive and send messages."]],"trait":[["Service","A generic service."]]});
