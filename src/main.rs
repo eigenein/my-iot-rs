@@ -24,7 +24,7 @@ pub mod web;
 
 type Result<T> = std::result::Result<T, Error>;
 
-const DEFAULT_SETTINGS_PATH: &str = "settings.yml";
+const DEFAULT_SETTINGS_PATH: &str = "my-iot.toml";
 const DEFAULT_DB_PATH: &str = "my-iot.sqlite3";
 
 /// Entry point.

@@ -4,12 +4,12 @@ use crate::services;
 use crate::Result;
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
-use std::fs::File;
+use std::fs;
 use std::path::Path;
 
 /// Read the settings file.
 pub fn read<P: AsRef<Path>>(path: P) -> Result<Settings> {
-    Ok(serde_yaml::from_reader(File::open(path)?)?)
+    toml::from_str(&fs::read_to_string(path)?).map_err(Into::into)
 }
 
 /// Represents a root settings object.
@@ -30,6 +30,7 @@ pub struct Settings {
 
 /// A service configuration.
 #[derive(Deserialize, Debug, Clone)]
+#[serde(tag = "type")]
 pub enum ServiceSettings {
     /// Regularly emits a counter value.
     Clock(services::clock::Settings),

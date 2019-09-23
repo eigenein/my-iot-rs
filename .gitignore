@@ -1,6 +1,6 @@
 *.sqlite3
 *.backup
-settings.yml
+my-iot.toml
 
 # Created by https://www.gitignore.io/api/git,rust,linux,macos,clion,windows,jetbrains+all,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=git,rust,linux,macos,clion,windows,jetbrains+all,visualstudiocode
