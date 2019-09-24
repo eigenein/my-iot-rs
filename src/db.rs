@@ -4,6 +4,7 @@ use crate::message::Reading;
 use crate::value::Value;
 use crate::Result;
 use chrono::prelude::*;
+use log::debug;
 use rusqlite::types::*;
 use rusqlite::{Connection, Row, ToSql, NO_PARAMS};
 use std::collections::HashMap;
@@ -74,6 +75,7 @@ impl Db {
         // Check if the value is already in the database through the cache.
         if let Some(existing) = self.cache.get(&reading.sensor) {
             if existing.timestamp >= reading.timestamp {
+                debug!("Reading is up-to-date: {}.", &reading.sensor);
                 return Ok(());
             }
         }
