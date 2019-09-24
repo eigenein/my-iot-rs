@@ -3,6 +3,7 @@
 ## `master`
 
 - New: send sensor change messages
+- New: scenario conditions and actions are optional
 - Fix: make `disabled_services` setting optional
 - Opt: remove useless database cache
 

@@ -34,9 +34,11 @@ pub struct Scenario {
 
     /// Conditions which trigger a scenario to run. All of them must be met in order to trigger
     /// the scenario.
+    #[serde(default = "Vec::new")]
     conditions: Vec<Condition>,
 
     /// Actions executed when scenario is run.
+    #[serde(default = "Vec::new")]
     actions: Vec<Action>,
 }
 
