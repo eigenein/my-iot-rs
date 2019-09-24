@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["spawn","Start readings receiver thread."]]});
+initSidebarItems({"fn":[["process_message","Process broadcasted message."],["send_messages","Check if sensor value has been updated or changed and send corresponding messages."],["spawn","Start readings receiver thread."]]});
