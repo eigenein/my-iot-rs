@@ -61,7 +61,7 @@ fn main() -> Result<()> {
     // Starting up multi-producer multi-consumer bus.
     let (tx, rx) = crossbeam_channel::bounded(1024);
     let mut bus = Bus::new(1024);
-    receiver::spawn(&mut bus, db.clone())?;
+    receiver::spawn(&mut bus, db.clone(), &tx)?;
     spawn_services(&settings, &db, &tx, &mut bus)?;
     spawn_dispatcher(rx, bus)?;
 

@@ -8,6 +8,8 @@ use std::fmt::{Display, Formatter};
 /// Sensor reading value.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum Value {
+    /// Sensor value change.
+    Change(Box<Value>, Box<Value>),
     /// Generic counter.
     Counter(u64),
     /// Size in [bytes](https://en.wikipedia.org/wiki/Byte).
@@ -39,7 +41,6 @@ impl Value {
     /// Get [CSS color class](https://bulma.io/documentation/modifiers/color-helpers/).
     pub fn class(&self) -> &str {
         match *self {
-            Value::Text(_) | Value::Counter(_) | Value::Size(_) | Value::Metres(_) | Value::ImageUrl(_) => "is-light",
             Value::Bft(number) => match number {
                 0 => "is-light",
                 1..=3 => "is-success",
@@ -63,6 +64,7 @@ impl Value {
                 _ if value < 60.0 => "is-warning",
                 _ => "is-danger",
             },
+            _ => "is-light",
         }
     }
 
@@ -93,6 +95,7 @@ impl Value {
 impl std::fmt::Display for Value {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
+            Value::Change(old, new) => write!(f, r"{} → {}", old, new),
             Value::Counter(count) => write!(f, r"{} times", count),
             Value::Size(size) => f.write_str(&human_format(*size as f64, "B")),
             Value::Text(ref string) => write!(f, r"{}", string),
@@ -151,7 +154,10 @@ impl Display for PointOfTheCompass {
             PointOfTheCompass::Northeast => write!(f, "Northeast"),
             PointOfTheCompass::EastNortheast => write!(f, "East-northeast"),
             PointOfTheCompass::East => write!(f, "East"),
-            // TODO
+            PointOfTheCompass::EastSoutheast => write!(f, "East-southeast"),
+            PointOfTheCompass::Southeast => write!(f, "Southeast"),
+            PointOfTheCompass::SouthSoutheast => write!(f, "South-southeast"),
+            PointOfTheCompass::South => write!(f, "South"),
             PointOfTheCompass::SouthSouthwest => write!(f, "South-southwest"),
             // TODO
             _ => write!(f, "{:?}", self),

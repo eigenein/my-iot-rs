@@ -2,6 +2,7 @@
 
 ## `master`
 
+- New: send sensor change messages
 - Opt: remove useless database cache
 
 ## `0.21.0`
