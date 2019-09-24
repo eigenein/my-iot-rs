@@ -1,6 +1,6 @@
 # `my-iot`
 
-## `master`
+## `0.21.0`
 
 - Break: use TOML instead of YAML for configuration
 - New: initial Telegram support #18
