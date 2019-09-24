@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Opt: remove useless database cache
+
 ## `0.21.0`
 
 - Break: use TOML instead of YAML for configuration
