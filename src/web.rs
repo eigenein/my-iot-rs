@@ -38,7 +38,7 @@ pub fn start_server(settings: Settings, db: Arc<Mutex<Db>>) -> ! {
 
 /// Get index page response.
 fn index(db: &Arc<Mutex<Db>>) -> Response {
-    let readings = { db.lock().unwrap().select_latest_readings().unwrap() };
+    let readings = { db.lock().unwrap().select_latest_readings() };
     Response::html(
         base::Base {
             body: Box::new(index::Index { readings }),
@@ -49,7 +49,7 @@ fn index(db: &Arc<Mutex<Db>>) -> Response {
 
 /// Get sensor page response.
 fn get_sensor(db: &Arc<Mutex<Db>>, sensor: &str) -> Response {
-    let last = db.lock().unwrap().select_last_reading(&sensor).unwrap();
+    let last = db.lock().unwrap().select_last_reading(&sensor);
     let readings = db
         .lock()
         .unwrap()
@@ -71,7 +71,7 @@ fn get_sensor(db: &Arc<Mutex<Db>>, sensor: &str) -> Response {
 
 /// Get last sensor value JSON response.
 fn get_sensor_json(db: &Arc<Mutex<Db>>, sensor: &str) -> Response {
-    match db.lock().unwrap().select_last_reading(&sensor).unwrap() {
+    match db.lock().unwrap().select_last_reading(&sensor) {
         Some(reading) => Response::json(&json!({
             "value": &reading.value,
             "timestamp": &reading.timestamp,

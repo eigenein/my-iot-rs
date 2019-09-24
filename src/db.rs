@@ -3,10 +3,10 @@
 use crate::message::Reading;
 use crate::value::Value;
 use crate::Result;
-use chashmap::CHashMap;
 use chrono::prelude::*;
 use rusqlite::types::*;
 use rusqlite::{Connection, Row, ToSql, NO_PARAMS};
+use std::collections::HashMap;
 use std::path::Path;
 
 const SCHEMA: &str = "
@@ -50,7 +50,7 @@ pub struct Db {
     connection: Connection,
 
     /// Readings cache. Stores the latest reading for each sensor.
-    _cache: CHashMap<String, Reading>,
+    cache: HashMap<String, Reading>,
 }
 
 impl Db {
@@ -58,65 +58,39 @@ impl Db {
     pub fn new<P: AsRef<Path>>(path: P) -> Result<Db> {
         let connection = Connection::open(path)?;
         connection.execute_batch(SCHEMA)?;
-        Ok(Db {
-            connection,
-            _cache: CHashMap::new(),
-        })
-    }
-}
-
-/// Serializes value to JSON.
-impl ToSql for Value {
-    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput> {
-        match serde_json::to_string(&self) {
-            Ok(string) => Ok(ToSqlOutput::Owned(rusqlite::types::Value::Text(string))),
-            Err(error) => Err(rusqlite::Error::ToSqlConversionFailure(Box::new(error))),
-        }
-    }
-}
-
-/// De-serializes value from JSON.
-impl FromSql for Value {
-    fn column_result(value: ValueRef) -> FromSqlResult<Self> {
-        match serde_json::from_str(value.as_str()?) {
-            Ok(value) => Ok(value),
-            Err(error) => Err(FromSqlError::Other(Box::new(error))),
-        }
-    }
-}
-
-/// Initializes reading from database row.
-impl From<&Row<'_>> for Reading {
-    fn from(row: &Row<'_>) -> Self {
-        Reading {
-            sensor: row.get_unwrap("sensor"),
-            timestamp: Local.timestamp_millis(row.get_unwrap("ts")),
-            value: row.get_unwrap("value"),
-        }
+        let readings = select_latest_readings(&connection)?;
+        let cache = readings.into_iter().map(|r| (r.sensor.clone(), r)).collect();
+        let db = Db { connection, cache };
+        Ok(db)
     }
 }
 
 /// Readings persistence.
 impl Db {
     /// Insert reading into database.
-    pub fn insert_reading(&self, reading: &Reading) -> Result<()> {
+    ///
+    /// Important: readings older than the latest one will be ignored.
+    pub fn insert_reading(&mut self, reading: &Reading) -> Result<()> {
+        // Check if the value is already in the database through the cache.
+        if let Some(existing) = self.cache.get(&reading.sensor) {
+            if existing.timestamp >= reading.timestamp {
+                return Ok(());
+            }
+        }
         self.connection
-            .prepare_cached("INSERT OR REPLACE INTO readings (sensor, ts, value) VALUES (?1, ?2, ?3)")?
+            .prepare_cached("INSERT INTO readings (sensor, ts, value) VALUES (?1, ?2, ?3)")?
             .execute(&[
                 &reading.sensor as &dyn ToSql,
                 &reading.timestamp.timestamp_millis(),
                 &reading.value,
             ])?;
+        self.cache.insert(reading.sensor.clone(), reading.clone());
         Ok(())
     }
 
     /// Select latest reading for each sensor.
-    pub fn select_latest_readings(&self) -> Result<Vec<Reading>> {
-        self.connection
-            .prepare_cached("SELECT sensor, MAX(ts) as ts, value FROM readings GROUP BY sensor")?
-            .query_map(NO_PARAMS, |row| Ok(Reading::from(row)))?
-            .map(|result| result.map_err(|e| e.into()))
-            .collect()
+    pub fn select_latest_readings(&self) -> Vec<Reading> {
+        self.cache.values().cloned().collect()
     }
 
     /// Select database size in bytes.
@@ -129,12 +103,8 @@ impl Db {
     }
 
     /// Select the very last sensor reading.
-    pub fn select_last_reading(&self, sensor: &str) -> Result<Option<Reading>> {
-        Ok(self
-            .connection
-            .prepare_cached("SELECT sensor, ts, value FROM readings WHERE sensor = ?1 ORDER BY ts DESC LIMIT 1")?
-            .query_row(&[&sensor as &dyn ToSql], |row| Ok(Some(Reading::from(row))))
-            .unwrap_or(None))
+    pub fn select_last_reading(&self, sensor: &str) -> Option<Reading> {
+        self.cache.get(sensor).cloned()
     }
 
     /// Select the latest sensor readings within the given time interval.
@@ -189,6 +159,46 @@ impl Db {
                 &expires_at.into().timestamp_millis(),
             ])?;
         Ok(())
+    }
+}
+
+/// Select latest reading for each sensor directly from the database connection.
+fn select_latest_readings(connection: &Connection) -> Result<Vec<Reading>> {
+    connection
+        .prepare_cached("SELECT sensor, MAX(ts) as ts, value FROM readings GROUP BY sensor")?
+        .query_map(NO_PARAMS, |row| Ok(Reading::from(row)))?
+        .map(|result| result.map_err(|e| e.into()))
+        .collect()
+}
+
+/// Serializes value to JSON.
+impl ToSql for Value {
+    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput> {
+        match serde_json::to_string(&self) {
+            Ok(string) => Ok(ToSqlOutput::Owned(rusqlite::types::Value::Text(string))),
+            Err(error) => Err(rusqlite::Error::ToSqlConversionFailure(Box::new(error))),
+        }
+    }
+}
+
+/// De-serializes value from JSON.
+impl FromSql for Value {
+    fn column_result(value: ValueRef) -> FromSqlResult<Self> {
+        match serde_json::from_str(value.as_str()?) {
+            Ok(value) => Ok(value),
+            Err(error) => Err(FromSqlError::Other(Box::new(error))),
+        }
+    }
+}
+
+/// Initializes reading from database row.
+impl From<&Row<'_>> for Reading {
+    fn from(row: &Row<'_>) -> Self {
+        Reading {
+            sensor: row.get_unwrap("sensor"),
+            timestamp: Local.timestamp_millis(row.get_unwrap("ts")),
+            value: row.get_unwrap("value"),
+        }
     }
 }
 
@@ -253,9 +263,40 @@ mod tests {
             value: Value::Counter(42),
             timestamp: Local.timestamp_millis(1_566_424_128_000),
         };
-        let db = Db::new(":memory:")?;
+        let mut db = Db::new(":memory:")?;
         db.insert_reading(&reading)?;
-        assert_eq!(db.select_last_reading("test")?, Some(reading));
+        assert_eq!(db.select_last_reading("test"), Some(reading));
+        Ok(())
+    }
+
+    #[test]
+    fn overwrite_and_select_last_reading() -> Result {
+        let mut db = Db::new(":memory:")?;
+        db.insert_reading(&Reading {
+            sensor: "test".into(),
+            value: Value::Counter(42),
+            timestamp: Local.timestamp_millis(1_566_424_127_000),
+        })?;
+        let new = Reading {
+            sensor: "test".into(),
+            value: Value::Counter(42),
+            timestamp: Local.timestamp_millis(1_566_424_128_000),
+        };
+        db.insert_reading(&new)?;
+        assert_eq!(db.select_last_reading("test"), Some(new));
+        Ok(())
+    }
+
+    #[test]
+    fn select_latest_readings() -> Result {
+        let reading = Reading {
+            sensor: "test".into(),
+            value: Value::Counter(42),
+            timestamp: Local.timestamp_millis(1_566_424_128_000),
+        };
+        let mut db = Db::new(":memory:")?;
+        db.insert_reading(&reading)?;
+        assert_eq!(db.select_latest_readings(), vec![reading]);
         Ok(())
     }
 }

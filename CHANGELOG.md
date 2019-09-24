@@ -5,6 +5,7 @@
 - Break: use TOML instead of YAML for configuration
 - New: initial Telegram support #18
 - New: `Condition::Or` is able to accept any number of child conditions
+- Opt: speed up database with cache #23
 - Chore: `cargo update`
 - Chore: rename `crate::reading` into `crate::message`
 
