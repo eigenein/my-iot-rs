@@ -64,7 +64,7 @@ impl Db {
     /// Insert reading into database.
     pub fn insert_reading(&self, reading: &Reading) -> Result<()> {
         self.connection
-            .prepare_cached("INSERT INTO readings (sensor, ts, value) VALUES (?1, ?2, ?3)")?
+            .prepare_cached("INSERT OR REPLACE INTO readings (sensor, ts, value) VALUES (?1, ?2, ?3)")?
             .execute(&[
                 &reading.sensor as &dyn ToSql,
                 &reading.timestamp.timestamp_millis(),
@@ -241,6 +241,19 @@ mod tests {
     }
 
     #[test]
+    fn insert_reading_twice_should_succeed() -> Result {
+        let reading = Reading {
+            sensor: "test".into(),
+            value: Value::Counter(42),
+            timestamp: Local.timestamp_millis(1_566_424_128_000),
+        };
+        let db = Db::new(":memory:")?;
+        db.insert_reading(&reading)?;
+        db.insert_reading(&reading)?;
+        Ok(())
+    }
+
+    #[test]
     fn select_last_reading() -> Result {
         let reading = Reading {
             sensor: "test".into(),
@@ -254,7 +267,7 @@ mod tests {
     }
 
     #[test]
-    fn overwrite_and_select_last_reading() -> Result {
+    fn select_last_reading_returns_newer_reading() -> Result {
         let db = Db::new(":memory:")?;
         db.insert_reading(&Reading {
             sensor: "test".into(),
