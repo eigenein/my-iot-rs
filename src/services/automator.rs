@@ -62,9 +62,8 @@ pub enum Condition {
 
 #[derive(Deserialize, Debug, Clone)]
 pub enum Action {
-    /// Emit a message with original value and sensor concatenated from the automator
-    /// service ID and original sensor.
-    Repeat(Type),
+    /// Emit a message with the original value and custom message type and sensor.
+    Repeat(Type, String),
 }
 
 /// Automation service.
@@ -123,13 +122,13 @@ impl Condition {
 }
 
 impl Action {
-    pub fn execute(&self, service_id: &str, reading: &Reading, tx: &Sender<Message>) -> Result<()> {
+    pub fn execute(&self, _service_id: &str, reading: &Reading, tx: &Sender<Message>) -> Result<()> {
         match self {
-            Action::Message(type_) => tx
+            Action::Repeat(type_, sensor) => tx
                 .try_send(Message {
                     type_: *type_,
                     reading: Reading {
-                        sensor: format!("{}::{}", &service_id, &reading.sensor),
+                        sensor: sensor.into(),
                         timestamp: Local::now(),
                         value: reading.value.clone(),
                     },
