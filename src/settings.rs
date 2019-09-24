@@ -25,6 +25,7 @@ pub struct Settings {
     pub services: HashMap<String, ServiceSettings>,
 
     /// Service IDs to disable.
+    #[serde(default = "HashSet::new")]
     pub disabled_services: HashSet<String>,
 }
 

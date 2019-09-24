@@ -3,6 +3,7 @@
 ## `master`
 
 - New: send sensor change messages
+- Fix: make `disabled_services` setting optional
 - Opt: remove useless database cache
 
 ## `0.21.0`
