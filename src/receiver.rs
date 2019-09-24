@@ -48,7 +48,7 @@ fn check_for_change(existing: &Option<Reading>, message: &Message, tx: &Sender<M
             tx.send(Message {
                 type_: Type::OneOff,
                 reading: Reading {
-                    sensor: format!("{}::changed", &message.reading.sensor),
+                    sensor: format!("{}::update", &message.reading.sensor),
                     value: Value::Update(
                         Box::new(existing.value.clone()),
                         Box::new(message.reading.value.clone()),
