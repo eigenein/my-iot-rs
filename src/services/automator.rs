@@ -45,13 +45,6 @@ pub struct Scenario {
 #[derive(Deserialize, Debug, Clone)]
 pub enum Condition {
     /// Sensor matches a specified string.
-    ///
-    /// # Example
-    ///
-    /// ```yaml
-    /// conditions:
-    //    - Sensor: heartbeat
-    /// ```
     Sensor(String),
 
     /// Sensor ends with a specified string.
@@ -69,9 +62,9 @@ pub enum Condition {
 
 #[derive(Deserialize, Debug, Clone)]
 pub enum Action {
-    /// Emit a simple reading with original reading value and sensor concatenated from the automator
+    /// Emit a message with original value and sensor concatenated from the automator
     /// service ID and original sensor.
-    Message(Type),
+    Repeat(Type),
 }
 
 /// Automation service.
