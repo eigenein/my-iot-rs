@@ -118,7 +118,7 @@ impl Buienradar {
 
     /// Sends out readings based on Buienradar station measurement.
     fn send(&self, measurement: BuienradarStationMeasurement, tx: &Sender<Message>) -> Result<()> {
-        tx.try_send(Message {
+        tx.send(Message {
             type_: Type::Actual,
             reading: Reading {
                 sensor: format!("{}::{}::name", &self.service_id, self.station_id),
@@ -126,7 +126,7 @@ impl Buienradar {
                 timestamp: measurement.timestamp,
             },
         })?;
-        tx.try_send(Message {
+        tx.send(Message {
             type_: Type::Actual,
             reading: Reading {
                 sensor: format!("{}::{}::weather_description", &self.service_id, self.station_id),
@@ -135,7 +135,7 @@ impl Buienradar {
             },
         })?;
         if let Some(degrees) = measurement.temperature {
-            tx.try_send(Message {
+            tx.send(Message {
                 type_: Type::Actual,
                 reading: Reading {
                     sensor: format!("{}::{}::temperature", &self.service_id, self.station_id),
@@ -145,7 +145,7 @@ impl Buienradar {
             })?;
         }
         if let Some(degrees) = measurement.ground_temperature {
-            tx.try_send(Message {
+            tx.send(Message {
                 type_: Type::Actual,
                 reading: Reading {
                     sensor: format!("{}::{}::ground_temperature", &self.service_id, self.station_id),
@@ -155,7 +155,7 @@ impl Buienradar {
             })?;
         }
         if let Some(degrees) = measurement.feel_temperature {
-            tx.try_send(Message {
+            tx.send(Message {
                 type_: Type::Actual,
                 reading: Reading {
                     sensor: format!("{}::{}::feel_temperature", &self.service_id, self.station_id),
@@ -165,7 +165,7 @@ impl Buienradar {
             })?;
         }
         if let Some(bft) = measurement.wind_speed_bft {
-            tx.try_send(Message {
+            tx.send(Message {
                 type_: Type::Actual,
                 reading: Reading {
                     sensor: format!("{}::{}::wind_speed_bft", &self.service_id, self.station_id),
@@ -175,7 +175,7 @@ impl Buienradar {
             })?;
         }
         if let Some(point) = measurement.wind_direction {
-            tx.try_send(Message {
+            tx.send(Message {
                 type_: Type::Actual,
                 reading: Reading {
                     sensor: format!("{}::{}::wind_direction", &self.service_id, self.station_id),

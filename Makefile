@@ -13,10 +13,10 @@ clean:
 
 .PHONY: check
 check:
-	@cargo fmt --all -- --check
-	@cargo clippy --all-targets --all-features -- -D warnings
-	@cargo generate-lockfile --locked
 	@RUST_BACKTRACE=1 cargo test
+	@cargo generate-lockfile --locked
+	@cargo clippy --all-targets --all-features -- -D warnings
+	@cargo fmt --all -- --check
 
 .PHONY: install
 install:

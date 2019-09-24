@@ -60,7 +60,7 @@ impl Nest {
         let now = Local::now();
 
         for (id, thermostat) in event.data.devices.thermostats.iter() {
-            tx.try_send(Message {
+            tx.send(Message {
                 type_: Type::Actual,
                 reading: Reading {
                     sensor: format!("{}::thermostat::{}::ambient_temperature", &self.service_id, &id),
@@ -68,7 +68,7 @@ impl Nest {
                     timestamp: now,
                 },
             })?;
-            tx.try_send(Message {
+            tx.send(Message {
                 type_: Type::Actual,
                 reading: Reading {
                     sensor: format!("{}::thermostat::{}::humidity", &self.service_id, &id),
@@ -79,7 +79,7 @@ impl Nest {
         }
 
         for (id, camera) in event.data.devices.cameras.iter() {
-            tx.try_send(Message {
+            tx.send(Message {
                 type_: Type::Actual,
                 reading: Reading {
                     sensor: format!("{}::camera::{}::snapshot_url", &self.service_id, &id),

@@ -6,7 +6,6 @@ use crate::threading;
 use crate::value::Value;
 use crate::Result;
 use bus::Bus;
-use chrono::Local;
 use crossbeam_channel::Sender;
 use log::{debug, info};
 use std::sync::{Arc, Mutex};
@@ -35,27 +34,32 @@ fn process_message(message: Message, db: &Arc<Mutex<Db>>, tx: &Sender<Message>) 
     debug!("{:?}", &message);
     if message.type_ == Type::Actual {
         let db = db.lock().unwrap();
-        check_for_change(&db.select_last_reading(&message.reading.sensor)?, &message, &tx)?;
+        let previous_reading = db.select_last_reading(&message.reading.sensor)?;
         db.insert_reading(&message.reading)?;
+        send_messages(&previous_reading, &message, &tx)?;
     }
     Ok(())
 }
 
-/// Check if sensor value has changed and send a change message.
-fn check_for_change(existing: &Option<Reading>, message: &Message, tx: &Sender<Message>) -> Result<()> {
-    if let Some(existing) = existing {
-        if existing.timestamp < message.reading.timestamp {
-            tx.send(Message {
-                type_: Type::OneOff,
-                reading: Reading {
-                    sensor: format!("{}::update", &message.reading.sensor),
-                    value: Value::Update(
-                        Box::new(existing.value.clone()),
-                        Box::new(message.reading.value.clone()),
-                    ),
-                    timestamp: Local::now(),
-                },
-            })?;
+/// Check if sensor value has been updated or changed and send corresponding messages.
+fn send_messages(previous_reading: &Option<Reading>, message: &Message, tx: &Sender<Message>) -> Result<()> {
+    if let Some(existing) = previous_reading {
+        if message.reading.timestamp > existing.timestamp {
+            tx.send(Message::now(
+                Type::OneOff,
+                format!("{}::update", &message.reading.sensor),
+                Value::Update(
+                    Box::new(existing.value.clone()),
+                    Box::new(message.reading.value.clone()),
+                ),
+            ))?;
+            if message.reading.value != existing.value {
+                tx.send(Message::now(
+                    Type::OneOff,
+                    format!("{}::change", &message.reading.sensor),
+                    message.reading.value.clone(),
+                ))?;
+            }
         }
     }
     Ok(())

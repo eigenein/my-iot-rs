@@ -44,3 +44,16 @@ pub enum Type {
     /// Used to control other services. One service may send this to control a sensor of another service.
     Control,
 }
+
+impl Message {
+    pub fn now<S: Into<String>>(type_: Type, sensor: S, value: Value) -> Message {
+        Message {
+            type_,
+            reading: Reading {
+                value,
+                timestamp: Local::now(),
+                sensor: sensor.into(),
+            },
+        }
+    }
+}

@@ -1,8 +1,8 @@
-comment_width = 120
-imports_layout = "HorizontalVertical"
-merge_imports = true
 max_width = 120
-reorder_impl_items = true
-format_code_in_doc_comments = true
-trailing_comma = "Vertical"
-normalize_doc_attributes = true
+# comment_width = 120
+# imports_layout = "HorizontalVertical"
+# merge_imports = true
+# reorder_impl_items = true
+# format_code_in_doc_comments = true
+# trailing_comma = "Vertical"
+# normalize_doc_attributes = true

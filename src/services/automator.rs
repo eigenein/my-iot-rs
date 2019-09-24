@@ -13,7 +13,6 @@ use crate::message::{Message, Reading, Type};
 use crate::services::Service;
 use crate::{threading, Result};
 use bus::Bus;
-use chrono::Local;
 use crossbeam_channel::Sender;
 use log::{debug, info};
 use serde::Deserialize;
@@ -23,6 +22,49 @@ use std::sync::{Arc, Mutex};
 #[derive(Deserialize, Debug, Clone)]
 pub struct Settings {
     scenarios: Vec<Scenario>,
+}
+
+/// Automation service.
+pub struct Automator {
+    service_id: String,
+    settings: Settings,
+}
+
+impl Automator {
+    pub fn new(service_id: &str, settings: &Settings) -> Automator {
+        Automator {
+            service_id: service_id.into(),
+            settings: settings.clone(),
+        }
+    }
+}
+
+impl Service for Automator {
+    fn spawn(self: Box<Self>, db: Arc<Mutex<Db>>, tx: &Sender<Message>, bus: &mut Bus<Message>) -> Result<()> {
+        let tx = tx.clone();
+        let rx = bus.add_rx();
+
+        threading::spawn(format!("my-iot::automator:{}", &self.service_id), move || {
+            for message in rx {
+                for scenario in self.settings.scenarios.iter() {
+                    if scenario.conditions.iter().all(|c| c.is_met(&message.reading)) {
+                        info!(
+                            r#"{} triggered scenario: "{}"."#,
+                            &message.reading.sensor, scenario.description
+                        );
+                        for action in scenario.actions.iter() {
+                            action.execute(&self.service_id, &db, &message.reading, &tx).unwrap();
+                        }
+                    } else {
+                        debug!("Skipped: {}.", &message.reading.sensor);
+                    }
+                }
+            }
+            unreachable!();
+        })?;
+
+        Ok(())
+    }
 }
 
 /// Single automation scenario.
@@ -60,55 +102,6 @@ pub enum Condition {
     Or(Vec<Condition>),
 }
 
-#[derive(Deserialize, Debug, Clone)]
-pub enum Action {
-    /// Emit a message with the original value and custom message type and sensor.
-    Repeat(Type, String),
-}
-
-/// Automation service.
-pub struct Automator {
-    service_id: String,
-    settings: Settings,
-}
-
-impl Automator {
-    pub fn new(service_id: &str, settings: &Settings) -> Automator {
-        Automator {
-            service_id: service_id.into(),
-            settings: settings.clone(),
-        }
-    }
-}
-
-impl Service for Automator {
-    fn spawn(self: Box<Self>, _db: Arc<Mutex<Db>>, tx: &Sender<Message>, bus: &mut Bus<Message>) -> Result<()> {
-        let tx = tx.clone();
-        let rx = bus.add_rx();
-
-        threading::spawn(format!("my-iot::automator:{}", &self.service_id), move || {
-            for message in rx {
-                for scenario in self.settings.scenarios.iter() {
-                    if scenario.conditions.iter().all(|c| c.is_met(&message.reading)) {
-                        info!(
-                            r#"{} triggered scenario: "{}"."#,
-                            &message.reading.sensor, scenario.description
-                        );
-                        for action in scenario.actions.iter() {
-                            action.execute(&self.service_id, &message.reading, &tx).unwrap();
-                        }
-                    } else {
-                        debug!("Skipped: {}.", &message.reading.sensor);
-                    }
-                }
-            }
-            unreachable!();
-        })?;
-
-        Ok(())
-    }
-}
-
 impl Condition {
     pub fn is_met(&self, reading: &Reading) -> bool {
         match self {
@@ -121,19 +114,57 @@ impl Condition {
     }
 }
 
+#[derive(Deserialize, Debug, Clone)]
+#[serde(tag = "action")]
+pub enum Action {
+    /// Emit a message with the original value and custom message type and sensor.
+    Repeat(RepeatParameters),
+
+    /// Read the last sensor value and emit a message with the same value but custom sensor and type.
+    /// If the former is missing, then no message will be sent.
+    ReadSensor(ReadSensorParameters),
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct RepeatParameters {
+    target_type: Type,
+    target_sensor: String,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct ReadSensorParameters {
+    source_sensor: String,
+    target_type: Type,
+    target_sensor: String,
+}
+
 impl Action {
-    pub fn execute(&self, _service_id: &str, reading: &Reading, tx: &Sender<Message>) -> Result<()> {
+    pub fn execute(
+        &self,
+        _service_id: &str,
+        db: &Arc<Mutex<Db>>,
+        reading: &Reading,
+        tx: &Sender<Message>,
+    ) -> Result<()> {
         match self {
-            Action::Repeat(type_, sensor) => tx
-                .try_send(Message {
-                    type_: *type_,
-                    reading: Reading {
-                        sensor: sensor.into(),
-                        timestamp: Local::now(),
-                        value: reading.value.clone(),
-                    },
-                })
-                .map_err(|e| e.into()),
+            Action::Repeat(parameters) => {
+                tx.send(Message::now(
+                    parameters.target_type,
+                    &parameters.target_sensor,
+                    reading.value.clone(),
+                ))?;
+                Ok(())
+            }
+            Action::ReadSensor(parameters) => {
+                if let Some(source) = db.lock().unwrap().select_last_reading(&parameters.source_sensor)? {
+                    tx.send(Message::now(
+                        parameters.target_type,
+                        &parameters.target_sensor,
+                        source.value,
+                    ))?
+                }
+                Ok(())
+            }
         }
     }
 }
