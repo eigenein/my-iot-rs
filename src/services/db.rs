@@ -1,9 +1,7 @@
 use crate::message::{Message, Reading, Type};
-use crate::services::Service;
 use crate::threading;
 use crate::value::Value;
 use crate::Result;
-use bus::Bus;
 use chrono::Local;
 use crossbeam_channel::Sender;
 use serde::Deserialize;
@@ -11,52 +9,43 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-pub struct Db {
-    service_id: String,
-    interval: Duration,
-}
-
 #[derive(Deserialize, Debug, Clone)]
 pub struct Settings {
     /// Interval in milliseconds.
-    pub interval_ms: Option<u64>,
+    #[serde(default = "default_interval_ms")]
+    pub interval_ms: u64,
 }
 
-impl Db {
-    pub fn new(service_id: &str, settings: &Settings) -> Db {
-        Db {
-            service_id: service_id.into(),
-            interval: Duration::from_millis(settings.interval_ms.unwrap_or(1000)),
-        }
-    }
+fn default_interval_ms() -> u64 {
+    60000
 }
 
-impl Service for Db {
-    fn spawn(
-        self: Box<Self>,
-        db: Arc<Mutex<crate::db::Db>>,
-        tx: &Sender<Message>,
-        _rx: &mut Bus<Message>,
-    ) -> Result<()> {
-        let tx = tx.clone();
-        let sensor = format!("{}::size", &self.service_id);
+pub fn spawn(
+    service_id: &str,
+    settings: &Settings,
+    db: &Arc<Mutex<crate::db::Db>>,
+    tx: &Sender<Message>,
+) -> Result<()> {
+    let interval = Duration::from_millis(settings.interval_ms);
+    let tx = tx.clone();
+    let sensor = format!("{}::size", service_id);
+    let db = db.clone();
 
-        threading::spawn(format!("my-iot::db:{}", &self.service_id), move || loop {
-            let size = { db.lock().unwrap().select_size().unwrap() };
+    threading::spawn(format!("my-iot::db:{}", service_id), move || loop {
+        let size = { db.lock().unwrap().select_size().unwrap() };
 
-            tx.send(Message {
-                type_: Type::Actual,
-                reading: Reading {
-                    sensor: sensor.clone(),
-                    value: Value::Size(size),
-                    timestamp: Local::now(),
-                },
-            })
-            .unwrap();
+        tx.send(Message {
+            type_: Type::Actual,
+            reading: Reading {
+                sensor: sensor.clone(),
+                value: Value::Size(size),
+                timestamp: Local::now(),
+            },
+        })
+        .unwrap();
 
-            thread::sleep(self.interval);
-        })?;
+        thread::sleep(interval);
+    })?;
 
-        Ok(())
-    }
+    Ok(())
 }

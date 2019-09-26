@@ -10,7 +10,6 @@
 
 use crate::db::Db;
 use crate::message::{Message, Reading, Type};
-use crate::services::Service;
 use crate::{threading, Result};
 use bus::Bus;
 use crossbeam_channel::Sender;
@@ -24,47 +23,39 @@ pub struct Settings {
     scenarios: Vec<Scenario>,
 }
 
-/// Automation service.
-pub struct Automator {
-    service_id: String,
-    settings: Settings,
-}
+pub fn spawn(
+    service_id: &str,
+    settings: &Settings,
+    db: &Arc<Mutex<Db>>,
+    tx: &Sender<Message>,
+    bus: &mut Bus<Message>,
+) -> Result<()> {
+    let tx = tx.clone();
+    let rx = bus.add_rx();
+    let db = db.clone();
+    let service_id = service_id.to_string();
+    let settings = settings.clone();
 
-impl Automator {
-    pub fn new(service_id: &str, settings: &Settings) -> Automator {
-        Automator {
-            service_id: service_id.into(),
-            settings: settings.clone(),
-        }
-    }
-}
-
-impl Service for Automator {
-    fn spawn(self: Box<Self>, db: Arc<Mutex<Db>>, tx: &Sender<Message>, bus: &mut Bus<Message>) -> Result<()> {
-        let tx = tx.clone();
-        let rx = bus.add_rx();
-
-        threading::spawn(format!("my-iot::automator:{}", &self.service_id), move || {
-            for message in rx {
-                for scenario in self.settings.scenarios.iter() {
-                    if scenario.conditions.iter().all(|c| c.is_met(&message.reading)) {
-                        info!(
-                            r#"{} triggered scenario: "{}"."#,
-                            &message.reading.sensor, scenario.description
-                        );
-                        for action in scenario.actions.iter() {
-                            action.execute(&self.service_id, &db, &message.reading, &tx).unwrap();
-                        }
-                    } else {
-                        debug!("Skipped: {}.", &message.reading.sensor);
+    threading::spawn(format!("my-iot::automator:{}", &service_id), move || {
+        for message in rx {
+            for scenario in settings.scenarios.iter() {
+                if scenario.conditions.iter().all(|c| c.is_met(&message.reading)) {
+                    info!(
+                        r#"{} triggered scenario: "{}"."#,
+                        &message.reading.sensor, scenario.description
+                    );
+                    for action in scenario.actions.iter() {
+                        action.execute(&service_id, &db, &message.reading, &tx).unwrap();
                     }
+                } else {
+                    debug!("Skipped: {}.", &message.reading.sensor);
                 }
             }
-            unreachable!();
-        })?;
+        }
+        unreachable!();
+    })?;
 
-        Ok(())
-    }
+    Ok(())
 }
 
 /// Single automation scenario.

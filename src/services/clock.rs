@@ -1,57 +1,46 @@
-use crate::db::Db;
 use crate::message::*;
 use crate::threading;
 use crate::value::Value;
 use crate::Result;
-use bus::Bus;
 use chrono::Local;
 use crossbeam_channel::Sender;
 use serde::Deserialize;
-use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
-
-pub struct Clock {
-    service_id: String,
-    interval: Duration,
-    counter: u64,
-}
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct Settings {
     /// Interval in milliseconds.
-    pub interval_ms: Option<u64>,
+    #[serde(default = "default_interval_ms")]
+    pub interval_ms: u64,
 }
 
-impl Clock {
-    pub fn new(service_id: &str, settings: &Settings) -> Clock {
-        Clock {
-            service_id: service_id.into(),
-            interval: Duration::from_millis(settings.interval_ms.unwrap_or(1000)),
-            counter: 0,
-        }
-    }
+fn default_interval_ms() -> u64 {
+    1000
 }
 
-impl crate::services::Service for Clock {
-    fn spawn(mut self: Box<Self>, _db: Arc<Mutex<Db>>, tx: &Sender<Message>, _rx: &mut Bus<Message>) -> Result<()> {
-        let tx = tx.clone();
+pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Result<()> {
+    let service_id = service_id.to_string();
+    let interval = Duration::from_millis(settings.interval_ms);
+    let tx = tx.clone();
 
-        threading::spawn(format!("my-iot::clock:{}", &self.service_id), move || loop {
+    threading::spawn(format!("my-iot::clock:{}", service_id), move || {
+        let mut counter = 1;
+        loop {
             tx.send(Message {
                 type_: Type::Actual,
                 reading: Reading {
-                    sensor: self.service_id.clone(),
-                    value: Value::Counter(self.counter),
+                    sensor: service_id.to_string(),
+                    value: Value::Counter(counter),
                     timestamp: Local::now(),
                 },
             })
             .unwrap();
 
-            self.counter += 1;
-            thread::sleep(self.interval);
-        })?;
+            counter += 1;
+            thread::sleep(interval);
+        }
+    })?;
 
-        Ok(())
-    }
+    Ok(())
 }

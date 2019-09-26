@@ -1,17 +1,14 @@
 use crate::consts::USER_AGENT;
-use crate::db::Db;
 use crate::message::{Message, Reading, Type};
-use crate::services::Service;
 use crate::threading;
 use crate::value::{PointOfTheCompass, Value};
 use crate::Result;
-use bus::Bus;
 use chrono::{DateTime, Local};
 use crossbeam_channel::Sender;
 use failure::format_err;
 use reqwest::header::{HeaderMap, HeaderValue};
+use reqwest::Client;
 use serde::Deserialize;
-use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
@@ -23,12 +20,6 @@ const REFRESH_PERIOD: Duration = Duration::from_millis(60000);
 pub struct Settings {
     /// Station ID. Find a one [here](https://json.buienradar.nl/).
     station_id: u32,
-}
-
-pub struct Buienradar {
-    service_id: String,
-    station_id: u32,
-    client: reqwest::Client,
 }
 
 #[derive(Deserialize, Debug)]
@@ -71,121 +62,120 @@ struct BuienradarStationMeasurement {
     weather_description: String,
 }
 
-impl Service for Buienradar {
-    fn spawn(self: Box<Self>, _db: Arc<Mutex<Db>>, tx: &Sender<Message>, _rx: &mut Bus<Message>) -> Result<()> {
-        let tx = tx.clone();
+pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Result<()> {
+    let tx = tx.clone();
+    let service_id = service_id.to_string();
+    let station_id = settings.station_id;
 
-        threading::spawn(format!("my-iot::buienradar:{}", &self.service_id), move || loop {
-            match self.fetch() {
-                Ok(measurement) => self.send(measurement, &tx).unwrap(),
-                Err(error) => log::error!("Buienradar has failed: {}", error),
-            }
-            thread::sleep(REFRESH_PERIOD);
-        })?;
-
-        Ok(())
-    }
-}
-
-impl Buienradar {
-    pub fn new(service_id: &str, settings: &Settings) -> Result<Buienradar> {
+    let client = {
         let mut headers = HeaderMap::new();
         headers.insert(reqwest::header::USER_AGENT, HeaderValue::from_static(USER_AGENT));
-        Ok(Buienradar {
-            service_id: service_id.into(),
-            station_id: settings.station_id,
-            client: reqwest::Client::builder()
-                .gzip(true)
-                .timeout(Duration::from_secs(10))
-                .default_headers(headers)
-                .build()?,
-        })
-    }
+        reqwest::Client::builder()
+            .gzip(true)
+            .timeout(Duration::from_secs(10))
+            .default_headers(headers)
+            .build()?
+    };
 
-    /// Fetch measurement for the configured station.
-    fn fetch(&self) -> Result<BuienradarStationMeasurement> {
-        self.client
-            .get(URL)
-            .send()?
-            .json::<BuienradarFeed>()?
-            .actual
-            .station_measurements
-            .iter()
-            .find(|measurement| measurement.station_id == self.station_id)
-            .cloned()
-            .ok_or_else(|| format_err!("station {} is not found", self.station_id))
-    }
+    threading::spawn(format!("my-iot::buienradar:{}", &service_id), move || loop {
+        match fetch(&client, station_id) {
+            Ok(measurement) => send_readings(measurement, &service_id, station_id, &tx).unwrap(),
+            Err(error) => log::error!("Buienradar has failed: {}", error),
+        }
+        thread::sleep(REFRESH_PERIOD);
+    })?;
 
-    /// Sends out readings based on Buienradar station measurement.
-    fn send(&self, measurement: BuienradarStationMeasurement, tx: &Sender<Message>) -> Result<()> {
+    Ok(())
+}
+
+/// Fetch measurement for the configured station.
+fn fetch(client: &Client, station_id: u32) -> Result<BuienradarStationMeasurement> {
+    client
+        .get(URL)
+        .send()?
+        .json::<BuienradarFeed>()?
+        .actual
+        .station_measurements
+        .iter()
+        .find(|measurement| measurement.station_id == station_id)
+        .cloned()
+        .ok_or_else(|| format_err!("station {} is not found", station_id))
+}
+
+/// Sends out readings based on Buienradar station measurement.
+fn send_readings(
+    measurement: BuienradarStationMeasurement,
+    service_id: &str,
+    station_id: u32,
+    tx: &Sender<Message>,
+) -> Result<()> {
+    tx.send(Message {
+        type_: Type::Actual,
+        reading: Reading {
+            sensor: format!("{}::{}::name", service_id, station_id),
+            value: Value::Text(measurement.name.clone()),
+            timestamp: measurement.timestamp,
+        },
+    })?;
+    tx.send(Message {
+        type_: Type::Actual,
+        reading: Reading {
+            sensor: format!("{}::{}::weather_description", service_id, station_id),
+            value: Value::Text(measurement.weather_description.clone()),
+            timestamp: measurement.timestamp,
+        },
+    })?;
+    if let Some(degrees) = measurement.temperature {
         tx.send(Message {
             type_: Type::Actual,
             reading: Reading {
-                sensor: format!("{}::{}::name", &self.service_id, self.station_id),
-                value: Value::Text(measurement.name.clone()),
+                sensor: format!("{}::{}::temperature", service_id, station_id),
+                value: Value::Celsius(degrees),
                 timestamp: measurement.timestamp,
             },
         })?;
+    }
+    if let Some(degrees) = measurement.ground_temperature {
         tx.send(Message {
             type_: Type::Actual,
             reading: Reading {
-                sensor: format!("{}::{}::weather_description", &self.service_id, self.station_id),
-                value: Value::Text(measurement.weather_description.clone()),
+                sensor: format!("{}::{}::ground_temperature", service_id, station_id),
+                value: Value::Celsius(degrees),
                 timestamp: measurement.timestamp,
             },
         })?;
-        if let Some(degrees) = measurement.temperature {
-            tx.send(Message {
-                type_: Type::Actual,
-                reading: Reading {
-                    sensor: format!("{}::{}::temperature", &self.service_id, self.station_id),
-                    value: Value::Celsius(degrees),
-                    timestamp: measurement.timestamp,
-                },
-            })?;
-        }
-        if let Some(degrees) = measurement.ground_temperature {
-            tx.send(Message {
-                type_: Type::Actual,
-                reading: Reading {
-                    sensor: format!("{}::{}::ground_temperature", &self.service_id, self.station_id),
-                    value: Value::Celsius(degrees),
-                    timestamp: measurement.timestamp,
-                },
-            })?;
-        }
-        if let Some(degrees) = measurement.feel_temperature {
-            tx.send(Message {
-                type_: Type::Actual,
-                reading: Reading {
-                    sensor: format!("{}::{}::feel_temperature", &self.service_id, self.station_id),
-                    value: Value::Celsius(degrees),
-                    timestamp: measurement.timestamp,
-                },
-            })?;
-        }
-        if let Some(bft) = measurement.wind_speed_bft {
-            tx.send(Message {
-                type_: Type::Actual,
-                reading: Reading {
-                    sensor: format!("{}::{}::wind_speed_bft", &self.service_id, self.station_id),
-                    value: Value::Bft(bft),
-                    timestamp: measurement.timestamp,
-                },
-            })?;
-        }
-        if let Some(point) = measurement.wind_direction {
-            tx.send(Message {
-                type_: Type::Actual,
-                reading: Reading {
-                    sensor: format!("{}::{}::wind_direction", &self.service_id, self.station_id),
-                    value: Value::WindDirection(point),
-                    timestamp: measurement.timestamp,
-                },
-            })?;
-        }
-        Ok(())
     }
+    if let Some(degrees) = measurement.feel_temperature {
+        tx.send(Message {
+            type_: Type::Actual,
+            reading: Reading {
+                sensor: format!("{}::{}::feel_temperature", service_id, station_id),
+                value: Value::Celsius(degrees),
+                timestamp: measurement.timestamp,
+            },
+        })?;
+    }
+    if let Some(bft) = measurement.wind_speed_bft {
+        tx.send(Message {
+            type_: Type::Actual,
+            reading: Reading {
+                sensor: format!("{}::{}::wind_speed_bft", service_id, station_id),
+                value: Value::Bft(bft),
+                timestamp: measurement.timestamp,
+            },
+        })?;
+    }
+    if let Some(point) = measurement.wind_direction {
+        tx.send(Message {
+            type_: Type::Actual,
+            reading: Reading {
+                sensor: format!("{}::{}::wind_direction", service_id, station_id),
+                value: Value::WindDirection(point),
+                timestamp: measurement.timestamp,
+            },
+        })?;
+    }
+    Ok(())
 }
 
 /// Implements [custom date/time format](https://serde.rs/custom-date-format.html) with Amsterdam timezone.

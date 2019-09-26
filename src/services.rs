@@ -15,27 +15,22 @@ pub mod db;
 pub mod nest;
 pub mod telegram;
 
-/// A generic service.
-pub trait Service: Send {
-    /// Spawn service threads.
-    ///
-    /// Service may spawn as much threads as needed and must take care of their health.
-    ///
-    /// - `db`: database.
-    /// - `tx`: message bus sender.
-    /// - `rx`: message bus receiver.
-    fn spawn(self: Box<Self>, db: Arc<Mutex<Db>>, tx: &Sender<Message>, rx: &mut Bus<Message>) -> Result<()>;
-}
-
-/// Create a service from the service settings.
-pub fn new(service_id: &str, settings: &ServiceSettings) -> Result<Box<dyn Service>> {
-    // FIXME: the following looks really like a job for dynamic dispatching.
+/// Spawn a service.
+pub fn spawn(
+    service_id: &str,
+    settings: &ServiceSettings,
+    db: &Arc<Mutex<Db>>,
+    tx: &Sender<Message>,
+    bus: &mut Bus<Message>,
+) -> Result<()> {
+    // FIXME: I don't really like this large `match` but I don't know how to fix it properly.
     match settings {
-        ServiceSettings::Clock(settings) => Ok(Box::new(clock::Clock::new(service_id, settings))),
-        ServiceSettings::Db(settings) => Ok(Box::new(db::Db::new(service_id, settings))),
-        ServiceSettings::Buienradar(settings) => Ok(Box::new(buienradar::Buienradar::new(service_id, settings)?)),
-        ServiceSettings::Nest(settings) => Ok(Box::new(nest::Nest::new(service_id, settings))),
-        ServiceSettings::Automator(settings) => Ok(Box::new(automator::Automator::new(service_id, settings))),
-        ServiceSettings::Telegram(settings) => Ok(Box::new(telegram::Telegram::new(service_id, settings)?)),
+        ServiceSettings::Automator(settings) => automator::spawn(service_id, settings, db, tx, bus)?,
+        ServiceSettings::Buienradar(settings) => buienradar::spawn(service_id, settings, tx)?,
+        ServiceSettings::Clock(settings) => clock::spawn(service_id, settings, tx)?,
+        ServiceSettings::Db(settings) => db::spawn(service_id, settings, db, tx)?,
+        ServiceSettings::Nest(settings) => nest::spawn(service_id, settings, tx)?,
+        ServiceSettings::Telegram(settings) => telegram::spawn(service_id, settings, tx, bus)?,
     }
+    Ok(())
 }

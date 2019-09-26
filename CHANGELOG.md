@@ -2,6 +2,7 @@
 
 ## `master`
 
+- Break: drastically change service spawn interface #18
 - Break: remake actions
 - New: send sensor update and change messages
 - New: scenario conditions and actions are optional

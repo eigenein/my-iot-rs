@@ -80,7 +80,7 @@ fn spawn_services(
         if !settings.disabled_services.contains(service_id.as_str()) {
             info!("Spawning service `{}`…", service_id);
             debug!("Settings `{}`: {:?}", service_id, service_settings);
-            services::new(service_id, service_settings)?.spawn(db.clone(), &tx, bus)?;
+            services::spawn(service_id, service_settings, &db, tx, bus)?;
         } else {
             warn!("Service `{}` is disabled.", &service_id);
         }
