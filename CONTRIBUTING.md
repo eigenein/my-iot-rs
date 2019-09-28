@@ -2,6 +2,8 @@
 
 For now the architecture is highly unstable. I change the core quite often. So the main help would be code review and advising on better and idiomatic implementations.
 
+Performance tickets is also an option.
+
 ## Workflow
 
 - Latest code is always in `master`
