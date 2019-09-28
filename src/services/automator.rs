@@ -41,14 +41,14 @@ pub fn spawn(
             for scenario in settings.scenarios.iter() {
                 if scenario.conditions.iter().all(|c| c.is_met(&message.reading)) {
                     info!(
-                        r#"{} triggered scenario: "{}"."#,
+                        r"{} triggered scenario: {}",
                         &message.reading.sensor, scenario.description
                     );
                     for action in scenario.actions.iter() {
                         action.execute(&service_id, &db, &message.reading, &tx).unwrap();
                     }
                 } else {
-                    debug!("Skipped: {}.", &message.reading.sensor);
+                    debug!("Skipped: {}", &message.reading.sensor);
                 }
             }
         }

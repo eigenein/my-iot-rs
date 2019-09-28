@@ -2,7 +2,7 @@ use crate::message::{Message, Reading, Type};
 use crate::threading;
 use crate::value::Value;
 use crate::Result;
-use chrono::Local;
+use chrono::{DateTime, Local};
 use crossbeam_channel::Sender;
 use eventsource::reqwest::Client;
 use rouille::url::Url;
@@ -69,6 +69,15 @@ fn send_readings(service_id: &str, event: &NestEvent, tx: &Sender<Message>) -> R
                 timestamp: now,
             },
         })?;
+
+        if let Some(ref event) = camera.last_event {
+            tx.send(Message::new(
+                Type::Actual,
+                format!("{}::camera::{}::animated_image_url", service_id, &id),
+                Value::ImageUrl(event.animated_image_url.clone()),
+                event.start_time,
+            ))?;
+        }
     }
 
     Ok(())
@@ -102,4 +111,15 @@ struct NestThermostat {
 #[derive(Deserialize, Debug)]
 struct NestCamera {
     snapshot_url: String,
+    last_event: Option<NestCameraLastEvent>,
+}
+
+#[derive(Deserialize, Debug)]
+struct NestCameraLastEvent {
+    has_sound: bool,
+    has_motion: bool,
+    has_person: bool,
+    start_time: DateTime<Local>,
+    urls_expire_time: DateTime<Local>,
+    animated_image_url: String,
 }

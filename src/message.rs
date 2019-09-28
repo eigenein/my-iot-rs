@@ -46,14 +46,18 @@ pub enum Type {
 }
 
 impl Message {
-    pub fn now<S: Into<String>>(type_: Type, sensor: S, value: Value) -> Message {
+    pub fn new<S: Into<String>>(type_: Type, sensor: S, value: Value, timestamp: DateTime<Local>) -> Message {
         Message {
             type_,
             reading: Reading {
                 value,
-                timestamp: Local::now(),
+                timestamp,
                 sensor: sensor.into(),
             },
         }
+    }
+
+    pub fn now<S: Into<String>>(type_: Type, sensor: S, value: Value) -> Message {
+        Message::new(type_, sensor, value, Local::now())
     }
 }
