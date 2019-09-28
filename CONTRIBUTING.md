@@ -4,6 +4,8 @@ For now the architecture is highly unstable. I change the core quite often. So t
 
 Performance tickets is also an option.
 
+You may implement services but then try to not depend on the current service interface as much as possible.
+
 ## Workflow
 
 - Latest code is always in `master`
