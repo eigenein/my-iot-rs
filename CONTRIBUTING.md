@@ -2,7 +2,7 @@
 
 For now the architecture is highly unstable. I change the core quite often. So the main help would be code review and advising on better and idiomatic implementations.
 
-Performance tickets is also an option.
+Performance and technical debt items are also actual options.
 
 You may implement services but then try to not depend on the current service interface as much as possible.
 
