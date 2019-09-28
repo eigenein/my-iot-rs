@@ -1,7 +1,7 @@
 //! [Telegram bot](https://core.telegram.org/bots/api) service able to receive and send messages.
 
 use crate::consts::USER_AGENT;
-use crate::message::{Message, Reading, Type};
+use crate::message::{Message, Type};
 use crate::value::Value;
 use crate::{threading, Result};
 use bus::Bus;
@@ -202,7 +202,11 @@ fn send_photo<P: Into<TelegramFile>>(context: &Context, chat_id: TelegramChatId,
 }
 
 /// <https://core.telegram.org/bots/api#sendanimation>
-fn send_animation<A: Into<TelegramFile>>(context: &Context, chat_id: TelegramChatId, animation: A) -> Result<TelegramMessage> {
+fn send_animation<A: Into<TelegramFile>>(
+    context: &Context,
+    chat_id: TelegramChatId,
+    animation: A,
+) -> Result<TelegramMessage> {
     call_api(
         context,
         "sendAnimation",
