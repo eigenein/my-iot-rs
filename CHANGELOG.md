@@ -1,6 +1,6 @@
 # `my-iot`
 
-## `master`
+## `0.23.0`
 
 - Break: drastically change service spawn interface #18
 - Break: remake actions
