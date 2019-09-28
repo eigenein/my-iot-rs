@@ -18,6 +18,6 @@ jobs:
       run: rustup component add rustfmt clippy
     - uses: actions/checkout@v1
       with:
-        fetch-depth: 1
+        fetch-depth: 2
     - name: Check
       run: make check
