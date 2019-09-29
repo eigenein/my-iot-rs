@@ -1,3 +1,11 @@
+## How to help?
+
+For now the architecture is highly unstable. I change the core quite often. So the main help would be code review and advising on better and idiomatic implementations.
+
+Performance and technical debt items are also actual options.
+
+You may implement services but then try to not depend on the current service interface as much as possible.
+
 ## Workflow
 
 - Latest code is always in `master`
@@ -7,7 +15,7 @@
 - Releases are tagged with [annotated tags](https://git-scm.com/book/en/v2/Git-Basics-Tagging)
 - `CHANGELOG.md` is really maintained
 - [Semantic Versioning](https://semver.org/) is used, well… almost
-- Refer to issues in commit messages
+- Refer to issues in commit messages. Sometimes I peersonally forget to do that though
 
 ## Principles
 
