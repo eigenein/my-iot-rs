@@ -11,7 +11,6 @@
 use crate::db::Db;
 use crate::message::{Message, Reading, Type};
 use crate::{threading, Result};
-use bus::Bus;
 use crossbeam_channel::Sender;
 use log::{debug, info};
 use serde::Deserialize;
@@ -28,13 +27,13 @@ pub fn spawn(
     settings: &Settings,
     db: &Arc<Mutex<Db>>,
     tx: &Sender<Message>,
-    bus: &mut Bus<Message>,
-) -> Result<()> {
+) -> Result<Vec<Sender<Message>>> {
     let tx = tx.clone();
-    let rx = bus.add_rx();
     let db = db.clone();
     let service_id = service_id.to_string();
     let settings = settings.clone();
+
+    let (out_tx, rx) = crossbeam_channel::unbounded::<Message>();
 
     threading::spawn(format!("my-iot::automator:{}", &service_id), move || {
         for message in rx {
@@ -55,7 +54,7 @@ pub fn spawn(
         unreachable!();
     })?;
 
-    Ok(())
+    Ok(vec![out_tx])
 }
 
 /// Single automation scenario.

@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.24.0`
+
+- Opt: use `crossbeam-channel` instead of `bus` #28 #33
+
 ## `0.23.0`
 
 - Break: drastically change service spawn interface #18

@@ -17,7 +17,7 @@ pub struct Settings {
     token: String,
 }
 
-pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Result<()> {
+pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Result<Vec<Sender<Message>>> {
     let service_id = service_id.to_string();
     let settings = settings.clone();
     let tx = tx.clone();
@@ -35,7 +35,7 @@ pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Res
         }
     })?;
 
-    Ok(())
+    Ok(vec![])
 }
 
 fn send_readings(service_id: &str, event: &NestEvent, tx: &Sender<Message>) -> Result<()> {

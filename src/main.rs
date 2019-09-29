@@ -3,7 +3,6 @@
 use crate::db::Db;
 use crate::message::Message;
 use crate::settings::Settings;
-use bus::Bus;
 use clap::Arg;
 use crossbeam_channel::{Receiver, Sender};
 use failure::Error;
@@ -14,7 +13,7 @@ pub mod consts;
 pub mod db;
 pub mod logging;
 pub mod message;
-pub mod receiver;
+pub mod persistence;
 pub mod services;
 pub mod settings;
 pub mod templates;
@@ -33,7 +32,6 @@ fn main() -> Result<()> {
 
     let matches = clap::App::new("My IoT")
         .version(clap::crate_version!())
-        .author(clap::crate_authors!("\n"))
         .about(clap::crate_description!())
         .arg(
             Arg::with_name("settings")
@@ -59,42 +57,45 @@ fn main() -> Result<()> {
 
     info!("Starting services…");
     // Starting up multi-producer multi-consumer bus.
-    let (tx, rx) = crossbeam_channel::bounded(0);
-    let mut bus = Bus::new(1024);
-    receiver::spawn(&mut bus, db.clone(), &tx)?;
-    spawn_services(&settings, &db, &tx, &mut bus)?;
-    spawn_dispatcher(rx, bus)?;
+    let (dispatcher_tx, dispatcher_rx) = crossbeam_channel::unbounded();
+    let mut all_txs = vec![persistence::spawn(db.clone(), &dispatcher_tx)?];
+    all_txs.extend(spawn_services(&settings, &db, &dispatcher_tx)?);
+    spawn_dispatcher(dispatcher_rx, all_txs)?;
 
     info!("Starting web server on port {}…", settings.http_port);
     web::start_server(settings, db.clone())
 }
 
 /// Spawn all configured services.
-fn spawn_services(
-    settings: &Settings,
-    db: &Arc<Mutex<Db>>,
-    tx: &Sender<Message>,
-    bus: &mut Bus<Message>,
-) -> Result<()> {
+fn spawn_services(settings: &Settings, db: &Arc<Mutex<Db>>, tx: &Sender<Message>) -> Result<Vec<Sender<Message>>> {
+    let mut service_txs = Vec::new();
+
     for (service_id, service_settings) in settings.services.iter() {
         if !settings.disabled_services.contains(service_id.as_str()) {
             info!("Spawning service `{}`…", service_id);
             debug!("Settings `{}`: {:?}", service_id, service_settings);
-            services::spawn(service_id, service_settings, &db, tx, bus)?;
+            service_txs.extend(services::spawn(service_id, service_settings, &db, tx)?);
         } else {
             warn!("Service `{}` is disabled.", &service_id);
         }
     }
-    Ok(())
+
+    Ok(service_txs)
 }
 
 /// Spawn message dispatcher that broadcasts every received message to emulate
 /// multi-producer multi-consumer queue.
 /// Thus, services exchange messages with each other.
-fn spawn_dispatcher(rx: Receiver<Message>, mut bus: Bus<Message>) -> Result<()> {
+fn spawn_dispatcher(rx: Receiver<Message>, txs: Vec<Sender<Message>>) -> Result<()> {
     info!("Spawning message dispatcher…");
-    threading::spawn("my-iot::dispatcher", move || loop {
-        bus.broadcast(rx.recv().unwrap());
+    threading::spawn("my-iot::dispatcher", move || {
+        for message in rx {
+            debug!("Dispatching {}", &message.reading.sensor);
+            for tx in txs.iter() {
+                tx.send(message.clone()).unwrap();
+            }
+            debug!("Dispatched {}", &message.reading.sensor);
+        }
     })?;
     Ok(())
 }

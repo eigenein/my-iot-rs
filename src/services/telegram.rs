@@ -4,7 +4,6 @@ use crate::consts::USER_AGENT;
 use crate::message::{Message, Type};
 use crate::value::Value;
 use crate::{threading, Result};
-use bus::Bus;
 use chrono::{DateTime, Utc};
 use crossbeam_channel::Sender;
 use failure::format_err;
@@ -27,10 +26,9 @@ pub struct Settings {
 }
 
 /// Spawn the service.
-pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>, bus: &mut Bus<Message>) -> Result<()> {
+pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Result<Vec<Sender<Message>>> {
     spawn_producer(Context::new(service_id, &settings.token)?, tx)?;
-    spawn_consumer(Context::new(service_id, &settings.token)?, bus)?;
-    Ok(())
+    Ok(vec![spawn_consumer(Context::new(service_id, &settings.token)?)?])
 }
 
 struct Context {
@@ -104,12 +102,12 @@ fn send_readings(context: &Context, tx: &Sender<Message>, update: &TelegramUpdat
 }
 
 /// Spawn thread that listens for `Control` messages and communicates back to Telegram.
-fn spawn_consumer(context: Context, bus: &mut Bus<Message>) -> Result<()> {
-    let rx = bus.add_rx();
+fn spawn_consumer(context: Context) -> Result<Sender<Message>> {
     let message_regex = Regex::new(&format!(
         r"^{}::(?P<chat_id>\-?\d+)::(?P<sensor>\w+)",
         &context.service_id,
     ))?;
+    let (tx, rx) = crossbeam_channel::unbounded::<Message>();
 
     threading::spawn(
         format!("my-iot::telegram::consumer::{}", &context.service_id),
@@ -137,7 +135,7 @@ fn spawn_consumer(context: Context, bus: &mut Bus<Message>) -> Result<()> {
         },
     )?;
 
-    Ok(())
+    Ok(tx)
 }
 
 /// Call [Telegram Bot API](https://core.telegram.org/bots/api) method.

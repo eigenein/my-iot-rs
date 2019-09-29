@@ -25,7 +25,7 @@ pub fn spawn(
     settings: &Settings,
     db: &Arc<Mutex<crate::db::Db>>,
     tx: &Sender<Message>,
-) -> Result<()> {
+) -> Result<Vec<Sender<Message>>> {
     let interval = Duration::from_millis(settings.interval_ms);
     let tx = tx.clone();
     let sensor = format!("{}::size", service_id);
@@ -47,5 +47,5 @@ pub fn spawn(
         thread::sleep(interval);
     })?;
 
-    Ok(())
+    Ok(vec![])
 }

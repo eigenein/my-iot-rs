@@ -19,7 +19,7 @@ fn default_interval_ms() -> u64 {
     1000
 }
 
-pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Result<()> {
+pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Result<Vec<Sender<Message>>> {
     let service_id = service_id.to_string();
     let interval = Duration::from_millis(settings.interval_ms);
     let tx = tx.clone();
@@ -42,5 +42,5 @@ pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Res
         }
     })?;
 
-    Ok(())
+    Ok(vec![])
 }

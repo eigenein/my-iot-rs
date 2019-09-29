@@ -1,31 +1,31 @@
-//! Readings receiver that actually processes all readings coming from services.
+//! Readings persistence.
 
 use crate::db::*;
 use crate::message::*;
 use crate::threading;
 use crate::value::Value;
 use crate::Result;
-use bus::Bus;
 use crossbeam_channel::Sender;
 use log::{debug, info};
 use std::sync::{Arc, Mutex};
 
-/// Start readings receiver thread.
-pub fn spawn(bus: &mut Bus<Message>, db: Arc<Mutex<Db>>, tx: &Sender<Message>) -> Result<()> {
-    info!("Spawning message receiver…");
-    let rx = bus.add_rx();
+/// Start the persistence thread.
+pub fn spawn(db: Arc<Mutex<Db>>, tx: &Sender<Message>) -> Result<Sender<Message>> {
+    info!("Spawning readings persistence…");
     let tx = tx.clone();
+    let (out_tx, rx) = crossbeam_channel::unbounded::<Message>();
 
-    threading::spawn("my-iot::receiver", move || {
+    threading::spawn("my-iot::persistence", move || {
         for message in rx {
             process_message(message, &db, &tx).unwrap();
         }
         unreachable!();
     })?;
-    Ok(())
+
+    Ok(out_tx)
 }
 
-/// Process broadcasted message.
+/// Process a message.
 fn process_message(message: Message, db: &Arc<Mutex<Db>>, tx: &Sender<Message>) -> Result<()> {
     info!(
         "{}: {:?} {:?}",

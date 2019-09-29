@@ -6,8 +6,7 @@ use std::thread;
 pub fn spawn<N, F, T>(name: N, f: F) -> std::io::Result<thread::JoinHandle<T>>
 where
     N: Into<String>,
-    F: FnOnce() -> T,
-    F: Send + 'static,
+    F: FnOnce() -> T + Send + 'static,
     T: Send + 'static,
 {
     thread::Builder::new().name(name.into()).spawn(f)
