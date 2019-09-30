@@ -1,8 +1,9 @@
 //! Entry point.
 
 use crate::db::Db;
-use crate::message::Message;
+use crate::message::{Message, Type};
 use crate::settings::Settings;
+use crate::value::Value;
 use clap::Arg;
 use crossbeam_channel::{Receiver, Sender};
 use failure::{format_err, Error};
@@ -61,6 +62,7 @@ fn main() -> Result<()> {
     // - the dispatcher sends out each message from `dispatcher_rx` to the services input channels
     info!("Starting services…");
     let (dispatcher_tx, dispatcher_rx) = crossbeam_channel::unbounded();
+    dispatcher_tx.send(Message::now(Type::OneOff, "my-iot::start", Value::None))?;
     let mut all_txs = vec![persistence::spawn(db.clone(), &dispatcher_tx)?];
     all_txs.extend(spawn_services(&settings, &db, &dispatcher_tx)?);
     spawn_dispatcher(dispatcher_rx, all_txs)?;

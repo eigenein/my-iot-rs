@@ -8,6 +8,8 @@ use std::fmt::{Display, Formatter};
 /// Sensor reading value.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum Value {
+    /// No value.
+    None,
     /// Sensor value has been updated.
     Update(Box<Value>, Box<Value>),
     /// Generic counter.
@@ -95,6 +97,7 @@ impl Value {
 impl std::fmt::Display for Value {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
+            Value::None => Ok(()),
             Value::Update(old, new) => write!(f, r"{} → {}", old, new),
             Value::Counter(count) => write!(f, r"{} times", count),
             Value::Size(size) => f.write_str(&human_format(*size as f64, "B")),
