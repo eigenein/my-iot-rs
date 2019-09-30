@@ -23,7 +23,7 @@ pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Res
     let settings = settings.clone();
     let tx = tx.clone();
 
-    supervisor::spawn(format!("my-iot::nest:{}", &service_id), move || -> Result<()> {
+    supervisor::spawn(format!("my-iot::nest::{}", &service_id), move || -> Result<()> {
         let client = Client::new(Url::parse_with_params(URL, &[("auth", &settings.token)]).unwrap());
         for event in client {
             if let Ok(event) = event {

@@ -31,7 +31,7 @@ pub fn spawn(
     let sensor = format!("{}::size", service_id);
     let db = db.clone();
 
-    supervisor::spawn(format!("my-iot::db:{}", service_id), move || loop {
+    supervisor::spawn(format!("my-iot::db::{}", service_id), move || loop {
         let size = { db.lock().unwrap().select_size().unwrap() };
 
         tx.send(Message {

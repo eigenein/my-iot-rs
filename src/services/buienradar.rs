@@ -77,7 +77,7 @@ pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Res
             .build()?
     };
 
-    supervisor::spawn(format!("my-iot::buienradar:{}", &service_id), move || loop {
+    supervisor::spawn(format!("my-iot::buienradar::{}", &service_id), move || loop {
         match fetch(&client, station_id) {
             Ok(measurement) => send_readings(measurement, &service_id, station_id, &tx).unwrap(),
             Err(error) => log::error!("Buienradar has failed: {}", error),

@@ -3,6 +3,7 @@
 ## `master`
 
 - Break: update thread closures to return `Result` #32
+- Break: run a supervised thread in a loop #32
 
 ## `0.24.0`
 
