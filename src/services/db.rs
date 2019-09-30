@@ -1,5 +1,5 @@
 use crate::message::{Message, Reading, Type};
-use crate::threading;
+use crate::supervisor;
 use crate::value::Value;
 use crate::Result;
 use chrono::Local;
@@ -31,7 +31,7 @@ pub fn spawn(
     let sensor = format!("{}::size", service_id);
     let db = db.clone();
 
-    threading::spawn(format!("my-iot::db:{}", service_id), move || loop {
+    supervisor::spawn(format!("my-iot::db:{}", service_id), move || loop {
         let size = { db.lock().unwrap().select_size().unwrap() };
 
         tx.send(Message {

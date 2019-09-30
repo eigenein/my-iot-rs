@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Break: update thread closures to return `Result` #32
+
 ## `0.24.0`
 
 - Opt: use `crossbeam-channel` instead of `bus` #28 #33

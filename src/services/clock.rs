@@ -1,5 +1,5 @@
 use crate::message::*;
-use crate::threading;
+use crate::supervisor;
 use crate::value::Value;
 use crate::Result;
 use chrono::Local;
@@ -24,7 +24,7 @@ pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Res
     let interval = Duration::from_millis(settings.interval_ms);
     let tx = tx.clone();
 
-    threading::spawn(format!("my-iot::clock:{}", service_id), move || {
+    supervisor::spawn(format!("my-iot::clock:{}", service_id), move || {
         let mut counter = 1;
         loop {
             tx.send(Message {

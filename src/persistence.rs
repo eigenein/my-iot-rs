@@ -2,7 +2,7 @@
 
 use crate::db::*;
 use crate::message::*;
-use crate::threading;
+use crate::supervisor;
 use crate::value::Value;
 use crate::Result;
 use crossbeam_channel::Sender;
@@ -15,8 +15,8 @@ pub fn spawn(db: Arc<Mutex<Db>>, tx: &Sender<Message>) -> Result<Sender<Message>
     let tx = tx.clone();
     let (out_tx, rx) = crossbeam_channel::unbounded::<Message>();
 
-    threading::spawn("my-iot::persistence", move || {
-        for message in rx {
+    supervisor::spawn("my-iot::persistence", move || {
+        for message in &rx {
             process_message(message, &db, &tx).unwrap();
         }
         unreachable!();

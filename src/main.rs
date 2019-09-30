@@ -5,7 +5,7 @@ use crate::message::Message;
 use crate::settings::Settings;
 use clap::Arg;
 use crossbeam_channel::{Receiver, Sender};
-use failure::Error;
+use failure::{format_err, Error};
 use log::{debug, info, warn};
 use std::sync::{Arc, Mutex};
 
@@ -16,8 +16,8 @@ pub mod message;
 pub mod persistence;
 pub mod services;
 pub mod settings;
+pub mod supervisor;
 pub mod templates;
-pub mod threading;
 pub mod value;
 pub mod web;
 
@@ -88,14 +88,15 @@ fn spawn_services(settings: &Settings, db: &Arc<Mutex<Db>>, tx: &Sender<Message>
 /// Thus, services exchange messages with each other.
 fn spawn_dispatcher(rx: Receiver<Message>, txs: Vec<Sender<Message>>) -> Result<()> {
     info!("Spawning message dispatcher…");
-    threading::spawn("my-iot::dispatcher", move || {
-        for message in rx {
+    supervisor::spawn("my-iot::dispatcher", move || -> Result<()> {
+        for message in &rx {
             debug!("Dispatching {}", &message.reading.sensor);
             for tx in txs.iter() {
-                tx.send(message.clone()).unwrap();
+                tx.send(message.clone())?;
             }
             debug!("Dispatched {}", &message.reading.sensor);
         }
+        Err(format_err!("Receiver channel is unexpectedly exhausted"))
     })?;
     Ok(())
 }

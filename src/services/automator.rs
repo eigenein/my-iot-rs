@@ -10,7 +10,7 @@
 
 use crate::db::Db;
 use crate::message::{Message, Reading, Type};
-use crate::{threading, Result};
+use crate::{supervisor, Result};
 use crossbeam_channel::Sender;
 use log::{debug, info};
 use serde::Deserialize;
@@ -35,8 +35,8 @@ pub fn spawn(
 
     let (out_tx, rx) = crossbeam_channel::unbounded::<Message>();
 
-    threading::spawn(format!("my-iot::automator:{}", &service_id), move || {
-        for message in rx {
+    supervisor::spawn(format!("my-iot::automator:{}", &service_id), move || {
+        for message in &rx {
             for scenario in settings.scenarios.iter() {
                 if scenario.conditions.iter().all(|c| c.is_met(&message.reading)) {
                     info!(

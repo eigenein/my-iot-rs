@@ -3,7 +3,7 @@
 use crate::consts::USER_AGENT;
 use crate::message::{Message, Type};
 use crate::value::Value;
-use crate::{threading, Result};
+use crate::{supervisor, Result};
 use chrono::{DateTime, Utc};
 use crossbeam_channel::Sender;
 use failure::format_err;
@@ -58,7 +58,7 @@ impl Context {
 fn spawn_producer(context: Context, tx: &Sender<Message>) -> Result<()> {
     let tx = tx.clone();
 
-    threading::spawn(
+    supervisor::spawn(
         format!("my-iot::telegram::producer::{}", &context.service_id),
         move || {
             let mut offset: Option<i64> = None;
@@ -109,10 +109,10 @@ fn spawn_consumer(context: Context) -> Result<Sender<Message>> {
     ))?;
     let (tx, rx) = crossbeam_channel::unbounded::<Message>();
 
-    threading::spawn(
+    supervisor::spawn(
         format!("my-iot::telegram::consumer::{}", &context.service_id),
         move || {
-            for message in rx {
+            for message in &rx {
                 if message.type_ != Type::Control {
                     continue;
                 }

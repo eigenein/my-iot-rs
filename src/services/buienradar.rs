@@ -1,6 +1,6 @@
 use crate::consts::USER_AGENT;
 use crate::message::{Message, Reading, Type};
-use crate::threading;
+use crate::supervisor;
 use crate::value::{PointOfTheCompass, Value};
 use crate::Result;
 use chrono::{DateTime, Local};
@@ -77,7 +77,7 @@ pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Res
             .build()?
     };
 
-    threading::spawn(format!("my-iot::buienradar:{}", &service_id), move || loop {
+    supervisor::spawn(format!("my-iot::buienradar:{}", &service_id), move || loop {
         match fetch(&client, station_id) {
             Ok(measurement) => send_readings(measurement, &service_id, station_id, &tx).unwrap(),
             Err(error) => log::error!("Buienradar has failed: {}", error),
