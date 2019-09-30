@@ -55,8 +55,11 @@ fn main() -> Result<()> {
     info!("Opening database…");
     let db = Arc::new(Mutex::new(Db::new(matches.value_of("db").unwrap_or(DEFAULT_DB_PATH))?));
 
+    // Starting up multi-producer multi-consumer bus:
+    // - services create and return their input channels
+    // - services send their messages out to `dispatcher_tx`
+    // - the dispatcher sends out each message from `dispatcher_rx` to the services input channels
     info!("Starting services…");
-    // Starting up multi-producer multi-consumer bus.
     let (dispatcher_tx, dispatcher_rx) = crossbeam_channel::unbounded();
     let mut all_txs = vec![persistence::spawn(db.clone(), &dispatcher_tx)?];
     all_txs.extend(spawn_services(&settings, &db, &dispatcher_tx)?);
@@ -67,6 +70,10 @@ fn main() -> Result<()> {
 }
 
 /// Spawn all configured services.
+///
+/// Returns a vector of all service input message channels.
+///
+/// - `tx`: output message channel that's used by services to send their messages to.
 fn spawn_services(settings: &Settings, db: &Arc<Mutex<Db>>, tx: &Sender<Message>) -> Result<Vec<Sender<Message>>> {
     let mut service_txs = Vec::new();
 
@@ -84,8 +91,13 @@ fn spawn_services(settings: &Settings, db: &Arc<Mutex<Db>>, tx: &Sender<Message>
 }
 
 /// Spawn message dispatcher that broadcasts every received message to emulate
-/// multi-producer multi-consumer queue.
-/// Thus, services exchange messages with each other.
+/// a multi-producer multi-consumer queue.
+///
+/// Thus, services exchange messages with each other. Each message from the input channel is
+/// broadcasted to each of output channels.
+///
+/// - `rx`: input message channel
+/// - `txs`: output message channels
 fn spawn_dispatcher(rx: Receiver<Message>, txs: Vec<Sender<Message>>) -> Result<()> {
     info!("Spawning message dispatcher…");
     supervisor::spawn("my-iot::dispatcher", move || -> Result<()> {

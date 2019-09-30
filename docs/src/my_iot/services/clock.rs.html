@@ -46,7 +46,7 @@
 <span id="46">46</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">message</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">threading</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">supervisor</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">value</span>::<span class="ident">Value</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span>;
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">Local</span>;
@@ -71,7 +71,7 @@
     <span class="kw">let</span> <span class="ident">interval</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="ident">settings</span>.<span class="ident">interval_ms</span>);
     <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">clone</span>();
 
-    <span class="ident">threading</span>::<span class="ident">spawn</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;my-iot::clock:{}&quot;</span>, <span class="ident">service_id</span>), <span class="kw">move</span> <span class="op">||</span> {
+    <span class="ident">supervisor</span>::<span class="ident">spawn</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;my-iot::clock::{}&quot;</span>, <span class="ident">service_id</span>), <span class="kw">move</span> <span class="op">||</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">counter</span> <span class="op">=</span> <span class="number">1</span>;
         <span class="kw">loop</span> {
             <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">Message</span> {
