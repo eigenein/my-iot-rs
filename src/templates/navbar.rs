@@ -30,6 +30,10 @@ markup::define! {
                             span.icon { i.fas."fa-ruler-combined" {} }
                             span { "Readings" }
                         }
+                        a."navbar-item"[href = "/status"] {
+                            span.icon { i.fas."fa-thermometer-half" {} }
+                            span { "Status" }
+                        }
                     }
 
                     div."navbar-end" {

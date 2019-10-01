@@ -6,6 +6,7 @@
 - Break: run a supervised thread in a loop #34
 - New: send `my-iot::start` message on startup
 - New: thread `is_running` sensor #34
+- New: Status page link (no page itself yet)
 
 ## `0.24.0`
 
