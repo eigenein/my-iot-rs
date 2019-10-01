@@ -57,7 +57,7 @@ struct BuienradarStationMeasurement {
     #[serde(deserialize_with = "date_format")]
     timestamp: DateTime<Local>,
 
-    #[serde(default, rename = "winddirection", with = "wind_direction")]
+    #[serde(default, rename = "winddirection", deserialize_with = "point_of_the_compass")]
     wind_direction: Option<PointOfTheCompass>,
 
     #[serde(rename = "weatherdescription")]
@@ -191,31 +191,30 @@ fn date_format<'de, D: Deserializer<'de>>(deserializer: D) -> std::result::Resul
 }
 
 /// Translates Dutch wind direction acronyms.
-mod wind_direction {
-    use crate::value::PointOfTheCompass;
-    use serde::de::Error;
-    use serde::{self, Deserialize, Deserializer};
-
-    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<PointOfTheCompass>, D::Error> {
-        match String::deserialize(deserializer)?.as_ref() {
-            "N" => Ok(Some(PointOfTheCompass::North)),
-            "NNO" => Ok(Some(PointOfTheCompass::NorthNortheast)),
-            "NO" => Ok(Some(PointOfTheCompass::Northeast)),
-            "ONO" => Ok(Some(PointOfTheCompass::EastNortheast)),
-            "O" => Ok(Some(PointOfTheCompass::East)),
-            "OZO" => Ok(Some(PointOfTheCompass::EastSoutheast)),
-            "ZO" => Ok(Some(PointOfTheCompass::Southeast)),
-            "ZZO" => Ok(Some(PointOfTheCompass::SouthSoutheast)),
-            "Z" => Ok(Some(PointOfTheCompass::South)),
-            "ZZW" => Ok(Some(PointOfTheCompass::SouthSouthwest)),
-            "ZW" => Ok(Some(PointOfTheCompass::Southwest)),
-            "WZW" => Ok(Some(PointOfTheCompass::WestSouthwest)),
-            "W" => Ok(Some(PointOfTheCompass::West)),
-            "WNW" => Ok(Some(PointOfTheCompass::WestNorthwest)),
-            "NW" => Ok(Some(PointOfTheCompass::Northwest)),
-            "NNW" => Ok(Some(PointOfTheCompass::NorthNorthwest)),
-            value => Err(Error::custom(format!("could not translate wind direction: {}", value))),
-        }
+pub fn point_of_the_compass<'de, D: Deserializer<'de>>(
+    deserializer: D,
+) -> std::result::Result<Option<PointOfTheCompass>, D::Error> {
+    match String::deserialize(deserializer)?.as_ref() {
+        "N" => Ok(Some(PointOfTheCompass::North)),
+        "NNO" => Ok(Some(PointOfTheCompass::NorthNortheast)),
+        "NO" => Ok(Some(PointOfTheCompass::Northeast)),
+        "ONO" => Ok(Some(PointOfTheCompass::EastNortheast)),
+        "O" => Ok(Some(PointOfTheCompass::East)),
+        "OZO" => Ok(Some(PointOfTheCompass::EastSoutheast)),
+        "ZO" => Ok(Some(PointOfTheCompass::Southeast)),
+        "ZZO" => Ok(Some(PointOfTheCompass::SouthSoutheast)),
+        "Z" => Ok(Some(PointOfTheCompass::South)),
+        "ZZW" => Ok(Some(PointOfTheCompass::SouthSouthwest)),
+        "ZW" => Ok(Some(PointOfTheCompass::Southwest)),
+        "WZW" => Ok(Some(PointOfTheCompass::WestSouthwest)),
+        "W" => Ok(Some(PointOfTheCompass::West)),
+        "WNW" => Ok(Some(PointOfTheCompass::WestNorthwest)),
+        "NW" => Ok(Some(PointOfTheCompass::Northwest)),
+        "NNW" => Ok(Some(PointOfTheCompass::NorthNorthwest)),
+        value => Err(de::Error::custom(format!(
+            "could not translate wind direction: {}",
+            value
+        ))),
     }
 }
 
