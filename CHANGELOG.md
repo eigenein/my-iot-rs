@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Chore: simplify Buienradar date/time deserialization #36
+
 ## `0.25.0`
 
 - Break: update thread closures to return `Result` #34

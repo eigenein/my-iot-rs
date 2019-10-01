@@ -3,12 +3,14 @@ use crate::message::{Message, Reading, Type};
 use crate::supervisor;
 use crate::value::{PointOfTheCompass, Value};
 use crate::Result;
-use chrono::{DateTime, Local};
+use chrono::offset::TimeZone;
+use chrono::{DateTime, Local, NaiveDateTime};
+use chrono_tz::Europe::Amsterdam;
 use crossbeam_channel::Sender;
 use failure::format_err;
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::Client;
-use serde::Deserialize;
+use serde::{de, Deserialize, Deserializer};
 use std::thread;
 use std::time::Duration;
 
@@ -52,7 +54,7 @@ struct BuienradarStationMeasurement {
     #[serde(rename = "windspeedBft")]
     wind_speed_bft: Option<u32>,
 
-    #[serde(with = "date_format")]
+    #[serde(deserialize_with = "date_format")]
     timestamp: DateTime<Local>,
 
     #[serde(default, rename = "winddirection", with = "wind_direction")]
@@ -181,18 +183,10 @@ fn send_readings(
 }
 
 /// Implements [custom date/time format](https://serde.rs/custom-date-format.html) with Amsterdam timezone.
-mod date_format {
-    use chrono::{DateTime, Local, NaiveDateTime, TimeZone};
-    use chrono_tz::Europe::Amsterdam;
-    use serde::{self, Deserialize, Deserializer};
-
-    const FORMAT: &str = "%Y-%m-%dT%H:%M:%S";
-
-    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<DateTime<Local>, D::Error> {
-        let string = String::deserialize(deserializer)?;
-        let datetime = NaiveDateTime::parse_from_str(&string, FORMAT).unwrap();
-        Ok(Amsterdam.from_local_datetime(&datetime).unwrap().with_timezone(&Local))
-    }
+fn date_format<'de, D: Deserializer<'de>>(deserializer: D) -> std::result::Result<DateTime<Local>, D::Error> {
+    let string = String::deserialize(deserializer)?;
+    let datetime = NaiveDateTime::parse_from_str(&string, "%Y-%m-%dT%H:%M:%S").map_err(de::Error::custom)?;
+    Ok(Amsterdam.from_local_datetime(&datetime).unwrap().with_timezone(&Local))
 }
 
 /// Translates Dutch wind direction acronyms.
