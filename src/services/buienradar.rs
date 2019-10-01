@@ -31,6 +31,12 @@ struct BuienradarFeed {
 
 #[derive(Deserialize, Debug)]
 struct BuienradarFeedActual {
+    #[serde(deserialize_with = "date_format")]
+    sunrise: DateTime<Local>,
+
+    #[serde(deserialize_with = "date_format")]
+    sunset: DateTime<Local>,
+
     #[serde(rename = "stationmeasurements")]
     station_measurements: Vec<BuienradarStationMeasurement>,
 }
@@ -79,40 +85,32 @@ pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Res
             .build()?
     };
 
-    supervisor::spawn(format!("my-iot::buienradar::{}", &service_id), tx.clone(), move || {
-        loop {
-            match fetch(&client, station_id) {
-                Ok(measurement) => send_readings(measurement, &service_id, station_id, &tx).unwrap(),
-                Err(error) => log::error!("Buienradar has failed: {}", error),
+    supervisor::spawn(
+        format!("my-iot::buienradar::{}", &service_id),
+        tx.clone(),
+        move || -> Result<()> {
+            loop {
+                send_readings(fetch(&client)?, &service_id, station_id, &tx)?;
+                thread::sleep(REFRESH_PERIOD);
             }
-            thread::sleep(REFRESH_PERIOD);
-        }
-    })?;
+        },
+    )?;
 
     Ok(vec![])
 }
 
 /// Fetch measurement for the configured station.
-fn fetch(client: &Client, station_id: u32) -> Result<BuienradarStationMeasurement> {
-    client
-        .get(URL)
-        .send()?
-        .json::<BuienradarFeed>()?
-        .actual
-        .station_measurements
-        .iter()
-        .find(|measurement| measurement.station_id == station_id)
-        .cloned()
-        .ok_or_else(|| format_err!("station {} is not found", station_id))
+fn fetch(client: &Client) -> Result<BuienradarFeedActual> {
+    Ok(client.get(URL).send()?.json::<BuienradarFeed>()?.actual)
 }
 
 /// Sends out readings based on Buienradar station measurement.
-fn send_readings(
-    measurement: BuienradarStationMeasurement,
-    service_id: &str,
-    station_id: u32,
-    tx: &Sender<Message>,
-) -> Result<()> {
+fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32, tx: &Sender<Message>) -> Result<()> {
+    let measurement = actual
+        .station_measurements
+        .iter()
+        .find(|measurement| measurement.station_id == station_id)
+        .ok_or_else(|| format_err!("station {} is not found", station_id))?;
     tx.send(Message {
         type_: Type::Actual,
         reading: Reading {
