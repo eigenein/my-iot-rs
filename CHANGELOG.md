@@ -1,6 +1,6 @@
 # `my-iot`
 
-## `master`
+## `0.25.0`
 
 - Break: update thread closures to return `Result` #34
 - Break: run a supervised thread in a loop #34

@@ -832,7 +832,7 @@ dependencies = [
 
 [[package]]
 name = "my-iot"
-version = "0.24.0"
+version = "0.25.0"
 dependencies = [
  "chrono 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono-tz 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
