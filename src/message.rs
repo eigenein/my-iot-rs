@@ -57,7 +57,7 @@ impl Message {
         }
     }
 
-    pub fn now<S: Into<String>>(type_: Type, sensor: S, value: Value) -> Message {
-        Message::new(type_, sensor, value, Local::now())
+    pub fn now<S: Into<String>, V: Into<Value>>(type_: Type, sensor: S, value: V) -> Message {
+        Message::new(type_, sensor, value.into(), Local::now())
     }
 }

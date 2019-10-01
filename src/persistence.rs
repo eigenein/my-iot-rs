@@ -15,7 +15,7 @@ pub fn spawn(db: Arc<Mutex<Db>>, tx: &Sender<Message>) -> Result<Sender<Message>
     let tx = tx.clone();
     let (out_tx, rx) = crossbeam_channel::unbounded::<Message>();
 
-    supervisor::spawn("my-iot::persistence", move || {
+    supervisor::spawn("my-iot::persistence", tx.clone(), move || {
         for message in &rx {
             process_message(message, &db, &tx).unwrap();
         }

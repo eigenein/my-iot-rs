@@ -5,6 +5,7 @@
 - Break: update thread closures to return `Result` #34
 - Break: run a supervised thread in a loop #34
 - New: send `my-iot::start` message on startup
+- New: thread `is_running` sensor #34
 
 ## `0.24.0`
 

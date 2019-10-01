@@ -26,35 +26,39 @@ pub fn spawn(
     service_id: &str,
     settings: &Settings,
     db: &Arc<Mutex<Db>>,
-    tx: &Sender<Message>,
+    outbox_tx: &Sender<Message>,
 ) -> Result<Vec<Sender<Message>>> {
-    let tx = tx.clone();
+    let outbox_tx = outbox_tx.clone();
     let db = db.clone();
     let service_id = service_id.to_string();
     let settings = settings.clone();
 
-    let (out_tx, rx) = crossbeam_channel::unbounded::<Message>();
+    let (inbox_tx, inbox_rx) = crossbeam_channel::unbounded::<Message>();
 
-    supervisor::spawn(format!("my-iot::automator:{}", &service_id), move || {
-        for message in &rx {
-            for scenario in settings.scenarios.iter() {
-                if scenario.conditions.iter().all(|c| c.is_met(&message.reading)) {
-                    info!(
-                        r"{} triggered scenario: {}",
-                        &message.reading.sensor, scenario.description
-                    );
-                    for action in scenario.actions.iter() {
-                        action.execute(&service_id, &db, &message.reading, &tx).unwrap();
+    supervisor::spawn(
+        format!("my-iot::automator::{}", &service_id),
+        outbox_tx.clone(),
+        move || {
+            for message in &inbox_rx {
+                for scenario in settings.scenarios.iter() {
+                    if scenario.conditions.iter().all(|c| c.is_met(&message.reading)) {
+                        info!(
+                            r"{} triggered scenario: {}",
+                            &message.reading.sensor, scenario.description
+                        );
+                        for action in scenario.actions.iter() {
+                            action.execute(&service_id, &db, &message.reading, &outbox_tx).unwrap();
+                        }
+                    } else {
+                        debug!("Skipped: {}", &message.reading.sensor);
                     }
-                } else {
-                    debug!("Skipped: {}", &message.reading.sensor);
                 }
             }
-        }
-        unreachable!();
-    })?;
+            unreachable!();
+        },
+    )?;
 
-    Ok(vec![out_tx])
+    Ok(vec![inbox_tx])
 }
 
 /// Single automation scenario.

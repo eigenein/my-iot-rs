@@ -65,7 +65,7 @@ fn main() -> Result<()> {
     dispatcher_tx.send(Message::now(Type::OneOff, "my-iot::start", Value::None))?;
     let mut all_txs = vec![persistence::spawn(db.clone(), &dispatcher_tx)?];
     all_txs.extend(spawn_services(&settings, &db, &dispatcher_tx)?);
-    spawn_dispatcher(dispatcher_rx, all_txs)?;
+    spawn_dispatcher(dispatcher_rx, dispatcher_tx, all_txs)?;
 
     info!("Starting web server on port {}…", settings.http_port);
     web::start_server(settings, db.clone())
@@ -98,11 +98,12 @@ fn spawn_services(settings: &Settings, db: &Arc<Mutex<Db>>, tx: &Sender<Message>
 /// Thus, services exchange messages with each other. Each message from the input channel is
 /// broadcasted to each of output channels.
 ///
-/// - `rx`: input message channel
-/// - `txs`: output message channels
-fn spawn_dispatcher(rx: Receiver<Message>, txs: Vec<Sender<Message>>) -> Result<()> {
+/// - `rx`: dispatcher input message channel
+/// - `tx`: dispatcher output message channel
+/// - `txs`: service output message channels
+fn spawn_dispatcher(rx: Receiver<Message>, tx: Sender<Message>, txs: Vec<Sender<Message>>) -> Result<()> {
     info!("Spawning message dispatcher…");
-    supervisor::spawn("my-iot::dispatcher", move || -> Result<()> {
+    supervisor::spawn("my-iot::dispatcher", tx, move || -> Result<()> {
         for message in &rx {
             debug!("Dispatching {}", &message.reading.sensor);
             for tx in txs.iter() {

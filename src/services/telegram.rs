@@ -26,9 +26,12 @@ pub struct Settings {
 }
 
 /// Spawn the service.
-pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Result<Vec<Sender<Message>>> {
-    spawn_producer(Context::new(service_id, &settings.token)?, tx)?;
-    Ok(vec![spawn_consumer(Context::new(service_id, &settings.token)?)?])
+pub fn spawn(service_id: &str, settings: &Settings, outbox_tx: &Sender<Message>) -> Result<Vec<Sender<Message>>> {
+    spawn_producer(Context::new(service_id, &settings.token)?, outbox_tx)?;
+    Ok(vec![spawn_consumer(
+        Context::new(service_id, &settings.token)?,
+        outbox_tx,
+    )?])
 }
 
 struct Context {
@@ -55,11 +58,12 @@ impl Context {
 }
 
 /// Spawn thread that listens for Telegram updates and produces reading messages.
-fn spawn_producer(context: Context, tx: &Sender<Message>) -> Result<()> {
-    let tx = tx.clone();
+fn spawn_producer(context: Context, outbox_tx: &Sender<Message>) -> Result<()> {
+    let outbox_tx = outbox_tx.clone();
 
     supervisor::spawn(
-        format!("my-iot::telegram::producer::{}", &context.service_id),
+        &format!("my-iot::telegram::{}::producer", &context.service_id),
+        outbox_tx.clone(),
         move || {
             let mut offset: Option<i64> = None;
             loop {
@@ -67,7 +71,7 @@ fn spawn_producer(context: Context, tx: &Sender<Message>) -> Result<()> {
                     Ok(updates) => {
                         for update in updates.iter() {
                             offset = offset.max(Some(update.update_id + 1));
-                            send_readings(&context, &tx, &update).unwrap();
+                            send_readings(&context, &outbox_tx, &update).unwrap();
                         }
                         debug!("{}: next offset: {:?}", &context.service_id, offset);
                     }
@@ -102,17 +106,18 @@ fn send_readings(context: &Context, tx: &Sender<Message>, update: &TelegramUpdat
 }
 
 /// Spawn thread that listens for `Control` messages and communicates back to Telegram.
-fn spawn_consumer(context: Context) -> Result<Sender<Message>> {
+fn spawn_consumer(context: Context, outbox_tx: &Sender<Message>) -> Result<Sender<Message>> {
     let message_regex = Regex::new(&format!(
         r"^{}::(?P<chat_id>\-?\d+)::(?P<sensor>\w+)",
         &context.service_id,
     ))?;
-    let (tx, rx) = crossbeam_channel::unbounded::<Message>();
+    let (inbox_tx, inbox_rx) = crossbeam_channel::unbounded::<Message>();
 
     supervisor::spawn(
-        format!("my-iot::telegram::consumer::{}", &context.service_id),
+        format!("my-iot::telegram::{}::consumer", &context.service_id),
+        outbox_tx.clone(),
         move || {
-            for message in &rx {
+            for message in &inbox_rx {
                 if message.type_ != Type::Control {
                     continue;
                 }
@@ -135,7 +140,7 @@ fn spawn_consumer(context: Context) -> Result<Sender<Message>> {
         },
     )?;
 
-    Ok(tx)
+    Ok(inbox_tx)
 }
 
 /// Call [Telegram Bot API](https://core.telegram.org/bots/api) method.

@@ -30,6 +30,8 @@ pub enum Value {
     Rh(f64),
     /// Image URL.
     ImageUrl(String),
+    /// Boolean.
+    Boolean(bool),
 }
 
 impl markup::Render for Value {
@@ -66,6 +68,13 @@ impl Value {
                 _ if value < 60.0 => "is-warning",
                 _ => "is-danger",
             },
+            Value::Boolean(value) => {
+                if value {
+                    "is-success"
+                } else {
+                    "is-danger"
+                }
+            }
             _ => "is-light",
         }
     }
@@ -81,6 +90,11 @@ impl Value {
             Value::WindDirection(_) => Ok(r#"<i class="fas fa-wind"></i>"#),
             Value::Rh(_) => Ok(r#"<i class="fas fa-water"></i>"#),
             Value::Metres(_) => Ok(r#"<i class="fas fa-ruler"></i>"#),
+            Value::Boolean(value) => Ok(if value {
+                r#"<i class="fas fa-toggle-on"></i>"#
+            } else {
+                r#"<i class="fas fa-toggle-off"></i>"#
+            }),
             _ => Err(format_err!("value has no icon")),
         }
     }
@@ -108,7 +122,18 @@ impl std::fmt::Display for Value {
             Value::Rh(percent) => write!(f, r"{}%", percent),
             Value::Metres(metres) => f.write_str(&human_format(*metres, "m")),
             Value::ImageUrl(url) => write!(f, r#"<img src="{}">"#, url),
+            Value::Boolean(value) => write!(
+                f,
+                r#"<span class="is-uppercase">{}</span>"#,
+                if *value { "Yes" } else { "No" }
+            ),
         }
+    }
+}
+
+impl From<bool> for Value {
+    fn from(value: bool) -> Self {
+        Value::Boolean(value)
     }
 }
 
