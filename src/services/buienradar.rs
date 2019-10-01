@@ -4,7 +4,7 @@ use crate::supervisor;
 use crate::value::{PointOfTheCompass, Value};
 use crate::Result;
 use chrono::offset::TimeZone;
-use chrono::{DateTime, Local, NaiveDateTime};
+use chrono::{DateTime, Local};
 use chrono_tz::Europe::Amsterdam;
 use crossbeam_channel::Sender;
 use failure::format_err;
@@ -184,9 +184,10 @@ fn send_readings(
 
 /// Implements [custom date/time format](https://serde.rs/custom-date-format.html) with Amsterdam timezone.
 fn date_format<'de, D: Deserializer<'de>>(deserializer: D) -> std::result::Result<DateTime<Local>, D::Error> {
-    let string = String::deserialize(deserializer)?;
-    let datetime = NaiveDateTime::parse_from_str(&string, "%Y-%m-%dT%H:%M:%S").map_err(de::Error::custom)?;
-    Ok(Amsterdam.from_local_datetime(&datetime).unwrap().with_timezone(&Local))
+    Ok(Amsterdam
+        .datetime_from_str(&String::deserialize(deserializer)?, "%Y-%m-%dT%H:%M:%S")
+        .map_err(de::Error::custom)?
+        .with_timezone(&Local))
 }
 
 /// Translates Dutch wind direction acronyms.
