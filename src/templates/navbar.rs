@@ -37,9 +37,13 @@ markup::define! {
                     }
 
                     div."navbar-end" {
-                        a."navbar-item"[href = "https://eigenein.github.io/my-iot-rs/my_iot/"] {
+                        a."navbar-item"[href = "https://github.com/eigenein/my-iot-rs/wiki"] {
                             span.icon { i.fas."fa-external-link-alt" {} }
-                            span { "Docs" }
+                            span { "Wiki" }
+                        }
+                        a."navbar-item"[href = "https://github.com/eigenein/my-iot-rs/issues"] {
+                            span.icon { i.fas."fa-external-link-alt" {} }
+                            span { "Issues" }
                         }
                     }
                 }
