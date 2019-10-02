@@ -2,6 +2,8 @@
 
 ## `master`
 
+## `0.26.0`
+
 - New: sunrise and sunset fields for Buienradar
 - Fix: docs link
 - Chore: simplify Buienradar date/time deserialization #36
