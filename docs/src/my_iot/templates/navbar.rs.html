@@ -47,6 +47,10 @@
 <span id="47">47</span>
 <span id="48">48</span>
 <span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Shared navigation bar.</span>
 <span class="ident">markup</span>::<span class="macro">define</span><span class="macro">!</span> {
@@ -87,9 +91,13 @@
                     }
 
                     <span class="ident">div</span>.<span class="string">&quot;navbar-end&quot;</span> {
-                        <span class="ident">a</span>.<span class="string">&quot;navbar-item&quot;</span>[<span class="ident">href</span> <span class="op">=</span> <span class="string">&quot;https://eigenein.github.io/my-iot-rs/my_iot/&quot;</span>] {
+                        <span class="ident">a</span>.<span class="string">&quot;navbar-item&quot;</span>[<span class="ident">href</span> <span class="op">=</span> <span class="string">&quot;https://github.com/eigenein/my-iot-rs/wiki&quot;</span>] {
                             <span class="ident">span</span>.<span class="ident">icon</span> { <span class="ident">i</span>.<span class="ident">fas</span>.<span class="string">&quot;fa-external-link-alt&quot;</span> {} }
-                            <span class="ident">span</span> { <span class="string">&quot;Docs&quot;</span> }
+                            <span class="ident">span</span> { <span class="string">&quot;Wiki&quot;</span> }
+                        }
+                        <span class="ident">a</span>.<span class="string">&quot;navbar-item&quot;</span>[<span class="ident">href</span> <span class="op">=</span> <span class="string">&quot;https://github.com/eigenein/my-iot-rs/issues&quot;</span>] {
+                            <span class="ident">span</span>.<span class="ident">icon</span> { <span class="ident">i</span>.<span class="ident">fas</span>.<span class="string">&quot;fa-external-link-alt&quot;</span> {} }
+                            <span class="ident">span</span> { <span class="string">&quot;Issues&quot;</span> }
                         }
                     }
                 }

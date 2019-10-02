@@ -3,8 +3,9 @@
 ## `master`
 
 - New: sunrise and sunset fields for Buienradar
-- Chore: simplify Buienradar date/time deserialization #36
 - Fix: docs link
+- Chore: simplify Buienradar date/time deserialization #36
+- Chore: switch to `simple_logger` #42
 
 ## `0.25.0`
 

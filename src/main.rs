@@ -7,12 +7,11 @@ use crate::value::Value;
 use clap::Arg;
 use crossbeam_channel::{Receiver, Sender};
 use failure::{format_err, Error};
-use log::{debug, info, warn};
+use log::{debug, info, warn, Level};
 use std::sync::{Arc, Mutex};
 
 pub mod consts;
 pub mod db;
-pub mod logging;
 pub mod message;
 pub mod persistence;
 pub mod services;
@@ -29,7 +28,7 @@ const DEFAULT_DB_PATH: &str = "my-iot.sqlite3";
 
 /// Entry point.
 fn main() -> Result<()> {
-    logging::init();
+    simple_logger::init_with_level(Level::Info)?;
 
     let matches = clap::App::new("My IoT")
         .version(clap::crate_version!())
