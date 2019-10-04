@@ -27,7 +27,7 @@ markup::define! {
                                 p {
                                     i.fas."fa-circle"."has-text-info" {} " "
                                     a[href = "https://github.com/eigenein/my-iot-rs"] {
-                                        strong { "My IoT " {clap::crate_version!()} }
+                                        strong { "My IoT " {structopt::clap::crate_version!()} }
                                     }
                                     " by " a[href = "https://github.com/eigenein"] { strong { "eigenein" } }
                                 }

@@ -1,4 +1,4 @@
-use clap::crate_version;
+use structopt::clap::crate_version;
 
 pub const USER_AGENT: &str = concat!(
     "My IoT / ",

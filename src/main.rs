@@ -4,11 +4,12 @@ use crate::db::Db;
 use crate::message::{Message, Type};
 use crate::settings::Settings;
 use crate::value::Value;
-use clap::Arg;
 use crossbeam_channel::{Receiver, Sender};
 use failure::{format_err, Error};
 use log::{debug, info, warn, Level};
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
+use structopt::StructOpt;
 
 pub mod consts;
 pub mod db;
@@ -23,37 +24,43 @@ pub mod web;
 
 type Result<T> = std::result::Result<T, Error>;
 
-const DEFAULT_SETTINGS_PATH: &str = "my-iot.toml";
-const DEFAULT_DB_PATH: &str = "my-iot.sqlite3";
+#[derive(StructOpt, Debug)]
+#[structopt(name = "my-iot", author, about)]
+struct Opt {
+    /// Show warning and error messages only
+    #[structopt(short = "s", long = "silent")]
+    silent: bool,
+
+    /// Show debug messages
+    #[structopt(short = "v", long = "verbose", conflicts_with = "silent")]
+    verbose: bool,
+
+    /// Settings file
+    #[structopt(long, parse(from_os_str), env = "MYIOT_SETTINGS", default_value = "my-iot.toml")]
+    settings: PathBuf,
+
+    /// Database file
+    #[structopt(long, parse(from_os_str), env = "MYIOT_DB", default_value = "my-iot.sqlite3")]
+    db: PathBuf,
+}
 
 /// Entry point.
 fn main() -> Result<()> {
-    simple_logger::init_with_level(Level::Info)?;
-
-    let matches = clap::App::new("My IoT")
-        .version(clap::crate_version!())
-        .about(clap::crate_description!())
-        .arg(
-            Arg::with_name("settings")
-                .short("s")
-                .long("settings")
-                .takes_value(true)
-                .help(&format!("Settings file path (default: {})", DEFAULT_SETTINGS_PATH)),
-        )
-        .arg(
-            Arg::with_name("db")
-                .long("--db")
-                .takes_value(true)
-                .help(&format!("Database file path (default: {})", DEFAULT_DB_PATH)),
-        )
-        .get_matches();
+    let opt: Opt = Opt::from_args();
+    simple_logger::init_with_level(if opt.silent {
+        Level::Warn
+    } else if opt.verbose {
+        Level::Debug
+    } else {
+        Level::Info
+    })?;
 
     info!("Reading settings…");
-    let settings = settings::read(matches.value_of("settings").unwrap_or(DEFAULT_SETTINGS_PATH))?;
+    let settings = settings::read(opt.settings)?;
     debug!("Settings: {:?}", &settings);
 
     info!("Opening database…");
-    let db = Arc::new(Mutex::new(Db::new(matches.value_of("db").unwrap_or(DEFAULT_DB_PATH))?));
+    let db = Arc::new(Mutex::new(Db::new(opt.db)?));
 
     // Starting up multi-producer multi-consumer bus:
     // - services create and return their input channels

@@ -1,6 +1,9 @@
 # `my-iot`
 
-## `master`
+## `0.27.0`
+
+- Break: switch to structopt #41
+- New: logging level option #40
 
 ## `0.26.0`
 
