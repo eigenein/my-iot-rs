@@ -26,7 +26,7 @@ where
         }
         tx.send(Message::now(Type::Actual, &sensor, false)).unwrap();
 
-        // FIXME
+        // FIXME: https://github.com/eigenein/my-iot-rs/issues/47
         thread::sleep(Duration::from_secs(60));
     })?;
 

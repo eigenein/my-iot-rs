@@ -15,10 +15,14 @@ use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::fmt::Debug;
-use std::thread;
 use std::time::Duration;
 
-const TIMEOUT: u32 = 60;
+/// > Should be positive, short polling should be used for testing purposes only.
+const GET_UPDATES_TIMEOUT: u64 = 60;
+
+/// Global client timeout. Based on `GET_UPDATES_TIMEOUT` because `reqwest` does not allow to set
+/// individual reqwest timeout.
+static CLIENT_TIMEOUT: Duration = Duration::from_secs(GET_UPDATES_TIMEOUT + 5);
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct Settings {
@@ -48,7 +52,7 @@ impl Context {
         Ok(Self {
             client: reqwest::Client::builder()
                 .gzip(true)
-                .timeout(Duration::from_secs((TIMEOUT + 1).into()))
+                .timeout(CLIENT_TIMEOUT)
                 .default_headers(headers)
                 .build()?,
             service_id: service_id.into(),
@@ -64,22 +68,14 @@ fn spawn_producer(context: Context, outbox_tx: &Sender<Message>) -> Result<()> {
     supervisor::spawn(
         &format!("my-iot::telegram::{}::producer", &context.service_id),
         outbox_tx.clone(),
-        move || {
+        move || -> Result<()> {
             let mut offset: Option<i64> = None;
             loop {
-                match get_updates(&context, offset) {
-                    Ok(updates) => {
-                        for update in updates.iter() {
-                            offset = offset.max(Some(update.update_id + 1));
-                            send_readings(&context, &outbox_tx, &update).unwrap();
-                        }
-                        debug!("{}: next offset: {:?}", &context.service_id, offset);
-                    }
-                    Err(error) => {
-                        log::error!("Telegram has failed: {}", error);
-                        thread::sleep(Duration::from_millis(60000)); // FIXME: something smarter.
-                    }
+                for update in get_updates(&context, offset)?.iter() {
+                    offset = offset.max(Some(update.update_id + 1));
+                    send_readings(&context, &outbox_tx, &update).unwrap();
                 }
+                debug!("{}: next offset: {:?}", &context.service_id, offset);
             }
         },
     )?;
@@ -132,6 +128,7 @@ fn spawn_consumer(context: Context, outbox_tx: &Sender<Message>) -> Result<Sende
                     Value::ImageUrl(ref url) if sensor == "animation" => send_animation(&context, chat_id, url).err(),
                     value => Some(format_err!("cannot send {:?} to {}", &value, &message.reading.sensor)),
                 };
+                // FIXME: return `Result` from the closure.
                 if let Some(error) = error {
                     error!("{:?}", error);
                 }
@@ -150,6 +147,7 @@ fn call_api<P: Serialize + Debug + ?Sized, R: DeserializeOwned>(
     parameters: &P,
 ) -> Result<R> {
     debug!("{}({:?})", &method, parameters);
+    // FIXME: https://github.com/eigenein/my-iot-rs/issues/44
     context
         .client
         .get(&format!("https://api.telegram.org/bot{}/{}", &context.token, method))
@@ -174,7 +172,7 @@ fn get_updates(context: &Context, offset: Option<i64>) -> Result<Vec<TelegramUpd
         &json!({
             "offset": offset,
             "limit": null,
-            "timeout": TIMEOUT,
+            "timeout": GET_UPDATES_TIMEOUT,
             "allowed_updates": ["message"],
         }),
     )

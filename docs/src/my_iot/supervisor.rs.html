@@ -61,7 +61,7 @@
         }
         <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">Message</span>::<span class="ident">now</span>(<span class="ident">Type</span>::<span class="ident">Actual</span>, <span class="kw-2">&amp;</span><span class="ident">sensor</span>, <span class="bool-val">false</span>)).<span class="ident">unwrap</span>();
 
-        <span class="comment">// FIXME</span>
+        <span class="comment">// FIXME: https://github.com/eigenein/my-iot-rs/issues/47</span>
         <span class="ident">thread</span>::<span class="ident">sleep</span>(<span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">60</span>));
     })<span class="question-mark">?</span>;
 

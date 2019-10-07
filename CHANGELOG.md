@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.28.0`
+
+- Chore: Telegram producer thread returns `Result`
+
 ## `0.27.0`
 
 - Break: switch to structopt #41
