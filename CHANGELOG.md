@@ -1,5 +1,12 @@
 # `my-iot`
 
+## `master`
+
+This release brings the different database schema, which should work faster and take less disk space. 
+**The new schema is backwards-incompatible.**
+
+- Break: optimise database schema #50
+
 ## `0.28.0`
 
 - Chore: Telegram producer thread returns `Result`

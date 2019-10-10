@@ -5,40 +5,25 @@ use crate::value::Value;
 use crate::Result;
 use chrono::prelude::*;
 use rusqlite::types::*;
-use rusqlite::{Connection, Row, ToSql, NO_PARAMS};
+use rusqlite::{params, Connection, Row, ToSql};
 use std::path::Path;
 
 const SCHEMA: &str = "
+    CREATE TABLE IF NOT EXISTS sensors (
+        id INTEGER PRIMARY KEY,
+        sensor TEXT UNIQUE NOT NULL,
+        last_reading_id INTEGER NULL REFERENCES readings(id) ON UPDATE CASCADE ON DELETE CASCADE
+    );
+
     -- Stores all sensor readings.
     CREATE TABLE IF NOT EXISTS readings (
-        sensor TEXT NOT NULL,
+        id INTEGER PRIMARY KEY,
+        sensor_id INTEGER REFERENCES sensors(id) ON UPDATE CASCADE ON DELETE CASCADE,
         ts INTEGER NOT NULL,
         value TEXT NOT NULL
     );
     -- Descending index on `ts` is needed to speed up the select latest queries.
-    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_ts ON readings (sensor, ts DESC);
-
-    -- Tables for key-value store.
-    CREATE TABLE IF NOT EXISTS integers (
-        `key` TEXT NOT NULL PRIMARY KEY,
-        value INTEGER,
-        expires INTEGER NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS reals (
-        `key` TEXT NOT NULL PRIMARY KEY,
-        value REAL,
-        expires INTEGER NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS texts (
-        `key` TEXT NOT NULL PRIMARY KEY,
-        value TEXT,
-        expires INTEGER NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS blobs (
-        `key` TEXT NOT NULL PRIMARY KEY,
-        value BLOB,
-        expires INTEGER NOT NULL
-    );
+    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_id_ts ON readings (sensor_id, ts DESC);
 
     -- VACUUM;
 ";
@@ -54,8 +39,7 @@ impl Db {
     pub fn new<P: AsRef<Path>>(path: P) -> Result<Db> {
         let connection = Connection::open(path)?;
         connection.execute_batch(SCHEMA)?;
-        let db = Db { connection };
-        Ok(db)
+        Ok(Db { connection })
     }
 }
 
@@ -64,20 +48,31 @@ impl Db {
     /// Insert reading into database.
     pub fn insert_reading(&self, reading: &Reading) -> Result<()> {
         self.connection
-            .prepare_cached("INSERT OR REPLACE INTO readings (sensor, ts, value) VALUES (?1, ?2, ?3)")?
-            .execute(&[
-                &reading.sensor as &dyn ToSql,
-                &reading.timestamp.timestamp_millis(),
-                &reading.value,
-            ])?;
+            .prepare_cached("INSERT OR IGNORE INTO sensors (sensor) VALUES (?1)")?
+            .execute(params![reading.sensor])?;
+        let sensor_id = self.connection.last_insert_rowid();
+        self.connection
+            .prepare_cached("INSERT OR REPLACE INTO readings (sensor_id, ts, value) VALUES (?1, ?2, ?3)")?
+            .execute(params![sensor_id, reading.timestamp.timestamp_millis(), reading.value])?;
+        let reading_id = self.connection.last_insert_rowid();
+        self.connection
+            .prepare_cached("UPDATE sensors SET last_reading_id = ?1 WHERE id = ?2")?
+            .execute(params![reading_id, sensor_id])?;
         Ok(())
     }
 
     /// Select latest reading for each sensor.
     pub fn select_latest_readings(&self) -> Result<Vec<Reading>> {
         self.connection
-            .prepare_cached("SELECT sensor, MAX(ts) as ts, value FROM readings GROUP BY sensor")?
-            .query_map(NO_PARAMS, |row| Ok(Reading::from(row)))?
+            .prepare_cached(
+                r#"
+                SELECT sensors.sensor, MAX(ts) as ts, value
+                FROM readings
+                INNER JOIN sensors ON sensors.id = readings.sensor_id
+                GROUP BY sensors.id
+                "#,
+            )?
+            .query_map(params![], |row| Ok(Reading::from(row)))?
             .map(|result| result.map_err(|e| e.into()))
             .collect()
     }
@@ -86,7 +81,7 @@ impl Db {
     pub fn select_size(&self) -> Result<u64> {
         self.connection
             .prepare_cached("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()")?
-            .query_row(NO_PARAMS, |row| row.get::<_, i64>(0))
+            .query_row(params![], |row| row.get::<_, i64>(0))
             .map(|v| v as u64)
             .map_err(|e| e.into())
     }
@@ -95,8 +90,15 @@ impl Db {
     pub fn select_last_reading(&self, sensor: &str) -> Result<Option<Reading>> {
         Ok(self
             .connection
-            .prepare_cached("SELECT sensor, ts, value FROM readings WHERE sensor = ?1 ORDER BY ts DESC LIMIT 1")?
-            .query_row(&[&sensor as &dyn ToSql], |row| Ok(Some(Reading::from(row))))
+            .prepare_cached(
+                r#"
+                SELECT sensors.sensor, readings.ts, readings.value
+                FROM sensors
+                INNER JOIN readings ON readings.id = sensors.last_reading_id
+                WHERE sensors.sensor = ?1
+                "#,
+            )?
+            .query_row(params![sensor], |row| Ok(Some(Reading::from(row))))
             .unwrap_or(None))
     }
 
@@ -104,54 +106,18 @@ impl Db {
     pub fn select_readings(&self, sensor: &str, since: &DateTime<Local>) -> Result<Vec<Reading>> {
         Ok(self
             .connection
-            .prepare_cached("SELECT sensor, ts, value FROM readings WHERE sensor = ?1 AND ts >= ?2 ORDER BY ts")?
-            .query_map(&[&sensor as &dyn ToSql, &since.timestamp_millis()], |row| {
-                Ok(Reading::from(row))
-            })?
+            .prepare_cached(
+                r#"
+                SELECT sensors.sensor, ts, value
+                FROM readings
+                INNER JOIN sensors ON sensors.id = readings.sensor_id
+                WHERE sensors.sensor = ?1 AND ts >= ?2
+                ORDER BY ts
+                "#,
+            )?
+            .query_map(params![sensor, since.timestamp_millis()], |row| Ok(Reading::from(row)))?
             .map(|result| result.unwrap())
             .collect())
-    }
-}
-
-/// Key-value store.
-impl Db {
-    /// Get an item from the key-value store.
-    pub fn get<K, V>(&self, key: K) -> Result<Option<V>>
-    where
-        K: AsRef<str>,
-        V: SqliteTypeName + FromSql,
-    {
-        Ok(self
-            .connection
-            .prepare_cached(&format!(
-                "SELECT value FROM {}s WHERE `key` = ?1 AND expires > ?2",
-                V::name()
-            ))?
-            .query_row(
-                &[&key.as_ref() as &dyn ToSql, &Local::now().timestamp_millis()],
-                |row| Ok(Some(row.get_unwrap::<_, V>("value"))),
-            )
-            .unwrap_or(None))
-    }
-
-    /// Set item in generic key-value store.
-    pub fn set<K, V, E>(&self, key: K, value: V, expires_at: E) -> Result<()>
-    where
-        K: AsRef<str>,
-        V: SqliteTypeName + ToSql,
-        E: Into<DateTime<Local>>,
-    {
-        self.connection
-            .prepare_cached(&format!(
-                "INSERT OR REPLACE INTO {}s (`key`, value, expires) VALUES (?1, ?2, ?3)",
-                V::name()
-            ))?
-            .execute(&[
-                &key.as_ref() as &dyn ToSql,
-                &value,
-                &expires_at.into().timestamp_millis(),
-            ])?;
-        Ok(())
     }
 }
 
@@ -186,75 +152,42 @@ impl From<&Row<'_>> for Reading {
     }
 }
 
-/// Trait which returns SQLite type name of the implementing type.
-pub trait SqliteTypeName {
-    fn name() -> &'static str;
-}
-
-impl SqliteTypeName for i32 {
-    fn name() -> &'static str {
-        "integer"
-    }
-}
-
-impl SqliteTypeName for f64 {
-    fn name() -> &'static str {
-        "real"
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::Duration;
 
     type Result = crate::Result<()>;
 
     #[test]
-    fn set_and_get() -> Result {
-        let db = Db::new(":memory:")?;
-        db.set("hello", 42, Local::now() + Duration::days(1))?;
-        assert_eq!(db.get::<_, i32>("hello").unwrap(), Some(42));
-        Ok(())
-    }
-
-    #[test]
-    fn get_missing_returns_none() -> Result {
-        assert_eq!(Db::new(":memory:")?.get::<_, i32>("missing")?, None);
-        Ok(())
-    }
-
-    #[test]
-    fn expired_returns_none() -> Result {
-        let db = Db::new(":memory:")?;
-        db.set("hello", 42, Local::now())?;
-        assert_eq!(db.get::<_, i32>("hello")?, None);
-        Ok(())
-    }
-
-    #[test]
-    fn cannot_get_different_type_value() -> Result {
-        let db = Db::new(":memory:")?;
-        db.set("hello", 42, Local::now() + Duration::days(1))?;
-        assert_eq!(db.get::<_, f64>("hello")?, None);
-        Ok(())
-    }
-
-    #[test]
-    fn insert_reading_twice_should_succeed() -> Result {
+    fn reading_double_insert_keeps_one_record() -> Result {
         let reading = Reading {
             sensor: "test".into(),
             value: Value::Counter(42),
             timestamp: Local.timestamp_millis(1_566_424_128_000),
         };
+
         let db = Db::new(":memory:")?;
         db.insert_reading(&reading)?;
         db.insert_reading(&reading)?;
+
+        let reading_count = db
+            .connection
+            .prepare("SELECT COUNT(*) FROM readings")?
+            .query_row(params![], |row| row.get::<_, i64>(0))?;
+        assert_eq!(reading_count, 1);
+
         Ok(())
     }
 
     #[test]
-    fn select_last_reading() -> Result {
+    fn select_last_reading_returns_none_on_empty_database() -> Result {
+        let db = Db::new(":memory:")?;
+        assert_eq!(db.select_last_reading("test")?, None);
+        Ok(())
+    }
+
+    #[test]
+    fn select_last_reading_returns_test_reading() -> Result {
         let reading = Reading {
             sensor: "test".into(),
             value: Value::Counter(42),
@@ -285,7 +218,7 @@ mod tests {
     }
 
     #[test]
-    fn select_latest_readings() -> Result {
+    fn select_latest_readings_returns_test_reading() -> Result {
         let reading = Reading {
             sensor: "test".into(),
             value: Value::Counter(42),
@@ -294,6 +227,29 @@ mod tests {
         let db = Db::new(":memory:")?;
         db.insert_reading(&reading)?;
         assert_eq!(db.select_latest_readings()?, vec![reading]);
+        Ok(())
+    }
+
+    #[test]
+    fn existing_sensor_is_reused() -> Result {
+        let db = Db::new(":memory:")?;
+        db.insert_reading(&Reading {
+            sensor: "test".into(),
+            value: Value::Counter(42),
+            timestamp: Local.timestamp_millis(1_566_424_128_000),
+        })?;
+        db.insert_reading(&Reading {
+            sensor: "test".into(),
+            value: Value::Counter(42),
+            timestamp: Local.timestamp_millis(1_566_424_129_000),
+        })?;
+
+        let reading_count = db
+            .connection
+            .prepare("SELECT COUNT(*) FROM sensors")?
+            .query_row(params![], |row| row.get::<_, i64>(0))?;
+        assert_eq!(reading_count, 1);
+
         Ok(())
     }
 }
