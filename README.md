@@ -8,5 +8,3 @@ Yet another [home automation](https://en.wikipedia.org/wiki/Home_automation). Wr
 [![Crates.io](https://img.shields.io/crates/l/my-iot)](https://crates.io/crates/my-iot)
 [![Build Status](https://github.com/eigenein/my-iot-rs/workflows/build/badge.svg)](https://github.com/eigenein/my-iot-rs/actions)
 [![GitHub last commit](https://img.shields.io/github/last-commit/eigenein/my-iot-rs?logo=github)](https://github.com/eigenein/my-iot-rs/commits/master)
-[![GitHub issues](https://img.shields.io/github/issues-raw/eigenein/my-iot-rs?logo=github)](https://github.com/eigenein/my-iot-rs/issues)
-[![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/eigenein/my-iot-rs?color=green&logo=github)](https://github.com/eigenein/my-iot-rs/issues?q=is%3Aissue+is%3Aclosed)
