@@ -5,18 +5,12 @@ use chrono::prelude::*;
 use serde::Deserialize;
 
 /// Services use messages to exchange sensor readings between each other.
+/// Message contains a single sensor reading alongside with some metadata.
 #[derive(Debug, Clone)]
 pub struct Message {
-    pub reading: Reading,
-
+    /// Message type.
     pub type_: Type,
-}
 
-/// Single sensor reading.
-///
-/// All the sensor data is stored as a single collection of all readings from all services.
-#[derive(Debug, PartialEq, Clone)]
-pub struct Reading {
     /// A sensor. For example: `buienradar::6240::wind_speed_bft`.
     ///
     /// Note that sensors do not exist as separate entities. Sensor is only a sort of "label"
@@ -24,25 +18,29 @@ pub struct Reading {
     /// between different "real" sensors.
     pub sensor: String,
 
-    /// An attached typed value.
-    pub value: Value,
-
-    /// Timestamp when the value was actually measured. This may be earlier than moment of emitting a reading.
+    /// Timestamp when the value was actually measured. This may be earlier than a moment of sending the message.
     pub timestamp: DateTime<Local>,
+
+    /// Attached value.
+    pub value: Value,
 }
 
 /// Message type.
 #[derive(Clone, Copy, PartialEq, Debug, Deserialize)]
 pub enum Type {
-    /// Actual sensor reading, which should be persisted in the database and displayed on the dashboard.
-    Actual,
+    /// Normal persistently stored sensor reading. The most frequently used message type.
+    ReadLogged,
 
-    /// Sensor reading which become non-actual just right after it was sent.
-    /// Think of, for example, a single camera snapshot.
-    OneOff,
+    /// Sensor reading which become non-actual just right after it was sent, thus not persisted at all.
+    /// Think of, for example, a chat message.
+    ReadNonLogged,
+
+    /// Sensor reading that invalidates previous reading. Only last reading is stored.
+    /// Think of, for example, a camera snapshot.
+    ReadSnapshot,
 
     /// Used to control other services. One service may send this to control a sensor of another service.
-    Control,
+    Write,
 }
 
 impl Message {

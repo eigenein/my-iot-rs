@@ -6,6 +6,8 @@ This release brings the different database schema, which should work faster and 
 **The new schema is backwards-incompatible.**
 
 - Break: optimise database schema #50
+- Break: rename message types and introduce `Type::ReadSnapshot` #49
+- Break: change sensor value serialization #50
 
 ## `0.28.0`
 

@@ -90,7 +90,7 @@ fn send_readings(context: &Context, tx: &Sender<Message>, update: &TelegramUpdat
     if let Some(ref message) = update.message {
         if let Some(ref text) = message.text {
             tx.send(Message::new(
-                Type::OneOff,
+                Type::ReadNonLogged,
                 format!("{}::{}::message", &context.service_id, message.chat.id),
                 Value::Text(text.into()),
                 message.date.into(),
@@ -114,19 +114,19 @@ fn spawn_consumer(context: Context, outbox_tx: &Sender<Message>) -> Result<Sende
         outbox_tx.clone(),
         move || {
             for message in &inbox_rx {
-                if message.type_ != Type::Control {
+                if message.type_ != Type::Write {
                     continue;
                 }
-                let (chat_id, sensor) = match message_regex.captures(&message.reading.sensor) {
+                let (chat_id, sensor) = match message_regex.captures(&message.sensor) {
                     Some(captures) => (captures.get(1).unwrap().as_str(), captures.get(2).unwrap().as_str()),
                     None => continue,
                 };
                 let chat_id: TelegramChatId = chat_id.into();
-                let error = match message.reading.value {
+                let error = match message.value {
                     Value::Text(ref text) if sensor == "message" => send_message(&context, chat_id, text).err(),
                     Value::ImageUrl(ref url) if sensor == "photo" => send_photo(&context, chat_id, url).err(),
                     Value::ImageUrl(ref url) if sensor == "animation" => send_animation(&context, chat_id, url).err(),
-                    value => Some(format_err!("cannot send {:?} to {}", &value, &message.reading.sensor)),
+                    value => Some(format_err!("cannot send {:?} to {}", &value, &message.sensor)),
                 };
                 // FIXME: return `Result` from the closure.
                 if let Some(error) = error {

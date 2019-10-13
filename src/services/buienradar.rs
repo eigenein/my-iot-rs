@@ -58,7 +58,7 @@ struct BuienradarStationMeasurement {
     feel_temperature: Option<f64>,
 
     #[serde(rename = "windspeedBft")]
-    wind_speed_bft: Option<u32>,
+    wind_speed_bft: Option<u8>,
 
     #[serde(deserialize_with = "date_format")]
     timestamp: DateTime<Local>,
@@ -111,71 +111,57 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
         .iter()
         .find(|measurement| measurement.station_id == station_id)
         .ok_or_else(|| format_err!("station {} is not found", station_id))?;
-    tx.send(Message {
-        type_: Type::Actual,
-        reading: Reading {
-            sensor: format!("{}::{}::name", service_id, station_id),
-            value: Value::Text(measurement.name.clone()),
-            timestamp: measurement.timestamp,
-        },
-    })?;
-    tx.send(Message {
-        type_: Type::Actual,
-        reading: Reading {
-            sensor: format!("{}::{}::weather_description", service_id, station_id),
-            value: Value::Text(measurement.weather_description.clone()),
-            timestamp: measurement.timestamp,
-        },
-    })?;
+    tx.send(Message::new(
+        type_: Type::ReadLogged,
+        format!("{}::{}::name", service_id, station_id),
+        Value::Text(measurement.name.clone()),
+        measurement.timestamp,
+    ))?;
+    tx.send(Message::new(
+        type_: Type::ReadLogged,
+        format!("{}::{}::weather_description", service_id, station_id),
+        Value::Text(measurement.weather_description.clone()),
+        measurement.timestamp,
+    ))?;
     if let Some(degrees) = measurement.temperature {
-        tx.send(Message {
-            type_: Type::Actual,
-            reading: Reading {
-                sensor: format!("{}::{}::temperature", service_id, station_id),
-                value: Value::Celsius(degrees),
-                timestamp: measurement.timestamp,
-            },
-        })?;
+        tx.send(Message::new(
+            Type::ReadLogged,
+            format!("{}::{}::temperature", service_id, station_id),
+            Value::Celsius(degrees),
+            measurement.timestamp,
+        ))?;
     }
     if let Some(degrees) = measurement.ground_temperature {
-        tx.send(Message {
-            type_: Type::Actual,
-            reading: Reading {
-                sensor: format!("{}::{}::ground_temperature", service_id, station_id),
-                value: Value::Celsius(degrees),
-                timestamp: measurement.timestamp,
-            },
-        })?;
+        tx.send(Message::new(
+            type_: Type::ReadLogged,
+            format!("{}::{}::ground_temperature", service_id, station_id),
+            Value::Celsius(degrees),
+            measurement.timestamp,
+        ))?;
     }
     if let Some(degrees) = measurement.feel_temperature {
-        tx.send(Message {
-            type_: Type::Actual,
-            reading: Reading {
-                sensor: format!("{}::{}::feel_temperature", service_id, station_id),
-                value: Value::Celsius(degrees),
-                timestamp: measurement.timestamp,
-            },
-        })?;
+        tx.send(Message::new(
+            type_: Type::ReadLogged,
+            format!("{}::{}::feel_temperature", service_id, station_id),
+            Value::Celsius(degrees),
+            measurement.timestamp,
+        ))?;
     }
     if let Some(bft) = measurement.wind_speed_bft {
-        tx.send(Message {
-            type_: Type::Actual,
-            reading: Reading {
-                sensor: format!("{}::{}::wind_speed_bft", service_id, station_id),
-                value: Value::Bft(bft),
-                timestamp: measurement.timestamp,
-            },
-        })?;
+        tx.send(Message::new(
+            Type::ReadLogged,
+            format!("{}::{}::wind_speed_bft", service_id, station_id),
+            Value::Bft(bft),
+            measurement.timestamp,
+        ))?;
     }
     if let Some(point) = measurement.wind_direction {
-        tx.send(Message {
-            type_: Type::Actual,
-            reading: Reading {
-                sensor: format!("{}::{}::wind_direction", service_id, station_id),
-                value: Value::WindDirection(point),
-                timestamp: measurement.timestamp,
-            },
-        })?;
+        tx.send(Message::new(
+            Type::ReadLogged,
+            format!("{}::{}::wind_direction", service_id, station_id),
+            Value::WindDirection(point),
+            measurement.timestamp,
+        ))?;
     }
     Ok(())
 }

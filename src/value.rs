@@ -1,17 +1,16 @@
 //! Implements sensor reading value.
 
-use crate::Result;
-use failure::format_err;
+use crate::format::human_format;
+use failure::{format_err, Error};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
 /// Sensor reading value.
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, PartialEq)]
+#[serde(untagged)]
 pub enum Value {
     /// No value.
     None,
-    /// Sensor value has been updated.
-    Update(Box<Value>, Box<Value>),
     /// Generic counter.
     Counter(u64),
     /// Size in [bytes](https://en.wikipedia.org/wiki/Byte).
@@ -21,7 +20,7 @@ pub enum Value {
     /// [Celsius](https://en.wikipedia.org/wiki/Celsius) temperature.
     Celsius(f64),
     /// [Beaufort](https://en.wikipedia.org/wiki/Beaufort_scale) wind speed.
-    Bft(u32),
+    Bft(u8),
     /// Wind direction.
     WindDirection(PointOfTheCompass),
     /// Length in [metres](https://en.wikipedia.org/wiki/Metre).
@@ -80,7 +79,7 @@ impl Value {
     }
 
     /// Get [Font Awesome](https://fontawesome.com) icon tag.
-    pub fn icon(&self) -> Result<&'static str> {
+    pub fn icon(&self) -> Result<&'static str, Error> {
         match *self {
             Value::Counter(_) => Ok(r#"<i class="fas fa-sort-numeric-up-alt"></i>"#),
             Value::Size(_) => Ok(r#"<i class="far fa-save"></i>"#),
@@ -112,7 +111,6 @@ impl std::fmt::Display for Value {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
             Value::None => Ok(()),
-            Value::Update(old, new) => write!(f, r"{} → {}", old, new),
             Value::Counter(count) => write!(f, r"{} times", count),
             Value::Size(size) => f.write_str(&human_format(*size as f64, "B")),
             Value::Text(ref string) => write!(f, r"{}", string),
@@ -190,48 +188,5 @@ impl Display for PointOfTheCompass {
             // TODO
             _ => write!(f, "{:?}", self),
         }
-    }
-}
-
-/// Format value to keep only 3 digits before the decimal point.
-fn human_format(value: f64, unit: &str) -> String {
-    match value {
-        _ if value < 1e-21 => format!("{:.1} y{}", value * 1e24, unit),
-        _ if value < 1e-18 => format!("{:.1} z{}", value * 1e21, unit),
-        _ if value < 1e-15 => format!("{:.1} a{}", value * 1e18, unit),
-        _ if value < 1e-12 => format!("{:.1} f{}", value * 1e15, unit),
-        _ if value < 1e-9 => format!("{:.1} p{}", value * 1e12, unit),
-        _ if value < 1e-6 => format!("{:.1} n{}", value * 1e9, unit),
-        _ if value < 1e-3 => format!("{:.1} µ{}", value * 1e6, unit),
-        _ if value < 1.0 => format!("{:.1} m{}", value * 1e3, unit),
-        _ if value < 1e3 => format!("{:.1} {}", value, unit),
-        _ if value < 1e6 => format!("{:.1} k{}", value * 1e-3, unit),
-        _ if value < 1e9 => format!("{:.1} M{}", value * 1e-6, unit),
-        _ if value < 1e12 => format!("{:.1} G{}", value * 1e-9, unit),
-        _ if value < 1e15 => format!("{:.1} T{}", value * 1e-12, unit),
-        _ if value < 1e18 => format!("{:.1} P{}", value * 1e-15, unit),
-        _ if value < 1e21 => format!("{:.1} E{}", value * 1e-18, unit),
-        _ if value < 1e24 => format!("{:.1} Z{}", value * 1e-21, unit),
-        _ => format!("{:.1} Y{}", value * 1e-24, unit),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::value::human_format;
-
-    #[test]
-    fn metres() {
-        assert_eq!(human_format(100.0, "m"), "100.0 m");
-    }
-
-    #[test]
-    fn megametres() {
-        assert_eq!(human_format(12.756e6, "m"), "12.8 Mm");
-    }
-
-    #[test]
-    fn millimetres() {
-        assert_eq!(human_format(0.005, "m"), "5.0 mm");
     }
 }

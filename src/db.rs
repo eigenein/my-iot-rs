@@ -1,11 +1,10 @@
 //! Database interface.
 
-use crate::message::Reading;
+use crate::message::Message;
 use crate::value::Value;
 use crate::Result;
 use chrono::prelude::*;
-use rusqlite::types::*;
-use rusqlite::{params, Connection, Row, ToSql};
+use rusqlite::{params, Connection, Row};
 use std::path::Path;
 
 const SCHEMA: &str = "
@@ -20,7 +19,8 @@ const SCHEMA: &str = "
         id INTEGER PRIMARY KEY,
         sensor_id INTEGER REFERENCES sensors(id) ON UPDATE CASCADE ON DELETE CASCADE,
         ts INTEGER NOT NULL,
-        value TEXT NOT NULL
+        type INTEGER NOT NULL,
+        value BLOB NOT NULL
     );
     -- Descending index on `ts` is needed to speed up the select latest queries.
     CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_id_ts ON readings (sensor_id, ts DESC);
@@ -53,7 +53,7 @@ impl Db {
         let sensor_id = self.connection.last_insert_rowid();
         self.connection
             .prepare_cached("INSERT OR REPLACE INTO readings (sensor_id, ts, value) VALUES (?1, ?2, ?3)")?
-            .execute(params![sensor_id, reading.timestamp.timestamp_millis(), reading.value])?;
+            .execute(params![sensor_id, reading.timestamp.timestamp_millis(), reading.value.serialize()])?;
         let reading_id = self.connection.last_insert_rowid();
         self.connection
             .prepare_cached("UPDATE sensors SET last_reading_id = ?1 WHERE id = ?2")?
@@ -62,7 +62,7 @@ impl Db {
     }
 
     /// Select latest reading for each sensor.
-    pub fn select_latest_readings(&self) -> Result<Vec<Reading>> {
+    pub fn select_latest_readings(&self) -> Result<Vec<Message>> {
         self.connection
             .prepare_cached(
                 r#"
@@ -72,7 +72,7 @@ impl Db {
                 GROUP BY sensors.id
                 "#,
             )?
-            .query_map(params![], |row| Ok(Reading::from(row)))?
+            .query_map(params![], |row| Ok(Message::from(row)))?
             .map(|result| result.map_err(|e| e.into()))
             .collect()
     }
@@ -87,7 +87,7 @@ impl Db {
     }
 
     /// Select the very last sensor reading.
-    pub fn select_last_reading(&self, sensor: &str) -> Result<Option<Reading>> {
+    pub fn select_last_reading(&self, sensor: &str) -> Result<Option<Message>> {
         Ok(self
             .connection
             .prepare_cached(
@@ -98,7 +98,7 @@ impl Db {
                 WHERE sensors.sensor = ?1
                 "#,
             )?
-            .query_row(params![sensor], |row| Ok(Some(Reading::from(row))))
+            .query_row(params![sensor], |row| Ok(Some(Message::from(row))))
             .unwrap_or(None))
     }
 
@@ -115,40 +115,31 @@ impl Db {
                 ORDER BY ts
                 "#,
             )?
-            .query_map(params![sensor, since.timestamp_millis()], |row| Ok(Reading::from(row)))?
+            .query_map(params![sensor, since.timestamp_millis()], |row| Ok(Message::from(row)))?
             .map(|result| result.unwrap())
             .collect())
     }
 }
 
-/// Serializes value to JSON.
-impl ToSql for Value {
-    fn to_sql(&self) -> rusqlite::Result<ToSqlOutput> {
-        match serde_json::to_string(&self) {
-            Ok(string) => Ok(ToSqlOutput::Owned(rusqlite::types::Value::Text(string))),
-            Err(error) => Err(rusqlite::Error::ToSqlConversionFailure(Box::new(error))),
-        }
-    }
-}
-
-/// De-serializes value from JSON.
-impl FromSql for Value {
-    fn column_result(value: ValueRef) -> FromSqlResult<Self> {
-        match serde_json::from_str(value.as_str()?) {
-            Ok(value) => Ok(value),
-            Err(error) => Err(FromSqlError::Other(Box::new(error))),
-        }
-    }
-}
-
 /// Initializes reading from database row.
-impl From<&Row<'_>> for Reading {
+impl From<&Row<'_>> for Message {
     fn from(row: &Row<'_>) -> Self {
-        Reading {
+        Message {
+            type_: row.get_unwrap("type"),
             sensor: row.get_unwrap("sensor"),
             timestamp: Local.timestamp_millis(row.get_unwrap("ts")),
-            value: row.get_unwrap("value"),
+            value: Value::deserialize(row.get_unwrap("value")),
         }
+    }
+}
+
+impl Value {
+    fn serialize(&self) -> Vec<u8> {
+        unimplemented!()
+    }
+
+    fn deserialize(blob: &[u8]) -> Self {
+        unimplemented!()
     }
 }
 

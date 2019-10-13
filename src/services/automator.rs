@@ -1,15 +1,15 @@
 //! Automation service.
 //!
 //! Automation _is not_ a special core functionality. Instead, it's implemented as a service,
-//! that listens to other services readings and reacts by emitting its own readings.
+//! that listens to other services messages and reacts by emitting its own messages.
 //!
-//! The latter ones, automator-generated readings, are treated in the same way, allowing those to be
+//! The latter ones, automator-generated messages, are treated in the same way, allowing those to be
 //! displayed on the dashboard or caught by other services.
 //!
 //! Basically, this is a case of "multi-producer multi-consumer" pattern.
 
 use crate::db::Db;
-use crate::message::{Message, Reading, Type};
+use crate::message::{Message, Type};
 use crate::{supervisor, Result};
 use crossbeam_channel::Sender;
 use log::{debug, info};
@@ -41,16 +41,13 @@ pub fn spawn(
         move || {
             for message in &inbox_rx {
                 for scenario in settings.scenarios.iter() {
-                    if scenario.conditions.iter().all(|c| c.is_met(&message.reading)) {
-                        info!(
-                            r"{} triggered scenario: {}",
-                            &message.reading.sensor, scenario.description
-                        );
+                    if scenario.conditions.iter().all(|c| c.is_met(&message)) {
+                        info!(r"{} triggered scenario: {}", &message.sensor, scenario.description);
                         for action in scenario.actions.iter() {
-                            action.execute(&service_id, &db, &message.reading, &outbox_tx).unwrap();
+                            action.execute(&service_id, &db, &message, &outbox_tx).unwrap();
                         }
                     } else {
-                        debug!("Skipped: {}", &message.reading.sensor);
+                        debug!("Skipped: {}", &message.sensor);
                     }
                 }
             }
@@ -97,13 +94,13 @@ pub enum Condition {
 }
 
 impl Condition {
-    pub fn is_met(&self, reading: &Reading) -> bool {
+    pub fn is_met(&self, message: &Message) -> bool {
         match self {
-            Condition::Sensor(sensor) => &reading.sensor == sensor,
-            Condition::SensorEndsWith(suffix) => reading.sensor.ends_with(suffix),
-            Condition::SensorStartsWith(prefix) => reading.sensor.starts_with(prefix),
-            Condition::SensorContains(infix) => reading.sensor.contains(infix),
-            Condition::Or(conditions) => conditions.iter().any(|c| c.is_met(&reading)),
+            Condition::Sensor(sensor) => &message.sensor == sensor,
+            Condition::SensorEndsWith(suffix) => message.sensor.ends_with(suffix),
+            Condition::SensorStartsWith(prefix) => message.sensor.starts_with(prefix),
+            Condition::SensorContains(infix) => message.sensor.contains(infix),
+            Condition::Or(conditions) => conditions.iter().any(|c| c.is_met(&message)),
         }
     }
 }
@@ -137,7 +134,7 @@ impl Action {
         &self,
         _service_id: &str,
         db: &Arc<Mutex<Db>>,
-        reading: &Reading,
+        message: &Message,
         tx: &Sender<Message>,
     ) -> Result<()> {
         match self {
@@ -145,7 +142,7 @@ impl Action {
                 tx.send(Message::now(
                     parameters.target_type,
                     &parameters.target_sensor,
-                    reading.value.clone(),
+                    message.value.clone(),
                 ))?;
                 Ok(())
             }

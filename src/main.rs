@@ -13,6 +13,7 @@ use structopt::StructOpt;
 
 pub mod consts;
 pub mod db;
+pub mod format;
 pub mod message;
 pub mod persistence;
 pub mod services;
@@ -68,7 +69,7 @@ fn main() -> Result<()> {
     // - the dispatcher sends out each message from `dispatcher_rx` to the services input channels
     info!("Starting services…");
     let (dispatcher_tx, dispatcher_rx) = crossbeam_channel::unbounded();
-    dispatcher_tx.send(Message::now(Type::OneOff, "my-iot::start", Value::None))?;
+    dispatcher_tx.send(Message::now(Type::ReadNonLogged, "my-iot::start", Value::None))?;
     let mut all_txs = vec![persistence::spawn(db.clone(), &dispatcher_tx)?];
     all_txs.extend(spawn_services(&settings, &db, &dispatcher_tx)?);
     spawn_dispatcher(dispatcher_rx, dispatcher_tx, all_txs)?;

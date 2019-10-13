@@ -1,4 +1,4 @@
-use crate::message::{Message, Reading, Type};
+use crate::message::{Message, Type};
 use crate::supervisor;
 use crate::value::Value;
 use crate::Result;
@@ -31,21 +31,17 @@ pub fn spawn(
     let sensor = format!("{}::size", service_id);
     let db = db.clone();
 
-    supervisor::spawn(format!("my-iot::db::{}", service_id), tx.clone(), move || loop {
-        let size = { db.lock().unwrap().select_size().unwrap() };
-
-        tx.send(Message {
-            type_: Type::Actual,
-            reading: Reading {
-                sensor: sensor.clone(),
-                value: Value::Size(size),
-                timestamp: Local::now(),
-            },
-        })
-        .unwrap();
-
-        thread::sleep(interval);
-    })?;
+    supervisor::spawn(
+        format!("my-iot::db::{}", service_id),
+        tx.clone(),
+        move || -> Result<()> {
+            loop {
+                let size = { db.lock().unwrap().select_size().unwrap() };
+                tx.send(Message::now(Type::ReadLogged, sensor.clone(), Value::Size(size)))?;
+                thread::sleep(interval);
+            }
+        },
+    )?;
 
     Ok(vec![])
 }

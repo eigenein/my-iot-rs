@@ -27,15 +27,12 @@ pub fn spawn(db: Arc<Mutex<Db>>, tx: &Sender<Message>) -> Result<Sender<Message>
 
 /// Process a message.
 fn process_message(message: Message, db: &Arc<Mutex<Db>>, tx: &Sender<Message>) -> Result<()> {
-    info!(
-        "{}: {:?} {:?}",
-        &message.reading.sensor, &message.type_, &message.reading.value,
-    );
+    info!("{}: {:?} {:?}", &message.sensor, &message.type_, &message.value,);
     debug!("{:?}", &message);
-    if message.type_ == Type::Actual {
+    if message.type_ == Type::ReadLogged {
         let db = db.lock().unwrap();
-        let previous_reading = db.select_last_reading(&message.reading.sensor)?;
-        db.insert_reading(&message.reading)?;
+        let previous_reading = db.select_last_reading(&message.sensor)?;
+        db.insert_reading(&message)?;
         send_messages(&previous_reading, &message, &tx)?;
     }
     Ok(())
@@ -44,20 +41,17 @@ fn process_message(message: Message, db: &Arc<Mutex<Db>>, tx: &Sender<Message>) 
 /// Check if sensor value has been updated or changed and send corresponding messages.
 fn send_messages(previous_reading: &Option<Reading>, message: &Message, tx: &Sender<Message>) -> Result<()> {
     if let Some(existing) = previous_reading {
-        if message.reading.timestamp > existing.timestamp {
+        if message.timestamp > existing.timestamp {
             tx.send(Message::now(
-                Type::OneOff,
-                format!("{}::update", &message.reading.sensor),
-                Value::Update(
-                    Box::new(existing.value.clone()),
-                    Box::new(message.reading.value.clone()),
-                ),
+                Type::ReadNonLogged,
+                format!("{}::update", &message.sensor),
+                message.value.clone(),
             ))?;
-            if message.reading.value != existing.value {
+            if message.value != existing.value {
                 tx.send(Message::now(
-                    Type::OneOff,
-                    format!("{}::change", &message.reading.sensor),
-                    message.reading.value.clone(),
+                    Type::ReadNonLogged,
+                    format!("{}::change", &message.sensor),
+                    message.value.clone(),
                 ))?;
             }
         }

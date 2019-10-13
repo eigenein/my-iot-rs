@@ -19,12 +19,12 @@ where
     thread::Builder::new().name(name.clone()).spawn(move || loop {
         // TODO: update thread status.
         info!("Running {}", &name);
-        tx.send(Message::now(Type::Actual, &sensor, true)).unwrap();
+        tx.send(Message::now(Type::ReadLogged, &sensor, true)).unwrap();
         match f() {
             Ok(_) => error!("Thread {} has finished unexpectedly", &name),
             Err(error) => error!("Thread {} crashed: {:?}", &name, error),
         }
-        tx.send(Message::now(Type::Actual, &sensor, false)).unwrap();
+        tx.send(Message::now(Type::ReadLogged, &sensor, false)).unwrap();
 
         // FIXME: https://github.com/eigenein/my-iot-rs/issues/47
         thread::sleep(Duration::from_secs(60));

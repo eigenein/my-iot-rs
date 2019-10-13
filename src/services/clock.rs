@@ -24,23 +24,23 @@ pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Res
     let interval = Duration::from_millis(settings.interval_ms);
     let tx = tx.clone();
 
-    supervisor::spawn(format!("my-iot::clock::{}", service_id), tx.clone(), move || {
-        let mut counter = 1;
-        loop {
-            tx.send(Message {
-                type_: Type::Actual,
-                reading: Reading {
-                    sensor: service_id.to_string(),
-                    value: Value::Counter(counter),
-                    timestamp: Local::now(),
-                },
-            })
-            .unwrap();
+    supervisor::spawn(
+        format!("my-iot::clock::{}", service_id),
+        tx.clone(),
+        move || -> Result<()> {
+            let mut counter = 1;
+            loop {
+                tx.send(Message::now(
+                    Type::ReadLogged,
+                    service_id.to_string(),
+                    Value::Counter(counter),
+                ))?;
 
-            counter += 1;
-            thread::sleep(interval);
-        }
-    })?;
+                counter += 1;
+                thread::sleep(interval);
+            }
+        },
+    )?;
 
     Ok(vec![])
 }
