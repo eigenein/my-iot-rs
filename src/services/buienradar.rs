@@ -1,5 +1,5 @@
 use crate::consts::USER_AGENT;
-use crate::message::{Message, Reading, Type};
+use crate::message::*;
 use crate::supervisor;
 use crate::value::{PointOfTheCompass, Value};
 use crate::Result;
@@ -111,57 +111,64 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
         .iter()
         .find(|measurement| measurement.station_id == station_id)
         .ok_or_else(|| format_err!("station {} is not found", station_id))?;
-    tx.send(Message::new(
-        type_: Type::ReadLogged,
-        format!("{}::{}::name", service_id, station_id),
-        Value::Text(measurement.name.clone()),
-        measurement.timestamp,
-    ))?;
-    tx.send(Message::new(
-        type_: Type::ReadLogged,
-        format!("{}::{}::weather_description", service_id, station_id),
-        Value::Text(measurement.weather_description.clone()),
-        measurement.timestamp,
-    ))?;
+    tx.send(
+        Composer::new(format!("{}::{}::name", service_id, station_id))
+            .type_(Type::ReadLogged)
+            .value(Value::Text(measurement.name.clone()))
+            .timestamp(measurement.timestamp)
+            .into(),
+    )?;
+    tx.send(
+        Composer::new(format!("{}::{}::weather_description", service_id, station_id))
+            .type_(Type::ReadLogged)
+            .value(Value::Text(measurement.weather_description.clone()))
+            .timestamp(measurement.timestamp)
+            .into(),
+    )?;
     if let Some(degrees) = measurement.temperature {
-        tx.send(Message::new(
-            Type::ReadLogged,
-            format!("{}::{}::temperature", service_id, station_id),
-            Value::Celsius(degrees),
-            measurement.timestamp,
-        ))?;
+        tx.send(
+            Composer::new(format!("{}::{}::temperature", service_id, station_id))
+                .type_(Type::ReadLogged)
+                .value(Value::Celsius(degrees))
+                .timestamp(measurement.timestamp)
+                .into(),
+        )?;
     }
     if let Some(degrees) = measurement.ground_temperature {
-        tx.send(Message::new(
-            type_: Type::ReadLogged,
-            format!("{}::{}::ground_temperature", service_id, station_id),
-            Value::Celsius(degrees),
-            measurement.timestamp,
-        ))?;
+        tx.send(
+            Composer::new(format!("{}::{}::ground_temperature", service_id, station_id))
+                .type_(Type::ReadLogged)
+                .value(Value::Celsius(degrees))
+                .timestamp(measurement.timestamp)
+                .into(),
+        )?;
     }
     if let Some(degrees) = measurement.feel_temperature {
-        tx.send(Message::new(
-            type_: Type::ReadLogged,
-            format!("{}::{}::feel_temperature", service_id, station_id),
-            Value::Celsius(degrees),
-            measurement.timestamp,
-        ))?;
+        tx.send(
+            Composer::new(format!("{}::{}::feel_temperature", service_id, station_id))
+                .type_(Type::ReadLogged)
+                .value(Value::Celsius(degrees))
+                .timestamp(measurement.timestamp)
+                .into(),
+        )?;
     }
     if let Some(bft) = measurement.wind_speed_bft {
-        tx.send(Message::new(
-            Type::ReadLogged,
-            format!("{}::{}::wind_speed_bft", service_id, station_id),
-            Value::Bft(bft),
-            measurement.timestamp,
-        ))?;
+        tx.send(
+            Composer::new(format!("{}::{}::wind_speed_bft", service_id, station_id))
+                .type_(Type::ReadLogged)
+                .value(Value::Bft(bft))
+                .timestamp(measurement.timestamp)
+                .into(),
+        )?;
     }
     if let Some(point) = measurement.wind_direction {
-        tx.send(Message::new(
-            Type::ReadLogged,
-            format!("{}::{}::wind_direction", service_id, station_id),
-            Value::WindDirection(point),
-            measurement.timestamp,
-        ))?;
+        tx.send(
+            Composer::new(format!("{}::{}::wind_direction", service_id, station_id))
+                .type_(Type::ReadLogged)
+                .value(Value::WindDirection(point))
+                .timestamp(measurement.timestamp)
+                .into(),
+        )?;
     }
     Ok(())
 }

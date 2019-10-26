@@ -1,4 +1,4 @@
-use crate::message::{Message, Type};
+use crate::message::*;
 use crate::supervisor;
 use crate::value::Value;
 use crate::Result;
@@ -48,35 +48,35 @@ fn send_readings(service_id: &str, event: &NestEvent, tx: &Sender<Message>) -> R
     let now = Local::now();
 
     for (id, thermostat) in event.data.devices.thermostats.iter() {
-        tx.send(Message::new(
-            Type::ReadLogged,
-            format!("{}::thermostat::{}::ambient_temperature", service_id, &id),
-            Value::Celsius(thermostat.ambient_temperature_c),
-            now,
-        ))?;
-        tx.send(Message::new(
-            Type::ReadLogged,
-            format!("{}::thermostat::{}::humidity", service_id, &id),
-            Value::Rh(thermostat.humidity),
-            now,
-        ))?;
+        tx.send(
+            Composer::new(format!("{}::thermostat::{}::ambient_temperature", service_id, &id))
+                .value(Value::Celsius(thermostat.ambient_temperature_c))
+                .timestamp(now)
+                .into(),
+        )?;
+        tx.send(
+            Composer::new(format!("{}::thermostat::{}::humidity", service_id, &id))
+                .value(Value::Rh(thermostat.humidity))
+                .timestamp(now)
+                .into(),
+        )?;
     }
 
     for (id, camera) in event.data.devices.cameras.iter() {
-        tx.send(Message::new(
-            Type::ReadLogged,
-            format!("{}::camera::{}::snapshot_url", service_id, &id),
-            Value::ImageUrl(camera.snapshot_url.clone()),
-            now,
-        ))?;
+        tx.send(
+            Composer::new(format!("{}::camera::{}::snapshot_url", service_id, &id))
+                .value(Value::ImageUrl(camera.snapshot_url.clone()))
+                .timestamp(now)
+                .into(),
+        )?;
 
         if let Some(ref event) = camera.last_event {
-            tx.send(Message::new(
-                Type::ReadLogged,
-                format!("{}::camera::{}::animated_image_url", service_id, &id),
-                Value::ImageUrl(event.animated_image_url.clone()),
-                event.start_time,
-            ))?;
+            tx.send(
+                Composer::new(format!("{}::camera::{}::animated_image_url", service_id, &id))
+                    .value(Value::ImageUrl(event.animated_image_url.clone()))
+                    .timestamp(event.start_time)
+                    .into(),
+            )?;
         }
     }
 

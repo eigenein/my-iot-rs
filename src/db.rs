@@ -1,6 +1,6 @@
 //! Database interface.
 
-use crate::message::Message;
+use crate::message::*;
 use crate::value::Value;
 use crate::Result;
 use chrono::prelude::*;
@@ -46,14 +46,19 @@ impl Db {
 /// Readings persistence.
 impl Db {
     /// Insert reading into database.
-    pub fn insert_reading(&self, reading: &Reading) -> Result<()> {
+    pub fn insert_reading(&self, message: &Message) -> Result<()> {
+        // TODO: handle `ReadSnapshot`.
         self.connection
             .prepare_cached("INSERT OR IGNORE INTO sensors (sensor) VALUES (?1)")?
-            .execute(params![reading.sensor])?;
+            .execute(params![message.sensor])?;
         let sensor_id = self.connection.last_insert_rowid();
         self.connection
             .prepare_cached("INSERT OR REPLACE INTO readings (sensor_id, ts, value) VALUES (?1, ?2, ?3)")?
-            .execute(params![sensor_id, reading.timestamp.timestamp_millis(), reading.value.serialize()])?;
+            .execute(params![
+                sensor_id,
+                message.timestamp.timestamp_millis(),
+                message.value.serialize()
+            ])?;
         let reading_id = self.connection.last_insert_rowid();
         self.connection
             .prepare_cached("UPDATE sensors SET last_reading_id = ?1 WHERE id = ?2")?
@@ -103,7 +108,7 @@ impl Db {
     }
 
     /// Select the latest sensor readings within the given time interval.
-    pub fn select_readings(&self, sensor: &str, since: &DateTime<Local>) -> Result<Vec<Reading>> {
+    pub fn select_readings(&self, sensor: &str, since: &DateTime<Local>) -> Result<Vec<Message>> {
         Ok(self
             .connection
             .prepare_cached(
@@ -125,10 +130,10 @@ impl Db {
 impl From<&Row<'_>> for Message {
     fn from(row: &Row<'_>) -> Self {
         Message {
-            type_: row.get_unwrap("type"),
+            type_: Type::ReadLogged, // FIXME: it may be `ReadSnapshot` too.
             sensor: row.get_unwrap("sensor"),
             timestamp: Local.timestamp_millis(row.get_unwrap("ts")),
-            value: Value::deserialize(row.get_unwrap("value")),
+            value: Value::deserialize(&row.get_unwrap("value")),
         }
     }
 }
@@ -138,7 +143,7 @@ impl Value {
         unimplemented!()
     }
 
-    fn deserialize(blob: &[u8]) -> Self {
+    fn deserialize(_blob: &Vec<u8>) -> Self {
         unimplemented!()
     }
 }
@@ -151,11 +156,10 @@ mod tests {
 
     #[test]
     fn reading_double_insert_keeps_one_record() -> Result {
-        let reading = Reading {
-            sensor: "test".into(),
-            value: Value::Counter(42),
-            timestamp: Local.timestamp_millis(1_566_424_128_000),
-        };
+        let reading = Composer::new("test")
+            .value(Value::Counter(42))
+            .timestamp(Local.timestamp_millis(1_566_424_128_000))
+            .into();
 
         let db = Db::new(":memory:")?;
         db.insert_reading(&reading)?;
@@ -179,11 +183,10 @@ mod tests {
 
     #[test]
     fn select_last_reading_returns_test_reading() -> Result {
-        let reading = Reading {
-            sensor: "test".into(),
-            value: Value::Counter(42),
-            timestamp: Local.timestamp_millis(1_566_424_128_000),
-        };
+        let reading = Composer::new("test")
+            .value(Value::Counter(42))
+            .timestamp(Local.timestamp_millis(1_566_424_128_000))
+            .into();
         let db = Db::new(":memory:")?;
         db.insert_reading(&reading)?;
         assert_eq!(db.select_last_reading("test")?, Some(reading));
@@ -193,16 +196,16 @@ mod tests {
     #[test]
     fn select_last_reading_returns_newer_reading() -> Result {
         let db = Db::new(":memory:")?;
-        db.insert_reading(&Reading {
-            sensor: "test".into(),
-            value: Value::Counter(42),
-            timestamp: Local.timestamp_millis(1_566_424_127_000),
-        })?;
-        let new = Reading {
-            sensor: "test".into(),
-            value: Value::Counter(42),
-            timestamp: Local.timestamp_millis(1_566_424_128_000),
-        };
+        db.insert_reading(
+            &Composer::new("test")
+                .value(Value::Counter(42))
+                .timestamp(Local.timestamp_millis(1_566_424_127_000))
+                .into(),
+        )?;
+        let new = Composer::new("test")
+            .value(Value::Counter(42))
+            .timestamp(Local.timestamp_millis(1_566_424_128_000))
+            .into();
         db.insert_reading(&new)?;
         assert_eq!(db.select_last_reading("test")?, Some(new));
         Ok(())
@@ -210,30 +213,31 @@ mod tests {
 
     #[test]
     fn select_latest_readings_returns_test_reading() -> Result {
-        let reading = Reading {
-            sensor: "test".into(),
-            value: Value::Counter(42),
-            timestamp: Local.timestamp_millis(1_566_424_128_000),
-        };
+        let message = Composer::new("test")
+            .value(Value::Counter(42))
+            .timestamp(Local.timestamp_millis(1_566_424_128_000))
+            .into();
         let db = Db::new(":memory:")?;
-        db.insert_reading(&reading)?;
-        assert_eq!(db.select_latest_readings()?, vec![reading]);
+        db.insert_reading(&message)?;
+        assert_eq!(db.select_latest_readings()?, vec![message]);
         Ok(())
     }
 
     #[test]
     fn existing_sensor_is_reused() -> Result {
         let db = Db::new(":memory:")?;
-        db.insert_reading(&Reading {
-            sensor: "test".into(),
-            value: Value::Counter(42),
-            timestamp: Local.timestamp_millis(1_566_424_128_000),
-        })?;
-        db.insert_reading(&Reading {
-            sensor: "test".into(),
-            value: Value::Counter(42),
-            timestamp: Local.timestamp_millis(1_566_424_129_000),
-        })?;
+        db.insert_reading(
+            &Composer::new("test")
+                .value(Value::Counter(42))
+                .timestamp(Local.timestamp_millis(1_566_424_128_000))
+                .into(),
+        )?;
+        db.insert_reading(
+            &Composer::new("test")
+                .value(Value::Counter(42))
+                .timestamp(Local.timestamp_millis(1_566_424_129_000))
+                .into(),
+        )?;
 
         let reading_count = db
             .connection

@@ -1,9 +1,10 @@
 //! Home page.
 
+use crate::message::*;
 use crate::templates;
 
 markup::define! {
-    Index(readings: Vec<crate::message::Reading>) {
+    Index(readings: Vec<Message>) {
         section.hero."is-info" {
             div."hero-head" { {templates::navbar::NavBar {}} }
             div."hero-body" {

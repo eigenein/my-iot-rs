@@ -4,9 +4,10 @@ use crate::value::Value;
 use chrono::prelude::*;
 use serde::Deserialize;
 
+// TODO: still make a separate `Reading` struct which only used to store readings in database.
 /// Services use messages to exchange sensor readings between each other.
 /// Message contains a single sensor reading alongside with some metadata.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Message {
     /// Message type.
     pub type_: Type,
@@ -43,19 +44,41 @@ pub enum Type {
     Write,
 }
 
-impl Message {
-    pub fn new<S: Into<String>>(type_: Type, sensor: S, value: Value, timestamp: DateTime<Local>) -> Message {
-        Message {
-            type_,
-            reading: Reading {
-                value,
-                timestamp,
+/// Message builder. Prefer to use it instead of directly instantiating a `Message`.
+pub struct Composer {
+    message: Message,
+}
+
+impl Composer {
+    pub fn new<S: Into<String>>(sensor: S) -> Self {
+        Self {
+            message: Message {
                 sensor: sensor.into(),
-            },
+                type_: Type::ReadLogged,
+                timestamp: Local::now(),
+                value: Value::None,
+            }
         }
     }
 
-    pub fn now<S: Into<String>, V: Into<Value>>(type_: Type, sensor: S, value: V) -> Message {
-        Message::new(type_, sensor, value.into(), Local::now())
+    pub fn type_(mut self, type_: Type) -> Self {
+        self.message.type_ = type_;
+        self
+    }
+
+    pub fn timestamp<T: Into<DateTime<Local>>>(mut self, timestamp: T) -> Self {
+        self.message.timestamp = timestamp.into();
+        self
+    }
+
+    pub fn value<V: Into<Value>>(mut self, value: V) -> Self {
+        self.message.value = value.into();
+        self
+    }
+}
+
+impl From<Composer> for Message {
+    fn from(composer: Composer) -> Self {
+        composer.message
     }
 }

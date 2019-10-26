@@ -1,9 +1,8 @@
 //! Entry point.
 
 use crate::db::Db;
-use crate::message::{Message, Type};
+use crate::message::*;
 use crate::settings::Settings;
-use crate::value::Value;
 use crossbeam_channel::{Receiver, Sender};
 use failure::{format_err, Error};
 use log::{debug, info, warn, Level};
@@ -11,7 +10,9 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use structopt::StructOpt;
 
+// TODO: perhaps remove `pub`.
 pub mod consts;
+pub mod core;
 pub mod db;
 pub mod format;
 pub mod message;
@@ -69,7 +70,7 @@ fn main() -> Result<()> {
     // - the dispatcher sends out each message from `dispatcher_rx` to the services input channels
     info!("Starting services…");
     let (dispatcher_tx, dispatcher_rx) = crossbeam_channel::unbounded();
-    dispatcher_tx.send(Message::now(Type::ReadNonLogged, "my-iot::start", Value::None))?;
+    dispatcher_tx.send(Composer::new("my-iot::start").type_(Type::ReadNonLogged).into())?;
     let mut all_txs = vec![persistence::spawn(db.clone(), &dispatcher_tx)?];
     all_txs.extend(spawn_services(&settings, &db, &dispatcher_tx)?);
     spawn_dispatcher(dispatcher_rx, dispatcher_tx, all_txs)?;
@@ -112,11 +113,11 @@ fn spawn_dispatcher(rx: Receiver<Message>, tx: Sender<Message>, txs: Vec<Sender<
     info!("Spawning message dispatcher…");
     supervisor::spawn("my-iot::dispatcher", tx, move || -> Result<()> {
         for message in &rx {
-            debug!("Dispatching {}", &message.reading.sensor);
+            debug!("Dispatching {}", &message.sensor);
             for tx in txs.iter() {
                 tx.send(message.clone())?;
             }
-            debug!("Dispatched {}", &message.reading.sensor);
+            debug!("Dispatched {}", &message.sensor);
         }
         Err(format_err!("Receiver channel is unexpectedly exhausted"))
     })?;

@@ -3,7 +3,6 @@
 use crate::db::*;
 use crate::message::*;
 use crate::supervisor;
-use crate::value::Value;
 use crate::Result;
 use crossbeam_channel::Sender;
 use log::{debug, info};
@@ -39,20 +38,22 @@ fn process_message(message: Message, db: &Arc<Mutex<Db>>, tx: &Sender<Message>) 
 }
 
 /// Check if sensor value has been updated or changed and send corresponding messages.
-fn send_messages(previous_reading: &Option<Reading>, message: &Message, tx: &Sender<Message>) -> Result<()> {
+fn send_messages(previous_reading: &Option<Message>, message: &Message, tx: &Sender<Message>) -> Result<()> {
     if let Some(existing) = previous_reading {
         if message.timestamp > existing.timestamp {
-            tx.send(Message::now(
-                Type::ReadNonLogged,
-                format!("{}::update", &message.sensor),
-                message.value.clone(),
-            ))?;
+            tx.send(
+                Composer::new(format!("{}::update", &message.sensor))
+                    .type_(Type::ReadNonLogged)
+                    .value(message.value.clone())
+                    .into(),
+            )?;
             if message.value != existing.value {
-                tx.send(Message::now(
-                    Type::ReadNonLogged,
-                    format!("{}::change", &message.sensor),
-                    message.value.clone(),
-                ))?;
+                tx.send(
+                    Composer::new(format!("{}::change", &message.sensor))
+                        .type_(Type::ReadNonLogged)
+                        .value(message.value.clone())
+                        .into(),
+                )?;
             }
         }
     }

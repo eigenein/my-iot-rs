@@ -2,7 +2,6 @@ use crate::message::*;
 use crate::supervisor;
 use crate::value::Value;
 use crate::Result;
-use chrono::Local;
 use crossbeam_channel::Sender;
 use serde::Deserialize;
 use std::thread;
@@ -30,12 +29,7 @@ pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Res
         move || -> Result<()> {
             let mut counter = 1;
             loop {
-                tx.send(Message::now(
-                    Type::ReadLogged,
-                    service_id.to_string(),
-                    Value::Counter(counter),
-                ))?;
-
+                tx.send(Composer::new(&service_id).value(Value::Counter(counter)).into())?;
                 counter += 1;
                 thread::sleep(interval);
             }

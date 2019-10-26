@@ -9,7 +9,7 @@
 //! Basically, this is a case of "multi-producer multi-consumer" pattern.
 
 use crate::db::Db;
-use crate::message::{Message, Type};
+use crate::message::*;
 use crate::{supervisor, Result};
 use crossbeam_channel::Sender;
 use log::{debug, info};
@@ -139,20 +139,22 @@ impl Action {
     ) -> Result<()> {
         match self {
             Action::Repeat(parameters) => {
-                tx.send(Message::now(
-                    parameters.target_type,
-                    &parameters.target_sensor,
-                    message.value.clone(),
-                ))?;
+                tx.send(
+                    Composer::new(&parameters.target_sensor)
+                        .type_(parameters.target_type)
+                        .value(message.value.clone())
+                        .into(),
+                )?;
                 Ok(())
             }
             Action::ReadSensor(parameters) => {
                 if let Some(source) = db.lock().unwrap().select_last_reading(&parameters.source_sensor)? {
-                    tx.send(Message::now(
-                        parameters.target_type,
-                        &parameters.target_sensor,
-                        source.value,
-                    ))?
+                    tx.send(
+                        Composer::new(&parameters.target_sensor)
+                            .type_(parameters.target_type)
+                            .value(source.value.clone())
+                            .into(),
+                    )?
                 }
                 Ok(())
             }

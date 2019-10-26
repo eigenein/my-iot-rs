@@ -1,6 +1,6 @@
 //! Sensor page.
 
-use crate::message::Reading;
+use crate::message::*;
 use crate::templates;
 use crate::templates::DATE_FORMAT;
 use crate::value::Value;
@@ -8,7 +8,7 @@ use chrono::{DateTime, Local};
 use serde_json::json;
 
 markup::define! {
-    Sensor(last: Reading, readings: Vec<Reading>) {
+    Sensor(last: Message, readings: Vec<Message>) {
         section.hero.{&last.value.class()} {
             div."hero-head" { {templates::navbar::NavBar {}} }
             div."hero-body" {

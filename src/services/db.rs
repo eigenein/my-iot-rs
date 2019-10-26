@@ -1,8 +1,7 @@
-use crate::message::{Message, Type};
+use crate::message::*;
 use crate::supervisor;
 use crate::value::Value;
 use crate::Result;
-use chrono::Local;
 use crossbeam_channel::Sender;
 use serde::Deserialize;
 use std::sync::{Arc, Mutex};
@@ -37,7 +36,7 @@ pub fn spawn(
         move || -> Result<()> {
             loop {
                 let size = { db.lock().unwrap().select_size().unwrap() };
-                tx.send(Message::now(Type::ReadLogged, sensor.clone(), Value::Size(size)))?;
+                tx.send(Composer::new(sensor.clone()).value(Value::Size(size)).into())?;
                 thread::sleep(interval);
             }
         },

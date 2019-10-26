@@ -1,7 +1,7 @@
 //! [Telegram bot](https://core.telegram.org/bots/api) service able to receive and send messages.
 
 use crate::consts::USER_AGENT;
-use crate::message::{Message, Type};
+use crate::message::*;
 use crate::value::Value;
 use crate::{supervisor, Result};
 use chrono::{DateTime, Utc};
@@ -89,12 +89,13 @@ fn send_readings(context: &Context, tx: &Sender<Message>, update: &TelegramUpdat
 
     if let Some(ref message) = update.message {
         if let Some(ref text) = message.text {
-            tx.send(Message::new(
-                Type::ReadNonLogged,
-                format!("{}::{}::message", &context.service_id, message.chat.id),
-                Value::Text(text.into()),
-                message.date.into(),
-            ))?;
+            tx.send(
+                Composer::new(format!("{}::{}::message", &context.service_id, message.chat.id))
+                    .type_(Type::ReadNonLogged)
+                    .value(Value::Text(text.into()))
+                    .timestamp(message.date)
+                    .into(),
+            )?;
         }
     }
 

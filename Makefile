@@ -14,7 +14,7 @@ clean:
 .PHONY: check
 check:
 	@RUST_BACKTRACE=1 cargo test
-	@cargo generate-lockfile --locked
+	@cargo generate-lockfile --locked --offline
 	@cargo clippy --all-targets --all-features -- -D warnings
 	@cargo fmt --all -- --check
 
