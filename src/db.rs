@@ -4,13 +4,18 @@ use crate::message::*;
 use crate::value::Value;
 use crate::Result;
 use chrono::prelude::*;
+use failure::format_err;
 use rusqlite::{params, Connection, Row};
+use std::convert::TryInto;
 use std::path::Path;
+
+// FIXME: find a way to dial with `rusqlite::Error`.
 
 const SCHEMA: &str = "
     CREATE TABLE IF NOT EXISTS sensors (
         id INTEGER PRIMARY KEY,
         sensor TEXT UNIQUE NOT NULL,
+        type INTEGER NOT NULL,
         last_reading_id INTEGER NULL REFERENCES readings(id) ON UPDATE CASCADE ON DELETE CASCADE
     );
 
@@ -19,7 +24,6 @@ const SCHEMA: &str = "
         id INTEGER PRIMARY KEY,
         sensor_id INTEGER REFERENCES sensors(id) ON UPDATE CASCADE ON DELETE CASCADE,
         ts INTEGER NOT NULL,
-        type INTEGER NOT NULL,
         value BLOB NOT NULL
     );
     -- Descending index on `ts` is needed to speed up the select latest queries.
@@ -47,48 +51,50 @@ impl Db {
 impl Db {
     /// Insert reading into database.
     pub fn insert_reading(&self, message: &Message) -> Result<()> {
+        let (type_, value) = message.value.serialize();
         // TODO: handle `ReadSnapshot`.
         self.connection
-            .prepare_cached("INSERT OR IGNORE INTO sensors (sensor) VALUES (?1)")?
-            .execute(params![message.sensor])?;
+            .prepare_cached("INSERT OR IGNORE INTO sensors (sensor, type) VALUES (?1, ?2)")
+            .unwrap()
+            .execute(params![message.sensor, type_])?;
         let sensor_id = self.connection.last_insert_rowid();
         self.connection
-            .prepare_cached("INSERT OR REPLACE INTO readings (sensor_id, ts, value) VALUES (?1, ?2, ?3)")?
-            .execute(params![
-                sensor_id,
-                message.timestamp.timestamp_millis(),
-                message.value.serialize()
-            ])?;
+            .prepare_cached("INSERT OR REPLACE INTO readings (sensor_id, ts, value) VALUES (?1, ?2, ?3)")
+            .unwrap()
+            .execute(params![sensor_id, message.timestamp.timestamp_millis(), value])?;
         let reading_id = self.connection.last_insert_rowid();
         self.connection
-            .prepare_cached("UPDATE sensors SET last_reading_id = ?1 WHERE id = ?2")?
+            .prepare_cached("UPDATE sensors SET last_reading_id = ?1 WHERE id = ?2")
+            .unwrap()
             .execute(params![reading_id, sensor_id])?;
         Ok(())
     }
 
     /// Select latest reading for each sensor.
     pub fn select_latest_readings(&self) -> Result<Vec<Message>> {
-        self.connection
+        Ok(self
+            .connection
             .prepare_cached(
                 r#"
-                SELECT sensors.sensor, MAX(ts) as ts, value
-                FROM readings
-                INNER JOIN sensors ON sensors.id = readings.sensor_id
-                GROUP BY sensors.id
+                SELECT sensor, ts, type, value
+                FROM sensors
+                INNER JOIN readings ON readings.id = sensors.last_reading_id
                 "#,
             )?
-            .query_map(params![], |row| Ok(Message::from(row)))?
-            .map(|result| result.map_err(|e| e.into()))
-            .collect()
+            .query_map(params![], |row| Ok(Message::from_row(row).unwrap()))
+            .unwrap()
+            .map(rusqlite::Result::unwrap)
+            .collect())
     }
 
     /// Select database size in bytes.
     pub fn select_size(&self) -> Result<u64> {
-        self.connection
+        Ok(self
+            .connection
             .prepare_cached("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()")?
             .query_row(params![], |row| row.get::<_, i64>(0))
             .map(|v| v as u64)
-            .map_err(|e| e.into())
+            .unwrap())
     }
 
     /// Select the very last sensor reading.
@@ -97,13 +103,14 @@ impl Db {
             .connection
             .prepare_cached(
                 r#"
-                SELECT sensors.sensor, readings.ts, readings.value
+                SELECT sensor, ts, type, value
                 FROM sensors
                 INNER JOIN readings ON readings.id = sensors.last_reading_id
                 WHERE sensors.sensor = ?1
                 "#,
-            )?
-            .query_row(params![sensor], |row| Ok(Some(Message::from(row))))
+            )
+            .unwrap()
+            .query_row(params![sensor], |row| Ok(Some(Message::from_row(row).unwrap())))
             .unwrap_or(None))
     }
 
@@ -119,32 +126,62 @@ impl Db {
                 WHERE sensors.sensor = ?1 AND ts >= ?2
                 ORDER BY ts
                 "#,
-            )?
-            .query_map(params![sensor, since.timestamp_millis()], |row| Ok(Message::from(row)))?
-            .map(|result| result.unwrap())
+            )
+            .unwrap()
+            .query_map(params![sensor, since.timestamp_millis()], |row| {
+                Ok(Message::from_row(row).unwrap())
+            })
+            .unwrap()
+            .map(rusqlite::Result::unwrap)
             .collect())
     }
 }
 
-/// Initializes reading from database row.
-impl From<&Row<'_>> for Message {
-    fn from(row: &Row<'_>) -> Self {
-        Message {
-            type_: Type::ReadLogged, // FIXME: it may be `ReadSnapshot` too.
+// TODO: make `Reading` struct.
+impl Message {
+    fn from_row(row: &Row) -> Result<Message> {
+        Ok(Message {
+            type_: Type::ReadLogged,
             sensor: row.get_unwrap("sensor"),
             timestamp: Local.timestamp_millis(row.get_unwrap("ts")),
-            value: Value::deserialize(&row.get_unwrap("value")),
-        }
+            value: Value::deserialize(row.get_unwrap("type"), row.get_unwrap("value"))?,
+        })
     }
 }
 
+// TODO: move to a separate module.
 impl Value {
-    fn serialize(&self) -> Vec<u8> {
-        unimplemented!()
+    fn serialize(&self) -> (u32, Vec<u8>) {
+        match self {
+            Value::None => (0, vec![]),
+            Value::Boolean(value) => (if !value { 1 } else { 2 }, vec![]),
+            Value::ImageUrl(value) => (3, value.as_bytes().to_vec()),
+            Value::Text(value) => (4, value.as_bytes().to_vec()),
+            Value::Bft(value) => (5, vec![*value]),
+            Value::Celsius(value) => (6, value.to_bits().to_le_bytes().to_vec()),
+            Value::Counter(value) => (7, value.to_le_bytes().to_vec()),
+            Value::Metres(value) => (8, value.to_bits().to_le_bytes().to_vec()),
+            Value::Rh(value) => (9, value.to_bits().to_le_bytes().to_vec()),
+            Value::WindDirection(value) => (10, (*value as u32).to_le_bytes().to_vec()),
+            Value::Size(value) => (11, value.to_le_bytes().to_vec()),
+        }
     }
 
-    fn deserialize(_blob: &Vec<u8>) -> Self {
-        unimplemented!()
+    fn deserialize(type_: u32, blob: Vec<u8>) -> Result<Self> {
+        match type_ {
+            0 => Ok(Value::None),
+            1 => Ok(false.into()),
+            2 => Ok(true.into()),
+            3 => Ok(Value::ImageUrl(String::from_utf8(blob)?)),
+            4 => Ok(Value::Text(String::from_utf8(blob)?)),
+            5 => Ok(Value::Bft(blob[0])),
+            6 => Ok(Value::Celsius(f64::from_bits(u64::from_le_bytes(
+                (&blob[0..8]).try_into()?,
+            )))),
+            7 => Ok(Value::Counter(u64::from_le_bytes((&blob[0..8]).try_into()?))),
+            // TODO: 8, 9, 10, 11
+            _ => Err(format_err!("unknown value type: {}", type_)),
+        }
     }
 }
 

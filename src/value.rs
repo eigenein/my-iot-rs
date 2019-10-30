@@ -139,37 +139,37 @@ impl From<bool> for Value {
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq)]
 pub enum PointOfTheCompass {
     /// N
-    North,
+    North = 0,
     /// NNE
-    NorthNortheast,
+    NorthNortheast = 1,
     /// NE
-    Northeast,
+    Northeast = 2,
     /// ENE
-    EastNortheast,
+    EastNortheast = 3,
     /// E
-    East,
+    East = 4,
     /// ESE
-    EastSoutheast,
+    EastSoutheast = 5,
     /// SE
-    Southeast,
+    Southeast = 6,
     /// SSE
-    SouthSoutheast,
+    SouthSoutheast = 7,
     /// S
-    South,
+    South = 8,
     /// SSW
-    SouthSouthwest,
+    SouthSouthwest = 9,
     /// SW
-    Southwest,
+    Southwest = 10,
     /// WSW
-    WestSouthwest,
+    WestSouthwest = 11,
     /// W
-    West,
+    West = 12,
     /// WNW
-    WestNorthwest,
+    WestNorthwest = 13,
     /// NW
-    Northwest,
+    Northwest = 14,
     /// NNW
-    NorthNorthwest,
+    NorthNorthwest = 15,
 }
 
 impl Display for PointOfTheCompass {

@@ -57,7 +57,7 @@ impl Composer {
                 type_: Type::ReadLogged,
                 timestamp: Local::now(),
                 value: Value::None,
-            }
+            },
         }
     }
 
