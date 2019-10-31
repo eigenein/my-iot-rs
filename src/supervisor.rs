@@ -1,6 +1,7 @@
 //! Allows to monitor thread status and automatically respawn a crashed thread.
 
 use crate::message::*;
+use crate::value::Value;
 use crate::Result;
 use crossbeam_channel::Sender;
 use log::{error, info};
@@ -19,12 +20,14 @@ where
     thread::Builder::new().name(name.clone()).spawn(move || loop {
         // TODO: update thread status.
         info!("Running {}", &name);
-        tx.send(Composer::new(&sensor).value(true).into()).unwrap();
+        tx.send(Composer::new(&sensor).value(Value::Boolean(true)).into())
+            .unwrap();
         match f() {
             Ok(_) => error!("Thread {} has finished unexpectedly", &name),
             Err(error) => error!("Thread {} crashed: {:?}", &name, error),
         }
-        tx.send(Composer::new(&sensor).value(false).into()).unwrap();
+        tx.send(Composer::new(&sensor).value(Value::Boolean(false)).into())
+            .unwrap();
 
         // FIXME: https://github.com/eigenein/my-iot-rs/issues/47
         thread::sleep(Duration::from_secs(60));

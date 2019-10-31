@@ -170,8 +170,8 @@ impl Value {
     fn deserialize(type_: u32, blob: Vec<u8>) -> Result<Self> {
         match type_ {
             0 => Ok(Value::None),
-            1 => Ok(false.into()),
-            2 => Ok(true.into()),
+            1 => Ok(Value::Boolean(false)),
+            2 => Ok(Value::Boolean(true)),
             3 => Ok(Value::ImageUrl(String::from_utf8(blob)?)),
             4 => Ok(Value::Text(String::from_utf8(blob)?)),
             5 => Ok(Value::Bft(blob[0])),

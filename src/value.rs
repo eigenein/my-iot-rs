@@ -33,6 +33,7 @@ pub enum Value {
     Boolean(bool),
 }
 
+// TODO: move rendering to a separate module.
 impl markup::Render for Value {
     /// Render value in HTML.
     fn render(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -126,12 +127,6 @@ impl std::fmt::Display for Value {
                 if *value { "Yes" } else { "No" }
             ),
         }
-    }
-}
-
-impl From<bool> for Value {
-    fn from(value: bool) -> Self {
-        Value::Boolean(value)
     }
 }
 
