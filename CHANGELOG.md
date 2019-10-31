@@ -10,6 +10,7 @@ This release brings the different database schema, which should work faster and 
 - Break: change sensor value serialization #50
 - Break: welcome message `Composer` #50
 - Break: move `Message` and `Value` into `crate::core`
+- Chore: move `crate::supervisor` into `crate::core::supervisor`
 
 ## `0.28.0`
 

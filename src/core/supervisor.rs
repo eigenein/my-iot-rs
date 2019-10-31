@@ -18,6 +18,7 @@ where
     thread::Builder::new().name(name.clone()).spawn(move || loop {
         // TODO: update thread status.
         info!("Running {}", &name);
+        // FIXME: dangerous `unwrap`s.
         tx.send(Composer::new(&sensor).value(Value::Boolean(true)).into())
             .unwrap();
         match f() {

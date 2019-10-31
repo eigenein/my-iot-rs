@@ -1,5 +1,6 @@
 //! Entry point.
 
+use crate::core::supervisor;
 use crate::db::Db;
 use crate::prelude::*;
 use crate::settings::Settings;
@@ -17,7 +18,6 @@ mod persistence;
 mod prelude;
 mod services;
 mod settings;
-mod supervisor;
 mod templates;
 mod web;
 
