@@ -1,9 +1,8 @@
 //! [Telegram bot](https://core.telegram.org/bots/api) service able to receive and send messages.
 
 use crate::consts::USER_AGENT;
-use crate::message::*;
-use crate::value::Value;
-use crate::{supervisor, Result};
+use crate::prelude::*;
+use crate::supervisor;
 use chrono::{DateTime, Utc};
 use crossbeam_channel::Sender;
 use failure::format_err;
@@ -91,7 +90,7 @@ fn send_readings(context: &Context, tx: &Sender<Message>, update: &TelegramUpdat
         if let Some(ref text) = message.text {
             tx.send(
                 Composer::new(format!("{}::{}::message", &context.service_id, message.chat.id))
-                    .type_(Type::ReadNonLogged)
+                    .type_(MessageType::ReadNonLogged)
                     .value(Value::Text(text.into()))
                     .timestamp(message.date)
                     .into(),
@@ -115,7 +114,7 @@ fn spawn_consumer(context: Context, outbox_tx: &Sender<Message>) -> Result<Sende
         outbox_tx.clone(),
         move || {
             for message in &inbox_rx {
-                if message.type_ != Type::Write {
+                if message.type_ != MessageType::Write {
                     continue;
                 }
                 let (chat_id, sensor) = match message_regex.captures(&message.sensor) {

@@ -1,8 +1,6 @@
 //! Database interface.
 
-use crate::message::*;
-use crate::value::Value;
-use crate::Result;
+use crate::prelude::*;
 use chrono::prelude::*;
 use failure::format_err;
 use rusqlite::{params, Connection, Row};
@@ -49,10 +47,9 @@ impl Db {
 
 /// Readings persistence.
 impl Db {
-    /// Insert reading into database.
-    pub fn insert_reading(&self, message: &Message) -> Result<()> {
+    /// Insert or replace reading into database.
+    pub fn upsert_reading(&self, message: &Message) -> Result<()> {
         let (type_, value) = message.value.serialize();
-        // TODO: handle `ReadSnapshot`.
         self.connection
             .prepare_cached("INSERT OR IGNORE INTO sensors (sensor, type) VALUES (?1, ?2)")
             .unwrap()
@@ -141,7 +138,7 @@ impl Db {
 impl Message {
     fn from_row(row: &Row) -> Result<Message> {
         Ok(Message {
-            type_: Type::ReadLogged,
+            type_: MessageType::ReadLogged,
             sensor: row.get_unwrap("sensor"),
             timestamp: Local.timestamp_millis(row.get_unwrap("ts")),
             value: Value::deserialize(row.get_unwrap("type"), row.get_unwrap("value"))?,
@@ -192,15 +189,15 @@ mod tests {
     type Result = crate::Result<()>;
 
     #[test]
-    fn reading_double_insert_keeps_one_record() -> Result {
+    fn double_upsert_keeps_one_record() -> Result {
         let reading = Composer::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .into();
 
         let db = Db::new(":memory:")?;
-        db.insert_reading(&reading)?;
-        db.insert_reading(&reading)?;
+        db.upsert_reading(&reading)?;
+        db.upsert_reading(&reading)?;
 
         let reading_count = db
             .connection
@@ -225,7 +222,7 @@ mod tests {
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .into();
         let db = Db::new(":memory:")?;
-        db.insert_reading(&reading)?;
+        db.upsert_reading(&reading)?;
         assert_eq!(db.select_last_reading("test")?, Some(reading));
         Ok(())
     }
@@ -233,7 +230,7 @@ mod tests {
     #[test]
     fn select_last_reading_returns_newer_reading() -> Result {
         let db = Db::new(":memory:")?;
-        db.insert_reading(
+        db.upsert_reading(
             &Composer::new("test")
                 .value(Value::Counter(42))
                 .timestamp(Local.timestamp_millis(1_566_424_127_000))
@@ -243,7 +240,7 @@ mod tests {
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .into();
-        db.insert_reading(&new)?;
+        db.upsert_reading(&new)?;
         assert_eq!(db.select_last_reading("test")?, Some(new));
         Ok(())
     }
@@ -255,7 +252,7 @@ mod tests {
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .into();
         let db = Db::new(":memory:")?;
-        db.insert_reading(&message)?;
+        db.upsert_reading(&message)?;
         assert_eq!(db.select_latest_readings()?, vec![message]);
         Ok(())
     }
@@ -263,13 +260,13 @@ mod tests {
     #[test]
     fn existing_sensor_is_reused() -> Result {
         let db = Db::new(":memory:")?;
-        db.insert_reading(
+        db.upsert_reading(
             &Composer::new("test")
                 .value(Value::Counter(42))
                 .timestamp(Local.timestamp_millis(1_566_424_128_000))
                 .into(),
         )?;
-        db.insert_reading(
+        db.upsert_reading(
             &Composer::new("test")
                 .value(Value::Counter(42))
                 .timestamp(Local.timestamp_millis(1_566_424_129_000))

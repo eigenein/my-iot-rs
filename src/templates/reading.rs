@@ -1,6 +1,6 @@
 //! Renders single reading on the sensors page.
 
-use crate::message::*;
+use crate::prelude::*;
 use crate::templates::DATE_FORMAT;
 
 // TODO: title should be human-readable.

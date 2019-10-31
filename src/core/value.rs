@@ -11,24 +11,35 @@ use std::fmt::{Display, Formatter};
 pub enum Value {
     /// No value.
     None,
+
     /// Generic counter.
     Counter(u64),
+
     /// Size in [bytes](https://en.wikipedia.org/wiki/Byte).
     Size(u64),
+
     /// [Plain text](https://en.wikipedia.org/wiki/Plain_text).
     Text(String),
+
     /// [Celsius](https://en.wikipedia.org/wiki/Celsius) temperature.
     Celsius(f64),
+
     /// [Beaufort](https://en.wikipedia.org/wiki/Beaufort_scale) wind speed.
     Bft(u8),
+
     /// Wind direction.
     WindDirection(PointOfTheCompass),
+
     /// Length in [metres](https://en.wikipedia.org/wiki/Metre).
+    #[allow(dead_code)]
     Metres(f64),
+
     /// [Relative humidity](https://en.wikipedia.org/wiki/Relative_humidity) in percents.
     Rh(f64),
+
     /// Image URL.
     ImageUrl(String),
+
     /// Boolean.
     Boolean(bool),
 }

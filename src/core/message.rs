@@ -1,6 +1,6 @@
 //! Describes a sensor reading and related structures.
 
-use crate::value::Value;
+use crate::core::value::Value;
 use chrono::prelude::*;
 use serde::Deserialize;
 

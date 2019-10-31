@@ -1,1 +1,2 @@
-// TODO: structs like `Message`, `Reading` and so on.
+pub mod message;
+pub mod value;

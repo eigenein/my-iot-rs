@@ -5,7 +5,7 @@ EXECUTABLE_PATH := /usr/local/bin/my-iot
 
 .PHONY: all
 all:
-	@cargo build --release
+	@RUSTFLAGS="-D warnings" cargo build --release
 
 .PHONY: clean
 clean:
@@ -13,8 +13,8 @@ clean:
 
 .PHONY: check
 check:
-	@RUST_BACKTRACE=1 cargo test
-	@cargo clippy --all-targets --all-features -- -D warnings
+	@RUST_BACKTRACE=1 RUSTFLAGS="-D warnings" cargo test
+	@cargo clippy --all-targets --all-features
 	@cargo fmt --all -- --check
 
 .PHONY: install

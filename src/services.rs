@@ -1,7 +1,7 @@
 //! Implements generic `Service` trait.
 
 use crate::db::Db;
-use crate::message::*;
+use crate::prelude::*;
 use crate::settings::*;
 use crate::Result;
 use crossbeam_channel::Sender;

@@ -1,8 +1,6 @@
 use crate::consts::USER_AGENT;
-use crate::message::*;
+use crate::prelude::*;
 use crate::supervisor;
-use crate::value::{PointOfTheCompass, Value};
-use crate::Result;
 use chrono::offset::TimeZone;
 use chrono::{DateTime, Local};
 use chrono_tz::Europe::Amsterdam;
@@ -113,14 +111,14 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
         .ok_or_else(|| format_err!("station {} is not found", station_id))?;
     tx.send(
         Composer::new(format!("{}::{}::name", service_id, station_id))
-            .type_(Type::ReadLogged)
+            .type_(MessageType::ReadLogged)
             .value(Value::Text(measurement.name.clone()))
             .timestamp(measurement.timestamp)
             .into(),
     )?;
     tx.send(
         Composer::new(format!("{}::{}::weather_description", service_id, station_id))
-            .type_(Type::ReadLogged)
+            .type_(MessageType::ReadLogged)
             .value(Value::Text(measurement.weather_description.clone()))
             .timestamp(measurement.timestamp)
             .into(),
@@ -128,7 +126,7 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
     if let Some(degrees) = measurement.temperature {
         tx.send(
             Composer::new(format!("{}::{}::temperature", service_id, station_id))
-                .type_(Type::ReadLogged)
+                .type_(MessageType::ReadLogged)
                 .value(Value::Celsius(degrees))
                 .timestamp(measurement.timestamp)
                 .into(),
@@ -137,7 +135,7 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
     if let Some(degrees) = measurement.ground_temperature {
         tx.send(
             Composer::new(format!("{}::{}::ground_temperature", service_id, station_id))
-                .type_(Type::ReadLogged)
+                .type_(MessageType::ReadLogged)
                 .value(Value::Celsius(degrees))
                 .timestamp(measurement.timestamp)
                 .into(),
@@ -146,7 +144,7 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
     if let Some(degrees) = measurement.feel_temperature {
         tx.send(
             Composer::new(format!("{}::{}::feel_temperature", service_id, station_id))
-                .type_(Type::ReadLogged)
+                .type_(MessageType::ReadLogged)
                 .value(Value::Celsius(degrees))
                 .timestamp(measurement.timestamp)
                 .into(),
@@ -155,7 +153,7 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
     if let Some(bft) = measurement.wind_speed_bft {
         tx.send(
             Composer::new(format!("{}::{}::wind_speed_bft", service_id, station_id))
-                .type_(Type::ReadLogged)
+                .type_(MessageType::ReadLogged)
                 .value(Value::Bft(bft))
                 .timestamp(measurement.timestamp)
                 .into(),
@@ -164,7 +162,7 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
     if let Some(point) = measurement.wind_direction {
         tx.send(
             Composer::new(format!("{}::{}::wind_direction", service_id, station_id))
-                .type_(Type::ReadLogged)
+                .type_(MessageType::ReadLogged)
                 .value(Value::WindDirection(point))
                 .timestamp(measurement.timestamp)
                 .into(),

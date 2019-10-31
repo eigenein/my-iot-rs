@@ -10,12 +10,12 @@ use serde_json::json;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::{Arc, Mutex};
 
-pub const FAVICON: &[u8] = include_bytes!("statics/favicon.ico");
-pub const FAVICON_16: &[u8] = include_bytes!("statics/favicon-16x16.png");
-pub const FAVICON_32: &[u8] = include_bytes!("statics/favicon-32x32.png");
-pub const APPLE_TOUCH_ICON: &[u8] = include_bytes!("statics/apple-touch-icon.png");
-pub const ANDROID_CHROME_192: &[u8] = include_bytes!("statics/android-chrome-192x192.png");
-pub const ANDROID_CHROME_512: &[u8] = include_bytes!("statics/android-chrome-512x512.png");
+const FAVICON: &[u8] = include_bytes!("statics/favicon.ico");
+const FAVICON_16: &[u8] = include_bytes!("statics/favicon-16x16.png");
+const FAVICON_32: &[u8] = include_bytes!("statics/favicon-32x32.png");
+const APPLE_TOUCH_ICON: &[u8] = include_bytes!("statics/apple-touch-icon.png");
+const ANDROID_CHROME_192: &[u8] = include_bytes!("statics/android-chrome-192x192.png");
+const ANDROID_CHROME_512: &[u8] = include_bytes!("statics/android-chrome-512x512.png");
 
 /// Start the web application.
 pub fn start_server(settings: Settings, db: Arc<Mutex<Db>>) -> ! {
@@ -30,6 +30,8 @@ pub fn start_server(settings: Settings, db: Arc<Mutex<Db>>) -> ! {
                 (GET) ["/apple-touch-icon.png"] => Response::from_data("image/png", APPLE_TOUCH_ICON.to_vec()),
                 (GET) ["/favicon-32x32.png"] => Response::from_data("image/png", FAVICON_32.to_vec()),
                 (GET) ["/favicon-16x16.png"] => Response::from_data("image/png", FAVICON_16.to_vec()),
+                (GET) ["/android-chrome-192x192.png"] => Response::from_data("image/png", ANDROID_CHROME_192.to_vec()),
+                (GET) ["/android-chrome-512x512.png"] => Response::from_data("image/png", ANDROID_CHROME_512.to_vec()),
                 _ => Response::empty_404(),
             )
         },

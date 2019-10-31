@@ -9,8 +9,8 @@
 //! Basically, this is a case of "multi-producer multi-consumer" pattern.
 
 use crate::db::Db;
-use crate::message::*;
-use crate::{supervisor, Result};
+use crate::prelude::*;
+use crate::supervisor;
 use crossbeam_channel::Sender;
 use log::{debug, info};
 use serde::Deserialize;
@@ -118,14 +118,14 @@ pub enum Action {
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct RepeatParameters {
-    target_type: Type,
+    target_type: MessageType,
     target_sensor: String,
 }
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct ReadSensorParameters {
     source_sensor: String,
-    target_type: Type,
+    target_type: MessageType,
     target_sensor: String,
 }
 

@@ -1,6 +1,6 @@
 //! Home page.
 
-use crate::message::*;
+use crate::prelude::*;
 use crate::templates;
 
 markup::define! {

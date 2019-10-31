@@ -1,9 +1,7 @@
 //! Sensor page.
 
-use crate::message::*;
-use crate::templates;
-use crate::templates::DATE_FORMAT;
-use crate::value::Value;
+use crate::prelude::*;
+use crate::templates::{self, DATE_FORMAT};
 use chrono::{DateTime, Local};
 use serde_json::json;
 

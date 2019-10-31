@@ -9,6 +9,7 @@ This release brings the different database schema, which should work faster and 
 - Break: rename message types and introduce `Type::ReadSnapshot` #49
 - Break: change sensor value serialization #50
 - Break: welcome message `Composer` #50
+- Break: move `Message` and `Value` into `crate::core`
 
 ## `0.28.0`
 
