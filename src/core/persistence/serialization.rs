@@ -15,7 +15,7 @@ impl Value {
             Value::Counter(value) => (7, serialize_u64(*value)),
             Value::Metres(value) => (8, serialize_f64(*value)),
             Value::Rh(value) => (9, serialize_f64(*value)),
-            Value::WindDirection(value) => (10, (*value as u32).to_le_bytes().to_vec()),
+            Value::WindDirection(value) => (10, vec![*value as u8]),
             Value::Size(value) => (11, serialize_u64(*value)),
         }
     }
