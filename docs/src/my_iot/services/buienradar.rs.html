@@ -218,21 +218,10 @@
 <span id="218">218</span>
 <span id="219">219</span>
 <span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">consts</span>::<span class="ident">USER_AGENT</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">message</span>::{<span class="ident">Message</span>, <span class="ident">Reading</span>, <span class="ident">Type</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">supervisor</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">value</span>::{<span class="ident">PointOfTheCompass</span>, <span class="ident">Value</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span>;
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">offset</span>::<span class="ident">TimeZone</span>;
 <span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">DateTime</span>, <span class="ident">Local</span>};
 <span class="kw">use</span> <span class="ident">chrono_tz</span>::<span class="ident">Europe</span>::<span class="ident">Amsterdam</span>;
@@ -288,7 +277,7 @@
     <span class="ident">feel_temperature</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>,
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;windspeedBft&quot;</span>)]</span>
-    <span class="ident">wind_speed_bft</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+    <span class="ident">wind_speed_bft</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">deserialize_with</span> <span class="op">=</span> <span class="string">&quot;date_format&quot;</span>)]</span>
     <span class="ident">timestamp</span>: <span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Local</span><span class="op">&gt;</span>,
@@ -341,71 +330,64 @@
         .<span class="ident">iter</span>()
         .<span class="ident">find</span>(<span class="op">|</span><span class="ident">measurement</span><span class="op">|</span> <span class="ident">measurement</span>.<span class="ident">station_id</span> <span class="op">==</span> <span class="ident">station_id</span>)
         .<span class="ident">ok_or_else</span>(<span class="op">||</span> <span class="macro">format_err</span><span class="macro">!</span>(<span class="string">&quot;station {} is not found&quot;</span>, <span class="ident">station_id</span>))<span class="question-mark">?</span>;
-    <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">Message</span> {
-        <span class="ident">type_</span>: <span class="ident">Type</span>::<span class="ident">Actual</span>,
-        <span class="ident">reading</span>: <span class="ident">Reading</span> {
-            <span class="ident">sensor</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::name&quot;</span>, <span class="ident">service_id</span>, <span class="ident">station_id</span>),
-            <span class="ident">value</span>: <span class="ident">Value</span>::<span class="ident">Text</span>(<span class="ident">measurement</span>.<span class="ident">name</span>.<span class="ident">clone</span>()),
-            <span class="ident">timestamp</span>: <span class="ident">measurement</span>.<span class="ident">timestamp</span>,
-        },
-    })<span class="question-mark">?</span>;
-    <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">Message</span> {
-        <span class="ident">type_</span>: <span class="ident">Type</span>::<span class="ident">Actual</span>,
-        <span class="ident">reading</span>: <span class="ident">Reading</span> {
-            <span class="ident">sensor</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::weather_description&quot;</span>, <span class="ident">service_id</span>, <span class="ident">station_id</span>),
-            <span class="ident">value</span>: <span class="ident">Value</span>::<span class="ident">Text</span>(<span class="ident">measurement</span>.<span class="ident">weather_description</span>.<span class="ident">clone</span>()),
-            <span class="ident">timestamp</span>: <span class="ident">measurement</span>.<span class="ident">timestamp</span>,
-        },
-    })<span class="question-mark">?</span>;
+    <span class="ident">tx</span>.<span class="ident">send</span>(
+        <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::name&quot;</span>, <span class="ident">service_id</span>, <span class="ident">station_id</span>))
+            .<span class="ident">type_</span>(<span class="ident">MessageType</span>::<span class="ident">ReadLogged</span>)
+            .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Text</span>(<span class="ident">measurement</span>.<span class="ident">name</span>.<span class="ident">clone</span>()))
+            .<span class="ident">timestamp</span>(<span class="ident">measurement</span>.<span class="ident">timestamp</span>)
+            .<span class="ident">into</span>(),
+    )<span class="question-mark">?</span>;
+    <span class="ident">tx</span>.<span class="ident">send</span>(
+        <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::weather_description&quot;</span>, <span class="ident">service_id</span>, <span class="ident">station_id</span>))
+            .<span class="ident">type_</span>(<span class="ident">MessageType</span>::<span class="ident">ReadLogged</span>)
+            .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Text</span>(<span class="ident">measurement</span>.<span class="ident">weather_description</span>.<span class="ident">clone</span>()))
+            .<span class="ident">timestamp</span>(<span class="ident">measurement</span>.<span class="ident">timestamp</span>)
+            .<span class="ident">into</span>(),
+    )<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">degrees</span>) <span class="op">=</span> <span class="ident">measurement</span>.<span class="ident">temperature</span> {
-        <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">Message</span> {
-            <span class="ident">type_</span>: <span class="ident">Type</span>::<span class="ident">Actual</span>,
-            <span class="ident">reading</span>: <span class="ident">Reading</span> {
-                <span class="ident">sensor</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::temperature&quot;</span>, <span class="ident">service_id</span>, <span class="ident">station_id</span>),
-                <span class="ident">value</span>: <span class="ident">Value</span>::<span class="ident">Celsius</span>(<span class="ident">degrees</span>),
-                <span class="ident">timestamp</span>: <span class="ident">measurement</span>.<span class="ident">timestamp</span>,
-            },
-        })<span class="question-mark">?</span>;
+        <span class="ident">tx</span>.<span class="ident">send</span>(
+            <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::temperature&quot;</span>, <span class="ident">service_id</span>, <span class="ident">station_id</span>))
+                .<span class="ident">type_</span>(<span class="ident">MessageType</span>::<span class="ident">ReadLogged</span>)
+                .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Celsius</span>(<span class="ident">degrees</span>))
+                .<span class="ident">timestamp</span>(<span class="ident">measurement</span>.<span class="ident">timestamp</span>)
+                .<span class="ident">into</span>(),
+        )<span class="question-mark">?</span>;
     }
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">degrees</span>) <span class="op">=</span> <span class="ident">measurement</span>.<span class="ident">ground_temperature</span> {
-        <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">Message</span> {
-            <span class="ident">type_</span>: <span class="ident">Type</span>::<span class="ident">Actual</span>,
-            <span class="ident">reading</span>: <span class="ident">Reading</span> {
-                <span class="ident">sensor</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::ground_temperature&quot;</span>, <span class="ident">service_id</span>, <span class="ident">station_id</span>),
-                <span class="ident">value</span>: <span class="ident">Value</span>::<span class="ident">Celsius</span>(<span class="ident">degrees</span>),
-                <span class="ident">timestamp</span>: <span class="ident">measurement</span>.<span class="ident">timestamp</span>,
-            },
-        })<span class="question-mark">?</span>;
+        <span class="ident">tx</span>.<span class="ident">send</span>(
+            <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::ground_temperature&quot;</span>, <span class="ident">service_id</span>, <span class="ident">station_id</span>))
+                .<span class="ident">type_</span>(<span class="ident">MessageType</span>::<span class="ident">ReadLogged</span>)
+                .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Celsius</span>(<span class="ident">degrees</span>))
+                .<span class="ident">timestamp</span>(<span class="ident">measurement</span>.<span class="ident">timestamp</span>)
+                .<span class="ident">into</span>(),
+        )<span class="question-mark">?</span>;
     }
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">degrees</span>) <span class="op">=</span> <span class="ident">measurement</span>.<span class="ident">feel_temperature</span> {
-        <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">Message</span> {
-            <span class="ident">type_</span>: <span class="ident">Type</span>::<span class="ident">Actual</span>,
-            <span class="ident">reading</span>: <span class="ident">Reading</span> {
-                <span class="ident">sensor</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::feel_temperature&quot;</span>, <span class="ident">service_id</span>, <span class="ident">station_id</span>),
-                <span class="ident">value</span>: <span class="ident">Value</span>::<span class="ident">Celsius</span>(<span class="ident">degrees</span>),
-                <span class="ident">timestamp</span>: <span class="ident">measurement</span>.<span class="ident">timestamp</span>,
-            },
-        })<span class="question-mark">?</span>;
+        <span class="ident">tx</span>.<span class="ident">send</span>(
+            <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::feel_temperature&quot;</span>, <span class="ident">service_id</span>, <span class="ident">station_id</span>))
+                .<span class="ident">type_</span>(<span class="ident">MessageType</span>::<span class="ident">ReadLogged</span>)
+                .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Celsius</span>(<span class="ident">degrees</span>))
+                .<span class="ident">timestamp</span>(<span class="ident">measurement</span>.<span class="ident">timestamp</span>)
+                .<span class="ident">into</span>(),
+        )<span class="question-mark">?</span>;
     }
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bft</span>) <span class="op">=</span> <span class="ident">measurement</span>.<span class="ident">wind_speed_bft</span> {
-        <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">Message</span> {
-            <span class="ident">type_</span>: <span class="ident">Type</span>::<span class="ident">Actual</span>,
-            <span class="ident">reading</span>: <span class="ident">Reading</span> {
-                <span class="ident">sensor</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::wind_speed_bft&quot;</span>, <span class="ident">service_id</span>, <span class="ident">station_id</span>),
-                <span class="ident">value</span>: <span class="ident">Value</span>::<span class="ident">Bft</span>(<span class="ident">bft</span>),
-                <span class="ident">timestamp</span>: <span class="ident">measurement</span>.<span class="ident">timestamp</span>,
-            },
-        })<span class="question-mark">?</span>;
+        <span class="ident">tx</span>.<span class="ident">send</span>(
+            <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::wind_speed_bft&quot;</span>, <span class="ident">service_id</span>, <span class="ident">station_id</span>))
+                .<span class="ident">type_</span>(<span class="ident">MessageType</span>::<span class="ident">ReadLogged</span>)
+                .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Bft</span>(<span class="ident">bft</span>))
+                .<span class="ident">timestamp</span>(<span class="ident">measurement</span>.<span class="ident">timestamp</span>)
+                .<span class="ident">into</span>(),
+        )<span class="question-mark">?</span>;
     }
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">point</span>) <span class="op">=</span> <span class="ident">measurement</span>.<span class="ident">wind_direction</span> {
-        <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">Message</span> {
-            <span class="ident">type_</span>: <span class="ident">Type</span>::<span class="ident">Actual</span>,
-            <span class="ident">reading</span>: <span class="ident">Reading</span> {
-                <span class="ident">sensor</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::wind_direction&quot;</span>, <span class="ident">service_id</span>, <span class="ident">station_id</span>),
-                <span class="ident">value</span>: <span class="ident">Value</span>::<span class="ident">WindDirection</span>(<span class="ident">point</span>),
-                <span class="ident">timestamp</span>: <span class="ident">measurement</span>.<span class="ident">timestamp</span>,
-            },
-        })<span class="question-mark">?</span>;
+        <span class="ident">tx</span>.<span class="ident">send</span>(
+            <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::wind_direction&quot;</span>, <span class="ident">service_id</span>, <span class="ident">station_id</span>))
+                .<span class="ident">type_</span>(<span class="ident">MessageType</span>::<span class="ident">ReadLogged</span>)
+                .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">WindDirection</span>(<span class="ident">point</span>))
+                .<span class="ident">timestamp</span>(<span class="ident">measurement</span>.<span class="ident">timestamp</span>)
+                .<span class="ident">into</span>(),
+        )<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }

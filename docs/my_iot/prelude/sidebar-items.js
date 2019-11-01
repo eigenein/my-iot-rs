@@ -1,0 +1,1 @@
+initSidebarItems({"macro":[["debug","Logs a message at the debug level."],["format_err","Constructs an `Error` using the standard string interpolation syntax."],["info","Logs a message at the info level."],["warn","Logs a message at the warn level."]],"struct":[["Error","The `Error` type, which can contain any failure."]],"type":[["Result",""]]});

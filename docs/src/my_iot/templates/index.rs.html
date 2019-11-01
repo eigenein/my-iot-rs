@@ -28,13 +28,15 @@
 <span id="28">28</span>
 <span id="29">29</span>
 <span id="30">30</span>
+<span id="31">31</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Home page.</span>
 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">templates</span>;
 
 <span class="ident">markup</span>::<span class="macro">define</span><span class="macro">!</span> {
-    <span class="ident">Index</span>(<span class="ident">readings</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="ident">message</span>::<span class="ident">Reading</span><span class="op">&gt;</span>) {
+    <span class="ident">Index</span>(<span class="ident">readings</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>) {
         <span class="ident">section</span>.<span class="ident">hero</span>.<span class="string">&quot;is-info&quot;</span> {
             <span class="ident">div</span>.<span class="string">&quot;hero-head&quot;</span> { {<span class="ident">templates</span>::<span class="ident">navbar</span>::<span class="ident">NavBar</span> {}} }
             <span class="ident">div</span>.<span class="string">&quot;hero-body&quot;</span> {

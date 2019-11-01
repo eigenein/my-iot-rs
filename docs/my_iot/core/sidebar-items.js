@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["message","Describes a sensor reading and related structures."],["persistence","Database interface."],["supervisor","Allows to monitor thread status and automatically respawn a crashed thread."],["value","Implements sensor reading value."]]});

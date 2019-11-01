@@ -30,12 +30,10 @@
 <span id="30">30</span>
 <span id="31">31</span>
 <span id="32">32</span>
-<span id="33">33</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implements generic `Service` trait.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">db</span>::<span class="ident">Db</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">message</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">settings</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="prelude-ty">Result</span>;
 <span class="kw">use</span> <span class="ident">crossbeam_channel</span>::<span class="ident">Sender</span>;
