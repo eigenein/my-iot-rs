@@ -331,11 +331,11 @@
     CREATE TABLE IF NOT EXISTS readings (
         id INTEGER PRIMARY KEY,
         sensor_id INTEGER REFERENCES sensors(id) ON UPDATE CASCADE ON DELETE CASCADE,
-        ts INTEGER NOT NULL,
+        timestamp INTEGER NOT NULL,
         value BLOB NOT NULL
     );
-    -- Descending index on `ts` is needed to speed up the select latest queries.
-    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_id_ts ON readings (sensor_id, ts DESC);
+    -- Descending index on `timestamp` is needed to speed up the select last queries.
+    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_id_timestamp ON readings (sensor_id, timestamp DESC);
 
     -- VACUUM;
 &quot;</span>;
@@ -366,7 +366,7 @@
             .<span class="ident">execute</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="ident">message</span>.<span class="ident">sensor</span>, <span class="ident">type_</span>])<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">sensor_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">connection</span>.<span class="ident">last_insert_rowid</span>();
         <span class="self">self</span>.<span class="ident">connection</span>
-            .<span class="ident">prepare_cached</span>(<span class="string">&quot;INSERT OR REPLACE INTO readings (sensor_id, ts, value) VALUES (?1, ?2, ?3)&quot;</span>)
+            .<span class="ident">prepare_cached</span>(<span class="string">&quot;INSERT OR REPLACE INTO readings (sensor_id, timestamp, value) VALUES (?1, ?2, ?3)&quot;</span>)
             .<span class="ident">unwrap</span>()
             .<span class="ident">execute</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="ident">sensor_id</span>, <span class="ident">message</span>.<span class="ident">timestamp</span>.<span class="ident">timestamp_millis</span>(), <span class="ident">value</span>])<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">reading_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">connection</span>.<span class="ident">last_insert_rowid</span>();
@@ -383,7 +383,7 @@
             .<span class="ident">connection</span>
             .<span class="ident">prepare_cached</span>(
                 <span class="string">r#&quot;
-                SELECT sensor, ts, type, value
+                SELECT sensor, timestamp, type, value
                 FROM sensors
                 INNER JOIN readings ON readings.id = sensors.last_reading_id
                 &quot;#</span>,
@@ -410,7 +410,7 @@
             .<span class="ident">connection</span>
             .<span class="ident">prepare_cached</span>(
                 <span class="string">r#&quot;
-                SELECT sensor, ts, type, value
+                SELECT sensor, timestamp, type, value
                 FROM sensors
                 INNER JOIN readings ON readings.id = sensors.last_reading_id
                 WHERE sensors.sensor = ?1
@@ -427,11 +427,11 @@
             .<span class="ident">connection</span>
             .<span class="ident">prepare_cached</span>(
                 <span class="string">r#&quot;
-                SELECT sensors.sensor, ts, value
+                SELECT sensors.sensor, timestamp, value
                 FROM readings
                 INNER JOIN sensors ON sensors.id = readings.sensor_id
-                WHERE sensors.sensor = ?1 AND ts &gt;= ?2
-                ORDER BY ts
+                WHERE sensors.sensor = ?1 AND timestamp &gt;= ?2
+                ORDER BY timestamp
                 &quot;#</span>,
             )
             .<span class="ident">unwrap</span>()
@@ -450,7 +450,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">Message</span> {
             <span class="ident">type_</span>: <span class="ident">MessageType</span>::<span class="ident">ReadLogged</span>,
             <span class="ident">sensor</span>: <span class="ident">row</span>.<span class="ident">get_unwrap</span>(<span class="string">&quot;sensor&quot;</span>),
-            <span class="ident">timestamp</span>: <span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="ident">row</span>.<span class="ident">get_unwrap</span>(<span class="string">&quot;ts&quot;</span>)),
+            <span class="ident">timestamp</span>: <span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="ident">row</span>.<span class="ident">get_unwrap</span>(<span class="string">&quot;timestamp&quot;</span>)),
             <span class="ident">value</span>: <span class="ident">Value</span>::<span class="ident">deserialize</span>(<span class="ident">row</span>.<span class="ident">get_unwrap</span>(<span class="string">&quot;type&quot;</span>), <span class="ident">row</span>.<span class="ident">get_unwrap</span>(<span class="string">&quot;value&quot;</span>))<span class="question-mark">?</span>,
         })
     }
