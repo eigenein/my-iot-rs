@@ -8,7 +8,6 @@
 //!
 //! Basically, this is a case of "multi-producer multi-consumer" pattern.
 
-use crate::db::Db;
 use crate::prelude::*;
 use crate::supervisor;
 use crossbeam_channel::Sender;

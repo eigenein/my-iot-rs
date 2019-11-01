@@ -1,6 +1,5 @@
 //! Implements generic `Service` trait.
 
-use crate::db::Db;
 use crate::prelude::*;
 use crate::settings::*;
 use crate::Result;

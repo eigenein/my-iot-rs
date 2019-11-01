@@ -1,6 +1,5 @@
 //! Readings persistence.
 
-use crate::db::*;
 use crate::prelude::*;
 use crate::supervisor;
 use crossbeam_channel::Sender;

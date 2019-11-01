@@ -1,6 +1,6 @@
 //! Implements web server.
 
-use crate::db::Db;
+use crate::prelude::*;
 use crate::settings::Settings;
 use crate::templates::*;
 use chrono::prelude::*;

@@ -1,7 +1,6 @@
 //! Entry point.
 
 use crate::core::supervisor;
-use crate::db::Db;
 use crate::prelude::*;
 use crate::settings::Settings;
 use crossbeam_channel::{Receiver, Sender};
@@ -12,7 +11,6 @@ use structopt::StructOpt;
 
 mod consts;
 mod core;
-mod db;
 mod format;
 mod persistence;
 mod prelude;
