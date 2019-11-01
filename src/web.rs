@@ -40,7 +40,7 @@ pub fn start_server(settings: Settings, db: Arc<Mutex<Db>>) -> ! {
 
 /// Get index page response.
 fn index(db: &Arc<Mutex<Db>>) -> Response {
-    let readings = { db.lock().unwrap().select_latest_readings().unwrap() };
+    let readings = { db.lock().unwrap().select_actuals().unwrap() };
     Response::html(
         base::Base {
             body: Box::new(index::Index { readings }),

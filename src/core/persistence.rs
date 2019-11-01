@@ -72,7 +72,7 @@ impl Db {
     }
 
     /// Select latest reading for each sensor.
-    pub fn select_latest_readings(&self) -> Result<Vec<Message>> {
+    pub fn select_actuals(&self) -> Result<Vec<Message>> {
         Ok(self
             .connection
             .prepare_cached(
@@ -237,7 +237,7 @@ mod tests {
     }
 
     #[test]
-    fn select_last_reading_returns_test_reading() -> Result {
+    fn select_last_reading_ok() -> Result {
         let reading = Composer::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
@@ -267,14 +267,14 @@ mod tests {
     }
 
     #[test]
-    fn select_latest_readings_returns_test_reading() -> Result {
+    fn select_actuals_ok() -> Result {
         let message = Composer::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .into();
         let db = Db::new(":memory:")?;
         db.upsert_reading(&message)?;
-        assert_eq!(db.select_latest_readings()?, vec![message]);
+        assert_eq!(db.select_actuals()?, vec![message]);
         Ok(())
     }
 
