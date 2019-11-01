@@ -303,42 +303,6 @@
 <span id="303">303</span>
 <span id="304">304</span>
 <span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
-<span id="322">322</span>
-<span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Database interface.</span>
 
@@ -346,12 +310,12 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">supervisor</span>;
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">crossbeam_channel</span>::<span class="ident">Sender</span>;
-<span class="kw">use</span> <span class="ident">failure</span>::<span class="ident">format_err</span>;
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">info</span>};
 <span class="kw">use</span> <span class="ident">rusqlite</span>::{<span class="ident">params</span>, <span class="ident">Connection</span>, <span class="ident">Row</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">TryInto</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
+
+<span class="kw">mod</span> <span class="ident">serialization</span>;
 
 <span class="comment">// FIXME: find a way to dial with `rusqlite::Error`.</span>
 
@@ -489,42 +453,6 @@
             <span class="ident">timestamp</span>: <span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="ident">row</span>.<span class="ident">get_unwrap</span>(<span class="string">&quot;ts&quot;</span>)),
             <span class="ident">value</span>: <span class="ident">Value</span>::<span class="ident">deserialize</span>(<span class="ident">row</span>.<span class="ident">get_unwrap</span>(<span class="string">&quot;type&quot;</span>), <span class="ident">row</span>.<span class="ident">get_unwrap</span>(<span class="string">&quot;value&quot;</span>))<span class="question-mark">?</span>,
         })
-    }
-}
-
-<span class="comment">// TODO: move to a separate module.</span>
-<span class="kw">impl</span> <span class="ident">Value</span> {
-    <span class="kw">fn</span> <span class="ident">serialize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> (<span class="ident">u32</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value</span>::<span class="prelude-val">None</span> <span class="op">=&gt;</span> (<span class="number">0</span>, <span class="macro">vec</span><span class="macro">!</span>[]),
-            <span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="kw">if</span> <span class="op">!</span><span class="ident">value</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">2</span> }, <span class="macro">vec</span><span class="macro">!</span>[]),
-            <span class="ident">Value</span>::<span class="ident">ImageUrl</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="number">3</span>, <span class="ident">value</span>.<span class="ident">as_bytes</span>().<span class="ident">to_vec</span>()),
-            <span class="ident">Value</span>::<span class="ident">Text</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="number">4</span>, <span class="ident">value</span>.<span class="ident">as_bytes</span>().<span class="ident">to_vec</span>()),
-            <span class="ident">Value</span>::<span class="ident">Bft</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="number">5</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="kw-2">*</span><span class="ident">value</span>]),
-            <span class="ident">Value</span>::<span class="ident">Celsius</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="number">6</span>, <span class="ident">value</span>.<span class="ident">to_bits</span>().<span class="ident">to_le_bytes</span>().<span class="ident">to_vec</span>()),
-            <span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="number">7</span>, <span class="ident">value</span>.<span class="ident">to_le_bytes</span>().<span class="ident">to_vec</span>()),
-            <span class="ident">Value</span>::<span class="ident">Metres</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="number">8</span>, <span class="ident">value</span>.<span class="ident">to_bits</span>().<span class="ident">to_le_bytes</span>().<span class="ident">to_vec</span>()),
-            <span class="ident">Value</span>::<span class="ident">Rh</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="number">9</span>, <span class="ident">value</span>.<span class="ident">to_bits</span>().<span class="ident">to_le_bytes</span>().<span class="ident">to_vec</span>()),
-            <span class="ident">Value</span>::<span class="ident">WindDirection</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="number">10</span>, (<span class="kw-2">*</span><span class="ident">value</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">to_le_bytes</span>().<span class="ident">to_vec</span>()),
-            <span class="ident">Value</span>::<span class="ident">Size</span>(<span class="ident">value</span>) <span class="op">=&gt;</span> (<span class="number">11</span>, <span class="ident">value</span>.<span class="ident">to_le_bytes</span>().<span class="ident">to_vec</span>()),
-        }
-    }
-
-    <span class="kw">fn</span> <span class="ident">deserialize</span>(<span class="ident">type_</span>: <span class="ident">u32</span>, <span class="ident">blob</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">type_</span> {
-            <span class="number">0</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="prelude-val">None</span>),
-            <span class="number">1</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="bool-val">false</span>)),
-            <span class="number">2</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="bool-val">true</span>)),
-            <span class="number">3</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">ImageUrl</span>(<span class="ident">String</span>::<span class="ident">from_utf8</span>(<span class="ident">blob</span>)<span class="question-mark">?</span>)),
-            <span class="number">4</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">Text</span>(<span class="ident">String</span>::<span class="ident">from_utf8</span>(<span class="ident">blob</span>)<span class="question-mark">?</span>)),
-            <span class="number">5</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">Bft</span>(<span class="ident">blob</span>[<span class="number">0</span>])),
-            <span class="number">6</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">Celsius</span>(<span class="ident">f64</span>::<span class="ident">from_bits</span>(<span class="ident">u64</span>::<span class="ident">from_le_bytes</span>(
-                (<span class="kw-2">&amp;</span><span class="ident">blob</span>[<span class="number">0</span>..<span class="number">8</span>]).<span class="ident">try_into</span>()<span class="question-mark">?</span>,
-            )))),
-            <span class="number">7</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="ident">u64</span>::<span class="ident">from_le_bytes</span>((<span class="kw-2">&amp;</span><span class="ident">blob</span>[<span class="number">0</span>..<span class="number">8</span>]).<span class="ident">try_into</span>()<span class="question-mark">?</span>))),
-            <span class="comment">// TODO: 8, 9, 10, 11</span>
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="macro">format_err</span><span class="macro">!</span>(<span class="string">&quot;unknown value type: {}&quot;</span>, <span class="ident">type_</span>)),
-        }
     }
 }
 
