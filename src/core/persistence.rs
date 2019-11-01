@@ -25,11 +25,11 @@ const SCHEMA: &str = "
     CREATE TABLE IF NOT EXISTS readings (
         id INTEGER PRIMARY KEY,
         sensor_id INTEGER REFERENCES sensors(id) ON UPDATE CASCADE ON DELETE CASCADE,
-        ts INTEGER NOT NULL,
+        timestamp INTEGER NOT NULL,
         value BLOB NOT NULL
     );
-    -- Descending index on `ts` is needed to speed up the select latest queries.
-    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_id_ts ON readings (sensor_id, ts DESC);
+    -- Descending index on `timestamp` is needed to speed up the select last queries.
+    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_id_timestamp ON readings (sensor_id, timestamp DESC);
 
     -- VACUUM;
 ";
@@ -60,7 +60,7 @@ impl Db {
             .execute(params![message.sensor, type_])?;
         let sensor_id = self.connection.last_insert_rowid();
         self.connection
-            .prepare_cached("INSERT OR REPLACE INTO readings (sensor_id, ts, value) VALUES (?1, ?2, ?3)")
+            .prepare_cached("INSERT OR REPLACE INTO readings (sensor_id, timestamp, value) VALUES (?1, ?2, ?3)")
             .unwrap()
             .execute(params![sensor_id, message.timestamp.timestamp_millis(), value])?;
         let reading_id = self.connection.last_insert_rowid();
@@ -77,7 +77,7 @@ impl Db {
             .connection
             .prepare_cached(
                 r#"
-                SELECT sensor, ts, type, value
+                SELECT sensor, timestamp, type, value
                 FROM sensors
                 INNER JOIN readings ON readings.id = sensors.last_reading_id
                 "#,
@@ -104,7 +104,7 @@ impl Db {
             .connection
             .prepare_cached(
                 r#"
-                SELECT sensor, ts, type, value
+                SELECT sensor, timestamp, type, value
                 FROM sensors
                 INNER JOIN readings ON readings.id = sensors.last_reading_id
                 WHERE sensors.sensor = ?1
@@ -121,11 +121,11 @@ impl Db {
             .connection
             .prepare_cached(
                 r#"
-                SELECT sensors.sensor, ts, value
+                SELECT sensors.sensor, timestamp, value
                 FROM readings
                 INNER JOIN sensors ON sensors.id = readings.sensor_id
-                WHERE sensors.sensor = ?1 AND ts >= ?2
-                ORDER BY ts
+                WHERE sensors.sensor = ?1 AND timestamp >= ?2
+                ORDER BY timestamp
                 "#,
             )
             .unwrap()
@@ -144,7 +144,7 @@ impl Message {
         Ok(Message {
             type_: MessageType::ReadLogged,
             sensor: row.get_unwrap("sensor"),
-            timestamp: Local.timestamp_millis(row.get_unwrap("ts")),
+            timestamp: Local.timestamp_millis(row.get_unwrap("timestamp")),
             value: Value::deserialize(row.get_unwrap("type"), row.get_unwrap("value"))?,
         })
     }
