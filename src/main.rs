@@ -63,7 +63,7 @@ fn main() -> Result<()> {
     info!("Starting services…");
     let (dispatcher_tx, dispatcher_rx) = crossbeam_channel::unbounded();
     dispatcher_tx.send(Composer::new("my-iot::start").type_(MessageType::ReadNonLogged).into())?;
-    let mut all_txs = vec![core::db::spawn(db.clone(), &dispatcher_tx)?];
+    let mut all_txs = vec![core::persistence::spawn(db.clone(), &dispatcher_tx)?];
     all_txs.extend(spawn_services(&settings, &db, &dispatcher_tx)?);
     spawn_dispatcher(dispatcher_rx, dispatcher_tx, all_txs)?;
 
