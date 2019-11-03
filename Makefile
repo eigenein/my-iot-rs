@@ -13,7 +13,7 @@ clean:
 
 .PHONY: check
 check:
-	@RUST_BACKTRACE=1 RUSTFLAGS="-D warnings" cargo test
+	@RUSTFLAGS="-D warnings" cargo test
 	@cargo clippy --all-targets --all-features -- -D warnings
 	@cargo fmt --all -- --check
 

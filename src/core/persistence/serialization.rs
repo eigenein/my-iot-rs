@@ -30,6 +30,7 @@ impl Value {
             5 => Ok(Value::Bft(blob[0])),
             6 => Ok(Value::Celsius(deserialize_f64(&blob[0..8])?)),
             7 => Ok(Value::Counter(deserialize_u64(&blob[0..8])?)),
+            8 => Ok(Value::Metres(deserialize_f64(&blob[0..8])?)),
             // TODO: 8, 9, 10, 11
             _ => Err(format_err!("unknown value type: {}", type_)),
         }
@@ -82,7 +83,13 @@ mod tests {
     value_ok!(image_url_ok, Value::ImageUrl("https://google.com".into()));
     value_ok!(text_ok, Value::Text("Hello, world!".into()));
     value_ok!(bft_ok, Value::Bft(3));
-    value_ok!(celsius_ok, Value::Celsius(20.0));
+    value_ok!(celsius_ok, Value::Celsius(42.0));
     value_ok!(counter_ok, Value::Counter(42));
-    // TODO: the rest.
+    value_ok!(metres_ok, Value::Metres(42.0));
+    value_ok!(rh_ok, Value::Rh(42.0));
+    value_ok!(
+        wind_direction_ok,
+        Value::WindDirection(PointOfTheCompass::NorthNortheast)
+    );
+    value_ok!(size_ok, Value::Size(42));
 }
