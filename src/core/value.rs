@@ -145,37 +145,37 @@ impl std::fmt::Display for Value {
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq)]
 pub enum PointOfTheCompass {
     /// N
-    North = 0,
+    North,
     /// NNE
-    NorthNortheast = 1,
+    NorthNortheast,
     /// NE
-    Northeast = 2,
+    Northeast,
     /// ENE
-    EastNortheast = 3,
+    EastNortheast,
     /// E
-    East = 4,
+    East,
     /// ESE
-    EastSoutheast = 5,
+    EastSoutheast,
     /// SE
-    Southeast = 6,
+    Southeast,
     /// SSE
-    SouthSoutheast = 7,
+    SouthSoutheast,
     /// S
-    South = 8,
+    South,
     /// SSW
-    SouthSouthwest = 9,
+    SouthSouthwest,
     /// SW
-    Southwest = 10,
+    Southwest,
     /// WSW
-    WestSouthwest = 11,
+    WestSouthwest,
     /// W
-    West = 12,
+    West,
     /// WNW
-    WestNorthwest = 13,
+    WestNorthwest,
     /// NW
-    Northwest = 14,
+    Northwest,
     /// NNW
-    NorthNorthwest = 15,
+    NorthNorthwest,
 }
 
 impl Display for PointOfTheCompass {
