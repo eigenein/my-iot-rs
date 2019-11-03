@@ -1,4 +1,5 @@
 //! Implements generic `Service` trait.
+// TODO: move to `core`.
 
 use crate::prelude::*;
 use crate::settings::*;

@@ -93,7 +93,7 @@ markup::define! {
                     div."message-body" {
                         div.content {
                             p {
-                                "All readings from this sensor will get the specified sensor."
+                                "All readings from this sensor will be moved to the specified sensor."
                             }
                             p {
                                 "You may need that if you renamed a service and you want to move old readings to the new sensor."
@@ -106,7 +106,7 @@ markup::define! {
                                     input[class = "input", type = "text", value = {&last.sensor}, placeholder = "Sensor"];
                                 }
                                 div.control {
-                                    a.button."is-danger" { "Rename" }
+                                    a.button."is-danger" { "Move" }
                                 }
                             }
                         }

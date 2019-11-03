@@ -122,7 +122,7 @@ impl Db {
             .connection
             .prepare_cached(
                 r#"
-                SELECT sensors.sensor, timestamp, value
+                SELECT sensor, type, timestamp, value
                 FROM readings
                 INNER JOIN sensors ON sensors.id = readings.sensor_id
                 WHERE sensors.sensor = ?1 AND timestamp >= ?2

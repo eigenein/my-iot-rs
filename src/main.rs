@@ -61,6 +61,7 @@ fn main() -> Result<()> {
     // - services send their messages out to `dispatcher_tx`
     // - the dispatcher sends out each message from `dispatcher_rx` to the services input channels
     info!("Starting services…");
+    // TODO: separate function.
     let (dispatcher_tx, dispatcher_rx) = crossbeam_channel::unbounded();
     dispatcher_tx.send(Composer::new("my-iot::start").type_(MessageType::ReadNonLogged).into())?;
     let mut all_txs = vec![core::persistence::spawn(db.clone(), &dispatcher_tx)?];
@@ -71,6 +72,7 @@ fn main() -> Result<()> {
     web::start_server(settings, db.clone())
 }
 
+// TODO: move to `services`.
 /// Spawn all configured services.
 ///
 /// Returns a vector of all service input message channels.
@@ -83,7 +85,9 @@ fn spawn_services(settings: &Settings, db: &Arc<Mutex<Db>>, tx: &Sender<Message>
         if !settings.disabled_services.contains(service_id.as_str()) {
             info!("Spawning service `{}`…", service_id);
             debug!("Settings `{}`: {:?}", service_id, service_settings);
-            service_txs.extend(services::spawn(service_id, service_settings, &db, tx)?);
+            let txs = services::spawn(service_id, service_settings, &db, tx)?;
+            debug!("Got {} txs from `{}`", txs.len(), service_id);
+            service_txs.extend(txs);
         } else {
             warn!("Service `{}` is disabled.", &service_id);
         }
@@ -92,6 +96,7 @@ fn spawn_services(settings: &Settings, db: &Arc<Mutex<Db>>, tx: &Sender<Message>
     Ok(service_txs)
 }
 
+// TODO: move dispatcher to a separate module.
 /// Spawn message dispatcher that broadcasts every received message to emulate
 /// a multi-producer multi-consumer queue.
 ///
@@ -107,7 +112,9 @@ fn spawn_dispatcher(rx: Receiver<Message>, tx: Sender<Message>, txs: Vec<Sender<
         for message in &rx {
             debug!("Dispatching {}", &message.sensor);
             for tx in txs.iter() {
-                tx.send(message.clone())?;
+                if let Err(error) = tx.send(message.clone()) {
+                    error!("Could not send message to {:?}: {:?}", tx, error);
+                }
             }
             debug!("Dispatched {}", &message.sensor);
         }

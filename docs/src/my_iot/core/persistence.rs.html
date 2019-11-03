@@ -429,7 +429,7 @@
             .<span class="ident">connection</span>
             .<span class="ident">prepare_cached</span>(
                 <span class="string">r#&quot;
-                SELECT sensors.sensor, timestamp, value
+                SELECT sensor, type, timestamp, value
                 FROM readings
                 INNER JOIN sensors ON sensors.id = readings.sensor_id
                 WHERE sensors.sensor = ?1 AND timestamp &gt;= ?2
