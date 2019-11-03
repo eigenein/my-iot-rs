@@ -12,7 +12,7 @@ use std::sync::{Arc, Mutex};
 mod primitives;
 mod value;
 
-// FIXME: find a way to dial with `rusqlite::Error`.
+// FIXME: find a way to convert `rusqlite::Error` into `failure::Error`.
 
 const SCHEMA: &str = "
     CREATE TABLE IF NOT EXISTS sensors (
@@ -54,12 +54,13 @@ impl Db {
 impl Db {
     /// Insert or replace reading into database.
     pub fn upsert_reading(&self, message: &Message) -> Result<()> {
+        // TODO: I want to perform this in one go.
         let (type_, value) = message.value.serialize();
         self.connection
             .prepare_cached("INSERT OR IGNORE INTO sensors (sensor, type) VALUES (?1, ?2)")
             .unwrap()
             .execute(params![message.sensor, type_])?;
-        let sensor_id = self.connection.last_insert_rowid();
+        let sensor_id = self.connection.last_insert_rowid(); // FIXME: this gives incorrect sensor ID.
         self.connection
             .prepare_cached("INSERT OR REPLACE INTO readings (sensor_id, timestamp, value) VALUES (?1, ?2, ?3)")
             .unwrap()
