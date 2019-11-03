@@ -9,7 +9,8 @@ use rusqlite::{params, Connection, Row};
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
-mod serialization;
+mod primitives;
+mod value;
 
 // FIXME: find a way to dial with `rusqlite::Error`.
 

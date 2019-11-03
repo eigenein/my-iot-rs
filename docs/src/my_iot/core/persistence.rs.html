@@ -303,6 +303,7 @@
 <span id="303">303</span>
 <span id="304">304</span>
 <span id="305">305</span>
+<span id="306">306</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Database interface.</span>
 
@@ -315,7 +316,8 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
 
-<span class="kw">mod</span> <span class="ident">serialization</span>;
+<span class="kw">mod</span> <span class="ident">primitives</span>;
+<span class="kw">mod</span> <span class="ident">value</span>;
 
 <span class="comment">// FIXME: find a way to dial with `rusqlite::Error`.</span>
 
