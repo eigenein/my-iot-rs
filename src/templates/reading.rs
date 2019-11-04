@@ -5,12 +5,12 @@ use crate::templates::DATE_FORMAT;
 
 // TODO: title should be human-readable.
 markup::define! {
-    Reading<'a>(reading: &'a Message) {
+    ReadingTemplate<'a>(sensor: &'a Sensor, reading: &'a: Reading) {
         div."column"."is-one-quarter" {
-            a[href = {format!("/sensors/{}", &reading.sensor)} ] {
+            a[href = {format!("/sensors/{}", &sensor.sensor)} ] {
                 div.notification.reading.{reading.value.class()} {
-                    p.title."is-6"[title = {&reading.sensor}] {
-                        {&reading.sensor}
+                    p.title."is-6"[title = {&sensor.sensor}] {
+                        {&sensor.sensor}
                     }
                     p.subtitle."is-7"[title = {&reading.timestamp.to_string()}] {
                         {&reading.timestamp.format(DATE_FORMAT).to_string()}

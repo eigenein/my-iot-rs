@@ -5,6 +5,7 @@ use crate::settings::Settings;
 use crate::templates::*;
 use chrono::prelude::*;
 use chrono::Duration;
+use diesel::prelude::*;
 use rouille::{router, Response};
 use serde_json::json;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -39,18 +40,17 @@ pub fn start_server(settings: Settings, db: Arc<Mutex<Db>>) -> ! {
 }
 
 /// Get index page response.
-fn index(db: &Arc<Mutex<Db>>) -> Response {
-    let readings = { db.lock().unwrap().select_actuals().unwrap() };
+fn index(db: &Arc<Mutex<SqliteConnection>>) -> Response {
     Response::html(
-        base::Base {
-            body: Box::new(index::Index { readings }),
+        BaseTemplate {
+            body: Box::new(IndexTemplate { db }),
         }
         .to_string(),
     )
 }
 
 /// Get sensor page response.
-fn get_sensor(db: &Arc<Mutex<Db>>, sensor: &str) -> Response {
+fn get_sensor(db: &Arc<Mutex<SqliteConnection>>, sensor: &str) -> Response {
     let last = db.lock().unwrap().select_last_reading(&sensor).unwrap();
     let readings = db
         .lock()
@@ -59,8 +59,8 @@ fn get_sensor(db: &Arc<Mutex<Db>>, sensor: &str) -> Response {
         .unwrap();
     match last {
         Some(reading) => Response::html(
-            base::Base {
-                body: Box::new(sensor::Sensor {
+            BaseTemplate {
+                body: Box::new(SensorTemplate {
                     last: reading,
                     readings,
                 }),

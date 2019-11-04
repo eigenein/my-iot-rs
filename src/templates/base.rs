@@ -1,7 +1,7 @@
 //! Page base.
 
 markup::define! {
-    Base(body: Box<dyn std::fmt::Display>) {
+    BaseTemplate(body: Box<dyn std::fmt::Display>) {
         {markup::doctype()}
         html[lang = "en"] {
             head {

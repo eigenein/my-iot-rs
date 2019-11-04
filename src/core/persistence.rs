@@ -1,207 +1,43 @@
 //! Database interface.
 
+use crate::core::persistence::schema::*;
 use crate::prelude::*;
 use crate::supervisor;
 use chrono::prelude::*;
 use crossbeam_channel::Sender;
+use diesel::connection::SimpleConnection;
+use diesel::prelude::*;
 use log::{debug, info};
-use rusqlite::{params, Connection, Row};
-use std::path::Path;
 use std::sync::{Arc, Mutex};
 
+pub mod models;
 mod primitives;
+mod schema;
+mod thread;
 mod value;
 
-// FIXME: find a way to convert `rusqlite::Error` into `failure::Error`.
+embed_migrations!("migrations");
 
-const SCHEMA: &str = "
-    CREATE TABLE IF NOT EXISTS sensors (
-        id INTEGER PRIMARY KEY,
-        sensor TEXT UNIQUE NOT NULL,
-        type INTEGER NOT NULL,
-        last_reading_id INTEGER NULL REFERENCES readings(id) ON UPDATE CASCADE ON DELETE CASCADE
-    );
-
-    -- Stores all sensor readings.
-    CREATE TABLE IF NOT EXISTS readings (
-        id INTEGER PRIMARY KEY,
-        sensor_id INTEGER REFERENCES sensors(id) ON UPDATE CASCADE ON DELETE CASCADE,
-        timestamp INTEGER NOT NULL,
-        value BLOB NOT NULL
-    );
-    -- Descending index on `timestamp` is needed to speed up the select last queries.
-    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_id_timestamp ON readings (sensor_id, timestamp DESC);
-
-    -- VACUUM;
-";
-
-/// A database connection.
-pub struct Db {
-    /// Wrapped SQLite connection.
-    connection: Connection,
+pub fn establish_connection(url: &str) -> Result<SqliteConnection> {
+    let db = SqliteConnection::establish(url)?;
+    db.batch_execute(
+        r#"
+        PRAGMA synchronous = NORMAL;
+        PRAGMA journal_mode = WAL;
+        PRAGMA foreign_keys = ON;
+        "#,
+    )?;
+    embedded_migrations::run(&db);
+    Ok(db)
 }
 
-impl Db {
-    /// Create a new database connection.
-    pub fn new<P: AsRef<Path>>(path: P) -> Result<Db> {
-        let connection = Connection::open(path)?;
-        connection.execute_batch(SCHEMA)?;
-        Ok(Db { connection })
-    }
-}
-
-/// Readings persistence.
-impl Db {
-    /// Insert or replace reading into database.
-    pub fn upsert_reading(&self, message: &Message) -> Result<()> {
-        // TODO: I want to perform this in one go.
-        let (type_, value) = message.value.serialize();
-        self.connection
-            .prepare_cached("INSERT OR IGNORE INTO sensors (sensor, type) VALUES (?1, ?2)")
-            .unwrap()
-            .execute(params![message.sensor, type_])?;
-        let sensor_id = self.connection.last_insert_rowid(); // FIXME: this gives incorrect sensor ID.
-        self.connection
-            .prepare_cached("INSERT OR REPLACE INTO readings (sensor_id, timestamp, value) VALUES (?1, ?2, ?3)")
-            .unwrap()
-            .execute(params![sensor_id, message.timestamp.timestamp_millis(), value])?;
-        let reading_id = self.connection.last_insert_rowid();
-        self.connection
-            .prepare_cached("UPDATE sensors SET last_reading_id = ?1 WHERE id = ?2")
-            .unwrap()
-            .execute(params![reading_id, sensor_id])?;
-        Ok(())
-    }
-
-    /// Select latest reading for each sensor.
-    pub fn select_actuals(&self) -> Result<Vec<Message>> {
-        Ok(self
-            .connection
-            .prepare_cached(
-                r#"
-                SELECT sensor, timestamp, type, value
-                FROM sensors
-                INNER JOIN readings ON readings.id = sensors.last_reading_id
-                "#,
-            )?
-            .query_map(params![], |row| Ok(Message::from_row(row).unwrap()))
-            .unwrap()
-            .map(rusqlite::Result::unwrap)
-            .collect())
-    }
-
-    /// Select database size in bytes.
-    pub fn select_size(&self) -> Result<u64> {
-        Ok(self
-            .connection
-            .prepare_cached("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()")?
-            .query_row(params![], |row| row.get::<_, i64>(0))
-            .map(|v| v as u64)
-            .unwrap())
-    }
-
-    /// Select the very last sensor reading.
-    pub fn select_last_reading(&self, sensor: &str) -> Result<Option<Message>> {
-        Ok(self
-            .connection
-            .prepare_cached(
-                r#"
-                SELECT sensor, timestamp, type, value
-                FROM sensors
-                INNER JOIN readings ON readings.id = sensors.last_reading_id
-                WHERE sensors.sensor = ?1
-                "#,
-            )
-            .unwrap()
-            .query_row(params![sensor], |row| Ok(Some(Message::from_row(row).unwrap())))
-            .unwrap_or(None))
-    }
-
-    /// Select the latest sensor readings within the given time interval.
-    pub fn select_readings(&self, sensor: &str, since: &DateTime<Local>) -> Result<Vec<Message>> {
-        Ok(self
-            .connection
-            .prepare_cached(
-                r#"
-                SELECT sensor, type, timestamp, value
-                FROM readings
-                INNER JOIN sensors ON sensors.id = readings.sensor_id
-                WHERE sensors.sensor = ?1 AND timestamp >= ?2
-                ORDER BY timestamp
-                "#,
-            )
-            .unwrap()
-            .query_map(params![sensor, since.timestamp_millis()], |row| {
-                Ok(Message::from_row(row).unwrap())
-            })
-            .unwrap()
-            .map(rusqlite::Result::unwrap)
-            .collect())
-    }
-}
-
-// TODO: make `Reading` struct.
-impl Message {
-    fn from_row(row: &Row) -> Result<Message> {
-        Ok(Message {
-            type_: MessageType::ReadLogged,
-            sensor: row.get_unwrap("sensor"),
-            timestamp: Local.timestamp_millis(row.get_unwrap("timestamp")),
-            value: Value::deserialize(row.get_unwrap("type"), row.get_unwrap("value"))?,
-        })
-    }
-}
-
-/// Spawn the persistence thread.
-pub fn spawn(db: Arc<Mutex<Db>>, tx: &Sender<Message>) -> Result<Sender<Message>> {
-    info!("Spawning readings persistence…");
-    let tx = tx.clone();
-    let (out_tx, rx) = crossbeam_channel::unbounded::<Message>();
-
-    supervisor::spawn("my-iot::persistence", tx.clone(), move || {
-        for message in &rx {
-            process_message(message, &db, &tx).unwrap();
-        }
-        unreachable!();
-    })?;
-
-    Ok(out_tx)
-}
-
-/// Process a message.
-fn process_message(message: Message, db: &Arc<Mutex<Db>>, tx: &Sender<Message>) -> Result<()> {
-    info!("{}: {:?} {:?}", &message.sensor, &message.type_, &message.value,);
-    debug!("{:?}", &message);
-    // TODO: handle `ReadSnapshot`.
-    if message.type_ == MessageType::ReadLogged {
-        let db = db.lock().unwrap();
-        let previous_reading = db.select_last_reading(&message.sensor)?;
-        db.upsert_reading(&message)?;
-        send_messages(&previous_reading, &message, &tx)?;
-    }
-    Ok(())
-}
-
-/// Check if sensor value has been updated or changed and send corresponding messages.
-fn send_messages(previous_reading: &Option<Message>, message: &Message, tx: &Sender<Message>) -> Result<()> {
-    if let Some(existing) = previous_reading {
-        if message.timestamp > existing.timestamp {
-            tx.send(
-                Composer::new(format!("{}::update", &message.sensor))
-                    .type_(MessageType::ReadNonLogged)
-                    .value(message.value.clone())
-                    .into(),
-            )?;
-            if message.value != existing.value {
-                tx.send(
-                    Composer::new(format!("{}::change", &message.sensor))
-                        .type_(MessageType::ReadNonLogged)
-                        .value(message.value.clone())
-                        .into(),
-                )?;
-            }
-        }
-    }
+pub fn upsert_message(db: &SqliteConnection, message: &Message) -> Result<()> {
+    diesel::replace_into(sensors::table)
+        .values(&message.sensor)
+        .execute(db)?;
+    let sensor_id: u64 = sensors
+        .filter(sensors::dsl::sensor.eq(message.sensor.sensor))
+        .select(sensors::dsl::id)?;
     Ok(())
 }
 
@@ -213,14 +49,14 @@ mod tests {
 
     #[test]
     fn double_upsert_keeps_one_record() -> Result {
-        let reading = Composer::new("test")
+        let message = Composer::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .into();
 
-        let db = Db::new(":memory:")?;
-        db.upsert_reading(&reading)?;
-        db.upsert_reading(&reading)?;
+        let db = establish_connection(":memory:")?;
+        upsert_message(&db, &message)?;
+        upsert_message(&db, &message)?;
 
         let reading_count = db
             .connection
@@ -233,7 +69,7 @@ mod tests {
 
     #[test]
     fn select_last_reading_returns_none_on_empty_database() -> Result {
-        let db = Db::new(":memory:")?;
+        let db = establish_connection(":memory:")?;
         assert_eq!(db.select_last_reading("test")?, None);
         Ok(())
     }
@@ -244,7 +80,7 @@ mod tests {
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .into();
-        let db = Db::new(":memory:")?;
+        let db = establish_connection(":memory:")?;
         db.upsert_reading(&reading)?;
         assert_eq!(db.select_last_reading("test")?, Some(reading));
         Ok(())
@@ -252,7 +88,7 @@ mod tests {
 
     #[test]
     fn select_last_reading_returns_newer_reading() -> Result {
-        let db = Db::new(":memory:")?;
+        let db = establish_connection(":memory:")?;
         db.upsert_reading(
             &Composer::new("test")
                 .value(Value::Counter(42))
@@ -274,7 +110,7 @@ mod tests {
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .into();
-        let db = Db::new(":memory:")?;
+        let db = establish_connection(":memory:")?;
         db.upsert_reading(&message)?;
         assert_eq!(db.select_actuals()?, vec![message]);
         Ok(())
@@ -282,7 +118,7 @@ mod tests {
 
     #[test]
     fn existing_sensor_is_reused() -> Result {
-        let db = Db::new(":memory:")?;
+        let db = establish_connection(":memory:")?;
         db.upsert_reading(
             &Composer::new("test")
                 .value(Value::Counter(42))

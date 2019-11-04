@@ -95,10 +95,10 @@ pub enum Condition {
 impl Condition {
     pub fn is_met(&self, message: &Message) -> bool {
         match self {
-            Condition::Sensor(sensor) => &message.sensor == sensor,
-            Condition::SensorEndsWith(suffix) => message.sensor.ends_with(suffix),
-            Condition::SensorStartsWith(prefix) => message.sensor.starts_with(prefix),
-            Condition::SensorContains(infix) => message.sensor.contains(infix),
+            Condition::Sensor(sensor) => &message.sensor.sensor == sensor,
+            Condition::SensorEndsWith(suffix) => message.sensor.sensor.ends_with(suffix),
+            Condition::SensorStartsWith(prefix) => message.sensor.sensor.starts_with(prefix),
+            Condition::SensorContains(infix) => message.sensor.sensor.contains(infix),
             Condition::Or(conditions) => conditions.iter().any(|c| c.is_met(&message)),
         }
     }
@@ -141,7 +141,7 @@ impl Action {
                 tx.send(
                     Composer::new(&parameters.target_sensor)
                         .type_(parameters.target_type)
-                        .value(message.value.clone())
+                        .value(message.reading.value.clone())
                         .into(),
                 )?;
                 Ok(())

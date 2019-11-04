@@ -5,12 +5,9 @@
 This release brings the different database schema, which should work faster and take less disk space. 
 **The new schema is backwards-incompatible.**
 
-- Break: optimise database schema #50
-- Break: rename message types and introduce `Type::ReadSnapshot` #49
 - Break: change sensor value serialization #50
-- Break: welcome message `Composer` #50
-- Break: move `Message` and `Value` into `crate::core`
-- Chore: move `crate::supervisor` into `crate::core::supervisor`
+- Break: switch to Diesel #57 #55
+- Break: re-structure modules
 
 ## `0.28.0`
 

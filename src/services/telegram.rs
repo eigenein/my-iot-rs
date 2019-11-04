@@ -117,7 +117,7 @@ fn spawn_consumer(context: Context, outbox_tx: &Sender<Message>) -> Result<Sende
                 if message.type_ != MessageType::Write {
                     continue;
                 }
-                let (chat_id, sensor) = match message_regex.captures(&message.sensor) {
+                let (chat_id, sensor) = match message_regex.captures(&message.sensor.sensor) {
                     Some(captures) => (captures.get(1).unwrap().as_str(), captures.get(2).unwrap().as_str()),
                     None => continue,
                 };

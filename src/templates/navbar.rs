@@ -1,6 +1,6 @@
 // Shared navigation bar.
 markup::define! {
-    NavBar {
+    NavBarTemplate {
         nav.navbar[role = "navigation", "aria-label" = "main navigation"] {
             div.container {
                 div."navbar-brand" {

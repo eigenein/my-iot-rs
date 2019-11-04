@@ -1,5 +1,10 @@
 //! Entry point.
 
+#[macro_use]
+extern crate diesel;
+#[macro_use]
+extern crate diesel_migrations;
+
 use crate::core::supervisor;
 use crate::prelude::*;
 use crate::settings::Settings;
@@ -33,9 +38,9 @@ struct Opt {
     #[structopt(long, parse(from_os_str), env = "MYIOT_SETTINGS", default_value = "my-iot.toml")]
     settings: PathBuf,
 
-    /// Database file
-    #[structopt(long, parse(from_os_str), env = "MYIOT_DB", default_value = "my-iot.sqlite3")]
-    db: PathBuf,
+    /// Database URL
+    #[structopt(long, env = "MYIOT_DB", default_value = "my-iot.sqlite3")]
+    db: String,
 }
 
 /// Entry point.
@@ -54,14 +59,13 @@ fn main() -> Result<()> {
     debug!("Settings: {:?}", &settings);
 
     info!("Opening database…");
-    let db = Arc::new(Mutex::new(Db::new(opt.db)?));
+    let db = Arc::new(Mutex::new(crate::core::persistence::establish_connection(&opt.db)?));
 
     // Starting up multi-producer multi-consumer bus:
     // - services create and return their input channels
     // - services send their messages out to `dispatcher_tx`
     // - the dispatcher sends out each message from `dispatcher_rx` to the services input channels
     info!("Starting services…");
-    // TODO: separate function.
     let (dispatcher_tx, dispatcher_rx) = crossbeam_channel::unbounded();
     dispatcher_tx.send(Composer::new("my-iot::start").type_(MessageType::ReadNonLogged).into())?;
     let mut all_txs = vec![core::persistence::spawn(db.clone(), &dispatcher_tx)?];

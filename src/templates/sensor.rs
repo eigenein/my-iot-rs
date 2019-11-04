@@ -3,40 +3,39 @@
 use crate::prelude::*;
 use crate::templates::{self, DATE_FORMAT};
 use chrono::{DateTime, Local};
-use serde_json::json;
 
 markup::define! {
-    Sensor(last: Message, readings: Vec<Message>) {
-        section.hero.{&last.value.class()} {
+    SensorTemplate(last: Message, readings: Vec<Message>) {
+        section.hero.{&last.reading.value.class()} {
             div."hero-head" { {templates::navbar::NavBar {}} }
             div."hero-body" {
                 div.container {
-                    h1.title."is-4"[title = {format!("{:?}", &last.value)}] {
-                        @if last.value.is_inline() {
-                            {&last.value}
+                    h1.title."is-4"[title = {format!("{:?}", &last.reading.value)}] {
+                        @if last.reading.value.is_inline() {
+                            {&last.reading.value}
                         } else {
-                            {&last.sensor}
+                            {&last.sensor.sensor}
                         }
                     }
                     h2.subtitle."is-6" {
-                        @if last.value.is_inline() {
-                            {&last.sensor} " "
+                        @if last.reading.value.is_inline() {
+                            {&last.sensor.sensor} " "
                         }
                         span { i.far."fa-clock" {} } " "
-                        span[title = {&last.timestamp.to_string()}] {
-                            {&last.timestamp.format(DATE_FORMAT).to_string()}
+                        span[title = {&last.reading.timestamp.to_string()}] {
+                            {&last.reading.timestamp.format(DATE_FORMAT).to_string()}
                         }
                     }
                 }
             }
         }
 
-        @if !last.value.is_inline() {
+        @if !last.reading.value.is_inline() {
             section.section {
                 div.container {
                     div.message {
                         div."message-body" {
-                            {&last.value}
+                            {&last.reading.value}
                         }
                     }
                 }
@@ -51,33 +50,7 @@ markup::define! {
                     div."message-body" {
                         pre {
                             code {
-                                {format!("{:#?}", &last)}
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        section.section {
-            div.container {
-                h3.title."is-5" { "JSON" }
-                div.message {
-                    div."message-body" {
-                        pre {
-                            code {
-                                {
-                                    let (xs, ys): (Vec<DateTime<Local>>, Vec<Value>) = readings
-                                        .iter()
-                                        .map(|reading| (reading.timestamp, reading.value.clone()))
-                                        .unzip();
-                                }
-                                {
-                                    serde_json::to_string(&json!({
-                                        "x": xs,
-                                        "y": ys,
-                                    })).unwrap()
-                                }
+                                {format!("{:#?}", &last.reading)}
                             }
                         }
                     }
@@ -103,7 +76,7 @@ markup::define! {
                         form {
                             div.field."has-addons" {
                                 div.control."is-expanded" {
-                                    input[class = "input", type = "text", value = {&last.sensor}, placeholder = "Sensor"];
+                                    input[class = "input", type = "text", value = {&last.sensor.sensor}, placeholder = "Sensor"];
                                 }
                                 div.control {
                                     a.button."is-danger" { "Move" }

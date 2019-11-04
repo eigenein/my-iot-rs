@@ -1,6 +1,6 @@
 //! Describes a sensor reading and related structures.
 
-use crate::core::value::Value;
+use crate::prelude::*;
 use chrono::prelude::*;
 use serde::Deserialize;
 
@@ -12,18 +12,11 @@ pub struct Message {
     /// Message type.
     pub type_: Type,
 
-    /// A sensor. For example: `buienradar::6240::wind_speed_bft`.
-    ///
-    /// Note that sensors do not exist as separate entities. Sensor is only a sort of "label"
-    /// that corresponds to a sensor in the physical world and used to distinguish readings
-    /// between different "real" sensors.
-    pub sensor: String,
+    /// Associated sensor instance. This is only used for persistence.
+    /// Sensor does not exist as a functional object.
+    pub sensor: Sensor,
 
-    /// Timestamp when the value was actually measured. This may be earlier than a moment of sending the message.
-    pub timestamp: DateTime<Local>,
-
-    /// Attached value.
-    pub value: Value,
+    pub reading: Reading,
 }
 
 /// Message type.

@@ -1,19 +1,20 @@
 //! Home page.
 
 use crate::prelude::*;
-use crate::templates;
+use crate::templates::*;
+use diesel::prelude::*;
 
 markup::define! {
-    Index(readings: Vec<Message>) {
+    IndexTemplate<'a>(db: &'a SqliteConnection) {
         section.hero."is-info" {
-            div."hero-head" { {templates::navbar::NavBar {}} }
+            div."hero-head" { {NavBarTemplate {}} }
             div."hero-body" {
                 div.container {
                     h1.title."is-4" {
                         "Dashboard"
                     }
                     h2.subtitle."is-6" {
-                        {readings.len()} " sensors"
+                        {messages.len()} " sensors"
                     }
                 }
             }
@@ -21,8 +22,8 @@ markup::define! {
         section.section {
             div.container {
                 div.columns."is-multiline" {
-                    @for reading in {readings} {
-                        {templates::reading::Reading { reading }}
+                    @for message in {messages} {
+                        {ReadingTemplate { sensor, reading }}
                     }
                 }
             }
