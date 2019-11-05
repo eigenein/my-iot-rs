@@ -4,36 +4,42 @@ use crate::core::persistence::primitives::{Deserialize, Serialize};
 use crate::prelude::*;
 
 impl Value {
-    pub fn serialize(&self) -> (u32, Vec<u8>) {
+    pub fn serialize(&self) -> Vec<u8> {
         match self {
-            Value::None => (0, vec![]),
-            Value::Boolean(value) => (if !value { 1 } else { 2 }, vec![]),
-            Value::ImageUrl(value) => (3, value.serialize()),
-            Value::Text(value) => (4, value.serialize()),
-            Value::Bft(value) => (5, value.serialize()),
-            Value::Celsius(value) => (6, value.serialize()),
-            Value::Counter(value) => (7, value.serialize()),
-            Value::Metres(value) => (8, value.serialize()),
-            Value::Rh(value) => (9, value.serialize()),
-            Value::WindDirection(value) => (10, value.serialize()),
-            Value::Size(value) => (11, value.serialize()),
+            Value::None => vec![0],
+            Value::Boolean(value) => {
+                if !value {
+                    vec![1]
+                } else {
+                    vec![2]
+                }
+            }
+            Value::ImageUrl(value) => [vec![3], value.serialize()].concat(),
+            Value::Text(value) => [vec![4], value.serialize()].concat(),
+            Value::Bft(value) => [vec![5], value.serialize()].concat(),
+            Value::Celsius(value) => [vec![6], value.serialize()].concat(),
+            Value::Counter(value) => [vec![7], value.serialize()].concat(),
+            Value::Metres(value) => [vec![8], value.serialize()].concat(),
+            Value::Rh(value) => [vec![9], value.serialize()].concat(),
+            Value::WindDirection(value) => [vec![10], value.serialize()].concat(),
+            Value::Size(value) => [vec![11], value.serialize()].concat(),
         }
     }
 
-    pub fn deserialize(type_: u32, blob: Vec<u8>) -> Result<Self> {
-        match type_ {
+    pub fn deserialize(blob: Vec<u8>) -> Result<Self> {
+        match blob[0] {
             0 => Ok(Value::None),
             1 => Ok(Value::Boolean(false)),
             2 => Ok(Value::Boolean(true)),
-            3 => Ok(Value::ImageUrl(String::deserialize(&blob)?)),
-            4 => Ok(Value::Text(String::deserialize(&blob)?)),
-            5 => Ok(Value::Bft(blob[0])),
-            6 => Ok(Value::Celsius(f64::deserialize(&blob[0..8])?)),
-            7 => Ok(Value::Counter(u64::deserialize(&blob[0..8])?)),
-            8 => Ok(Value::Metres(f64::deserialize(&blob[0..8])?)),
-            9 => Ok(Value::Rh(f64::deserialize(&blob[0..8])?)),
-            10 => Ok(Value::WindDirection(PointOfTheCompass::deserialize(&blob[0..2])?)),
-            11 => Ok(Value::Size(u64::deserialize(&blob[0..8])?)),
+            3 => Ok(Value::ImageUrl(String::deserialize(&blob[1..])?)),
+            4 => Ok(Value::Text(String::deserialize(&blob[1..])?)),
+            5 => Ok(Value::Bft(blob[1])),
+            6 => Ok(Value::Celsius(f64::deserialize(&blob[1..9])?)),
+            7 => Ok(Value::Counter(u64::deserialize(&blob[1..9])?)),
+            8 => Ok(Value::Metres(f64::deserialize(&blob[1..9])?)),
+            9 => Ok(Value::Rh(f64::deserialize(&blob[1..9])?)),
+            10 => Ok(Value::WindDirection(PointOfTheCompass::deserialize(&blob[1..2])?)),
+            11 => Ok(Value::Size(u64::deserialize(&blob[1..9])?)),
             _ => Err(format_err!("unknown value type: {}", type_)),
         }
     }
@@ -48,8 +54,7 @@ mod tests {
             #[test]
             fn $name() -> crate::Result<()> {
                 let value = $value;
-                let (type_, blob) = value.serialize();
-                assert_eq!(Value::deserialize(type_, blob)?, value);
+                assert_eq!(Value::deserialize(value.serialize())?, value);
                 Ok(())
             }
         };

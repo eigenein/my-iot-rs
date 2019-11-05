@@ -3,9 +3,6 @@
 use crate::prelude::*;
 use crate::settings::Settings;
 use crate::templates::*;
-use chrono::prelude::*;
-use chrono::Duration;
-use diesel::prelude::*;
 use rouille::{router, Response};
 use serde_json::json;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -19,7 +16,7 @@ const ANDROID_CHROME_192: &[u8] = include_bytes!("statics/android-chrome-192x192
 const ANDROID_CHROME_512: &[u8] = include_bytes!("statics/android-chrome-512x512.png");
 
 /// Start the web application.
-pub fn start_server(settings: Settings, db: Arc<Mutex<Db>>) -> ! {
+pub fn start_server(settings: Settings, db: Arc<Mutex<SqliteConnection>>) -> ! {
     rouille::start_server(
         SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), settings.http_port),
         move |request| {
@@ -43,7 +40,7 @@ pub fn start_server(settings: Settings, db: Arc<Mutex<Db>>) -> ! {
 fn index(db: &Arc<Mutex<SqliteConnection>>) -> Response {
     Response::html(
         BaseTemplate {
-            body: Box::new(IndexTemplate { db }),
+            body: Box::new(IndexTemplate { db: db.clone() }),
         }
         .to_string(),
     )
@@ -72,7 +69,7 @@ fn get_sensor(db: &Arc<Mutex<SqliteConnection>>, sensor: &str) -> Response {
 }
 
 /// Get last sensor value JSON response.
-fn get_sensor_json(db: &Arc<Mutex<Db>>, sensor: &str) -> Response {
+fn get_sensor_json(db: &Arc<Mutex<SqliteConnection>>, sensor: &str) -> Response {
     match db.lock().unwrap().select_last_reading(&sensor).unwrap() {
         Some(reading) => Response::json(&json!({
             "value": &reading.value,

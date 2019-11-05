@@ -24,7 +24,7 @@ pub struct Settings {
 pub fn spawn(
     service_id: &str,
     settings: &Settings,
-    db: &Arc<Mutex<Db>>,
+    db: &Arc<Mutex<SqliteConnection>>,
     outbox_tx: &Sender<Message>,
 ) -> Result<Vec<Sender<Message>>> {
     let outbox_tx = outbox_tx.clone();
@@ -41,12 +41,15 @@ pub fn spawn(
             for message in &inbox_rx {
                 for scenario in settings.scenarios.iter() {
                     if scenario.conditions.iter().all(|c| c.is_met(&message)) {
-                        info!(r"{} triggered scenario: {}", &message.sensor, scenario.description);
+                        info!(
+                            r"{} triggered scenario: {}",
+                            &message.sensor.sensor, scenario.description
+                        );
                         for action in scenario.actions.iter() {
                             action.execute(&service_id, &db, &message, &outbox_tx).unwrap();
                         }
                     } else {
-                        debug!("Skipped: {}", &message.sensor);
+                        debug!("Skipped: {}", &message.sensor.sensor);
                     }
                 }
             }
@@ -132,7 +135,7 @@ impl Action {
     pub fn execute(
         &self,
         _service_id: &str,
-        db: &Arc<Mutex<Db>>,
+        db: &Arc<Mutex<SqliteConnection>>,
         message: &Message,
         tx: &Sender<Message>,
     ) -> Result<()> {

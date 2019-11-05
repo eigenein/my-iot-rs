@@ -2,10 +2,9 @@
 
 use crate::prelude::*;
 use crate::templates::*;
-use diesel::prelude::*;
 
 markup::define! {
-    IndexTemplate<'a>(db: &'a SqliteConnection) {
+    IndexTemplate<'a>(db: &'a Arc<Mutex<SqliteConnection>>) {
         section.hero."is-info" {
             div."hero-head" { {NavBarTemplate {}} }
             div."hero-body" {

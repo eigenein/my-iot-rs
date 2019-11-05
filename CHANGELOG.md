@@ -6,8 +6,8 @@ This release brings the different database schema, which should work faster and 
 **The new schema is backwards-incompatible.**
 
 - Break: change sensor value serialization #50
-- Break: switch to Diesel #57 #55
-- Break: re-structure modules
+- Break: re-structure modules #50
+- Break: change database schema #50
 
 ## `0.28.0`
 

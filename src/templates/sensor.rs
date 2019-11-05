@@ -2,12 +2,11 @@
 
 use crate::prelude::*;
 use crate::templates::{self, DATE_FORMAT};
-use chrono::{DateTime, Local};
 
 markup::define! {
     SensorTemplate(last: Message, readings: Vec<Message>) {
         section.hero.{&last.reading.value.class()} {
-            div."hero-head" { {templates::navbar::NavBar {}} }
+            div."hero-head" { {templates::NavBarTemplate {}} }
             div."hero-body" {
                 div.container {
                     h1.title."is-4"[title = {format!("{:?}", &last.reading.value)}] {

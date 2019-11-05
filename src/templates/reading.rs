@@ -5,7 +5,7 @@ use crate::templates::DATE_FORMAT;
 
 // TODO: title should be human-readable.
 markup::define! {
-    ReadingTemplate<'a>(sensor: &'a Sensor, reading: &'a: Reading) {
+    ReadingTemplate<'a>(sensor: &'a Sensor, reading: &'a Reading) {
         div."column"."is-one-quarter" {
             a[href = {format!("/sensors/{}", &sensor.sensor)} ] {
                 div.notification.reading.{reading.value.class()} {

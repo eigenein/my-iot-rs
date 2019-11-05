@@ -18,7 +18,7 @@ pub mod telegram;
 pub fn spawn(
     service_id: &str,
     settings: &ServiceSettings,
-    db: &Arc<Mutex<Db>>,
+    db: &Arc<Mutex<SqliteConnection>>,
     tx: &Sender<Message>,
 ) -> Result<Vec<Sender<Message>>> {
     // FIXME: I don't really like this large `match` but I don't know how to fix it properly.

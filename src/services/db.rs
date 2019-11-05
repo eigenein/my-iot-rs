@@ -20,7 +20,7 @@ fn default_interval_ms() -> u64 {
 pub fn spawn(
     service_id: &str,
     settings: &Settings,
-    db: &Arc<Mutex<crate::core::persistence::Db>>,
+    db: &Arc<Mutex<SqliteConnection>>,
     tx: &Sender<Message>,
 ) -> Result<Vec<Sender<Message>>> {
     let interval = Duration::from_millis(settings.interval_ms);

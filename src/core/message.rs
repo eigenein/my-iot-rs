@@ -46,10 +46,12 @@ impl Composer {
     pub fn new<S: Into<String>>(sensor: S) -> Self {
         Self {
             message: Message {
-                sensor: sensor.into(),
                 type_: Type::ReadLogged,
-                timestamp: Local::now(),
-                value: Value::None,
+                sensor: Sensor { sensor: sensor.into() },
+                reading: Reading {
+                    timestamp: Local::now(),
+                    value: Value::None,
+                },
             },
         }
     }
@@ -60,13 +62,17 @@ impl Composer {
     }
 
     pub fn timestamp<T: Into<DateTime<Local>>>(mut self, timestamp: T) -> Self {
-        self.message.timestamp = timestamp.into();
+        self.message.reading.timestamp = timestamp.into();
         self
     }
 
     pub fn value<V: Into<Value>>(mut self, value: V) -> Self {
-        self.message.value = value.into();
+        self.message.reading.value = value.into();
         self
+    }
+
+    pub fn compose(self) -> Message {
+        self.message
     }
 }
 

@@ -122,11 +122,11 @@ fn spawn_consumer(context: Context, outbox_tx: &Sender<Message>) -> Result<Sende
                     None => continue,
                 };
                 let chat_id: TelegramChatId = chat_id.into();
-                let error = match message.value {
+                let error = match message.reading.value {
                     Value::Text(ref text) if sensor == "message" => send_message(&context, chat_id, text).err(),
                     Value::ImageUrl(ref url) if sensor == "photo" => send_photo(&context, chat_id, url).err(),
                     Value::ImageUrl(ref url) if sensor == "animation" => send_animation(&context, chat_id, url).err(),
-                    value => Some(format_err!("cannot send {:?} to {}", &value, &message.sensor)),
+                    value => Some(format_err!("cannot send {:?} to {}", &value, &message.sensor.sensor)),
                 };
                 // FIXME: return `Result` from the closure.
                 if let Some(error) = error {

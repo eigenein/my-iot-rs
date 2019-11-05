@@ -1,10 +1,5 @@
 //! Entry point.
 
-#[macro_use]
-extern crate diesel;
-#[macro_use]
-extern crate diesel_migrations;
-
 use crate::core::supervisor;
 use crate::prelude::*;
 use crate::settings::Settings;
@@ -68,7 +63,7 @@ fn main() -> Result<()> {
     info!("Starting services…");
     let (dispatcher_tx, dispatcher_rx) = crossbeam_channel::unbounded();
     dispatcher_tx.send(Composer::new("my-iot::start").type_(MessageType::ReadNonLogged).into())?;
-    let mut all_txs = vec![core::persistence::spawn(db.clone(), &dispatcher_tx)?];
+    let mut all_txs = vec![core::persistence::thread::spawn(db.clone(), &dispatcher_tx)?];
     all_txs.extend(spawn_services(&settings, &db, &dispatcher_tx)?);
     spawn_dispatcher(dispatcher_rx, dispatcher_tx, all_txs)?;
 
@@ -82,7 +77,11 @@ fn main() -> Result<()> {
 /// Returns a vector of all service input message channels.
 ///
 /// - `tx`: output message channel that's used by services to send their messages to.
-fn spawn_services(settings: &Settings, db: &Arc<Mutex<Db>>, tx: &Sender<Message>) -> Result<Vec<Sender<Message>>> {
+fn spawn_services(
+    settings: &Settings,
+    db: &Arc<Mutex<SqliteConnection>>,
+    tx: &Sender<Message>,
+) -> Result<Vec<Sender<Message>>> {
     let mut service_txs = Vec::new();
 
     for (service_id, service_settings) in settings.services.iter() {
@@ -114,13 +113,13 @@ fn spawn_dispatcher(rx: Receiver<Message>, tx: Sender<Message>, txs: Vec<Sender<
     info!("Spawning message dispatcher…");
     supervisor::spawn("my-iot::dispatcher", tx, move || -> Result<()> {
         for message in &rx {
-            debug!("Dispatching {}", &message.sensor);
+            debug!("Dispatching {}", &message.sensor.sensor);
             for tx in txs.iter() {
                 if let Err(error) = tx.send(message.clone()) {
                     error!("Could not send message to {:?}: {:?}", tx, error);
                 }
             }
-            debug!("Dispatched {}", &message.sensor);
+            debug!("Dispatched {}", &message.sensor.sensor);
         }
         Err(format_err!("Receiver channel is unexpectedly exhausted"))
     })?;

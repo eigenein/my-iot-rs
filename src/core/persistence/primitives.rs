@@ -13,25 +13,24 @@ impl Serialize for String {
 
 impl Serialize for PointOfTheCompass {
     fn serialize(&self) -> Vec<u8> {
-        match self {
-            PointOfTheCompass::North => 0u16,
-            PointOfTheCompass::NorthNortheast => 1u16,
-            PointOfTheCompass::Northeast => 2u16,
-            PointOfTheCompass::EastNortheast => 3u16,
-            PointOfTheCompass::East => 4u16,
-            PointOfTheCompass::EastSoutheast => 5u16,
-            PointOfTheCompass::Southeast => 6u16,
-            PointOfTheCompass::SouthSoutheast => 7u16,
-            PointOfTheCompass::South => 8u16,
-            PointOfTheCompass::SouthSouthwest => 9u16,
-            PointOfTheCompass::Southwest => 10u16,
-            PointOfTheCompass::WestSouthwest => 11u16,
-            PointOfTheCompass::West => 12u16,
-            PointOfTheCompass::WestNorthwest => 13u16,
-            PointOfTheCompass::Northwest => 14u16,
-            PointOfTheCompass::NorthNorthwest => 15u16,
-        }
-        .serialize()
+        vec![match self {
+            PointOfTheCompass::North => 0,
+            PointOfTheCompass::NorthNortheast => 1,
+            PointOfTheCompass::Northeast => 2,
+            PointOfTheCompass::EastNortheast => 3,
+            PointOfTheCompass::East => 4,
+            PointOfTheCompass::EastSoutheast => 5,
+            PointOfTheCompass::Southeast => 6,
+            PointOfTheCompass::SouthSoutheast => 7,
+            PointOfTheCompass::South => 8,
+            PointOfTheCompass::SouthSouthwest => 9,
+            PointOfTheCompass::Southwest => 10,
+            PointOfTheCompass::WestSouthwest => 11,
+            PointOfTheCompass::West => 12,
+            PointOfTheCompass::WestNorthwest => 13,
+            PointOfTheCompass::Northwest => 14,
+            PointOfTheCompass::NorthNorthwest => 15,
+        }]
     }
 }
 
@@ -92,7 +91,7 @@ impl Deserialize for u16 {
 
 impl Deserialize for PointOfTheCompass {
     fn deserialize(blob: &[u8]) -> Result<Self> {
-        match u16::deserialize(&blob[0..2])? {
+        match blob[0] {
             0 => Ok(PointOfTheCompass::North),
             1 => Ok(PointOfTheCompass::NorthNortheast),
             2 => Ok(PointOfTheCompass::Northeast),
