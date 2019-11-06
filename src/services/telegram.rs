@@ -117,7 +117,7 @@ fn spawn_consumer(context: Context, outbox_tx: &Sender<Message>) -> Result<Sende
                 if message.type_ != MessageType::Write {
                     continue;
                 }
-                let (chat_id, sensor) = match message_regex.captures(&message.sensor.sensor) {
+                let (chat_id, sensor) = match message_regex.captures(&message.sensor.sensor_id) {
                     Some(captures) => (captures.get(1).unwrap().as_str(), captures.get(2).unwrap().as_str()),
                     None => continue,
                 };
@@ -126,7 +126,7 @@ fn spawn_consumer(context: Context, outbox_tx: &Sender<Message>) -> Result<Sende
                     Value::Text(ref text) if sensor == "message" => send_message(&context, chat_id, text).err(),
                     Value::ImageUrl(ref url) if sensor == "photo" => send_photo(&context, chat_id, url).err(),
                     Value::ImageUrl(ref url) if sensor == "animation" => send_animation(&context, chat_id, url).err(),
-                    value => Some(format_err!("cannot send {:?} to {}", &value, &message.sensor.sensor)),
+                    value => Some(format_err!("cannot send {:?} to {}", &value, &message.sensor.sensor_id)),
                 };
                 // FIXME: return `Result` from the closure.
                 if let Some(error) = error {

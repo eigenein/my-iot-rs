@@ -39,7 +39,7 @@ pub enum Type {
 
 /// Message builder. Prefer to use it instead of directly instantiating a `Message`.
 pub struct Composer {
-    message: Message,
+    pub message: Message,
 }
 
 impl Composer {
@@ -47,7 +47,9 @@ impl Composer {
         Self {
             message: Message {
                 type_: Type::ReadLogged,
-                sensor: Sensor { sensor: sensor.into() },
+                sensor: Sensor {
+                    sensor_id: sensor.into(),
+                },
                 reading: Reading {
                     timestamp: Local::now(),
                     value: Value::None,

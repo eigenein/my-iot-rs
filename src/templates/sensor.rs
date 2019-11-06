@@ -4,37 +4,37 @@ use crate::prelude::*;
 use crate::templates::{self, DATE_FORMAT};
 
 markup::define! {
-    SensorTemplate(last: Message, readings: Vec<Message>) {
-        section.hero.{&last.reading.value.class()} {
+    SensorTemplate(sensor_id: String, reading: Reading) {
+        section.hero.{&reading.value.class()} {
             div."hero-head" { {templates::NavBarTemplate {}} }
             div."hero-body" {
                 div.container {
-                    h1.title."is-4"[title = {format!("{:?}", &last.reading.value)}] {
-                        @if last.reading.value.is_inline() {
-                            {&last.reading.value}
+                    h1.title."is-4"[title = {format!("{:?}", &reading.value)}] {
+                        @if reading.value.is_inline() {
+                            {&reading.value}
                         } else {
-                            {&last.sensor.sensor}
+                            {&sensor_id}
                         }
                     }
                     h2.subtitle."is-6" {
-                        @if last.reading.value.is_inline() {
-                            {&last.sensor.sensor} " "
+                        @if reading.value.is_inline() {
+                            {&sensor_id} " "
                         }
                         span { i.far."fa-clock" {} } " "
-                        span[title = {&last.reading.timestamp.to_string()}] {
-                            {&last.reading.timestamp.format(DATE_FORMAT).to_string()}
+                        span[title = {&reading.timestamp.to_string()}] {
+                            {&reading.timestamp.format(DATE_FORMAT).to_string()}
                         }
                     }
                 }
             }
         }
 
-        @if !last.reading.value.is_inline() {
+        @if !reading.value.is_inline() {
             section.section {
                 div.container {
                     div.message {
                         div."message-body" {
-                            {&last.reading.value}
+                            {&reading.value}
                         }
                     }
                 }
@@ -49,7 +49,7 @@ markup::define! {
                     div."message-body" {
                         pre {
                             code {
-                                {format!("{:#?}", &last.reading)}
+                                {format!("{:#?}", &reading)}
                             }
                         }
                     }
@@ -75,7 +75,7 @@ markup::define! {
                         form {
                             div.field."has-addons" {
                                 div.control."is-expanded" {
-                                    input[class = "input", type = "text", value = {&last.sensor.sensor}, placeholder = "Sensor"];
+                                    input[class = "input", type = "text", value = {&sensor_id}, placeholder = "Sensor"];
                                 }
                                 div.control {
                                     a.button."is-danger" { "Move" }

@@ -17,20 +17,19 @@ const SQL: &str = r#"
     PRAGMA foreign_keys = ON;
 
     CREATE TABLE IF NOT EXISTS sensors (
-        id INTEGER PRIMARY KEY NOT NULL,
-        sensor TEXT UNIQUE NOT NULL,
-        last_reading_id INTEGER NULL REFERENCES readings(id) ON UPDATE CASCADE ON DELETE CASCADE
+        pk INTEGER PRIMARY KEY NOT NULL,
+        sensor_id TEXT UNIQUE NOT NULL,
+        timestamp DATETIME NOT NULL
     );
 
     -- Stores all sensor readings.
     CREATE TABLE IF NOT EXISTS readings (
-        id INTEGER PRIMARY KEY NOT NULL,
-        sensor_id INTEGER NOT NULL REFERENCES sensors(id) ON UPDATE CASCADE ON DELETE CASCADE,
+        sensor_fk INTEGER NOT NULL REFERENCES sensors(id) ON UPDATE CASCADE ON DELETE CASCADE,
         timestamp DATETIME NOT NULL,
         value BLOB NOT NULL
     );
     -- Descending index on `timestamp` is needed to speed up the select last queries.
-    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_id_timestamp ON readings (sensor_id, timestamp DESC);
+    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_fk_timestamp ON readings (sensor_fk, timestamp DESC);
 "#;
 
 pub fn connect<P: AsRef<Path>>(path: P) -> Result<Connection> {
@@ -40,32 +39,20 @@ pub fn connect<P: AsRef<Path>>(path: P) -> Result<Connection> {
 }
 
 pub fn upsert_reading(db: &Connection, sensor: &Sensor, reading: &Reading) -> Result<()> {
-    db.prepare_cached("INSERT OR IGNORE INTO sensors (sensor) VALUES (?1)")?
-        .execute(params![sensor.sensor])?;
     let timestamp = reading.timestamp.timestamp_millis();
+    db.prepare_cached("INSERT OR REPLACE INTO sensors (sensor_id, timestamp) VALUES (?1, ?2)")?
+        .execute(params![sensor.sensor_id, timestamp])?;
     db.prepare_cached(
         r#"
-            INSERT OR IGNORE INTO readings (sensor_id, timestamp, value)
+            INSERT OR IGNORE INTO readings (sensor_fk, timestamp, value)
             VALUES ((
-                SELECT id
+                SELECT pk
                 FROM sensors
-                WHERE sensor = ?1
+                WHERE sensor_id = ?1
             ), ?2, ?3)
         "#,
     )?
-    .execute(params![sensor.sensor, timestamp, reading.value.serialize()])?;
-    db.prepare_cached(
-        r#"
-            UPDATE sensors
-            SET last_reading_id = (
-                SELECT id
-                FROM readings
-                WHERE sensor_id = sensors.id AND timestamp = ?2
-            )
-            WHERE sensor = ?2
-        "#,
-    )?
-    .execute(params![timestamp, sensor.sensor])?;
+    .execute(params![sensor.sensor_id, timestamp, reading.value.serialize()])?;
     Ok(())
 }
 
@@ -73,18 +60,18 @@ pub fn select_actuals(db: &Connection) -> Result<Vec<(Sensor, Reading)>> {
     Ok(db
         .prepare_cached(
             r#"
-                SELECT sensor, timestamp, value
+                SELECT sensor_id, sensors.timestamp, value
                 FROM sensors
-                INNER JOIN readings ON readings.id = sensors.last_reading_id
+                INNER JOIN readings ON readings.timestamp = sensors.timestamp AND readings.sensor_fk = sensors.pk
             "#,
         )?
         .query_map(params![], |row| {
             Ok((
                 Sensor {
-                    sensor: row.get_unwrap("sensor"),
+                    sensor_id: row.get_unwrap("sensor_id"),
                 },
                 Reading {
-                    timestamp: Local.from_timestamp_millis(row.get_unwrap("timestamp")),
+                    timestamp: Local.timestamp_millis(row.get_unwrap("timestamp")),
                     value: Value::deserialize(row.get_unwrap("value"))?,
                 },
             ))
@@ -107,7 +94,7 @@ pub fn select_last_reading(db: &Connection, sensor: &str) -> Result<Option<Readi
             r#"
             SELECT timestamp, value
             FROM sensors
-            INNER JOIN readings ON readings.id = sensors.last_reading_id
+            INNER JOIN readings ON readings.timestamp = sensors.timestamp AND readings.sensor_fk = sensors.pk
             WHERE sensors.sensor = ?1
             "#,
         )?
@@ -127,14 +114,14 @@ pub fn select_readings(db: &Connection, sensor: &str, since: &DateTime<Local>) -
             r#"
             SELECT timestamp, value
             FROM readings
-            INNER JOIN sensors ON sensors.id = readings.sensor_id
-            WHERE sensors.sensor = ?1 AND timestamp >= ?2
+            INNER JOIN sensors ON sensors.pk = readings.sensor_fk
+            WHERE sensors.sensor_id = ?1 AND timestamp >= ?2
             ORDER BY timestamp
             "#,
         )?
         .query_map(params![sensor, since.timestamp_millis()], |row| {
             Ok(Reading {
-                timestamp: Local.from_timestamp_millis(row.get_unwrap("timestamp")),
+                timestamp: Local.timestamp_millis(row.get_unwrap("timestamp")),
                 value: Value::deserialize(row.get_unwrap("value"))?,
             })
         })?
@@ -152,14 +139,13 @@ mod tests {
         let message = Composer::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
-            .into();
+            .message;
 
-        let db = establish_connection(":memory:")?;
+        let db = connect(":memory:")?;
         upsert_reading(&db, &message.sensor, &message.reading)?;
         upsert_reading(&db, &message.sensor, &message.reading)?;
 
         let reading_count: i64 = db
-            .connection
             .prepare("SELECT COUNT(*) FROM readings")?
             .query_row(params![], |row| row.get(0))?;
         assert_eq!(reading_count, 1);
@@ -179,7 +165,7 @@ mod tests {
         let message = Composer::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
-            .into();
+            .message;
         let db = connect(":memory:")?;
         upsert_reading(&db, &message.sensor, &message.reading)?;
         assert_eq!(select_last_reading(&db, "test")?, Some(reading));
@@ -188,18 +174,18 @@ mod tests {
 
     #[test]
     fn select_last_reading_returns_newer_reading() -> Result {
-        let db = establish_connection(":memory:")?;
+        let db = connect(":memory:")?;
         let old = Composer::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_127_000))
-            .into();
+            .message;
         upsert_reading(&db, &old.sensor, &old.reading)?;
         let new = Composer::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
-            .into();
+            .message;
         upsert_reading(&db, &new.sensor, &new.reading)?;
-        assert_eq!(db.select_last_reading("test")?, Some(new));
+        assert_eq!(select_last_reading(&db, "test")?, Some(new));
         Ok(())
     }
 
@@ -211,7 +197,7 @@ mod tests {
             .compose();
         let db = connect(":memory:")?;
         upsert_reading(&db, &message.sensor, &message.reading)?;
-        assert_eq!(select_actuals(&db)?, vec![(&message.sensor, &message.reading)]);
+        assert_eq!(select_actuals(&db)?, vec![(message.sensor, message.reading)]);
         Ok(())
     }
 

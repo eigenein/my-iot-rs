@@ -8,6 +8,7 @@
 //!
 //! Basically, this is a case of "multi-producer multi-consumer" pattern.
 
+use crate::core::persistence::select_last_reading;
 use crate::prelude::*;
 use crate::supervisor;
 use crossbeam_channel::Sender;
@@ -24,7 +25,7 @@ pub struct Settings {
 pub fn spawn(
     service_id: &str,
     settings: &Settings,
-    db: &Arc<Mutex<SqliteConnection>>,
+    db: &Arc<Mutex<Connection>>,
     outbox_tx: &Sender<Message>,
 ) -> Result<Vec<Sender<Message>>> {
     let outbox_tx = outbox_tx.clone();
@@ -43,13 +44,13 @@ pub fn spawn(
                     if scenario.conditions.iter().all(|c| c.is_met(&message)) {
                         info!(
                             r"{} triggered scenario: {}",
-                            &message.sensor.sensor, scenario.description
+                            &message.sensor.sensor_id, scenario.description
                         );
                         for action in scenario.actions.iter() {
                             action.execute(&service_id, &db, &message, &outbox_tx).unwrap();
                         }
                     } else {
-                        debug!("Skipped: {}", &message.sensor.sensor);
+                        debug!("Skipped: {}", &message.sensor.sensor_id);
                     }
                 }
             }
@@ -98,10 +99,10 @@ pub enum Condition {
 impl Condition {
     pub fn is_met(&self, message: &Message) -> bool {
         match self {
-            Condition::Sensor(sensor) => &message.sensor.sensor == sensor,
-            Condition::SensorEndsWith(suffix) => message.sensor.sensor.ends_with(suffix),
-            Condition::SensorStartsWith(prefix) => message.sensor.sensor.starts_with(prefix),
-            Condition::SensorContains(infix) => message.sensor.sensor.contains(infix),
+            Condition::Sensor(sensor_id) => &message.sensor.sensor_id == sensor_id,
+            Condition::SensorEndsWith(suffix) => message.sensor.sensor_id.ends_with(suffix),
+            Condition::SensorStartsWith(prefix) => message.sensor.sensor_id.starts_with(prefix),
+            Condition::SensorContains(infix) => message.sensor.sensor_id.contains(infix),
             Condition::Or(conditions) => conditions.iter().any(|c| c.is_met(&message)),
         }
     }
@@ -135,7 +136,7 @@ impl Action {
     pub fn execute(
         &self,
         _service_id: &str,
-        db: &Arc<Mutex<SqliteConnection>>,
+        db: &Arc<Mutex<Connection>>,
         message: &Message,
         tx: &Sender<Message>,
     ) -> Result<()> {
@@ -150,7 +151,7 @@ impl Action {
                 Ok(())
             }
             Action::ReadSensor(parameters) => {
-                if let Some(source) = db.lock().unwrap().select_last_reading(&parameters.source_sensor)? {
+                if let Some(source) = select_last_reading(&db.lock().unwrap(), &parameters.source_sensor)? {
                     tx.send(
                         Composer::new(&parameters.target_sensor)
                             .type_(parameters.target_type)

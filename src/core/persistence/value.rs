@@ -40,7 +40,7 @@ impl Value {
             9 => Ok(Value::Rh(f64::deserialize(&blob[1..9])?)),
             10 => Ok(Value::WindDirection(PointOfTheCompass::deserialize(&blob[1..2])?)),
             11 => Ok(Value::Size(u64::deserialize(&blob[1..9])?)),
-            _ => Err(format_err!("unknown value type: {}", type_)),
+            type_ => Err(format_err!("unknown value type: {}", type_)),
         }
     }
 }

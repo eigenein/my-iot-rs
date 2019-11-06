@@ -7,10 +7,10 @@ use crate::templates::DATE_FORMAT;
 markup::define! {
     ReadingTemplate<'a>(sensor: &'a Sensor, reading: &'a Reading) {
         div."column"."is-one-quarter" {
-            a[href = {format!("/sensors/{}", &sensor.sensor)} ] {
+            a[href = {format!("/sensors/{}", &sensor.sensor_id)} ] {
                 div.notification.reading.{reading.value.class()} {
-                    p.title."is-6"[title = {&sensor.sensor}] {
-                        {&sensor.sensor}
+                    p.title."is-6"[title = {&sensor.sensor_id}] {
+                        {&sensor.sensor_id}
                     }
                     p.subtitle."is-7"[title = {&reading.timestamp.to_string()}] {
                         {&reading.timestamp.format(DATE_FORMAT).to_string()}

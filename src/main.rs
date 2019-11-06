@@ -54,7 +54,7 @@ fn main() -> Result<()> {
     debug!("Settings: {:?}", &settings);
 
     info!("Opening database…");
-    let db = Arc::new(Mutex::new(crate::core::persistence::establish_connection(&opt.db)?));
+    let db = Arc::new(Mutex::new(crate::core::persistence::connect(&opt.db)?));
 
     // Starting up multi-producer multi-consumer bus:
     // - services create and return their input channels
@@ -113,13 +113,13 @@ fn spawn_dispatcher(rx: Receiver<Message>, tx: Sender<Message>, txs: Vec<Sender<
     info!("Spawning message dispatcher…");
     supervisor::spawn("my-iot::dispatcher", tx, move || -> Result<()> {
         for message in &rx {
-            debug!("Dispatching {}", &message.sensor.sensor);
+            debug!("Dispatching {}", &message.sensor.sensor_id);
             for tx in txs.iter() {
                 if let Err(error) = tx.send(message.clone()) {
                     error!("Could not send message to {:?}: {:?}", tx, error);
                 }
             }
-            debug!("Dispatched {}", &message.sensor.sensor);
+            debug!("Dispatched {}", &message.sensor.sensor_id);
         }
         Err(format_err!("Receiver channel is unexpectedly exhausted"))
     })?;
