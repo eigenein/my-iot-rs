@@ -100,7 +100,7 @@ pub fn select_last_reading(db: &Connection, sensor: &str) -> Result<Option<Readi
         )?
         .query_map(params![sensor], |row| {
             Ok(Reading {
-                timestamp: Local.from_timestamp_millis(row.get_unwrap("timestamp")),
+                timestamp: Local.timestamp_millis(row.get_unwrap("timestamp")),
                 value: Value::deserialize(row.get_unwrap("value"))?,
             })
         })?
@@ -168,7 +168,7 @@ mod tests {
             .message;
         let db = connect(":memory:")?;
         upsert_reading(&db, &message.sensor, &message.reading)?;
-        assert_eq!(select_last_reading(&db, "test")?, Some(reading));
+        assert_eq!(select_last_reading(&db, "test")?, Some(message.reading));
         Ok(())
     }
 
@@ -208,12 +208,12 @@ mod tests {
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .into();
-        upsert_reading(&db, &message.sensor, &message.reading)?;
+        upsert_reading(&db, &old.sensor, &old.reading)?;
         let new = Composer::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_129_000))
             .into();
-        upsert_reading(&db, &message.sensor, &message.reading)?;
+        upsert_reading(&db, &old.sensor, &old.reading)?;
 
         let reading_count = db
             .prepare_cached("SELECT COUNT(*) FROM sensors")?

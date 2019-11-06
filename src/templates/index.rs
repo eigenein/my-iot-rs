@@ -4,7 +4,7 @@ use crate::prelude::*;
 use crate::templates::*;
 
 markup::define! {
-    IndexTemplate<'a>(db: &'a Arc<Mutex<SqliteConnection>>) {
+    IndexTemplate<'a>(db: &'a Arc<Mutex<Connection>>) {
         section.hero."is-info" {
             div."hero-head" { {NavBarTemplate {}} }
             div."hero-body" {

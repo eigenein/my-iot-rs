@@ -79,7 +79,7 @@ fn main() -> Result<()> {
 /// - `tx`: output message channel that's used by services to send their messages to.
 fn spawn_services(
     settings: &Settings,
-    db: &Arc<Mutex<SqliteConnection>>,
+    db: &Arc<Mutex<Connection>>,
     tx: &Sender<Message>,
 ) -> Result<Vec<Sender<Message>>> {
     let mut service_txs = Vec::new();
