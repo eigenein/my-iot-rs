@@ -1,3 +1,4 @@
+use crate::core::persistence::*;
 use crate::prelude::*;
 use crate::supervisor;
 use crossbeam_channel::Sender;
@@ -33,7 +34,7 @@ pub fn spawn(
         tx.clone(),
         move || -> Result<()> {
             loop {
-                let size = { db.lock().unwrap().select_size().unwrap() };
+                let size = select_size(&db.lock().unwrap())?;
                 tx.send(Composer::new(sensor.clone()).value(Value::Size(size)).into())?;
                 thread::sleep(interval);
             }

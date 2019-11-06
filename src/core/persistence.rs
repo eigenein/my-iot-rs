@@ -3,6 +3,7 @@
 use crate::prelude::*;
 use chrono::prelude::*;
 use rusqlite::params;
+use rusqlite::OptionalExtension;
 use std::path::Path;
 
 mod primitives;
@@ -11,6 +12,7 @@ pub mod sensor;
 pub mod thread;
 mod value;
 
+// language=sql
 const SQL: &str = r#"
     PRAGMA synchronous = NORMAL;
     PRAGMA journal_mode = WAL;
@@ -40,9 +42,15 @@ pub fn connect<P: AsRef<Path>>(path: P) -> Result<Connection> {
 
 pub fn upsert_reading(db: &Connection, sensor: &Sensor, reading: &Reading) -> Result<()> {
     let timestamp = reading.timestamp.timestamp_millis();
-    db.prepare_cached("INSERT OR REPLACE INTO sensors (sensor_id, timestamp) VALUES (?1, ?2)")?
-        .execute(params![sensor.sensor_id, timestamp])?;
     db.prepare_cached(
+        // language=sql
+        r#"
+            INSERT OR REPLACE INTO sensors (sensor_id, timestamp) VALUES (?1, ?2)
+        "#,
+    )?
+    .execute(params![sensor.sensor_id, timestamp])?;
+    db.prepare_cached(
+        // language=sql
         r#"
             INSERT OR IGNORE INTO readings (sensor_fk, timestamp, value)
             VALUES ((
@@ -57,39 +65,43 @@ pub fn upsert_reading(db: &Connection, sensor: &Sensor, reading: &Reading) -> Re
 }
 
 pub fn select_actuals(db: &Connection) -> Result<Vec<(Sensor, Reading)>> {
-    Ok(db
-        .prepare_cached(
-            r#"
-                SELECT sensor_id, sensors.timestamp, value
-                FROM sensors
-                INNER JOIN readings ON readings.timestamp = sensors.timestamp AND readings.sensor_fk = sensors.pk
-            "#,
-        )?
-        .query_map(params![], |row| {
-            Ok((
-                Sensor {
-                    sensor_id: row.get_unwrap("sensor_id"),
-                },
-                Reading {
-                    timestamp: Local.timestamp_millis(row.get_unwrap("timestamp")),
-                    value: Value::deserialize(row.get_unwrap("value"))?,
-                },
-            ))
-        })?
-        .collect())
+    db.prepare_cached(
+        // language=sql
+        r#"
+            SELECT sensor_id, sensors.timestamp, value
+            FROM sensors
+            INNER JOIN readings ON readings.timestamp = sensors.timestamp AND readings.sensor_fk = sensors.pk
+        "#,
+    )?
+    .query_map(params![], |row| {
+        Ok((
+            Sensor {
+                sensor_id: row.get_unwrap("sensor_id"),
+            },
+            Reading {
+                timestamp: Local.timestamp_millis(row.get("timestamp")?),
+                value: Value::deserialize(row.get("value")?).unwrap(),
+            },
+        ))
+    })?
+    .map(|r| r.map_err(Error::from))
+    .collect()
 }
 
 /// Select database size in bytes.
 pub fn select_size(db: &Connection) -> Result<u64> {
-    Ok(db
+    db
+        // language=sql
         .prepare_cached("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()")?
         .query_row(params![], |row| row.get::<_, i64>(0))
-        .map(|v| v as u64)?)
+        .map(|v| v as u64)
+        .map_err(Into::into)
 }
 
 /// Select the very last sensor reading.
 pub fn select_last_reading(db: &Connection, sensor: &str) -> Result<Option<Reading>> {
     Ok(db
+        // language=sql
         .prepare_cached(
             r#"
             SELECT timestamp, value
@@ -98,18 +110,20 @@ pub fn select_last_reading(db: &Connection, sensor: &str) -> Result<Option<Readi
             WHERE sensors.sensor = ?1
             "#,
         )?
-        .query_map(params![sensor], |row| {
+        .query_row(params![sensor], |row| {
             Ok(Reading {
-                timestamp: Local.timestamp_millis(row.get_unwrap("timestamp")),
-                value: Value::deserialize(row.get_unwrap("value"))?,
+                timestamp: Local.timestamp_millis(row.get("timestamp")?),
+                value: Value::deserialize(row.get("value")?).unwrap(),
             })
-        })?
-        .collect())
+        })
+        .optional()?)
 }
 
 /// Select the latest sensor readings within the given time interval.
+#[allow(dead_code)]
 pub fn select_readings(db: &Connection, sensor: &str, since: &DateTime<Local>) -> Result<Vec<Reading>> {
-    Ok(db
+    db
+        // language=sql
         .prepare_cached(
             r#"
             SELECT timestamp, value
@@ -121,11 +135,12 @@ pub fn select_readings(db: &Connection, sensor: &str, since: &DateTime<Local>) -
         )?
         .query_map(params![sensor, since.timestamp_millis()], |row| {
             Ok(Reading {
-                timestamp: Local.timestamp_millis(row.get_unwrap("timestamp")),
-                value: Value::deserialize(row.get_unwrap("value"))?,
+                timestamp: Local.timestamp_millis(row.get("timestamp")?),
+                value: Value::deserialize(row.get("value")?).unwrap(),
             })
         })?
-        .collect())
+        .map(|r| r.map_err(Error::from))
+        .collect()
 }
 
 #[cfg(test)]
@@ -146,6 +161,7 @@ mod tests {
         upsert_reading(&db, &message.sensor, &message.reading)?;
 
         let reading_count: i64 = db
+            // language=sql
             .prepare("SELECT COUNT(*) FROM readings")?
             .query_row(params![], |row| row.get(0))?;
         assert_eq!(reading_count, 1);
@@ -185,7 +201,7 @@ mod tests {
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .message;
         upsert_reading(&db, &new.sensor, &new.reading)?;
-        assert_eq!(select_last_reading(&db, "test")?, Some(new));
+        assert_eq!(select_last_reading(&db, "test")?, Some(new.reading));
         Ok(())
     }
 
@@ -204,18 +220,19 @@ mod tests {
     #[test]
     fn existing_sensor_is_reused() -> Result {
         let db = connect(":memory:")?;
-        let old = &Composer::new("test")
+        let old = Composer::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
-            .into();
+            .message;
         upsert_reading(&db, &old.sensor, &old.reading)?;
         let new = Composer::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_129_000))
-            .into();
-        upsert_reading(&db, &old.sensor, &old.reading)?;
+            .message;
+        upsert_reading(&db, &new.sensor, &new.reading)?;
 
         let reading_count = db
+            // language=sql
             .prepare_cached("SELECT COUNT(*) FROM sensors")?
             .query_row(params![], |row| row.get::<_, i64>(0))?;
         assert_eq!(reading_count, 1);

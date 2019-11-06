@@ -49,8 +49,9 @@ fn index(db: &Arc<Mutex<Connection>>) -> Response {
 
 /// Get sensor page response.
 fn get_sensor(db: &Arc<Mutex<Connection>>, sensor_id: &str) -> Response {
+    // FIXME: `unwrap()`s.
     let reading = select_last_reading(&db.lock().unwrap(), &sensor_id).unwrap();
-    match last {
+    match reading {
         Some(reading) => Response::html(
             BaseTemplate {
                 body: Box::new(SensorTemplate {

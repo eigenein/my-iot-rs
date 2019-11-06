@@ -1,10 +1,12 @@
 //! Home page.
 
+use crate::core::persistence::select_actuals;
 use crate::prelude::*;
 use crate::templates::*;
 
 markup::define! {
-    IndexTemplate<'a>(db: &'a Arc<Mutex<Connection>>) {
+    IndexTemplate(db: Arc<Mutex<Connection>>) {
+        {let actuals = select_actuals(&db.lock().unwrap()).unwrap();}
         section.hero."is-info" {
             div."hero-head" { {NavBarTemplate {}} }
             div."hero-body" {
@@ -13,7 +15,7 @@ markup::define! {
                         "Dashboard"
                     }
                     h2.subtitle."is-6" {
-                        {messages.len()} " sensors"
+                        {actuals.len()} " sensors"
                     }
                 }
             }
@@ -21,8 +23,8 @@ markup::define! {
         section.section {
             div.container {
                 div.columns."is-multiline" {
-                    @for message in {messages} {
-                        {ReadingTemplate { sensor, reading }}
+                    @for (sensor, reading) in {actuals} {
+                        {ReadingTemplate { sensor: &sensor, reading: &reading }}
                     }
                 }
             }
