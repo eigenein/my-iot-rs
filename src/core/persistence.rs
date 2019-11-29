@@ -90,12 +90,11 @@ pub fn select_actuals(db: &Connection) -> Result<Vec<(Sensor, Reading)>> {
 
 /// Select database size in bytes.
 pub fn select_size(db: &Connection) -> Result<u64> {
-    db
+    Ok(db
         // language=sql
         .prepare_cached("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()")?
         .query_row(params![], |row| row.get::<_, i64>(0))
-        .map(|v| v as u64)
-        .map_err(Into::into)
+        .map(|v| v as u64)?)
 }
 
 /// Select the very last sensor reading.
