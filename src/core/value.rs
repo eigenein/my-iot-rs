@@ -31,7 +31,6 @@ pub enum Value {
     WindDirection(PointOfTheCompass),
 
     /// Length in [metres](https://en.wikipedia.org/wiki/Metre).
-    #[allow(dead_code)]
     Metres(f64),
 
     /// [Relative humidity](https://en.wikipedia.org/wiki/Relative_humidity) in percents.

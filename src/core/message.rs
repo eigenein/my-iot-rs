@@ -73,6 +73,7 @@ impl Composer {
         self
     }
 
+    #[allow(dead_code)]
     pub fn compose(self) -> Message {
         self.message
     }

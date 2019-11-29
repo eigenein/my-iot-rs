@@ -26,7 +26,7 @@ const SQL: &str = r#"
 
     -- Stores all sensor readings.
     CREATE TABLE IF NOT EXISTS readings (
-        sensor_fk INTEGER NOT NULL REFERENCES sensors(id) ON UPDATE CASCADE ON DELETE CASCADE,
+        sensor_fk INTEGER NOT NULL REFERENCES sensors(pk) ON UPDATE CASCADE ON DELETE CASCADE,
         timestamp DATETIME NOT NULL,
         value BLOB NOT NULL
     );
@@ -99,18 +99,18 @@ pub fn select_size(db: &Connection) -> Result<u64> {
 }
 
 /// Select the very last sensor reading.
-pub fn select_last_reading(db: &Connection, sensor: &str) -> Result<Option<Reading>> {
+pub fn select_last_reading(db: &Connection, sensor_id: &str) -> Result<Option<Reading>> {
     Ok(db
         // language=sql
         .prepare_cached(
             r#"
-            SELECT timestamp, value
+            SELECT readings.timestamp, value
             FROM sensors
             INNER JOIN readings ON readings.timestamp = sensors.timestamp AND readings.sensor_fk = sensors.pk
-            WHERE sensors.sensor = ?1
+            WHERE sensors.sensor_id = ?1
             "#,
         )?
-        .query_row(params![sensor], |row| {
+        .query_row(params![sensor_id], |row| {
             Ok(Reading {
                 timestamp: Local.timestamp_millis(row.get("timestamp")?),
                 value: Value::deserialize(row.get("value")?).unwrap(),
@@ -121,7 +121,7 @@ pub fn select_last_reading(db: &Connection, sensor: &str) -> Result<Option<Readi
 
 /// Select the latest sensor readings within the given time interval.
 #[allow(dead_code)]
-pub fn select_readings(db: &Connection, sensor: &str, since: &DateTime<Local>) -> Result<Vec<Reading>> {
+pub fn select_readings(db: &Connection, sensor_id: &str, since: &DateTime<Local>) -> Result<Vec<Reading>> {
     db
         // language=sql
         .prepare_cached(
@@ -133,7 +133,7 @@ pub fn select_readings(db: &Connection, sensor: &str, since: &DateTime<Local>) -
             ORDER BY timestamp
             "#,
         )?
-        .query_map(params![sensor, since.timestamp_millis()], |row| {
+        .query_map(params![sensor_id, since.timestamp_millis()], |row| {
             Ok(Reading {
                 timestamp: Local.timestamp_millis(row.get("timestamp")?),
                 value: Value::deserialize(row.get("value")?).unwrap(),
