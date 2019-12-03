@@ -1,6 +1,6 @@
 # `my-iot`
 
-## `master`
+## `0.29.0`
 
 This release brings the different database schema, which should work faster and take less disk space.
 **The new schema is backwards-incompatible.**
