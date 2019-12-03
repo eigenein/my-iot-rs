@@ -2,12 +2,13 @@
 
 ## `master`
 
-This release brings the different database schema, which should work faster and take less disk space. 
+This release brings the different database schema, which should work faster and take less disk space.
 **The new schema is backwards-incompatible.**
 
 - Break: change sensor value serialization #50
 - Break: re-structure modules #50
 - Break: change database schema #50
+- New: cross-compilation for Raspberry Pi Zero (W) #62
 
 ## `0.28.0`
 
