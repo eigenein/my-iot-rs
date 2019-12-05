@@ -12,28 +12,34 @@ jobs:
     steps:
       - name: APT
         run: sudo apt-get update && sudo apt-get install -y libsqlite3-dev
+
       - name: Rustup
         run: rustup component add rustfmt clippy
+
       - uses: actions/checkout@v1
         with:
           fetch-depth: 3
+
       - name: Cache registry
         uses: actions/cache@v1
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
+
       - name: Cache index
         uses: actions/cache@v1
         with:
           path: ~/.cargo/git
           key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
+
       - name: Cache build
         uses: actions/cache@v1
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
+
       - name: Check
         run: make check
