@@ -34,4 +34,4 @@ html docs:
 
 docker/build/%:
 	@docker build -t "my-iot-rs/$*" -f Dockerfile . --target "$*"
-	@docker run --rm -it -v "$(PWD):/my-iot-rs" "my-iot-rs/$*"
+	@docker run --rm -v "$(PWD):/my-iot-rs" "my-iot-rs/$*"
