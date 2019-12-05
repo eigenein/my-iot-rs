@@ -12,42 +12,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@master
 
-      - name: Cache registry
-        uses: actions/cache@v1
-        with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
-
-      - name: Cache index
-        uses: actions/cache@v1
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
-
-      - name: Cache build
-        uses: actions/cache@v1
-        with:
-          path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
-
-      - name: Cache arm-unknown-linux-gnueabihf
-        uses: actions/cache@v1
-        with:
-          path: docker-arm-unknown-linux-gnueabihf.tar
-          key: ${{ runner.os }}-docker-arm-unknown-linux-gnueabihf
-
-      - name: Restore image for arm-unknown-linux-gnueabihf
-        run: docker load --input docker-arm-unknown-linux-gnueabihf.tar
-        continue-on-error: true
-
       - name: Build for Raspberry Pi Zero (W)
         run: make docker/build/arm-unknown-linux-gnueabihf
-
-      - name: Save image for arm-unknown-linux-gnueabihf
-        run: docker save my-iot-rs/arm-unknown-linux-gnueabihf > docker-arm-unknown-linux-gnueabihf.tar
 
       - name: Release
         id: release
