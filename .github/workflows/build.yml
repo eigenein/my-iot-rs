@@ -13,9 +13,7 @@ jobs:
 
     steps:
     - name: APT
-      run: |-
-        sudo apt-get update
-        sudo apt-get install -y libsqlite3-dev
+      run: sudo apt-get update && sudo apt-get install -y libsqlite3-dev
     - name: Rustup
       run: rustup component add rustfmt clippy
     - uses: actions/checkout@v1
