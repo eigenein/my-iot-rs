@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.32.0`
+
+- Fix: GitHub Actions
+
 ## `0.31.0`
 
 - Fix: GitHub Actions

@@ -15,7 +15,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: docker-arm-unknown-linux-gnueabihf.tar
-          key: ${{ runner.os }}-docker
+          key: ${{ runner.os }}-docker-arm-unknown-linux-gnueabihf
       - name: Restore cache for arm-unknown-linux-gnueabihf
         run: docker load --input image.tar
         continue-on-error: true
