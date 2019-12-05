@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.35.0`
+
+- Chore: do not mark release as a prerelease anymore to allow getting the latest release via GitHub API #64
+
 ## `0.34.0`
 
 - Fix: GitHub Actions
