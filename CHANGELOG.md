@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.30.0`
+
+- New: publish releases on GitHub
+
 ## `0.29.0`
 
 This release brings the different database schema, which should work faster and take less disk space.
