@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block body %}
+  <section class="hero {{ reading.value.class() }}">
+    <div class="hero-head">
+      {% include "navbar.html" %}
+    </div>
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="title is-4" title='{{ "{:?}"|format(reading.value) }}'>
+          {% if reading.value.is_inline() -%}
+            {% let value = reading.value.as_ref() %}
+            {% include "value.html" %}
+          {% else -%}
+            {{ sensor_id -}}
+          {% endif -%}
+        </h1>
+
+        <h2 class="subtitle is-6">
+          {% if reading.value.is_inline() -%}
+            <span>{{ sensor_id -}}</span>
+          {% endif -%}
+          <span><i class="far fa-clock"></i></span>
+          <span title="{{ reading.timestamp.to_string() }}">
+            {# TODO: a custom filter. #}
+            {{ reading.timestamp.format("%b %d, %H:%M:%S").to_string() }}
+          </span>
+        </h2>
+      </div>
+    </div>
+  </section>
+
+  {% if reading.value.is_inline() %}
+  {% else %}
+    <section class="section">
+      <div class="container">
+        <div class="message">
+          <div class="message-body">
+            {% let value = reading.value.as_ref() %}
+            {% include "value.html" %}
+          </div>
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+  <section class="section">
+    <div class="container">
+      <h3 class="title is-5">Latest reading</h3>
+      <h4 class="subtitle is-7">This is stored in the database</h4>
+      <div class="message">
+        <div class="message-body">
+          <pre>
+            <code>
+              {{ "{:#?}"|format(reading) }}
+            </code>
+          </pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <pre>
+      <code>
+    div.container {
+        h3.title."is-5" { "Danger zone" }
+
+        div.message."is-danger" {
+            div."message-body" {
+                div.content {
+                    p {
+                        "All readings from this sensor will be moved to the specified sensor."
+                    }
+                    p {
+                        "You may need that if you renamed a service and you want to move old readings to the new sensor."
+                    }
+                }
+
+                form {
+                    div.field."has-addons" {
+                        div.control."is-expanded" {
+                            input[class = "input", type = "text", value = {&sensor_id}, placeholder = "Sensor"];
+                        }
+                        div.control {
+                            a.button."is-danger" { "Move" }
+                        }
+                    }
+                }
+            }
+        }
+
+        div.message."is-danger" {
+            div."message-body" {
+                div.content {
+                    p {
+                        "This will " strong { "permanently delete" } " all the sensor readings."
+                    }
+                }
+
+                form {
+                    div.field {
+                        div.control {
+                            button.button."is-danger" { "Delete" }
+                        }
+                    }
+                }
+            }
+        }
+    }
+      </code>
+    </pre>
+  </section>
+{% endblock %}

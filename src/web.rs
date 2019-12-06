@@ -3,7 +3,7 @@
 use crate::core::persistence::*;
 use crate::prelude::*;
 use crate::settings::Settings;
-use crate::templates::*;
+use crate::templates;
 use rouille::{router, Response};
 use serde_json::json;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -39,12 +39,7 @@ pub fn start_server(settings: Settings, db: Arc<Mutex<Connection>>) -> ! {
 
 /// Get index page response.
 fn index(db: &Arc<Mutex<Connection>>) -> Response {
-    Response::html(
-        BaseTemplate {
-            body: Box::new(IndexTemplate { db: db.clone() }),
-        }
-        .to_string(),
-    )
+    Response::html(templates::Index::new(select_actuals(&db.lock().unwrap()).unwrap()).to_string())
 }
 
 /// Get sensor page response.
@@ -52,15 +47,7 @@ fn get_sensor(db: &Arc<Mutex<Connection>>, sensor_id: &str) -> Response {
     // FIXME: `unwrap()`s.
     let reading = select_last_reading(&db.lock().unwrap(), &sensor_id).unwrap();
     match reading {
-        Some(reading) => Response::html(
-            BaseTemplate {
-                body: Box::new(SensorTemplate {
-                    sensor_id: sensor_id.into(),
-                    reading,
-                }),
-            }
-            .to_string(),
-        ),
+        Some(reading) => Response::html(templates::Sensor::new(sensor_id, reading).to_string()),
         None => Response::empty_404(),
     }
 }

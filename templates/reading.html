@@ -1,0 +1,17 @@
+<div class="column is-one-quarter">
+  <a href="/sensors/{{ sensor.sensor_id }}">
+    <div class="notification reading {{ reading.value.class() }}">
+      <p class="title is-6" title="{{ sensor.sensor_id }}">
+        {{ sensor.sensor_id }}
+      </p>
+      <p class="subtitle is-7" title="{{ reading.timestamp.to_string() }}">
+        {# TODO: a custom filter. #}
+        {{ reading.timestamp.format("%b %d, %H:%M:%S").to_string() }}
+      </p>
+      <p class="has-text-centered has-text-weight-bold" title='{{ "{:?}"|format(reading.value) }}'>
+        {% let value = reading.value.as_ref() %}
+        {% include "value.html" %}
+      </p>
+    </div>
+  </a>
+</div>

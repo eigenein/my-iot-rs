@@ -1,15 +1,38 @@
 //! Web interface templates.
 
-mod base;
-mod index;
-mod navbar;
-mod reading;
-mod sensor;
+use crate::prelude::*;
+use askama::Template;
 
-pub use base::BaseTemplate;
-pub use index::IndexTemplate;
-pub use navbar::NavBarTemplate;
-pub use reading::ReadingTemplate;
-pub use sensor::SensorTemplate;
+#[derive(Template)]
+#[template(path = "index.html")]
+pub struct Index<'a> {
+    pub crate_version: &'a str,
+    pub actuals: Vec<(crate::core::persistence::sensor::Sensor, Reading)>,
+}
 
-const DATE_FORMAT: &str = "%b %d, %H:%M:%S";
+#[derive(Template)]
+#[template(path = "sensor.html")]
+pub struct Sensor<'a> {
+    pub crate_version: &'a str,
+    pub sensor_id: String,
+    pub reading: Reading,
+}
+
+impl Index<'_> {
+    pub fn new(actuals: Vec<(crate::core::persistence::sensor::Sensor, Reading)>) -> Self {
+        Self {
+            actuals,
+            crate_version: structopt::clap::crate_version!(),
+        }
+    }
+}
+
+impl Sensor<'_> {
+    pub fn new<S: Into<String>>(sensor_id: S, reading: Reading) -> Self {
+        Self {
+            reading,
+            sensor_id: sensor_id.into(),
+            crate_version: structopt::clap::crate_version!(),
+        }
+    }
+}

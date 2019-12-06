@@ -11,11 +11,21 @@ all:
 clean:
 	@cargo clean
 
+.PHONY: check/clippy
+check/clippy:
+	# TODO: -W clippy::pedantic
+	@cargo clippy --workspace -- -D warnings
+
+.PHONY: check/fmt
+check/fmt:
+	@cargo fmt -- --check
+
+.PHONY: check/test
+check/test:
+	@cargo test --workspace
+
 .PHONY: check
-check:
-	@cargo test
-	@cargo clippy --all-targets --all-features -- -D warnings
-	@cargo fmt --all -- --check
+check: check/clippy check/fmt check/test
 
 .PHONY: install
 install:

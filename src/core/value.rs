@@ -43,11 +43,9 @@ pub enum Value {
     Boolean(bool),
 }
 
-// TODO: move rendering to a separate module.
-impl markup::Render for Value {
-    /// Render value in HTML.
-    fn render(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{} {}", self.icon().unwrap_or(""), self)
+impl AsRef<Value> for Value {
+    fn as_ref(&self) -> &Self {
+        &self
     }
 }
 
