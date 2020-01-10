@@ -40,25 +40,33 @@ pub fn connect<P: AsRef<Path>>(path: P) -> Result<Connection> {
     Ok(db)
 }
 
-pub fn upsert_reading(db: &Connection, sensor: &Sensor, reading: &Reading) -> Result<()> {
-    let timestamp = reading.timestamp.timestamp_millis();
-    // FIXME
+pub fn upsert_sensor(db: &Connection, sensor: &Sensor, timestamp: i64) -> Result<()> {
     db.prepare_cached(
         // language=sql
         r#"
-            INSERT OR REPLACE INTO sensors (sensor_id, timestamp) VALUES (?1, ?2)
+            -- noinspection SqlResolve @ any/"excluded"
+            INSERT INTO sensors (sensor_id, timestamp) VALUES (?1, ?2)
+            ON CONFLICT (sensor_id) DO UPDATE SET timestamp = excluded.timestamp
         "#,
     )?
     .execute(params![sensor.sensor_id, timestamp])?;
+    Ok(())
+}
+
+pub fn upsert_reading(db: &Connection, sensor: &Sensor, reading: &Reading) -> Result<()> {
+    let timestamp = reading.timestamp.timestamp_millis();
+    upsert_sensor(&db, &sensor, timestamp)?;
     db.prepare_cached(
         // language=sql
         r#"
-            INSERT OR IGNORE INTO readings (sensor_fk, timestamp, value)
+            -- noinspection SqlResolve @ any/"excluded"
+            INSERT INTO readings (sensor_fk, timestamp, value)
             VALUES ((
                 SELECT pk
                 FROM sensors
                 WHERE sensor_id = ?1
             ), ?2, ?3)
+            ON CONFLICT (sensor_fk, timestamp) DO UPDATE SET value = excluded.value
         "#,
     )?
     .execute(params![sensor.sensor_id, timestamp, reading.value.serialize()])?;
@@ -93,7 +101,12 @@ pub fn select_actuals(db: &Connection) -> Result<Vec<(Sensor, Reading)>> {
 pub fn select_size(db: &Connection) -> Result<u64> {
     Ok(db
         // language=sql
-        .prepare_cached("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()")?
+        .prepare_cached(
+            r#"
+            -- noinspection SqlResolve
+            SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()
+            "#,
+        )?
         .query_row(params![], |row| row.get::<_, i64>(0))
         .map(|v| v as u64)?)
 }
@@ -148,6 +161,21 @@ mod tests {
     use super::*;
 
     type Result = crate::Result<()>;
+
+    #[test]
+    fn double_upsert_sensor_keeps_one_record() -> Result {
+        let sensor = Sensor {
+            sensor_id: "test".into(),
+        };
+
+        let db = connect(":memory:")?;
+        upsert_sensor(&db, &sensor, 0)?;
+        let sensor_pk = get_sensor_pk(&db, "test")?.unwrap();
+        upsert_sensor(&db, &sensor, 0)?;
+        assert_eq!(get_sensor_pk(&db, "test")?.unwrap(), sensor_pk);
+
+        Ok(())
+    }
 
     #[test]
     fn double_upsert_reading_keeps_one_record() -> Result {
@@ -238,5 +266,13 @@ mod tests {
         assert_eq!(reading_count, 1);
 
         Ok(())
+    }
+
+    fn get_sensor_pk(db: &Connection, sensor_id: &str) -> crate::Result<Option<i64>> {
+        Ok(db
+            // language=sql
+            .prepare_cached("SELECT pk FROM sensors WHERE sensor_id = ?1")?
+            .query_row(params![sensor_id], |row| row.get::<_, i64>(0))
+            .optional()?)
     }
 }
