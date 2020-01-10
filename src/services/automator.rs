@@ -155,7 +155,7 @@ impl Action {
                     tx.send(
                         Composer::new(&parameters.target_sensor)
                             .type_(parameters.target_type)
-                            .value(source.value.clone())
+                            .value(source.value)
                             .into(),
                     )?
                 }

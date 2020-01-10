@@ -42,6 +42,7 @@ pub fn connect<P: AsRef<Path>>(path: P) -> Result<Connection> {
 
 pub fn upsert_reading(db: &Connection, sensor: &Sensor, reading: &Reading) -> Result<()> {
     let timestamp = reading.timestamp.timestamp_millis();
+    // FIXME
     db.prepare_cached(
         // language=sql
         r#"
@@ -125,11 +126,11 @@ pub fn select_readings(db: &Connection, sensor_id: &str, since: &DateTime<Local>
         // language=sql
         .prepare_cached(
             r#"
-            SELECT timestamp, value
+            SELECT readings.timestamp, value
             FROM readings
             INNER JOIN sensors ON sensors.pk = readings.sensor_fk
-            WHERE sensors.sensor_id = ?1 AND timestamp >= ?2
-            ORDER BY timestamp
+            WHERE sensors.sensor_id = ?1 AND readings.timestamp >= ?2
+            ORDER BY readings.timestamp
             "#,
         )?
         .query_map(params![sensor_id, since.timestamp_millis()], |row| {
@@ -149,7 +150,7 @@ mod tests {
     type Result = crate::Result<()>;
 
     #[test]
-    fn double_upsert_keeps_one_record() -> Result {
+    fn double_upsert_reading_keeps_one_record() -> Result {
         let message = Composer::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))

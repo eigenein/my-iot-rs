@@ -68,7 +68,7 @@ fn main() -> Result<()> {
     spawn_dispatcher(dispatcher_rx, dispatcher_tx, all_txs)?;
 
     info!("Starting web server on port {}…", settings.http_port);
-    web::start_server(settings, db.clone())
+    web::start_server(settings, db)
 }
 
 // TODO: move to `services`.
