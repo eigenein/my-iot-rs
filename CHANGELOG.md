@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.36.0`
+
+- Fix: sensors got recreated for each new reading (critical)
+
 ## `0.35.0`
 
 - Chore: do not mark release as a prerelease anymore to allow getting the latest release via GitHub API #64
