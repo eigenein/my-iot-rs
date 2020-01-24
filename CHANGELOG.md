@@ -3,6 +3,7 @@
 ## `master`
 
 - Opt: refactor `main`
+- Opt: split `services` into `core` and service-dependent parts
 
 ## `0.36.0`
 
