@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Opt: refactor `main`
+
 ## `0.36.0`
 
 - Fix: sensors got recreated for each new reading (critical)

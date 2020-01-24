@@ -5,7 +5,7 @@ pub use crate::core::supervisor;
 pub use crate::core::value::{PointOfTheCompass, Value};
 pub use chrono::prelude::*;
 pub use chrono::Duration;
-pub use crossbeam_channel::Sender;
+pub use crossbeam_channel::{Receiver, Sender};
 pub use failure::{format_err, Error};
 pub use log::{debug, error, info, warn};
 pub use rusqlite::Connection;
