@@ -4,6 +4,7 @@
 
 - Opt: refactor `main`
 - Opt: split `services` into `core` and service-dependent parts
+- Break: remove unimplemented danger zone on the sensor page
 
 ## `0.36.0`
 
