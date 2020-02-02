@@ -1,6 +1,6 @@
 # `my-iot`
 
-## `master`
+## `0.37.0`
 
 - Opt: refactor message bus #58
 - Opt: refactor `main`

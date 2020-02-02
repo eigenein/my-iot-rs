@@ -890,7 +890,7 @@ dependencies = [
 
 [[package]]
 name = "my-iot"
-version = "0.36.0"
+version = "0.37.0"
 dependencies = [
  "askama 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
