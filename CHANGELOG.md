@@ -2,6 +2,7 @@
 
 ## `master`
 
+- Opt: refactor message bus #58
 - Opt: refactor `main`
 - Opt: split `services` into `core` and service-dependent parts
 - Break: remove unimplemented danger zone on the sensor page

@@ -1,6 +1,5 @@
 use crate::prelude::*;
 use crate::supervisor;
-use crossbeam_channel::Sender;
 use serde::Deserialize;
 use std::thread;
 use std::time::Duration;
@@ -16,10 +15,10 @@ fn default_interval_ms() -> u64 {
     1000
 }
 
-pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Result<Vec<Sender<Message>>> {
+pub fn spawn(service_id: &str, settings: &Settings, bus: &mut Bus) -> Result<()> {
     let service_id = service_id.to_string();
     let interval = Duration::from_millis(settings.interval_ms);
-    let tx = tx.clone();
+    let tx = bus.add_tx();
 
     supervisor::spawn(
         format!("my-iot::clock::{}", service_id),
@@ -34,5 +33,5 @@ pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Res
         },
     )?;
 
-    Ok(vec![])
+    Ok(())
 }

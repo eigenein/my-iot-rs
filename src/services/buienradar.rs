@@ -68,8 +68,8 @@ struct BuienradarStationMeasurement {
     weather_description: String,
 }
 
-pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Result<Vec<Sender<Message>>> {
-    let tx = tx.clone();
+pub fn spawn(service_id: &str, settings: &Settings, bus: &mut Bus) -> Result<()> {
+    let tx = bus.add_tx();
     let service_id = service_id.to_string();
     let station_id = settings.station_id;
 
@@ -94,7 +94,7 @@ pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Res
         },
     )?;
 
-    Ok(vec![])
+    Ok(())
 }
 
 /// Fetch measurement for the configured station.

@@ -59,11 +59,12 @@ fn main() -> Result<()> {
     // - services send their messages out to `dispatcher_tx`
     // - the dispatcher sends out each message from `dispatcher_rx` to the services input channels
     info!("Starting services…");
-    let (dispatcher_tx, dispatcher_rx) = crossbeam_channel::unbounded();
-    dispatcher_tx.send(Composer::new("my-iot::start").type_(MessageType::ReadNonLogged).into())?;
-    let mut all_txs = vec![core::persistence::thread::spawn(db.clone(), &dispatcher_tx)?];
-    all_txs.extend(core::services::spawn_all(&settings, &db, &dispatcher_tx)?);
-    core::dispatcher::spawn(dispatcher_rx, dispatcher_tx, all_txs)?;
+    let mut bus = Bus::new();
+    bus.add_tx()
+        .send(Composer::new("my-iot::start").type_(MessageType::ReadNonLogged).into())?;
+    core::persistence::thread::spawn(db.clone(), &mut bus)?;
+    core::services::spawn_all(&settings, &db, &mut bus)?;
+    bus.spawn()?;
 
     info!("Starting web server on port {}…", settings.http_port);
     web::start_server(settings, db)

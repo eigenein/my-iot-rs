@@ -17,10 +17,10 @@ pub struct Settings {
     token: String,
 }
 
-pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Result<Vec<Sender<Message>>> {
+pub fn spawn(service_id: &str, settings: &Settings, bus: &mut Bus) -> Result<()> {
     let service_id = service_id.to_string();
     let settings = settings.clone();
-    let tx = tx.clone();
+    let tx = bus.add_tx();
 
     supervisor::spawn(
         format!("my-iot::nest::{}", &service_id),
@@ -40,7 +40,7 @@ pub fn spawn(service_id: &str, settings: &Settings, tx: &Sender<Message>) -> Res
         },
     )?;
 
-    Ok(vec![])
+    Ok(())
 }
 
 fn send_readings(service_id: &str, event: &NestEvent, tx: &Sender<Message>) -> Result<()> {

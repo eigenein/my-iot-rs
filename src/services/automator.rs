@@ -22,43 +22,33 @@ pub struct Settings {
     scenarios: Vec<Scenario>,
 }
 
-pub fn spawn(
-    service_id: &str,
-    settings: &Settings,
-    db: &Arc<Mutex<Connection>>,
-    outbox_tx: &Sender<Message>,
-) -> Result<Vec<Sender<Message>>> {
-    let outbox_tx = outbox_tx.clone();
+pub fn spawn(service_id: &str, settings: &Settings, db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
+    let tx = bus.add_tx();
     let db = db.clone();
     let service_id = service_id.to_string();
     let settings = settings.clone();
+    let rx = bus.add_rx();
 
-    let (inbox_tx, inbox_rx) = crossbeam_channel::unbounded::<Message>();
-
-    supervisor::spawn(
-        format!("my-iot::automator::{}", &service_id),
-        outbox_tx.clone(),
-        move || {
-            for message in &inbox_rx {
-                for scenario in settings.scenarios.iter() {
-                    if scenario.conditions.iter().all(|c| c.is_met(&message)) {
-                        info!(
-                            r"{} triggered scenario: {}",
-                            &message.sensor.sensor_id, scenario.description
-                        );
-                        for action in scenario.actions.iter() {
-                            action.execute(&service_id, &db, &message, &outbox_tx).unwrap();
-                        }
-                    } else {
-                        debug!("Skipped: {}", &message.sensor.sensor_id);
+    supervisor::spawn(format!("my-iot::automator::{}", &service_id), tx.clone(), move || {
+        for message in &rx {
+            for scenario in settings.scenarios.iter() {
+                if scenario.conditions.iter().all(|c| c.is_met(&message)) {
+                    info!(
+                        r"{} triggered scenario: {}",
+                        &message.sensor.sensor_id, scenario.description
+                    );
+                    for action in scenario.actions.iter() {
+                        action.execute(&service_id, &db, &message, &tx).unwrap();
                     }
+                } else {
+                    debug!("Skipped: {}", &message.sensor.sensor_id);
                 }
             }
-            unreachable!();
-        },
-    )?;
+        }
+        unreachable!();
+    })?;
 
-    Ok(vec![inbox_tx])
+    Ok(())
 }
 
 /// Single automation scenario.

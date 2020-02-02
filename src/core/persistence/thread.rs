@@ -2,10 +2,10 @@ use crate::core::persistence::{select_last_reading, upsert_reading};
 use crate::prelude::*;
 
 /// Spawn the persistence thread.
-pub fn spawn(db: Arc<Mutex<Connection>>, tx: &Sender<Message>) -> Result<Sender<Message>> {
+pub fn spawn(db: Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
     info!("Spawning readings persistence…");
-    let tx = tx.clone();
-    let (out_tx, rx) = crossbeam_channel::unbounded::<Message>();
+    let tx = bus.add_tx();
+    let rx = bus.add_rx();
 
     crate::core::supervisor::spawn("my-iot::persistence", tx.clone(), move || {
         for message in &rx {
@@ -14,7 +14,7 @@ pub fn spawn(db: Arc<Mutex<Connection>>, tx: &Sender<Message>) -> Result<Sender<
         unreachable!();
     })?;
 
-    Ok(out_tx)
+    Ok(())
 }
 
 /// Process a message.

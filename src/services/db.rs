@@ -1,7 +1,6 @@
 use crate::core::persistence::*;
 use crate::prelude::*;
 use crate::supervisor;
-use crossbeam_channel::Sender;
 use serde::Deserialize;
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -18,14 +17,9 @@ fn default_interval_ms() -> u64 {
     60000
 }
 
-pub fn spawn(
-    service_id: &str,
-    settings: &Settings,
-    db: &Arc<Mutex<Connection>>,
-    tx: &Sender<Message>,
-) -> Result<Vec<Sender<Message>>> {
+pub fn spawn(service_id: &str, settings: &Settings, db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
     let interval = Duration::from_millis(settings.interval_ms);
-    let tx = tx.clone();
+    let tx = bus.add_tx();
     let sensor = format!("{}::size", service_id);
     let db = db.clone();
 
@@ -41,5 +35,5 @@ pub fn spawn(
         },
     )?;
 
-    Ok(vec![])
+    Ok(())
 }
