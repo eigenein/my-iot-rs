@@ -43,5 +43,5 @@ html docs:
 	@echo '<html><head><meta http-equiv="refresh" content="0; url=my_iot"></head></html>' > docs/index.html
 
 docker/build/%:
-	@docker build -t "my-iot-rs/$*" -f Dockerfile . --target "$*"
-	@docker run --rm -v "$(PWD):/my-iot-rs" "my-iot-rs/$*"
+	@docker build -t "eigenein/my-iot-rs/$*" -f Dockerfile . --target "$*"
+	@docker run --rm -v "$(PWD):/my-iot-rs" "eigenein/my-iot-rs/$*"

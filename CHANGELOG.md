@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.38.0`
+
+- Fix: upgrade to OpenSSL `1.1.1d`
+
 ## `0.37.0`
 
 - Opt: refactor message bus #58
