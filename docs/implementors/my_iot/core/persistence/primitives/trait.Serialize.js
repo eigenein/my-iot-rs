@@ -6,5 +6,4 @@ implementors["my_iot"] = [];
             } else {
                 window.pending_implementors = implementors;
             }
-        
-})()
+        })()

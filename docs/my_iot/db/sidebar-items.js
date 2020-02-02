@@ -1,1 +1,0 @@
-initSidebarItems({"constant":[["SCHEMA",""]],"struct":[["Db","A database connection."]],"trait":[["SqliteTypeName","Trait which returns SQLite type name of the implementing type."]]});

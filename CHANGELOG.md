@@ -5,6 +5,7 @@
 - Opt: refactor message bus #58
 - Opt: refactor `main`
 - Opt: split `services` into `core` and service-dependent parts
+- Chore: improve `Dockerfile` #64
 - Break: remove unimplemented danger zone on the sensor page
 
 ## `0.36.0`

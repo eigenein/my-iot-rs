@@ -6,5 +6,4 @@ implementors["my_iot"] = [{text:"impl StructOpt for <a class=\"struct\" href=\"m
             } else {
                 window.pending_implementors = implementors;
             }
-        
-})()
+        })()

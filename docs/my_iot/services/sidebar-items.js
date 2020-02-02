@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["spawn","Spawn a service and return a vector of its message sender sides."]],"mod":[["automator","Automation service."],["buienradar",""],["clock",""],["db",""],["nest",""],["telegram","Telegram bot service able to receive and send messages."]]});
+initSidebarItems({"mod":[["automator","Automation service."],["buienradar",""],["clock",""],["db",""],["nest",""],["telegram","Telegram bot service able to receive and send messages."]]});

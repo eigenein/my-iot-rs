@@ -1,12 +1,20 @@
-FROM rust:1.39 AS base
+FROM rust:1.40 AS base
+LABEL maintainer="Pavel Perestoronin <eigenein@gmail.com>"
+LABEL org.label-schema.description="My IoT builder for different devices"
+LABEL org.label-schema.vcs-url="https://github.com/eigenein/my-iot-rs"
+
 ENV OPENSSL_STATIC=1
 
 # Raspberry Pi Zero (W)
+# --------------------------------------------------------------------------------------------------
 FROM base AS arm-unknown-linux-gnueabihf
 
 # Install build tools.
 RUN rustup target add arm-unknown-linux-gnueabihf
-RUN git clone --depth=1 https://github.com/raspberrypi/tools.git
+RUN \
+    git clone --depth=1 https://github.com/raspberrypi/tools.git \
+    && cd tools \
+    && git checkout b0c869bc929587a7e1d20a98e2dc828a24ca396a
 ENV CARGO_TARGET_ARM_UNKNOWN_LINUX_GNUEABIHF_LINKER=arm-linux-gnueabihf-gcc
 
 # Build OpenSSL.
