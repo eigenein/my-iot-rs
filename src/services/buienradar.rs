@@ -6,8 +6,8 @@ use chrono::{DateTime, Local};
 use chrono_tz::Europe::Amsterdam;
 use crossbeam_channel::Sender;
 use failure::format_err;
+use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::Client;
 use serde::{de, Deserialize, Deserializer};
 use std::thread;
 use std::time::Duration;
@@ -76,7 +76,7 @@ pub fn spawn(service_id: &str, settings: &Settings, bus: &mut Bus) -> Result<()>
     let client = {
         let mut headers = HeaderMap::new();
         headers.insert(reqwest::header::USER_AGENT, HeaderValue::from_static(USER_AGENT));
-        reqwest::Client::builder()
+        Client::builder()
             .gzip(true)
             .timeout(Duration::from_secs(10))
             .default_headers(headers)

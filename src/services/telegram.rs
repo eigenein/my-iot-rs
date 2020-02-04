@@ -8,8 +8,8 @@ use crossbeam_channel::Sender;
 use failure::format_err;
 use log::{debug, error};
 use regex::Regex;
+use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::Client;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -47,7 +47,7 @@ impl Context {
         headers.insert(reqwest::header::USER_AGENT, HeaderValue::from_static(USER_AGENT));
 
         Ok(Self {
-            client: reqwest::Client::builder()
+            client: Client::builder()
                 .gzip(true)
                 .timeout(CLIENT_TIMEOUT)
                 .default_headers(headers)

@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.38.2`
+
+- Opt: upgrade `reqwest`, use `rustls` #70
+
 ## `0.38.1`
 
 - Chore: upgrade Rust #70
