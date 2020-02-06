@@ -6,37 +6,21 @@ use rusqlite::params;
 use rusqlite::OptionalExtension;
 use std::path::Path;
 
+mod migrations;
 mod primitives;
 pub mod reading;
 pub mod sensor;
 pub mod thread;
 mod value;
 
-// language=sql
-const SQL: &str = r#"
-    PRAGMA synchronous = NORMAL;
-    PRAGMA journal_mode = WAL;
-    PRAGMA foreign_keys = ON;
-
-    CREATE TABLE IF NOT EXISTS sensors (
-        pk INTEGER PRIMARY KEY NOT NULL,
-        sensor_id TEXT UNIQUE NOT NULL,
-        timestamp DATETIME NOT NULL
-    );
-
-    -- Stores all sensor readings.
-    CREATE TABLE IF NOT EXISTS readings (
-        sensor_fk INTEGER NOT NULL REFERENCES sensors(pk) ON UPDATE CASCADE ON DELETE CASCADE,
-        timestamp DATETIME NOT NULL,
-        value BLOB NOT NULL
-    );
-    -- Descending index on `timestamp` is needed to speed up the select last queries.
-    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_fk_timestamp ON readings (sensor_fk, timestamp DESC);
-"#;
-
 pub fn connect<P: AsRef<Path>>(path: P) -> Result<Connection> {
     let db = Connection::open(path)?;
-    db.execute_batch(SQL)?;
+    let version: i32 = db.pragma_query_value(None, "user_version", |row| row.get(0))?;
+
+    if version == 0 {
+        migrations::version_1::migrate(&db)?;
+    }
+
     Ok(db)
 }
 

@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- New: database migrations #55
+
 ## `0.38.2`
 
 - Opt: upgrade `reqwest`, use `rustls` #70
