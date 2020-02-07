@@ -15,13 +15,7 @@ pub mod thread;
 pub fn connect<P: AsRef<Path>>(path: P) -> Result<Connection> {
     let db = Connection::open(path)?;
     // language=sql
-    db.execute_batch(
-        r#"
-            PRAGMA synchronous = NORMAL;
-            PRAGMA journal_mode = WAL;
-            PRAGMA foreign_keys = ON;
-        "#,
-    )?;
+    db.execute_batch("PRAGMA foreign_keys = ON;")?;
 
     let version: i32 = db.pragma_query_value(None, "user_version", |row| row.get(0))?;
     if version == 0 {

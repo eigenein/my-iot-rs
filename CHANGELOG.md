@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.39.1`
+
+- Fix: use `FULL` synchronous on SQLite
+
 ## `0.39.0`
 
 - **Break: use `rmp-serde` and `uom` for readings persistence, the migration will delete all readings #69**
