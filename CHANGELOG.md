@@ -1,8 +1,9 @@
 # `my-iot`
 
-## `master`
+## `0.39.2`
 
 - Chore: order dashboard by `sensor_id`
+- Fix: only one migration is applied on startup (critical)
 
 ## `0.39.1`
 

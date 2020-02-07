@@ -18,10 +18,10 @@ pub fn connect<P: AsRef<Path>>(path: P) -> Result<Connection> {
     db.execute_batch("PRAGMA foreign_keys = ON;")?;
 
     let version: i32 = db.pragma_query_value(None, "user_version", |row| row.get(0))?;
-    if version == 0 {
+    if version < 1 {
         migrations::version_1::migrate(&db)?;
     }
-    if version == 1 {
+    if version < 2 {
         migrations::version_2::migrate(&db)?;
     }
 
