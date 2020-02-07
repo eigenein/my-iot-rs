@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Chore: order dashboard by `sensor_id`
+
 ## `0.39.1`
 
 - Fix: use `FULL` synchronous on SQLite

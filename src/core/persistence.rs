@@ -75,7 +75,9 @@ pub fn select_actuals(db: &Connection) -> Result<Vec<(Sensor, Reading)>> {
         r#"
             SELECT sensor_id, sensors.timestamp, value
             FROM sensors
-            INNER JOIN readings ON readings.timestamp = sensors.timestamp AND readings.sensor_fk = sensors.pk
+            INNER JOIN readings
+                ON readings.timestamp = sensors.timestamp AND readings.sensor_fk = sensors.pk
+            ORDER BY sensors.sensor_id
         "#,
     )?
     .query_map(params![], |row| {
