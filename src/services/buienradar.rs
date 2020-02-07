@@ -11,6 +11,8 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use serde::{de, Deserialize, Deserializer};
 use std::thread;
 use std::time::Duration;
+use uom::si::f64::*;
+use uom::si::*;
 
 /// Buienradar JSON feed URL.
 const URL: &str = "https://json.buienradar.nl/";
@@ -127,7 +129,7 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
         tx.send(
             Composer::new(format!("{}::{}::temperature", service_id, station_id))
                 .type_(MessageType::ReadLogged)
-                .value(Value::Celsius(degrees))
+                .value(ThermodynamicTemperature::new::<thermodynamic_temperature::degree_celsius>(degrees))
                 .timestamp(measurement.timestamp)
                 .into(),
         )?;
@@ -136,7 +138,7 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
         tx.send(
             Composer::new(format!("{}::{}::ground_temperature", service_id, station_id))
                 .type_(MessageType::ReadLogged)
-                .value(Value::Celsius(degrees))
+                .value(ThermodynamicTemperature::new::<thermodynamic_temperature::degree_celsius>(degrees))
                 .timestamp(measurement.timestamp)
                 .into(),
         )?;
@@ -145,7 +147,7 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
         tx.send(
             Composer::new(format!("{}::{}::feel_temperature", service_id, station_id))
                 .type_(MessageType::ReadLogged)
-                .value(Value::Celsius(degrees))
+                .value(ThermodynamicTemperature::new::<thermodynamic_temperature::degree_celsius>(degrees))
                 .timestamp(measurement.timestamp)
                 .into(),
         )?;

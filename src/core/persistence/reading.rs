@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct Reading {
     /// Timestamp when the value was actually measured. This may be earlier than a moment of sending the message.
     pub timestamp: DateTime<Local>,

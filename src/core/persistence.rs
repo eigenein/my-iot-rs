@@ -2,8 +2,8 @@
 
 use crate::prelude::*;
 use chrono::prelude::*;
-use rusqlite::params;
 use rusqlite::OptionalExtension;
+use rusqlite::{params, Row};
 use std::path::Path;
 
 mod migrations;
@@ -11,14 +11,24 @@ mod primitives;
 pub mod reading;
 pub mod sensor;
 pub mod thread;
-mod value;
 
 pub fn connect<P: AsRef<Path>>(path: P) -> Result<Connection> {
     let db = Connection::open(path)?;
-    let version: i32 = db.pragma_query_value(None, "user_version", |row| row.get(0))?;
+    // language=sql
+    db.execute_batch(
+        r#"
+            PRAGMA synchronous = NORMAL;
+            PRAGMA journal_mode = WAL;
+            PRAGMA foreign_keys = ON;
+        "#,
+    )?;
 
+    let version: i32 = db.pragma_query_value(None, "user_version", |row| row.get(0))?;
     if version == 0 {
         migrations::version_1::migrate(&db)?;
+    }
+    if version == 1 {
+        migrations::version_2::migrate(&db)?;
     }
 
     Ok(db)
@@ -40,6 +50,13 @@ pub fn upsert_sensor(db: &Connection, sensor: &Sensor, timestamp: i64) -> Result
 pub fn upsert_reading(db: &Connection, sensor: &Sensor, reading: &Reading) -> Result<()> {
     let timestamp = reading.timestamp.timestamp_millis();
     upsert_sensor(&db, &sensor, timestamp)?;
+
+    let mut serialized_value = Vec::new();
+    reading.value.serialize(
+        &mut rmp_serde::Serializer::new(&mut serialized_value)
+            .with_string_variants()
+            .with_struct_map(),
+    )?;
     db.prepare_cached(
         // language=sql
         r#"
@@ -53,7 +70,8 @@ pub fn upsert_reading(db: &Connection, sensor: &Sensor, reading: &Reading) -> Re
             ON CONFLICT (sensor_fk, timestamp) DO UPDATE SET value = excluded.value
         "#,
     )?
-    .execute(params![sensor.sensor_id, timestamp, reading.value.serialize()])?;
+    .execute(params![sensor.sensor_id, timestamp, serialized_value])?;
+
     Ok(())
 }
 
@@ -69,12 +87,9 @@ pub fn select_actuals(db: &Connection) -> Result<Vec<(Sensor, Reading)>> {
     .query_map(params![], |row| {
         Ok((
             Sensor {
-                sensor_id: row.get_unwrap("sensor_id"),
+                sensor_id: row.get("sensor_id")?,
             },
-            Reading {
-                timestamp: Local.timestamp_millis(row.get("timestamp")?),
-                value: Value::deserialize(row.get("value")?).unwrap(),
-            },
+            reading_from_row(row)?,
         ))
     })?
     .map(|r| r.map_err(Error::from))
@@ -107,12 +122,7 @@ pub fn select_last_reading(db: &Connection, sensor_id: &str) -> Result<Option<Re
             WHERE sensors.sensor_id = ?1
             "#,
         )?
-        .query_row(params![sensor_id], |row| {
-            Ok(Reading {
-                timestamp: Local.timestamp_millis(row.get("timestamp")?),
-                value: Value::deserialize(row.get("value")?).unwrap(),
-            })
-        })
+        .query_row(params![sensor_id], reading_from_row)
         .optional()?)
 }
 
@@ -130,14 +140,18 @@ pub fn select_readings(db: &Connection, sensor_id: &str, since: &DateTime<Local>
             ORDER BY readings.timestamp
             "#,
         )?
-        .query_map(params![sensor_id, since.timestamp_millis()], |row| {
-            Ok(Reading {
-                timestamp: Local.timestamp_millis(row.get("timestamp")?),
-                value: Value::deserialize(row.get("value")?).unwrap(),
-            })
-        })?
+        .query_map(params![sensor_id, since.timestamp_millis()], reading_from_row)?
         .map(|r| r.map_err(Error::from))
         .collect()
+}
+
+fn reading_from_row(row: &Row) -> rusqlite::Result<Reading> {
+    Ok(Reading {
+        timestamp: Local.timestamp_millis(row.get("timestamp")?),
+        value: rmp_serde::from_read_ref(&row.get::<_, Vec<u8>>("value")?).map_err(|error| {
+            rusqlite::Error::FromSqlConversionFailure(0, rusqlite::types::Type::Blob, Box::new(error))
+        })?,
+    })
 }
 
 #[cfg(test)]

@@ -1,7 +1,8 @@
 # `my-iot`
 
-## `master`
+## `0.39.0`
 
+- **Break: use `rmp-serde` and `uom` for readings persistence, the migration will delete all readings #69**
 - New: database migrations #55
 
 ## `0.38.2`

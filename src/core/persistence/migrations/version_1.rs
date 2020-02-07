@@ -2,15 +2,11 @@ use crate::prelude::*;
 use rusqlite::Connection;
 
 pub fn migrate(db: &Connection) -> Result<()> {
-    info!("Applying migration…");
+    info!("Creating the initial schema…");
 
     // language=sql
     db.execute_batch(
         r#"
-            PRAGMA synchronous = NORMAL;
-            PRAGMA journal_mode = WAL;
-            PRAGMA foreign_keys = ON;
-
             CREATE TABLE IF NOT EXISTS sensors (
                 pk INTEGER PRIMARY KEY NOT NULL,
                 sensor_id TEXT UNIQUE NOT NULL,

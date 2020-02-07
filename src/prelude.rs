@@ -10,6 +10,7 @@ pub use crossbeam_channel::{Receiver, Sender};
 pub use failure::{format_err, Error};
 pub use log::{debug, error, info, warn};
 pub use rusqlite::Connection;
+pub use serde::{Deserialize, Serialize};
 pub use std::sync::{Arc, Mutex};
 
 pub type Result<T> = std::result::Result<T, Error>;

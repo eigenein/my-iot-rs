@@ -8,6 +8,8 @@ use failure::format_err;
 use rouille::url::Url;
 use serde::Deserialize;
 use std::collections::HashMap;
+use uom::si::f64::*;
+use uom::si::*;
 
 const URL: &str = "https://developer-api.nest.com";
 
@@ -49,7 +51,11 @@ fn send_readings(service_id: &str, event: &NestEvent, tx: &Sender<Message>) -> R
     for (id, thermostat) in event.data.devices.thermostats.iter() {
         tx.send(
             Composer::new(format!("{}::thermostat::{}::ambient_temperature", service_id, &id))
-                .value(Value::Celsius(thermostat.ambient_temperature_c))
+                .value(
+                    ThermodynamicTemperature::new::<thermodynamic_temperature::degree_celsius>(
+                        thermostat.ambient_temperature_c,
+                    ),
+                )
                 .timestamp(now)
                 .into(),
         )?;

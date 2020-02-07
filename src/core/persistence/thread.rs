@@ -9,7 +9,9 @@ pub fn spawn(db: Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
 
     crate::core::supervisor::spawn("my-iot::persistence", tx.clone(), move || {
         for message in &rx {
-            process_message(message, &db, &tx).unwrap();
+            if let Err(error) = process_message(&message, &db, &tx) {
+                error!("{}: {:?}", error, &message);
+            }
         }
         unreachable!();
     })?;
@@ -18,7 +20,7 @@ pub fn spawn(db: Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
 }
 
 /// Process a message.
-fn process_message(message: Message, db: &Arc<Mutex<Connection>>, tx: &Sender<Message>) -> Result<()> {
+fn process_message(message: &Message, db: &Arc<Mutex<Connection>>, tx: &Sender<Message>) -> Result<()> {
     info!(
         "{}: {:?} {:?}",
         &message.sensor.sensor_id, &message.type_, &message.reading.value

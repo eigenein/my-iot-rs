@@ -5,7 +5,6 @@ use crate::prelude::*;
 use crate::settings::Settings;
 use crate::templates;
 use rouille::{router, Response};
-use serde_json::json;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::{Arc, Mutex};
 
@@ -55,10 +54,7 @@ fn get_sensor(db: &Arc<Mutex<Connection>>, sensor_id: &str) -> Response {
 /// Get last sensor value JSON response.
 fn get_sensor_json(db: &Arc<Mutex<Connection>>, sensor_id: &str) -> Response {
     match select_last_reading(&db.lock().unwrap(), &sensor_id).unwrap() {
-        Some(reading) => Response::json(&json!({
-            "value": &reading.value,
-            "timestamp": &reading.timestamp,
-        })),
+        Some(reading) => Response::json(&reading),
         None => Response::empty_404(),
     }
 }

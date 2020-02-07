@@ -4,43 +4,62 @@ use crate::format::human_format;
 use failure::{format_err, Error};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
+use uom::fmt::DisplayStyle::Abbreviation;
+use uom::si::f64::*;
+use uom::si::*;
 
 /// Sensor reading value.
-#[derive(Clone, Debug, Serialize, PartialEq)]
-#[serde(untagged)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum Value {
     /// No value.
+    #[serde(rename = "N")]
     None,
 
     /// Generic counter.
+    #[serde(rename = "C")]
     Counter(u64),
 
-    /// Size in [bytes](https://en.wikipedia.org/wiki/Byte).
-    Size(u64),
-
-    /// [Plain text](https://en.wikipedia.org/wiki/Plain_text).
-    Text(String),
-
-    /// [Celsius](https://en.wikipedia.org/wiki/Celsius) temperature.
-    Celsius(f64),
-
-    /// [Beaufort](https://en.wikipedia.org/wiki/Beaufort_scale) wind speed.
-    Bft(u8),
-
-    /// Wind direction.
-    WindDirection(PointOfTheCompass),
-
-    /// Length in [metres](https://en.wikipedia.org/wiki/Metre).
-    Metres(f64),
-
-    /// [Relative humidity](https://en.wikipedia.org/wiki/Relative_humidity) in percents.
-    Rh(f64),
-
     /// Image URL.
+    #[serde(rename = "IU")]
     ImageUrl(String),
 
     /// Boolean.
+    #[serde(rename = "B")]
     Boolean(bool),
+
+    /// Wind direction.
+    #[serde(rename = "WD")]
+    WindDirection(PointOfTheCompass),
+
+    /// Size in [bytes](https://en.wikipedia.org/wiki/Byte).
+    #[serde(rename = "DS")]
+    DataSize(u64),
+
+    /// [Plain text](https://en.wikipedia.org/wiki/Plain_text).
+    #[serde(rename = "TEXT")]
+    Text(String),
+
+    /// [Beaufort](https://en.wikipedia.org/wiki/Beaufort_scale) wind speed.
+    #[serde(rename = "BFT")]
+    Bft(u8),
+
+    /// [Relative humidity](https://en.wikipedia.org/wiki/Relative_humidity) in percents.
+    #[serde(rename = "RH")]
+    Rh(f64),
+
+    /// [Thermodynamic temperature](https://en.wikipedia.org/wiki/Thermodynamic_temperature).
+    #[serde(rename = "T")]
+    Temperature(ThermodynamicTemperature),
+
+    /// Length.
+    #[serde(rename = "L")]
+    Length(Length),
+}
+
+impl From<ThermodynamicTemperature> for Value {
+    fn from(temperature: ThermodynamicTemperature) -> Self {
+        Self::Temperature(temperature)
+    }
 }
 
 impl AsRef<Value> for Value {
@@ -59,12 +78,12 @@ impl Value {
                 4..=5 => "is-warning",
                 _ => "is-danger",
             },
-            Value::Celsius(value) => match value {
-                _ if value < -5.0 => "is-link",
-                _ if value < 5.0 => "is-info",
-                _ if value < 15.0 => "is-primary",
-                _ if value < 25.0 => "is-success",
-                _ if value < 30.0 => "is-warning",
+            Value::Temperature(value) => match value {
+                _ if value.value < -5.0 + 273.15 => "is-link",
+                _ if value.value < 5.0 + 273.15 => "is-info",
+                _ if value.value < 15.0 + 273.15 => "is-primary",
+                _ if value.value < 25.0 + 273.15 => "is-success",
+                _ if value.value < 30.0 + 273.15 => "is-warning",
                 _ => "is-danger",
             },
             Value::WindDirection(_) => "is-light",
@@ -91,13 +110,13 @@ impl Value {
     pub fn icon(&self) -> Result<&'static str, Error> {
         match *self {
             Value::Counter(_) => Ok(r#"<i class="fas fa-sort-numeric-up-alt"></i>"#),
-            Value::Size(_) => Ok(r#"<i class="far fa-save"></i>"#),
+            Value::DataSize(_) => Ok(r#"<i class="far fa-save"></i>"#),
             Value::Text(_) => Ok(r#"<i class="fas fa-quote-left"></i>"#),
-            Value::Celsius(_) => Ok(r#"<i class="fas fa-thermometer-half"></i>"#),
+            Value::Temperature(_) => Ok(r#"<i class="fas fa-thermometer-half"></i>"#),
             Value::Bft(_) => Ok(r#"<i class="fas fa-wind"></i>"#),
             Value::WindDirection(_) => Ok(r#"<i class="fas fa-wind"></i>"#),
             Value::Rh(_) => Ok(r#"<i class="fas fa-water"></i>"#),
-            Value::Metres(_) => Ok(r#"<i class="fas fa-ruler"></i>"#),
+            Value::Length(_) => Ok(r#"<i class="fas fa-ruler"></i>"#),
             Value::Boolean(value) => Ok(if value {
                 r#"<i class="fas fa-toggle-on"></i>"#
             } else {
@@ -121,13 +140,17 @@ impl std::fmt::Display for Value {
         match self {
             Value::None => Ok(()),
             Value::Counter(count) => write!(f, r"{} times", count),
-            Value::Size(size) => f.write_str(&human_format(*size as f64, "B")),
+            Value::DataSize(size) => f.write_str(&human_format(*size as f64, "B")),
             Value::Text(ref string) => write!(f, r"{}", string),
-            Value::Celsius(degrees) => write!(f, r"{:.1} ℃", degrees),
+            Value::Temperature(temperature) => write!(
+                f,
+                r"{:.1}",
+                temperature.into_format_args(thermodynamic_temperature::degree_celsius, Abbreviation),
+            ),
             Value::Bft(bft) => write!(f, r"{} BFT", bft),
             Value::WindDirection(point) => write!(f, r"{}", point),
             Value::Rh(percent) => write!(f, r"{}%", percent),
-            Value::Metres(metres) => f.write_str(&human_format(*metres, "m")),
+            Value::Length(length) => write!(f, r"{}", length.into_format_args(length::meter, Abbreviation)),
             Value::ImageUrl(url) => write!(f, r#"<img src="{}">"#, url),
             Value::Boolean(value) => write!(
                 f,

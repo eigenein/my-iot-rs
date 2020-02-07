@@ -34,3 +34,5 @@ simple_logger = "1.0.1"
 structopt = "0.3"
 rusqlite = { version = "0.20.0", features = ["bundled"] }
 askama = "0.8"
+rmp-serde = "0.14.2"
+uom = { version = "0.26.0", features = ["use_serde", "autoconvert", "f64", "si", "std", "try-from"] }
