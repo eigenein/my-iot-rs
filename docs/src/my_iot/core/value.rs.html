@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/core/value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>value.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../my_iot/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/core/value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>value.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../my_iot/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -193,6 +193,29 @@
 <span id="193">193</span>
 <span id="194">194</span>
 <span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implements sensor reading value.</span>
 
@@ -200,43 +223,62 @@
 <span class="kw">use</span> <span class="ident">failure</span>::{<span class="ident">format_err</span>, <span class="ident">Error</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="ident">Display</span>, <span class="ident">Formatter</span>};
+<span class="kw">use</span> <span class="ident">uom</span>::<span class="ident">fmt</span>::<span class="ident">DisplayStyle</span>::<span class="ident">Abbreviation</span>;
+<span class="kw">use</span> <span class="ident">uom</span>::<span class="ident">si</span>::<span class="ident">f64</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">uom</span>::<span class="ident">si</span>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Sensor reading value.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">untagged</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Value</span> {
     <span class="doccomment">/// No value.</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;N&quot;</span>)]</span>
     <span class="prelude-val">None</span>,
 
     <span class="doccomment">/// Generic counter.</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;C&quot;</span>)]</span>
     <span class="ident">Counter</span>(<span class="ident">u64</span>),
 
-    <span class="doccomment">/// Size in [bytes](https://en.wikipedia.org/wiki/Byte).</span>
-    <span class="ident">Size</span>(<span class="ident">u64</span>),
-
-    <span class="doccomment">/// [Plain text](https://en.wikipedia.org/wiki/Plain_text).</span>
-    <span class="ident">Text</span>(<span class="ident">String</span>),
-
-    <span class="doccomment">/// [Celsius](https://en.wikipedia.org/wiki/Celsius) temperature.</span>
-    <span class="ident">Celsius</span>(<span class="ident">f64</span>),
-
-    <span class="doccomment">/// [Beaufort](https://en.wikipedia.org/wiki/Beaufort_scale) wind speed.</span>
-    <span class="ident">Bft</span>(<span class="ident">u8</span>),
-
-    <span class="doccomment">/// Wind direction.</span>
-    <span class="ident">WindDirection</span>(<span class="ident">PointOfTheCompass</span>),
-
-    <span class="doccomment">/// Length in [metres](https://en.wikipedia.org/wiki/Metre).</span>
-    <span class="ident">Metres</span>(<span class="ident">f64</span>),
-
-    <span class="doccomment">/// [Relative humidity](https://en.wikipedia.org/wiki/Relative_humidity) in percents.</span>
-    <span class="ident">Rh</span>(<span class="ident">f64</span>),
-
     <span class="doccomment">/// Image URL.</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;IU&quot;</span>)]</span>
     <span class="ident">ImageUrl</span>(<span class="ident">String</span>),
 
     <span class="doccomment">/// Boolean.</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;B&quot;</span>)]</span>
     <span class="ident">Boolean</span>(<span class="ident">bool</span>),
+
+    <span class="doccomment">/// Wind direction.</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;WD&quot;</span>)]</span>
+    <span class="ident">WindDirection</span>(<span class="ident">PointOfTheCompass</span>),
+
+    <span class="doccomment">/// Size in [bytes](https://en.wikipedia.org/wiki/Byte).</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;DS&quot;</span>)]</span>
+    <span class="ident">DataSize</span>(<span class="ident">u64</span>),
+
+    <span class="doccomment">/// [Plain text](https://en.wikipedia.org/wiki/Plain_text).</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;TEXT&quot;</span>)]</span>
+    <span class="ident">Text</span>(<span class="ident">String</span>),
+
+    <span class="doccomment">/// [Beaufort](https://en.wikipedia.org/wiki/Beaufort_scale) wind speed.</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;BFT&quot;</span>)]</span>
+    <span class="ident">Bft</span>(<span class="ident">u8</span>),
+
+    <span class="doccomment">/// [Relative humidity](https://en.wikipedia.org/wiki/Relative_humidity) in percents.</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;RH&quot;</span>)]</span>
+    <span class="ident">Rh</span>(<span class="ident">f64</span>),
+
+    <span class="doccomment">/// [Thermodynamic temperature](https://en.wikipedia.org/wiki/Thermodynamic_temperature).</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;T&quot;</span>)]</span>
+    <span class="ident">Temperature</span>(<span class="ident">ThermodynamicTemperature</span>),
+
+    <span class="doccomment">/// Length.</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;L&quot;</span>)]</span>
+    <span class="ident">Length</span>(<span class="ident">Length</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ThermodynamicTemperature</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Value</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">temperature</span>: <span class="ident">ThermodynamicTemperature</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>::<span class="ident">Temperature</span>(<span class="ident">temperature</span>)
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Value</span> {
@@ -255,12 +297,12 @@
                 <span class="number">4</span>..<span class="op">=</span><span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;is-warning&quot;</span>,
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;is-danger&quot;</span>,
             },
-            <span class="ident">Value</span>::<span class="ident">Celsius</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">value</span> {
-                <span class="kw">_</span> <span class="kw">if</span> <span class="ident">value</span> <span class="op">&lt;</span> <span class="op">-</span><span class="number">5.0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;is-link&quot;</span>,
-                <span class="kw">_</span> <span class="kw">if</span> <span class="ident">value</span> <span class="op">&lt;</span> <span class="number">5.0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;is-info&quot;</span>,
-                <span class="kw">_</span> <span class="kw">if</span> <span class="ident">value</span> <span class="op">&lt;</span> <span class="number">15.0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;is-primary&quot;</span>,
-                <span class="kw">_</span> <span class="kw">if</span> <span class="ident">value</span> <span class="op">&lt;</span> <span class="number">25.0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;is-success&quot;</span>,
-                <span class="kw">_</span> <span class="kw">if</span> <span class="ident">value</span> <span class="op">&lt;</span> <span class="number">30.0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;is-warning&quot;</span>,
+            <span class="ident">Value</span>::<span class="ident">Temperature</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">value</span> {
+                <span class="kw">_</span> <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">value</span> <span class="op">&lt;</span> <span class="op">-</span><span class="number">5.0</span> <span class="op">+</span> <span class="number">273.15</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;is-link&quot;</span>,
+                <span class="kw">_</span> <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">value</span> <span class="op">&lt;</span> <span class="number">5.0</span> <span class="op">+</span> <span class="number">273.15</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;is-info&quot;</span>,
+                <span class="kw">_</span> <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">value</span> <span class="op">&lt;</span> <span class="number">15.0</span> <span class="op">+</span> <span class="number">273.15</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;is-primary&quot;</span>,
+                <span class="kw">_</span> <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">value</span> <span class="op">&lt;</span> <span class="number">25.0</span> <span class="op">+</span> <span class="number">273.15</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;is-success&quot;</span>,
+                <span class="kw">_</span> <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">value</span> <span class="op">&lt;</span> <span class="number">30.0</span> <span class="op">+</span> <span class="number">273.15</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;is-warning&quot;</span>,
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;is-danger&quot;</span>,
             },
             <span class="ident">Value</span>::<span class="ident">WindDirection</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;is-light&quot;</span>,
@@ -287,13 +329,13 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">icon</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="string">r#&quot;&lt;i class=&quot;fas fa-sort-numeric-up-alt&quot;&gt;&lt;/i&gt;&quot;#</span>),
-            <span class="ident">Value</span>::<span class="ident">Size</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="string">r#&quot;&lt;i class=&quot;far fa-save&quot;&gt;&lt;/i&gt;&quot;#</span>),
+            <span class="ident">Value</span>::<span class="ident">DataSize</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="string">r#&quot;&lt;i class=&quot;far fa-save&quot;&gt;&lt;/i&gt;&quot;#</span>),
             <span class="ident">Value</span>::<span class="ident">Text</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="string">r#&quot;&lt;i class=&quot;fas fa-quote-left&quot;&gt;&lt;/i&gt;&quot;#</span>),
-            <span class="ident">Value</span>::<span class="ident">Celsius</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="string">r#&quot;&lt;i class=&quot;fas fa-thermometer-half&quot;&gt;&lt;/i&gt;&quot;#</span>),
+            <span class="ident">Value</span>::<span class="ident">Temperature</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="string">r#&quot;&lt;i class=&quot;fas fa-thermometer-half&quot;&gt;&lt;/i&gt;&quot;#</span>),
             <span class="ident">Value</span>::<span class="ident">Bft</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="string">r#&quot;&lt;i class=&quot;fas fa-wind&quot;&gt;&lt;/i&gt;&quot;#</span>),
             <span class="ident">Value</span>::<span class="ident">WindDirection</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="string">r#&quot;&lt;i class=&quot;fas fa-wind&quot;&gt;&lt;/i&gt;&quot;#</span>),
             <span class="ident">Value</span>::<span class="ident">Rh</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="string">r#&quot;&lt;i class=&quot;fas fa-water&quot;&gt;&lt;/i&gt;&quot;#</span>),
-            <span class="ident">Value</span>::<span class="ident">Metres</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="string">r#&quot;&lt;i class=&quot;fas fa-ruler&quot;&gt;&lt;/i&gt;&quot;#</span>),
+            <span class="ident">Value</span>::<span class="ident">Length</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="string">r#&quot;&lt;i class=&quot;fas fa-ruler&quot;&gt;&lt;/i&gt;&quot;#</span>),
             <span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="ident">value</span> {
                 <span class="string">r#&quot;&lt;i class=&quot;fas fa-toggle-on&quot;&gt;&lt;/i&gt;&quot;#</span>
             } <span class="kw">else</span> {
@@ -317,13 +359,17 @@
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">Value</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
             <span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="ident">count</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r&quot;{} times&quot;</span>, <span class="ident">count</span>),
-            <span class="ident">Value</span>::<span class="ident">Size</span>(<span class="ident">size</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="ident">human_format</span>(<span class="kw-2">*</span><span class="ident">size</span> <span class="kw">as</span> <span class="ident">f64</span>, <span class="string">&quot;B&quot;</span>)),
+            <span class="ident">Value</span>::<span class="ident">DataSize</span>(<span class="ident">size</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="ident">human_format</span>(<span class="kw-2">*</span><span class="ident">size</span> <span class="kw">as</span> <span class="ident">f64</span>, <span class="string">&quot;B&quot;</span>)),
             <span class="ident">Value</span>::<span class="ident">Text</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r&quot;{}&quot;</span>, <span class="ident">string</span>),
-            <span class="ident">Value</span>::<span class="ident">Celsius</span>(<span class="ident">degrees</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r&quot;{:.1} ℃&quot;</span>, <span class="ident">degrees</span>),
+            <span class="ident">Value</span>::<span class="ident">Temperature</span>(<span class="ident">temperature</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(
+                <span class="ident">f</span>,
+                <span class="string">r&quot;{:.1}&quot;</span>,
+                <span class="ident">temperature</span>.<span class="ident">into_format_args</span>(<span class="ident">thermodynamic_temperature</span>::<span class="ident">degree_celsius</span>, <span class="ident">Abbreviation</span>),
+            ),
             <span class="ident">Value</span>::<span class="ident">Bft</span>(<span class="ident">bft</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r&quot;{} BFT&quot;</span>, <span class="ident">bft</span>),
             <span class="ident">Value</span>::<span class="ident">WindDirection</span>(<span class="ident">point</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r&quot;{}&quot;</span>, <span class="ident">point</span>),
             <span class="ident">Value</span>::<span class="ident">Rh</span>(<span class="ident">percent</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r&quot;{}%&quot;</span>, <span class="ident">percent</span>),
-            <span class="ident">Value</span>::<span class="ident">Metres</span>(<span class="ident">metres</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="ident">human_format</span>(<span class="kw-2">*</span><span class="ident">metres</span>, <span class="string">&quot;m&quot;</span>)),
+            <span class="ident">Value</span>::<span class="ident">Length</span>(<span class="ident">length</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r&quot;{}&quot;</span>, <span class="ident">length</span>.<span class="ident">into_format_args</span>(<span class="ident">length</span>::<span class="ident">meter</span>, <span class="ident">Abbreviation</span>)),
             <span class="ident">Value</span>::<span class="ident">ImageUrl</span>(<span class="ident">url</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">r#&quot;&lt;img src=&quot;{}&quot;&gt;&quot;#</span>, <span class="ident">url</span>),
             <span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(
                 <span class="ident">f</span>,

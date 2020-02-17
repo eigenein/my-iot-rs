@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/core/persistence.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>persistence.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../my_iot/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/core/persistence.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>persistence.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="../../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../my_iot/index.html'><div class='logo-container'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -276,47 +276,74 @@
 <span id="276">276</span>
 <span id="277">277</span>
 <span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Database interface.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">rusqlite</span>::<span class="ident">params</span>;
 <span class="kw">use</span> <span class="ident">rusqlite</span>::<span class="ident">OptionalExtension</span>;
+<span class="kw">use</span> <span class="ident">rusqlite</span>::{<span class="ident">params</span>, <span class="ident">Row</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
 
+<span class="kw">mod</span> <span class="ident">migrations</span>;
 <span class="kw">mod</span> <span class="ident">primitives</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">reading</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">sensor</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">thread</span>;
-<span class="kw">mod</span> <span class="ident">value</span>;
 
-<span class="comment">// language=sql</span>
-<span class="kw">const</span> <span class="ident">SQL</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
-    PRAGMA synchronous = NORMAL;
-    PRAGMA journal_mode = WAL;
-    PRAGMA foreign_keys = ON;
-
-    CREATE TABLE IF NOT EXISTS sensors (
-        pk INTEGER PRIMARY KEY NOT NULL,
-        sensor_id TEXT UNIQUE NOT NULL,
-        timestamp DATETIME NOT NULL
-    );
-
-    -- Stores all sensor readings.
-    CREATE TABLE IF NOT EXISTS readings (
-        sensor_fk INTEGER NOT NULL REFERENCES sensors(pk) ON UPDATE CASCADE ON DELETE CASCADE,
-        timestamp DATETIME NOT NULL,
-        value BLOB NOT NULL
-    );
-    -- Descending index on `timestamp` is needed to speed up the select last queries.
-    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_fk_timestamp ON readings (sensor_fk, timestamp DESC);
-&quot;#</span>;
+<span class="kw">const</span> <span class="ident">MIGRATIONS</span>: <span class="kw-2">&amp;</span>[<span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">Connection</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+    <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(()),
+    <span class="ident">migrations</span>::<span class="ident">version_1</span>::<span class="ident">migrate</span>,
+    <span class="ident">migrations</span>::<span class="ident">version_2</span>::<span class="ident">migrate</span>,
+    <span class="ident">migrations</span>::<span class="ident">version_3</span>::<span class="ident">migrate</span>,
+];
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Connection</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Connection</span>::<span class="ident">open</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
-    <span class="ident">db</span>.<span class="ident">execute_batch</span>(<span class="ident">SQL</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Connection</span>::<span class="ident">open</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
+    <span class="comment">// language=sql</span>
+    <span class="ident">db</span>.<span class="ident">execute_batch</span>(<span class="string">&quot;PRAGMA foreign_keys = ON;&quot;</span>)<span class="question-mark">?</span>;
+
+    <span class="kw">let</span> <span class="ident">version</span> <span class="op">=</span> <span class="ident">get_version</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">usize</span>;
+    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">migrate</span>) <span class="kw">in</span> <span class="ident">MIGRATIONS</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
+        <span class="kw">if</span> <span class="ident">version</span> <span class="op">&lt;</span> <span class="ident">i</span> {
+            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Migrating to version {}…&quot;</span>, <span class="ident">i</span>);
+            <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <span class="ident">db</span>.<span class="ident">transaction</span>()<span class="question-mark">?</span>;
+            <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="ident">tx</span>)<span class="question-mark">?</span>;
+            <span class="ident">tx</span>.<span class="ident">pragma_update</span>(<span class="prelude-val">None</span>, <span class="string">&quot;user_version&quot;</span>, <span class="kw-2">&amp;</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">i32</span>))<span class="question-mark">?</span>;
+            <span class="ident">tx</span>.<span class="ident">commit</span>()<span class="question-mark">?</span>;
+        }
+    }
+
     <span class="prelude-val">Ok</span>(<span class="ident">db</span>)
+}
+
+<span class="doccomment">/// Get the database `user_version`.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_version</span>(<span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="ident">Connection</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">version</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">db</span>.<span class="ident">pragma_query_value</span>(<span class="prelude-val">None</span>, <span class="string">&quot;user_version&quot;</span>, <span class="op">|</span><span class="ident">row</span><span class="op">|</span> <span class="ident">row</span>.<span class="ident">get</span>(<span class="number">0</span>))<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(<span class="ident">version</span>)
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">upsert_sensor</span>(<span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="ident">Connection</span>, <span class="ident">sensor</span>: <span class="kw-2">&amp;</span><span class="ident">Sensor</span>, <span class="ident">timestamp</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
@@ -324,17 +351,27 @@
         <span class="comment">// language=sql</span>
         <span class="string">r#&quot;
             -- noinspection SqlResolve @ any/&quot;excluded&quot;
-            INSERT INTO sensors (sensor_id, timestamp) VALUES (?1, ?2)
-            ON CONFLICT (sensor_id) DO UPDATE SET timestamp = excluded.timestamp
+            -- noinspection SqlInsertValues
+            INSERT INTO sensors (sensor_id, title, timestamp) VALUES (?1, ?2, ?3)
+            ON CONFLICT (sensor_id) DO UPDATE SET
+                timestamp = excluded.timestamp,
+                title = excluded.title
         &quot;#</span>,
     )<span class="question-mark">?</span>
-    .<span class="ident">execute</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="ident">sensor</span>.<span class="ident">sensor_id</span>, <span class="ident">timestamp</span>])<span class="question-mark">?</span>;
+    .<span class="ident">execute</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="ident">sensor</span>.<span class="ident">sensor_id</span>, <span class="ident">sensor</span>.<span class="ident">title</span>, <span class="ident">timestamp</span>])<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">upsert_reading</span>(<span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="ident">Connection</span>, <span class="ident">sensor</span>: <span class="kw-2">&amp;</span><span class="ident">Sensor</span>, <span class="ident">reading</span>: <span class="kw-2">&amp;</span><span class="ident">Reading</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">timestamp</span> <span class="op">=</span> <span class="ident">reading</span>.<span class="ident">timestamp</span>.<span class="ident">timestamp_millis</span>();
     <span class="ident">upsert_sensor</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>, <span class="kw-2">&amp;</span><span class="ident">sensor</span>, <span class="ident">timestamp</span>)<span class="question-mark">?</span>;
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">serialized_value</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+    <span class="ident">reading</span>.<span class="ident">value</span>.<span class="ident">serialize</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rmp_serde</span>::<span class="ident">Serializer</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">serialized_value</span>)
+            .<span class="ident">with_string_variants</span>()
+            .<span class="ident">with_struct_map</span>(),
+    )<span class="question-mark">?</span>;
     <span class="ident">db</span>.<span class="ident">prepare_cached</span>(
         <span class="comment">// language=sql</span>
         <span class="string">r#&quot;
@@ -348,7 +385,8 @@
             ON CONFLICT (sensor_fk, timestamp) DO UPDATE SET value = excluded.value
         &quot;#</span>,
     )<span class="question-mark">?</span>
-    .<span class="ident">execute</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="ident">sensor</span>.<span class="ident">sensor_id</span>, <span class="ident">timestamp</span>, <span class="ident">reading</span>.<span class="ident">value</span>.<span class="ident">serialize</span>()])<span class="question-mark">?</span>;
+    .<span class="ident">execute</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="ident">sensor</span>.<span class="ident">sensor_id</span>, <span class="ident">timestamp</span>, <span class="ident">serialized_value</span>])<span class="question-mark">?</span>;
+
     <span class="prelude-val">Ok</span>(())
 }
 
@@ -356,20 +394,20 @@
     <span class="ident">db</span>.<span class="ident">prepare_cached</span>(
         <span class="comment">// language=sql</span>
         <span class="string">r#&quot;
-            SELECT sensor_id, sensors.timestamp, value
+            SELECT sensors.sensor_id, sensors.title, sensors.timestamp, value
             FROM sensors
-            INNER JOIN readings ON readings.timestamp = sensors.timestamp AND readings.sensor_fk = sensors.pk
+            INNER JOIN readings
+                ON readings.timestamp = sensors.timestamp AND readings.sensor_fk = sensors.pk
+            ORDER BY sensors.sensor_id
         &quot;#</span>,
     )<span class="question-mark">?</span>
     .<span class="ident">query_map</span>(<span class="macro">params</span><span class="macro">!</span>[], <span class="op">|</span><span class="ident">row</span><span class="op">|</span> {
         <span class="prelude-val">Ok</span>((
             <span class="ident">Sensor</span> {
-                <span class="ident">sensor_id</span>: <span class="ident">row</span>.<span class="ident">get_unwrap</span>(<span class="string">&quot;sensor_id&quot;</span>),
+                <span class="ident">sensor_id</span>: <span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;sensor_id&quot;</span>)<span class="question-mark">?</span>,
+                <span class="ident">title</span>: <span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;title&quot;</span>)<span class="question-mark">?</span>,
             },
-            <span class="ident">Reading</span> {
-                <span class="ident">timestamp</span>: <span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;timestamp&quot;</span>)<span class="question-mark">?</span>),
-                <span class="ident">value</span>: <span class="ident">Value</span>::<span class="ident">deserialize</span>(<span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;value&quot;</span>)<span class="question-mark">?</span>).<span class="ident">unwrap</span>(),
-            },
+            <span class="ident">reading_from_row</span>(<span class="ident">row</span>)<span class="question-mark">?</span>,
         ))
     })<span class="question-mark">?</span>
     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="ident">from</span>))
@@ -402,12 +440,7 @@
             WHERE sensors.sensor_id = ?1
             &quot;#</span>,
         )<span class="question-mark">?</span>
-        .<span class="ident">query_row</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="ident">sensor_id</span>], <span class="op">|</span><span class="ident">row</span><span class="op">|</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Reading</span> {
-                <span class="ident">timestamp</span>: <span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;timestamp&quot;</span>)<span class="question-mark">?</span>),
-                <span class="ident">value</span>: <span class="ident">Value</span>::<span class="ident">deserialize</span>(<span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;value&quot;</span>)<span class="question-mark">?</span>).<span class="ident">unwrap</span>(),
-            })
-        })
+        .<span class="ident">query_row</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="ident">sensor_id</span>], <span class="ident">reading_from_row</span>)
         .<span class="ident">optional</span>()<span class="question-mark">?</span>)
 }
 
@@ -425,14 +458,18 @@
             ORDER BY readings.timestamp
             &quot;#</span>,
         )<span class="question-mark">?</span>
-        .<span class="ident">query_map</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="ident">sensor_id</span>, <span class="ident">since</span>.<span class="ident">timestamp_millis</span>()], <span class="op">|</span><span class="ident">row</span><span class="op">|</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Reading</span> {
-                <span class="ident">timestamp</span>: <span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;timestamp&quot;</span>)<span class="question-mark">?</span>),
-                <span class="ident">value</span>: <span class="ident">Value</span>::<span class="ident">deserialize</span>(<span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;value&quot;</span>)<span class="question-mark">?</span>).<span class="ident">unwrap</span>(),
-            })
-        })<span class="question-mark">?</span>
+        .<span class="ident">query_map</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="ident">sensor_id</span>, <span class="ident">since</span>.<span class="ident">timestamp_millis</span>()], <span class="ident">reading_from_row</span>)<span class="question-mark">?</span>
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="ident">from</span>))
         .<span class="ident">collect</span>()
+}
+
+<span class="kw">fn</span> <span class="ident">reading_from_row</span>(<span class="ident">row</span>: <span class="kw-2">&amp;</span><span class="ident">Row</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">rusqlite</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span> {
+    <span class="prelude-val">Ok</span>(<span class="ident">Reading</span> {
+        <span class="ident">timestamp</span>: <span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;timestamp&quot;</span>)<span class="question-mark">?</span>),
+        <span class="ident">value</span>: <span class="ident">rmp_serde</span>::<span class="ident">from_read_ref</span>(<span class="kw-2">&amp;</span><span class="ident">row</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="string">&quot;value&quot;</span>)<span class="question-mark">?</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> {
+            <span class="ident">rusqlite</span>::<span class="ident">Error</span>::<span class="ident">FromSqlConversionFailure</span>(<span class="number">0</span>, <span class="ident">rusqlite</span>::<span class="ident">types</span>::<span class="ident">Type</span>::<span class="ident">Blob</span>, <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">error</span>))
+        })<span class="question-mark">?</span>,
+    })
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -445,6 +482,7 @@
     <span class="kw">fn</span> <span class="ident">double_upsert_sensor_keeps_one_record</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="ident">sensor</span> <span class="op">=</span> <span class="ident">Sensor</span> {
             <span class="ident">sensor_id</span>: <span class="string">&quot;test&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">title</span>: <span class="prelude-val">None</span>,
         };
 
         <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">connect</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>;
@@ -544,6 +582,14 @@
             .<span class="ident">query_row</span>(<span class="macro">params</span><span class="macro">!</span>[], <span class="op">|</span><span class="ident">row</span><span class="op">|</span> <span class="ident">row</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">i64</span><span class="op">&gt;</span>(<span class="number">0</span>))<span class="question-mark">?</span>;
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">reading_count</span>, <span class="number">1</span>);
 
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">migrates_to_the_latest_version</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+        <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">connect</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">version</span> <span class="op">=</span> <span class="ident">get_version</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">version</span>, <span class="ident">MIGRATIONS</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
