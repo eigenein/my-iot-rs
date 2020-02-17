@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Fix: latest reading formatting
+
 ## `0.39.2`
 
 - Chore: order dashboard by `sensor_id`
