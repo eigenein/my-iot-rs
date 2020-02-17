@@ -5,8 +5,7 @@ pub fn migrate(db: &Connection) -> Result<()> {
     // language=sql
     db.execute_batch(
         r#"
-            -- noinspection SqlWithoutWhere
-            DELETE FROM readings;
+            ALTER TABLE sensors ADD COLUMN title TEXT NULL DEFAULT NULL;
         "#,
     )?;
     Ok(())

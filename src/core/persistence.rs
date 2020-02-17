@@ -16,6 +16,7 @@ const MIGRATIONS: &[fn(&Connection) -> Result<()>] = &[
     |_| Ok(()),
     migrations::version_1::migrate,
     migrations::version_2::migrate,
+    migrations::version_3::migrate,
 ];
 
 pub fn connect<P: AsRef<Path>>(path: P) -> Result<Connection> {
@@ -29,6 +30,7 @@ pub fn connect<P: AsRef<Path>>(path: P) -> Result<Connection> {
             info!("Migrating to version {}…", i);
             let tx = db.transaction()?;
             migrate(&tx)?;
+            tx.pragma_update(None, "user_version", &(i as i32))?;
             tx.commit()?;
         }
     }
@@ -48,11 +50,13 @@ pub fn upsert_sensor(db: &Connection, sensor: &Sensor, timestamp: i64) -> Result
         r#"
             -- noinspection SqlResolve @ any/"excluded"
             -- noinspection SqlInsertValues
-            INSERT INTO sensors (sensor_id, timestamp) VALUES (?1, ?2)
-            ON CONFLICT (sensor_id) DO UPDATE SET timestamp = excluded.timestamp
+            INSERT INTO sensors (sensor_id, title, timestamp) VALUES (?1, ?2, ?3)
+            ON CONFLICT (sensor_id) DO UPDATE SET
+                timestamp = excluded.timestamp,
+                title = excluded.title
         "#,
     )?
-    .execute(params![sensor.sensor_id, timestamp])?;
+    .execute(params![sensor.sensor_id, sensor.title, timestamp])?;
     Ok(())
 }
 
@@ -88,7 +92,7 @@ pub fn select_actuals(db: &Connection) -> Result<Vec<(Sensor, Reading)>> {
     db.prepare_cached(
         // language=sql
         r#"
-            SELECT sensor_id, sensors.timestamp, value
+            SELECT sensors.sensor_id, sensors.title, sensors.timestamp, value
             FROM sensors
             INNER JOIN readings
                 ON readings.timestamp = sensors.timestamp AND readings.sensor_fk = sensors.pk
@@ -99,6 +103,7 @@ pub fn select_actuals(db: &Connection) -> Result<Vec<(Sensor, Reading)>> {
         Ok((
             Sensor {
                 sensor_id: row.get("sensor_id")?,
+                title: row.get("title")?,
             },
             reading_from_row(row)?,
         ))
@@ -175,6 +180,7 @@ mod tests {
     fn double_upsert_sensor_keeps_one_record() -> Result {
         let sensor = Sensor {
             sensor_id: "test".into(),
+            title: None,
         };
 
         let db = connect(":memory:")?;

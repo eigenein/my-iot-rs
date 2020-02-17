@@ -57,12 +57,14 @@ fn send_readings(service_id: &str, event: &NestEvent, tx: &Sender<Message>) -> R
                     ),
                 )
                 .timestamp(now)
+                .title(format!("{} Ambient Temperature", &thermostat.name))
                 .into(),
         )?;
         tx.send(
             Composer::new(format!("{}::thermostat::{}::humidity", service_id, &id))
                 .value(Value::Rh(thermostat.humidity))
                 .timestamp(now)
+                .title(format!("{} Humidity", &thermostat.name))
                 .into(),
         )?;
     }
@@ -72,6 +74,7 @@ fn send_readings(service_id: &str, event: &NestEvent, tx: &Sender<Message>) -> R
             Composer::new(format!("{}::camera::{}::snapshot_url", service_id, &id))
                 .value(Value::ImageUrl(camera.snapshot_url.clone()))
                 .timestamp(now)
+                .title(format!("{} Snapshot", &camera.name))
                 .into(),
         )?;
 
@@ -80,6 +83,7 @@ fn send_readings(service_id: &str, event: &NestEvent, tx: &Sender<Message>) -> R
                 Composer::new(format!("{}::camera::{}::animated_image_url", service_id, &id))
                     .value(Value::ImageUrl(event.animated_image_url.clone()))
                     .timestamp(event.start_time)
+                    .title(format!("{} Last Event", &camera.name))
                     .into(),
             )?;
         }
@@ -111,12 +115,14 @@ struct NestDevices {
 struct NestThermostat {
     ambient_temperature_c: f64,
     humidity: f64,
+    name: String,
 }
 
 #[derive(Deserialize, Debug)]
 struct NestCamera {
     snapshot_url: String,
     last_event: Option<NestCameraLastEvent>,
+    name: String,
 }
 
 #[derive(Deserialize, Debug)]

@@ -19,8 +19,6 @@ pub fn migrate(db: &Connection) -> Result<()> {
             );
             -- Descending index on `timestamp` is needed to speed up the select last queries.
             CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_fk_timestamp ON readings (sensor_fk, timestamp DESC);
-
-            PRAGMA user_version = 1;
         "#,
     )?;
     Ok(())

@@ -4,7 +4,6 @@ use crate::prelude::*;
 use chrono::prelude::*;
 use serde::Deserialize;
 
-// TODO: still make a separate `Reading` struct which only used to store readings in database.
 /// Services use messages to exchange sensor readings between each other.
 /// Message contains a single sensor reading alongside with some metadata.
 #[derive(Debug, Clone, PartialEq)]
@@ -12,8 +11,7 @@ pub struct Message {
     /// Message type.
     pub type_: Type,
 
-    /// Associated sensor instance. This is only used for persistence.
-    /// Sensor does not exist as a functional object.
+    /// Associated sensor instance.
     pub sensor: Sensor,
 
     pub reading: Reading,
@@ -49,6 +47,7 @@ impl Composer {
                 type_: Type::ReadLogged,
                 sensor: Sensor {
                     sensor_id: sensor.into(),
+                    title: None,
                 },
                 reading: Reading {
                     timestamp: Local::now(),
@@ -70,6 +69,11 @@ impl Composer {
 
     pub fn value<V: Into<Value>>(mut self, value: V) -> Self {
         self.message.reading.value = value.into();
+        self
+    }
+
+    pub fn title<S: Into<Option<String>>>(mut self, title: S) -> Self {
+        self.message.sensor.title = title.into();
         self
     }
 

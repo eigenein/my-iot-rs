@@ -46,6 +46,7 @@ fn get_sensor(db: &Arc<Mutex<Connection>>, sensor_id: &str) -> Response {
     // FIXME: `unwrap()`s.
     let reading = select_last_reading(&db.lock().unwrap(), &sensor_id).unwrap();
     match reading {
+        // TODO: read sensor instance.
         Some(reading) => Response::html(templates::Sensor::new(sensor_id, reading).to_string()),
         None => Response::empty_404(),
     }

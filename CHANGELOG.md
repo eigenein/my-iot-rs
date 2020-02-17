@@ -2,6 +2,7 @@
 
 ## `master`
 
+- New: sensor titles #10
 - Fix: latest reading formatting
 - Chore: improve database migrations
 

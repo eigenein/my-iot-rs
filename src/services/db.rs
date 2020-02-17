@@ -29,7 +29,12 @@ pub fn spawn(service_id: &str, settings: &Settings, db: &Arc<Mutex<Connection>>,
         move || -> Result<()> {
             loop {
                 let size = select_size(&db.lock().unwrap())?;
-                tx.send(Composer::new(sensor.clone()).value(Value::DataSize(size)).into())?;
+                tx.send(
+                    Composer::new(sensor.clone())
+                        .value(Value::DataSize(size))
+                        .title("Database Size".to_string())
+                        .into(),
+                )?;
                 thread::sleep(interval);
             }
         },
