@@ -12,20 +12,34 @@ pub mod reading;
 pub mod sensor;
 pub mod thread;
 
+const MIGRATIONS: &[fn(&Connection) -> Result<()>] = &[
+    |_| Ok(()),
+    migrations::version_1::migrate,
+    migrations::version_2::migrate,
+];
+
 pub fn connect<P: AsRef<Path>>(path: P) -> Result<Connection> {
-    let db = Connection::open(path)?;
+    let mut db = Connection::open(path)?;
     // language=sql
     db.execute_batch("PRAGMA foreign_keys = ON;")?;
 
-    let version: i32 = db.pragma_query_value(None, "user_version", |row| row.get(0))?;
-    if version < 1 {
-        migrations::version_1::migrate(&db)?;
-    }
-    if version < 2 {
-        migrations::version_2::migrate(&db)?;
+    let version = get_version(&db)? as usize;
+    for (i, migrate) in MIGRATIONS.iter().enumerate() {
+        if version < i {
+            info!("Migrating to version {}…", i);
+            let tx = db.transaction()?;
+            migrate(&tx)?;
+            tx.commit()?;
+        }
     }
 
     Ok(db)
+}
+
+/// Get the database `user_version`.
+pub fn get_version(db: &Connection) -> Result<i32> {
+    let version: i32 = db.pragma_query_value(None, "user_version", |row| row.get(0))?;
+    Ok(version)
 }
 
 pub fn upsert_sensor(db: &Connection, sensor: &Sensor, timestamp: i64) -> Result<()> {
@@ -33,6 +47,7 @@ pub fn upsert_sensor(db: &Connection, sensor: &Sensor, timestamp: i64) -> Result
         // language=sql
         r#"
             -- noinspection SqlResolve @ any/"excluded"
+            -- noinspection SqlInsertValues
             INSERT INTO sensors (sensor_id, timestamp) VALUES (?1, ?2)
             ON CONFLICT (sensor_id) DO UPDATE SET timestamp = excluded.timestamp
         "#,
@@ -259,6 +274,14 @@ mod tests {
             .query_row(params![], |row| row.get::<_, i64>(0))?;
         assert_eq!(reading_count, 1);
 
+        Ok(())
+    }
+
+    #[test]
+    fn migrates_to_the_latest_version() -> Result {
+        let db = connect(":memory:")?;
+        let version = get_version(&db)? as usize;
+        assert_eq!(version, MIGRATIONS.len() - 1);
         Ok(())
     }
 

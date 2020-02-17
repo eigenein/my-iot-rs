@@ -3,6 +3,7 @@
 ## `master`
 
 - Fix: latest reading formatting
+- Chore: improve database migrations
 
 ## `0.39.2`
 

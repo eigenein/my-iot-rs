@@ -2,8 +2,6 @@ use crate::prelude::*;
 use rusqlite::Connection;
 
 pub fn migrate(db: &Connection) -> Result<()> {
-    info!("Creating the initial schema…");
-
     // language=sql
     db.execute_batch(
         r#"
