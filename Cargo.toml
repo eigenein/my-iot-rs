@@ -17,6 +17,10 @@ license = "MIT"
 is-it-maintained-issue-resolution = { repository = "eigenein/my-iot-rs" }
 is-it-maintained-open-issues = { repository = "eigenein/my-iot-rs" }
 
+[profile.release]
+lto = "fat"
+codegen-units = 1
+
 [dependencies]
 chrono = { version = "0.4.7", features = ["serde"] }
 chrono-tz = { version = "0.5.1", features = ["serde"] }
@@ -36,3 +40,4 @@ rusqlite = { version = "0.20.0", features = ["bundled"] }
 askama = "0.8"
 rmp-serde = "0.14.2"
 uom = { version = "0.26.0", features = ["use_serde", "autoconvert", "f64", "si", "std", "try-from"] }
+mimalloc = { version = "*", default-features = false }

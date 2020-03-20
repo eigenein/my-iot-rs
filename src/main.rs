@@ -3,6 +3,7 @@
 use crate::core::supervisor;
 use crate::prelude::*;
 use log::Level;
+use mimalloc::MiMalloc;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use structopt::StructOpt;
@@ -15,6 +16,9 @@ mod services;
 mod settings;
 mod templates;
 mod web;
+
+#[global_allocator]
+static GLOBAL_ALLOCATOR: MiMalloc = MiMalloc;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "my-iot", author, about)]

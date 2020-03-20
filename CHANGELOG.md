@@ -2,6 +2,7 @@
 
 ## `master`
 
+- Performance tricks, closes #72
 - Bump Rust version
 - New: sensor titles #10
 - Fix: latest reading formatting
