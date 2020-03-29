@@ -2,6 +2,7 @@
 
 ## `master`
 
+- Different sizes for dashboard cards
 - Bump Bulma, bump Askama, fix navbar active flag
 - Performance tricks, closes #72
 - Bump Rust version

@@ -1,5 +1,6 @@
 //! Web interface templates.
 
+use crate::core::persistence::{select_actuals, Actual};
 use crate::prelude::*;
 use askama::Template;
 
@@ -7,7 +8,7 @@ use askama::Template;
 #[template(path = "index.html")]
 pub struct Index<'a> {
     pub crate_version: &'a str,
-    pub actuals: Vec<(crate::prelude::Sensor, Reading)>,
+    pub actuals: Vec<Actual>,
 }
 
 #[derive(Template)]
@@ -19,11 +20,11 @@ pub struct Sensor<'a> {
 }
 
 impl Index<'_> {
-    pub fn new(actuals: Vec<(crate::prelude::Sensor, Reading)>) -> Self {
-        Self {
-            actuals,
+    pub fn new(db: &Connection) -> Result<Self> {
+        Ok(Self {
+            actuals: select_actuals(db)?,
             crate_version: structopt::clap::crate_version!(),
-        }
+        })
     }
 }
 

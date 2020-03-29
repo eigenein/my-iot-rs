@@ -9,7 +9,6 @@
     <div class="hero-body">
       <div class="container">
         <h1 class="title is-4">Dashboard</h1>
-        <h2 class="subtitle is-6">{{ actuals.len() }} sensors</h2>
       </div>
     </div>
   </section>
@@ -17,8 +16,8 @@
   <section class="section">
     <div class="container">
       <div class="columns is-multiline">
-        {% for (sensor, reading) in actuals %}
-          {% include "reading.html" %}
+        {% for actual in actuals %}
+          {% include "actual.html" %}
         {% endfor %}
       </div>
     </div>

@@ -19,6 +19,12 @@ const MIGRATIONS: &[fn(&Connection) -> Result<()>] = &[
     migrations::version_3::migrate,
 ];
 
+#[derive(Debug, PartialEq)]
+pub struct Actual {
+    pub sensor: Sensor,
+    pub reading: Reading,
+}
+
 pub fn connect<P: AsRef<Path>>(path: P) -> Result<Connection> {
     let mut db = Connection::open(path)?;
     // language=sql
@@ -88,7 +94,7 @@ pub fn upsert_reading(db: &Connection, sensor: &Sensor, reading: &Reading) -> Re
     Ok(())
 }
 
-pub fn select_actuals(db: &Connection) -> Result<Vec<(Sensor, Reading)>> {
+pub fn select_actuals(db: &Connection) -> Result<Vec<Actual>> {
     db.prepare_cached(
         // language=sql
         r#"
@@ -96,17 +102,17 @@ pub fn select_actuals(db: &Connection) -> Result<Vec<(Sensor, Reading)>> {
             FROM sensors
             INNER JOIN readings
                 ON readings.timestamp = sensors.timestamp AND readings.sensor_fk = sensors.pk
-            ORDER BY sensors.sensor_id
+            ORDER BY readings.value, sensors.sensor_id
         "#,
     )?
     .query_map(params![], |row| {
-        Ok((
-            Sensor {
+        Ok(Actual {
+            sensor: Sensor {
                 sensor_id: row.get("sensor_id")?,
                 title: row.get("title")?,
             },
-            reading_from_row(row)?,
-        ))
+            reading: reading_from_row(row)?,
+        })
     })?
     .map(|r| r.map_err(Error::from))
     .collect()
@@ -256,7 +262,13 @@ mod tests {
             .compose();
         let db = connect(":memory:")?;
         upsert_reading(&db, &message.sensor, &message.reading)?;
-        assert_eq!(select_actuals(&db)?, vec![(message.sensor, message.reading)]);
+        assert_eq!(
+            select_actuals(&db)?,
+            vec![Actual {
+                sensor: message.sensor,
+                reading: message.reading
+            }]
+        );
         Ok(())
     }
 

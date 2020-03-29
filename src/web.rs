@@ -38,7 +38,7 @@ pub fn start_server(settings: Settings, db: Arc<Mutex<Connection>>) -> ! {
 
 /// Get index page response.
 fn index(db: &Arc<Mutex<Connection>>) -> Response {
-    Response::html(templates::Index::new(select_actuals(&db.lock().unwrap()).unwrap()).to_string())
+    Response::html(templates::Index::new(&db.lock().unwrap()).unwrap().to_string())
 }
 
 /// Get sensor page response.

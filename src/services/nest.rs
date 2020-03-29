@@ -24,23 +24,19 @@ pub fn spawn(service_id: &str, settings: &Settings, bus: &mut Bus) -> Result<()>
     let settings = settings.clone();
     let tx = bus.add_tx();
 
-    supervisor::spawn(
-        format!("my-iot::nest::{}", &service_id),
-        tx.clone(),
-        move || -> Result<()> {
-            let client = Client::new(Url::parse_with_params(URL, &[("auth", &settings.token)]).unwrap());
-            for event in client {
-                if let Ok(event) = event {
-                    if let Some(event_type) = event.event_type {
-                        if event_type == "put" {
-                            send_readings(&service_id, &serde_json::from_str(&event.data)?, &tx)?;
-                        }
+    supervisor::spawn(format!("my-iot::{}", &service_id), tx.clone(), move || -> Result<()> {
+        let client = Client::new(Url::parse_with_params(URL, &[("auth", &settings.token)]).unwrap());
+        for event in client {
+            if let Ok(event) = event {
+                if let Some(event_type) = event.event_type {
+                    if event_type == "put" {
+                        send_readings(&service_id, &serde_json::from_str(&event.data)?, &tx)?;
                     }
                 }
             }
-            Err(format_err!("Event source client is unexpectedly exhausted"))
-        },
-    )?;
+        }
+        Err(format_err!("Event source client is unexpectedly exhausted"))
+    })?;
 
     Ok(())
 }

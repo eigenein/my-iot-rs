@@ -63,7 +63,7 @@ fn spawn_producer(context: Context, bus: &Bus) -> Result<()> {
     let tx = bus.add_tx();
 
     supervisor::spawn(
-        &format!("my-iot::telegram::{}::producer", &context.service_id),
+        &format!("my-iot::{}::producer", &context.service_id),
         tx.clone(),
         move || -> Result<()> {
             let mut offset: Option<i64> = None;
@@ -108,7 +108,7 @@ fn spawn_consumer(context: Context, bus: &mut Bus) -> Result<()> {
     let rx = bus.add_rx();
 
     supervisor::spawn(
-        format!("my-iot::telegram::{}::consumer", &context.service_id),
+        format!("my-iot::{}::consumer", &context.service_id),
         bus.add_tx(),
         move || {
             for message in &rx {
