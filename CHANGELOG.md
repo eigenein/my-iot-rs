@@ -2,6 +2,7 @@
 
 ## `master`
 
+- Bump Bulma, bump Askama, fix navbar active flag
 - Performance tricks, closes #72
 - Bump Rust version
 - New: sensor titles #10

@@ -7,7 +7,7 @@ use askama::Template;
 #[template(path = "index.html")]
 pub struct Index<'a> {
     pub crate_version: &'a str,
-    pub actuals: Vec<(crate::core::persistence::sensor::Sensor, Reading)>,
+    pub actuals: Vec<(crate::prelude::Sensor, Reading)>,
 }
 
 #[derive(Template)]
@@ -19,7 +19,7 @@ pub struct Sensor<'a> {
 }
 
 impl Index<'_> {
-    pub fn new(actuals: Vec<(crate::core::persistence::sensor::Sensor, Reading)>) -> Self {
+    pub fn new(actuals: Vec<(crate::prelude::Sensor, Reading)>) -> Self {
         Self {
             actuals,
             crate_version: structopt::clap::crate_version!(),
