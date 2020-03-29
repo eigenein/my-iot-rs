@@ -12,13 +12,6 @@ pub mod reading;
 pub mod sensor;
 pub mod thread;
 
-const MIGRATIONS: &[fn(&Connection) -> Result<()>] = &[
-    |_| Ok(()),
-    migrations::version_1::migrate,
-    migrations::version_2::migrate,
-    migrations::version_3::migrate,
-];
-
 #[derive(Debug, PartialEq)]
 pub struct Actual {
     pub sensor: Sensor,
@@ -31,7 +24,7 @@ pub fn connect<P: AsRef<Path>>(path: P) -> Result<Connection> {
     db.execute_batch("PRAGMA foreign_keys = ON;")?;
 
     let version = get_version(&db)? as usize;
-    for (i, migrate) in MIGRATIONS.iter().enumerate() {
+    for (i, migrate) in migrations::MIGRATIONS.iter().enumerate() {
         if version < i {
             info!("Migrating to version {}…", i);
             let tx = db.transaction()?;
@@ -56,13 +49,14 @@ pub fn upsert_sensor(db: &Connection, sensor: &Sensor, timestamp: i64) -> Result
         r#"
             -- noinspection SqlResolve @ any/"excluded"
             -- noinspection SqlInsertValues
-            INSERT INTO sensors (sensor_id, title, timestamp) VALUES (?1, ?2, ?3)
+            INSERT INTO sensors (sensor_id, title, timestamp, room_title) VALUES (?1, ?2, ?3, ?4)
             ON CONFLICT (sensor_id) DO UPDATE SET
                 timestamp = excluded.timestamp,
-                title = excluded.title
+                title = excluded.title,
+                room_title = excluded.room_title
         "#,
     )?
-    .execute(params![sensor.sensor_id, sensor.title, timestamp])?;
+    .execute(params![sensor.sensor_id, sensor.title, timestamp, sensor.room_title])?;
     Ok(())
 }
 
@@ -98,11 +92,11 @@ pub fn select_actuals(db: &Connection) -> Result<Vec<Actual>> {
     db.prepare_cached(
         // language=sql
         r#"
-            SELECT sensors.sensor_id, sensors.title, sensors.timestamp, value
+            SELECT sensors.sensor_id, sensors.title, sensors.timestamp, sensors.room_title, value
             FROM sensors
             INNER JOIN readings
                 ON readings.timestamp = sensors.timestamp AND readings.sensor_fk = sensors.pk
-            ORDER BY readings.value, sensors.sensor_id
+            ORDER BY sensors.room_title, sensors.sensor_id
         "#,
     )?
     .query_map(params![], |row| {
@@ -110,6 +104,7 @@ pub fn select_actuals(db: &Connection) -> Result<Vec<Actual>> {
             sensor: Sensor {
                 sensor_id: row.get("sensor_id")?,
                 title: row.get("title")?,
+                room_title: row.get("room_title")?,
             },
             reading: reading_from_row(row)?,
         })
@@ -187,6 +182,7 @@ mod tests {
         let sensor = Sensor {
             sensor_id: "test".into(),
             title: None,
+            room_title: None,
         };
 
         let db = connect(":memory:")?;
@@ -299,7 +295,7 @@ mod tests {
     fn migrates_to_the_latest_version() -> Result {
         let db = connect(":memory:")?;
         let version = get_version(&db)? as usize;
-        assert_eq!(version, MIGRATIONS.len() - 1);
+        assert_eq!(version, migrations::MIGRATIONS.len() - 1);
         Ok(())
     }
 

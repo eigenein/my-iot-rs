@@ -53,14 +53,16 @@ fn send_readings(service_id: &str, event: &NestEvent, tx: &Sender<Message>) -> R
                     ),
                 )
                 .timestamp(now)
-                .title(format!("{} Ambient Temperature", &thermostat.name))
+                .title("Ambient Temperature")
+                .room_title(&thermostat.where_name)
                 .into(),
         )?;
         tx.send(
             Composer::new(format!("{}::thermostat::{}::humidity", service_id, &id))
                 .value(Value::Rh(thermostat.humidity))
                 .timestamp(now)
-                .title(format!("{} Humidity", &thermostat.name))
+                .title("Humidity")
+                .room_title(&thermostat.where_name)
                 .into(),
         )?;
     }
@@ -70,7 +72,17 @@ fn send_readings(service_id: &str, event: &NestEvent, tx: &Sender<Message>) -> R
             Composer::new(format!("{}::camera::{}::snapshot_url", service_id, &id))
                 .value(Value::ImageUrl(camera.snapshot_url.clone()))
                 .timestamp(now)
-                .title(format!("{} Snapshot", &camera.name))
+                .title("Snapshot")
+                .room_title(&camera.where_name)
+                .into(),
+        )?;
+
+        tx.send(
+            Composer::new(format!("{}::camera::{}::is_online", service_id, &id))
+                .value(camera.is_online)
+                .timestamp(now)
+                .title("Camera Online")
+                .room_title(&camera.where_name)
                 .into(),
         )?;
 
@@ -79,10 +91,22 @@ fn send_readings(service_id: &str, event: &NestEvent, tx: &Sender<Message>) -> R
                 Composer::new(format!("{}::camera::{}::animated_image_url", service_id, &id))
                     .value(Value::ImageUrl(event.animated_image_url.clone()))
                     .timestamp(event.start_time)
-                    .title(format!("{} Last Event", &camera.name))
+                    .title("Last Event")
+                    .room_title(&camera.where_name)
                     .into(),
             )?;
         }
+    }
+
+    for (id, alarm) in event.data.devices.smoke_co_alarms.iter() {
+        tx.send(
+            Composer::new(format!("{}::smoke_co_alarm::{}::is_online", service_id, &id))
+                .value(alarm.is_online)
+                .timestamp(now)
+                .title("Protect Online")
+                .room_title(&alarm.where_name)
+                .into(),
+        )?;
     }
 
     Ok(())
@@ -104,7 +128,7 @@ struct NestData {
 struct NestDevices {
     thermostats: HashMap<String, NestThermostat>,
     cameras: HashMap<String, NestCamera>,
-    // TODO: smoke_co_alarms
+    smoke_co_alarms: HashMap<String, NestSmokeCoAlarm>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -112,6 +136,7 @@ struct NestThermostat {
     ambient_temperature_c: f64,
     humidity: f64,
     name: String,
+    where_name: String,
 }
 
 #[derive(Deserialize, Debug)]
@@ -119,6 +144,8 @@ struct NestCamera {
     snapshot_url: String,
     last_event: Option<NestCameraLastEvent>,
     name: String,
+    where_name: String,
+    is_online: bool,
 }
 
 #[derive(Deserialize, Debug)]
@@ -129,4 +156,10 @@ struct NestCameraLastEvent {
     start_time: DateTime<Local>,
     urls_expire_time: DateTime<Local>,
     animated_image_url: String,
+}
+
+#[derive(Deserialize, Debug)]
+struct NestSmokeCoAlarm {
+    where_name: String,
+    is_online: bool,
 }

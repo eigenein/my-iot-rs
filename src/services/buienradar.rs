@@ -112,7 +112,8 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
             .type_(MessageType::ReadLogged)
             .value(Value::Text(measurement.weather_description.clone()))
             .timestamp(measurement.timestamp)
-            .title(format!("{} Description", measurement.name))
+            .title("Description")
+            .room_title(&measurement.name)
             .into(),
     )?;
     if let Some(degrees) = measurement.temperature {
@@ -121,7 +122,8 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
                 .type_(MessageType::ReadLogged)
                 .value(ThermodynamicTemperature::new::<thermodynamic_temperature::degree_celsius>(degrees))
                 .timestamp(measurement.timestamp)
-                .title(format!("{} Temperature", measurement.name))
+                .title("Temperature")
+                .room_title(&measurement.name)
                 .into(),
         )?;
     }
@@ -131,7 +133,8 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
                 .type_(MessageType::ReadLogged)
                 .value(ThermodynamicTemperature::new::<thermodynamic_temperature::degree_celsius>(degrees))
                 .timestamp(measurement.timestamp)
-                .title(format!("{} Ground Temperature", measurement.name))
+                .title("Ground Temperature")
+                .room_title(&measurement.name)
                 .into(),
         )?;
     }
@@ -141,7 +144,8 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
                 .type_(MessageType::ReadLogged)
                 .value(ThermodynamicTemperature::new::<thermodynamic_temperature::degree_celsius>(degrees))
                 .timestamp(measurement.timestamp)
-                .title(format!("{} Feel Temperature", measurement.name))
+                .title("Feel Temperature")
+                .room_title(&measurement.name)
                 .into(),
         )?;
     }
@@ -151,7 +155,8 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
                 .type_(MessageType::ReadLogged)
                 .value(Value::Bft(bft))
                 .timestamp(measurement.timestamp)
-                .title(format!("{} Wind Force", measurement.name))
+                .title("Wind Force")
+                .room_title(&measurement.name)
                 .into(),
         )?;
     }
@@ -161,7 +166,8 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
                 .type_(MessageType::ReadLogged)
                 .value(Value::WindDirection(point))
                 .timestamp(measurement.timestamp)
-                .title(format!("{} Wind Direction", measurement.name))
+                .title("Wind Direction")
+                .room_title(&measurement.name)
                 .into(),
         )?;
     }

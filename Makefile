@@ -13,7 +13,6 @@ clean:
 
 .PHONY: check/clippy
 check/clippy:
-	# TODO: -W clippy::pedantic
 	@cargo clippy --workspace -- -D warnings
 
 .PHONY: check/fmt

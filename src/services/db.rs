@@ -30,6 +30,7 @@ pub fn spawn(service_id: &str, settings: &Settings, db: &Arc<Mutex<Connection>>,
                 Composer::new(sensor.clone())
                     .value(Value::DataSize(size))
                     .title("Database Size".to_string())
+                    .room_title("System".to_string())
                     .into(),
             )?;
             thread::sleep(interval);

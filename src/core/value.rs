@@ -62,6 +62,12 @@ impl From<ThermodynamicTemperature> for Value {
     }
 }
 
+impl From<bool> for Value {
+    fn from(value: bool) -> Self {
+        Self::Boolean(value)
+    }
+}
+
 impl AsRef<Value> for Value {
     fn as_ref(&self) -> &Self {
         &self

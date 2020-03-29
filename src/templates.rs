@@ -3,12 +3,13 @@
 use crate::core::persistence::{select_actuals, Actual};
 use crate::prelude::*;
 use askama::Template;
+use itertools::Itertools;
 
 #[derive(Template)]
 #[template(path = "index.html")]
 pub struct Index<'a> {
     pub crate_version: &'a str,
-    pub actuals: Vec<Actual>,
+    pub actuals: Vec<(Option<String>, Vec<Actual>)>,
 }
 
 #[derive(Template)]
@@ -22,7 +23,12 @@ pub struct Sensor<'a> {
 impl Index<'_> {
     pub fn new(db: &Connection) -> Result<Self> {
         Ok(Self {
-            actuals: select_actuals(db)?,
+            actuals: select_actuals(db)?
+                .into_iter()
+                .group_by(|actual| actual.sensor.room_title.clone())
+                .into_iter()
+                .map(|(room_title, group)| (room_title, group.collect_vec()))
+                .collect_vec(),
             crate_version: structopt::clap::crate_version!(),
         })
     }

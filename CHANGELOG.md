@@ -1,7 +1,8 @@
 # `my-iot`
 
-## `master`
+## `0.40.0`
 
+- Add initial room title support
 - Different sizes for dashboard cards
 - Bump Bulma, bump Askama, fix navbar active flag
 - Performance tricks, closes #72

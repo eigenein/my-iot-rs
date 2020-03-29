@@ -45,14 +45,8 @@ impl Composer {
         Self {
             message: Message {
                 type_: Type::ReadLogged,
-                sensor: Sensor {
-                    sensor_id: sensor.into(),
-                    title: None,
-                },
-                reading: Reading {
-                    timestamp: Local::now(),
-                    value: Value::None,
-                },
+                sensor: Sensor::new(sensor),
+                reading: Reading::new(),
             },
         }
     }
@@ -72,8 +66,13 @@ impl Composer {
         self
     }
 
-    pub fn title<S: Into<Option<String>>>(mut self, title: S) -> Self {
-        self.message.sensor.title = title.into();
+    pub fn title<T: Into<String>>(mut self, title: T) -> Self {
+        self.message.sensor.title = Some(title.into());
+        self
+    }
+
+    pub fn room_title<T: Into<String>>(mut self, room_title: T) -> Self {
+        self.message.sensor.room_title = Some(room_title.into());
         self
     }
 

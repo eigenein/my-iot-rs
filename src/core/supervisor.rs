@@ -19,14 +19,24 @@ where
         // TODO: update thread status.
         info!("Running {}", &name);
         // FIXME: dangerous `unwrap`s.
-        tx.send(Composer::new(&sensor).value(Value::Boolean(true)).into())
-            .unwrap();
+        tx.send(
+            Composer::new(&sensor)
+                .value(Value::Boolean(true))
+                .room_title("System".to_string())
+                .into(),
+        )
+        .unwrap();
         match f() {
             Ok(_) => error!("Thread {} has finished unexpectedly", &name),
             Err(error) => error!("Thread {} crashed: {:?}", &name, error),
         }
-        tx.send(Composer::new(&sensor).value(Value::Boolean(false)).into())
-            .unwrap();
+        tx.send(
+            Composer::new(&sensor)
+                .value(Value::Boolean(false))
+                .room_title("System")
+                .into(),
+        )
+        .unwrap();
 
         // FIXME: https://github.com/eigenein/my-iot-rs/issues/47
         thread::sleep(Duration::from_secs(60));
