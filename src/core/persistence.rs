@@ -18,12 +18,103 @@ pub struct Actual {
     pub reading: Reading,
 }
 
-pub fn connect<P: AsRef<Path>>(path: P) -> Result<Connection> {
-    let mut db = Connection::open(path)?;
-    // language=sql
-    db.execute_batch("PRAGMA foreign_keys = ON;")?;
+impl From<Message> for Actual {
+    fn from(message: Message) -> Self {
+        Actual {
+            sensor: message.sensor,
+            reading: message.reading,
+        }
+    }
+}
 
-    let version = get_version(&db)? as usize;
+pub trait ConnectionExtensions {
+    fn open_and_initialize<P: AsRef<Path>>(path: P) -> Result<Connection>;
+
+    /// Get the database `user_version`.
+    fn get_version(&self) -> Result<i32>;
+
+    fn select_actuals(&self) -> Result<Vec<Actual>>;
+
+    /// Select database size in bytes.
+    fn select_size(&self) -> Result<u64>;
+
+    /// Select the very last sensor reading.
+    fn select_last_reading(&self, sensor_id: &str) -> Result<Option<Actual>>;
+
+    /// Select the latest sensor readings within the given time interval.
+    fn select_readings(&self, sensor_id: &str, since: &DateTime<Local>) -> Result<Vec<Reading>>;
+}
+
+impl ConnectionExtensions for Connection {
+    fn open_and_initialize<P: AsRef<Path>>(path: P) -> Result<Connection> {
+        let mut db = Connection::open(path)?;
+        // language=sql
+        db.execute_batch("PRAGMA foreign_keys = ON;")?;
+        migrate(&mut db)?;
+        Ok(db)
+    }
+
+    fn get_version(&self) -> Result<i32> {
+        let version: i32 = self.pragma_query_value(None, "user_version", |row| row.get(0))?;
+        Ok(version)
+    }
+
+    fn select_actuals(&self) -> Result<Vec<Actual>> {
+        self.prepare_cached(
+            // language=sql
+            r#"
+            SELECT sensor_id, title, timestamp, room_title, value
+            FROM sensors
+            ORDER BY sensors.room_title, sensors.sensor_id
+            "#,
+        )?
+        .query_map(params![], get_actual)?
+        .map(|r| r.map_err(Error::from))
+        .collect()
+    }
+
+    fn select_size(&self) -> Result<u64> {
+        Ok(self
+            // language=sql
+            .prepare_cached(
+                r#"
+                -- noinspection SqlResolve
+                SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()
+                "#,
+            )?
+            .query_row(params![], get_i64)
+            .map(|v| v as u64)?)
+    }
+
+    fn select_last_reading(&self, sensor_id: &str) -> Result<Option<Actual>> {
+        Ok(self
+            // language=sql
+            .prepare_cached(r#"SELECT * FROM sensors WHERE sensors.sensor_id = ?1"#)?
+            .query_row(params![sensor_id], get_actual)
+            .optional()?)
+    }
+
+    #[allow(dead_code)]
+    fn select_readings(&self, sensor_id: &str, since: &DateTime<Local>) -> Result<Vec<Reading>> {
+        self
+            // language=sql
+            .prepare_cached(
+                r#"
+                SELECT readings.timestamp, value
+                FROM readings
+                INNER JOIN sensors ON sensors.pk = readings.sensor_fk
+                WHERE sensors.sensor_id = ?1 AND readings.timestamp >= ?2
+                ORDER BY readings.timestamp
+                "#,
+            )?
+            .query_map(params![sensor_id, since.timestamp_millis()], get_reading)?
+            .map(|r| r.map_err(Error::from))
+            .collect()
+    }
+}
+
+fn migrate(db: &mut Connection) -> Result<()> {
+    let version = db.get_version()? as usize;
     for (i, migrate) in migrations::MIGRATIONS.iter().enumerate() {
         if version < i {
             info!("Migrating to version {}…", i);
@@ -33,85 +124,15 @@ pub fn connect<P: AsRef<Path>>(path: P) -> Result<Connection> {
             tx.commit()?;
         }
     }
-
-    Ok(db)
+    Ok(())
 }
 
-/// Get the database `user_version`.
-pub fn get_version(db: &Connection) -> Result<i32> {
-    let version: i32 = db.pragma_query_value(None, "user_version", |row| row.get(0))?;
-    Ok(version)
-}
-
-pub fn select_actuals(db: &Connection) -> Result<Vec<Actual>> {
-    db.prepare_cached(
-        // language=sql
-        r#"
-            SELECT sensor_id, title, timestamp, room_title, value
-            FROM sensors
-            ORDER BY sensors.room_title, sensors.sensor_id
-        "#,
-    )?
-    .query_map(params![], |row| {
-        Ok(Actual {
-            sensor: Sensor {
-                sensor_id: row.get("sensor_id")?,
-                title: row.get("title")?,
-                room_title: row.get("room_title")?,
-            },
-            reading: get_reading(row)?,
-        })
-    })?
-    .map(|r| r.map_err(Error::from))
-    .collect()
-}
-
-/// Select database size in bytes.
-pub fn select_size(db: &Connection) -> Result<u64> {
-    Ok(db
-        // language=sql
-        .prepare_cached(
-            r#"
-            -- noinspection SqlResolve
-            SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()
-            "#,
-        )?
-        .query_row(params![], get_i64)
-        .map(|v| v as u64)?)
-}
-
-/// Select the very last sensor reading.
-pub fn select_last_reading(db: &Connection, sensor_id: &str) -> Result<Option<Reading>> {
-    Ok(db
-        // language=sql
-        .prepare_cached(
-            r#"
-            SELECT timestamp, value
-            FROM sensors
-            WHERE sensors.sensor_id = ?1
-            "#,
-        )?
-        .query_row(params![sensor_id], get_reading)
-        .optional()?)
-}
-
-/// Select the latest sensor readings within the given time interval.
-#[allow(dead_code)]
-pub fn select_readings(db: &Connection, sensor_id: &str, since: &DateTime<Local>) -> Result<Vec<Reading>> {
-    db
-        // language=sql
-        .prepare_cached(
-            r#"
-            SELECT readings.timestamp, value
-            FROM readings
-            INNER JOIN sensors ON sensors.pk = readings.sensor_fk
-            WHERE sensors.sensor_id = ?1 AND readings.timestamp >= ?2
-            ORDER BY readings.timestamp
-            "#,
-        )?
-        .query_map(params![sensor_id, since.timestamp_millis()], get_reading)?
-        .map(|r| r.map_err(Error::from))
-        .collect()
+fn get_sensor(row: &Row) -> rusqlite::Result<Sensor> {
+    Ok(Sensor {
+        sensor_id: row.get("sensor_id")?,
+        title: row.get("title")?,
+        room_title: row.get("room_title")?,
+    })
 }
 
 fn get_reading(row: &Row) -> rusqlite::Result<Reading> {
@@ -120,6 +141,13 @@ fn get_reading(row: &Row) -> rusqlite::Result<Reading> {
         value: rmp_serde::from_read_ref(&row.get::<_, Vec<u8>>("value")?).map_err(|error| {
             rusqlite::Error::FromSqlConversionFailure(0, rusqlite::types::Type::Blob, Box::new(error))
         })?,
+    })
+}
+
+fn get_actual(row: &Row) -> rusqlite::Result<Actual> {
+    Ok(Actual {
+        sensor: get_sensor(row)?,
+        reading: get_reading(row)?,
     })
 }
 
@@ -197,7 +225,7 @@ mod tests {
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .message;
 
-        let db = connect(":memory:")?;
+        let db = Connection::open_and_initialize(":memory:")?;
         message.upsert_into(&db)?;
         message.upsert_into(&db)?;
 
@@ -212,8 +240,8 @@ mod tests {
 
     #[test]
     fn select_last_reading_returns_none_on_empty_database() -> Result {
-        let db = connect(":memory:")?;
-        assert_eq!(select_last_reading(&db, "test")?, None);
+        let db = Connection::open_and_initialize(":memory:")?;
+        assert_eq!(db.select_last_reading("test")?, None);
         Ok(())
     }
 
@@ -223,15 +251,15 @@ mod tests {
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .message;
-        let db = connect(":memory:")?;
+        let db = Connection::open_and_initialize(":memory:")?;
         message.upsert_into(&db)?;
-        assert_eq!(select_last_reading(&db, "test")?, Some(message.reading));
+        assert_eq!(db.select_last_reading("test")?, Some(message.into()));
         Ok(())
     }
 
     #[test]
     fn select_last_reading_returns_newer_reading() -> Result {
-        let db = connect(":memory:")?;
+        let db = Connection::open_and_initialize(":memory:")?;
         let old = Composer::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_127_000))
@@ -242,7 +270,7 @@ mod tests {
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .message;
         new.upsert_into(&db)?;
-        assert_eq!(select_last_reading(&db, "test")?, Some(new.reading));
+        assert_eq!(db.select_last_reading("test")?, Some(new.into()));
         Ok(())
     }
 
@@ -252,10 +280,10 @@ mod tests {
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .compose();
-        let db = connect(":memory:")?;
+        let db = Connection::open_and_initialize(":memory:")?;
         message.upsert_into(&db)?;
         assert_eq!(
-            select_actuals(&db)?,
+            db.select_actuals()?,
             vec![Actual {
                 sensor: message.sensor,
                 reading: message.reading
@@ -266,7 +294,7 @@ mod tests {
 
     #[test]
     fn existing_sensor_is_reused() -> Result {
-        let db = connect(":memory:")?;
+        let db = Connection::open_and_initialize(":memory:")?;
         let old = Composer::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
@@ -289,8 +317,8 @@ mod tests {
 
     #[test]
     fn migrates_to_the_latest_version() -> Result {
-        let db = connect(":memory:")?;
-        let version = get_version(&db)? as usize;
+        let db = Connection::open_and_initialize(":memory:")?;
+        let version = db.get_version()? as usize;
         assert_eq!(version, migrations::MIGRATIONS.len() - 1);
         Ok(())
     }

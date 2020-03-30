@@ -56,7 +56,7 @@ fn main() -> Result<()> {
     debug!("Settings: {:?}", &settings);
 
     info!("Opening database…");
-    let db = Arc::new(Mutex::new(crate::core::persistence::connect(&opt.db)?));
+    let db = Arc::new(Mutex::new(Connection::open_and_initialize(&opt.db)?));
 
     // Starting up multi-producer multi-consumer bus:
     // - services create and return their input channels

@@ -4,7 +4,7 @@
   <section class="hero is-info">
     <div class="hero-head">
       {% let navbar_item = "index" %}
-      {% include "navbar.html" %}
+      {% include "partials/navbar.html" %}
     </div>
     <div class="hero-body">
       <div class="container">
@@ -19,7 +19,7 @@
         <h2 class="title is-5">{% match room_title %}{% when Some with (room_title) %}{{ room_title }}{% else %}No room{% endmatch %}</h2>
         <div class="columns is-multiline">
           {% for actual in group %}
-            {% include "actual.html" %}
+            {% include "partials/actual.html" %}
           {% endfor %}
         </div>
       </div>

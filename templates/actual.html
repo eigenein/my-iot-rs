@@ -1,39 +1,58 @@
-{% let column_class -%}
-{% match actual.reading.value -%}
-  {% when Value::Temperature with (_) -%}
-    {% let column_class = "is-2" -%}
-  {% when Value::Bft with (_) -%}
-    {% let column_class = "is-2" -%}
-  {% when Value::Boolean with (_) -%}
-    {% let column_class = "is-2" -%}
-  {% when Value::WindDirection with (_) -%}
-    {% let column_class = "is-3" -%}
-  {% when Value::DataSize with (_) -%}
-    {% let column_class = "is-2" -%}
-  {% when Value::ImageUrl with (_) -%}
-    {% let column_class = "is-4" -%}
-  {% when Value::Rh with (_) -%}
-    {% let column_class = "is-2" -%}
-  {% else -%}
-    {% let column_class = "is-3" -%}
-{% endmatch -%}
+{% extends "base.html" %}
 
-<style>.reading { height: 100% }</style>
-
-<div class="column {{ column_class }}">
-  <a href="/sensors/{{ actual.sensor.sensor_id }}">
-    <div class="notification reading {{ actual.reading.value.class() }}">
-      <p class="title is-6" title="{{ actual.sensor.sensor_id }}">
-        {{ actual.sensor.display_title() }}
-      </p>
-      <p class="subtitle is-7" title="{{ actual.reading.timestamp.to_string() }}">
-        {# TODO: a custom filter. #}
-        {{ actual.reading.timestamp.format("%b %d, %H:%M:%S").to_string() }}
-      </p>
-      <p class="has-text-centered has-text-weight-bold" title='{{ "{:?}"|format(actual.reading.value) }}'>
-        {% let value = actual.reading.value.as_ref() %}
-        {% include "value.html" %}
-      </p>
+{% block body %}
+  <section class="hero {{ actual.reading.value.class() }}">
+    <div class="hero-head">
+      {% let navbar_item = "actual" %}
+      {% include "partials/navbar.html" %}
     </div>
-  </a>
-</div>
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="title is-4" title='{{ "{:?}"|format(actual.reading.value) }}'>
+          {% if actual.reading.value.is_inline() -%}
+            {% let value = actual.reading.value.as_ref() %}
+            {% include "partials/value.html" %}
+          {% else -%}
+            {{ actual.sensor.display_title() -}}
+          {% endif -%}
+        </h1>
+
+        <h2 class="subtitle is-6">
+          {% if actual.reading.value.is_inline() -%}
+            <span title="{{ actual.sensor.sensor_id }}">{{ actual.sensor.display_title() }}</span>
+          {% endif -%}
+          <span><i class="far fa-clock"></i></span>
+          <span title="{{ actual.reading.timestamp.to_string() }}">
+            {{ actual.reading.timestamp|format_datetime }}
+          </span>
+        </h2>
+      </div>
+    </div>
+  </section>
+
+  {% if actual.reading.value.is_inline() %}
+  {% else %}
+    <section class="section">
+      <div class="container">
+        <div class="message">
+          <div class="message-body">
+            {% let value = actual.reading.value.as_ref() %}
+            {% include "partials/value.html" %}
+          </div>
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+  <section class="section">
+    <div class="container">
+      <h3 class="title is-5">Latest reading</h3>
+      <h4 class="subtitle is-7">This is stored in the database</h4>
+      <div class="message">
+        <div class="message-body">
+          <pre><code>{{ "{:#?}"|format(actual.reading) }}</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

@@ -1,6 +1,5 @@
 //! Implements web server.
 
-use crate::core::persistence::*;
 use crate::prelude::*;
 use crate::settings::Settings;
 use crate::templates;
@@ -43,19 +42,17 @@ fn index(db: &Arc<Mutex<Connection>>) -> Response {
 
 /// Get sensor page response.
 fn get_sensor(db: &Arc<Mutex<Connection>>, sensor_id: &str) -> Response {
-    // FIXME: `unwrap()`s.
-    let reading = select_last_reading(&db.lock().unwrap(), &sensor_id).unwrap();
-    match reading {
-        // TODO: read sensor instance.
-        Some(reading) => Response::html(templates::Sensor::new(sensor_id, reading).to_string()),
+    let actual = db.lock().unwrap().select_last_reading(&sensor_id).unwrap();
+    match actual {
+        Some(actual) => Response::html(templates::Actual::new(actual).to_string()),
         None => Response::empty_404(),
     }
 }
 
 /// Get last sensor value JSON response.
 fn get_sensor_json(db: &Arc<Mutex<Connection>>, sensor_id: &str) -> Response {
-    match select_last_reading(&db.lock().unwrap(), &sensor_id).unwrap() {
-        Some(reading) => Response::json(&reading),
+    match db.lock().unwrap().select_last_reading(&sensor_id).unwrap() {
+        Some(actual) => Response::json(&actual.reading),
         None => Response::empty_404(),
     }
 }

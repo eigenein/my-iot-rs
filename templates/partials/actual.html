@@ -1,0 +1,38 @@
+{% let column_class -%}
+{% match actual.reading.value -%}
+  {% when Value::Temperature with (_) -%}
+    {% let column_class = "is-2" -%}
+  {% when Value::Bft with (_) -%}
+    {% let column_class = "is-2" -%}
+  {% when Value::Boolean with (_) -%}
+    {% let column_class = "is-2" -%}
+  {% when Value::WindDirection with (_) -%}
+    {% let column_class = "is-3" -%}
+  {% when Value::DataSize with (_) -%}
+    {% let column_class = "is-2" -%}
+  {% when Value::ImageUrl with (_) -%}
+    {% let column_class = "is-4" -%}
+  {% when Value::Rh with (_) -%}
+    {% let column_class = "is-2" -%}
+  {% else -%}
+    {% let column_class = "is-3" -%}
+{% endmatch -%}
+
+<style>.reading { height: 100% }</style>
+
+<div class="column {{ column_class }}">
+  <a href="/sensors/{{ actual.sensor.sensor_id }}">
+    <div class="notification reading {{ actual.reading.value.class() }}">
+      <p class="title is-6" title="{{ actual.sensor.sensor_id }}">
+        {{ actual.sensor.display_title() }}
+      </p>
+      <p class="subtitle is-7" title="{{ actual.reading.timestamp.to_string() }}">
+        {{ actual.reading.timestamp|format_datetime }}
+      </p>
+      <p class="has-text-centered has-text-weight-bold" title='{{ "{:?}"|format(actual.reading.value) }}'>
+        {% let value = actual.reading.value.as_ref() %}
+        {% include "partials/value.html" %}
+      </p>
+    </div>
+  </a>
+</div>

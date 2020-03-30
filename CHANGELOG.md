@@ -1,7 +1,9 @@
 # `my-iot`
 
-## `master`
+## `0.41.0`
 
+- Bunch of refactorings
+- Introduce `ConnectionExtensions` instead of standalone functions
 - Denormalize `sensors` to speed up selecting actual values from a large database on low-performance boards
 
 ## `0.40.0`
@@ -18,7 +20,7 @@
 ## `0.39.2`
 
 - Chore: order dashboard by `sensor_id`
-- Fix: only one migration is applied on startup (critical)
+- Fix: only one migration gets applied on a startup (critical)
 
 ## `0.39.1`
 

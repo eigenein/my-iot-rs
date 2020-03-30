@@ -8,7 +8,7 @@
 //!
 //! Basically, this is a case of "multi-producer multi-consumer" pattern.
 
-use crate::core::persistence::select_last_reading;
+use crate::core::persistence::ConnectionExtensions;
 use crate::prelude::*;
 use crate::supervisor;
 use crossbeam_channel::Sender;
@@ -141,11 +141,11 @@ impl Action {
                 Ok(())
             }
             Action::ReadSensor(parameters) => {
-                if let Some(source) = select_last_reading(&db.lock().unwrap(), &parameters.source_sensor)? {
+                if let Some(source) = db.lock().unwrap().select_last_reading(&parameters.source_sensor)? {
                     tx.send(
                         Composer::new(&parameters.target_sensor)
                             .type_(parameters.target_type)
-                            .value(source.value)
+                            .value(source.reading.value)
                             .into(),
                     )?
                 }

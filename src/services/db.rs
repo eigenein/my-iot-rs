@@ -1,4 +1,3 @@
-use crate::core::persistence::*;
 use crate::prelude::*;
 use crate::supervisor;
 use serde::Deserialize;
@@ -25,7 +24,7 @@ pub fn spawn(service_id: &str, settings: &Settings, db: &Arc<Mutex<Connection>>,
 
     supervisor::spawn(format!("my-iot::{}", service_id), tx.clone(), move || -> Result<()> {
         loop {
-            let size = select_size(&db.lock().unwrap())?;
+            let size = db.lock().unwrap().select_size()?;
             tx.send(
                 Composer::new(sensor.clone())
                     .value(Value::DataSize(size))

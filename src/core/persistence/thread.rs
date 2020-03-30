@@ -1,4 +1,4 @@
-use crate::core::persistence::select_last_reading;
+use crate::core::persistence::ConnectionExtensions;
 use crate::prelude::*;
 
 /// Spawn the persistence thread.
@@ -29,24 +29,24 @@ fn process_message(message: &Message, db: &Arc<Mutex<Connection>>, tx: &Sender<M
     // TODO: handle `ReadSnapshot`.
     if message.type_ == MessageType::ReadLogged {
         let db = db.lock().unwrap();
-        let previous_reading = select_last_reading(&db, &message.sensor.sensor_id)?;
+        let previous_actual = db.select_last_reading(&message.sensor.sensor_id)?;
         message.upsert_into(&db)?;
-        send_messages(&previous_reading, &message, &tx)?;
+        send_messages(&previous_actual, &message, &tx)?;
     }
     Ok(())
 }
 
 /// Check if sensor value has been updated or changed and send corresponding messages.
-fn send_messages(previous_reading: &Option<Reading>, message: &Message, tx: &Sender<Message>) -> Result<()> {
-    if let Some(existing) = previous_reading {
-        if message.reading.timestamp > existing.timestamp {
+fn send_messages(previous_actual: &Option<Actual>, message: &Message, tx: &Sender<Message>) -> Result<()> {
+    if let Some(existing) = previous_actual {
+        if message.reading.timestamp > existing.reading.timestamp {
             tx.send(
                 Composer::new(format!("{}::update", &message.sensor.sensor_id))
                     .type_(MessageType::ReadNonLogged)
                     .value(message.reading.value.clone())
                     .into(),
             )?;
-            if message.reading.value != existing.value {
+            if message.reading.value != existing.reading.value {
                 tx.send(
                     Composer::new(format!("{}::change", &message.sensor.sensor_id))
                         .type_(MessageType::ReadNonLogged)
