@@ -1,4 +1,4 @@
-use crate::core::persistence::{select_last_reading, upsert_reading};
+use crate::core::persistence::select_last_reading;
 use crate::prelude::*;
 
 /// Spawn the persistence thread.
@@ -30,7 +30,7 @@ fn process_message(message: &Message, db: &Arc<Mutex<Connection>>, tx: &Sender<M
     if message.type_ == MessageType::ReadLogged {
         let db = db.lock().unwrap();
         let previous_reading = select_last_reading(&db, &message.sensor.sensor_id)?;
-        upsert_reading(&db, &message.sensor, &message.reading)?;
+        message.upsert_into(&db)?;
         send_messages(&previous_reading, &message, &tx)?;
     }
     Ok(())

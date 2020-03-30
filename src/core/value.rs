@@ -1,7 +1,8 @@
 //! Implements sensor reading value.
 
 use crate::format::human_format;
-use failure::{format_err, Error};
+use crate::prelude::*;
+use failure::format_err;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use uom::fmt::DisplayStyle::Abbreviation;
@@ -113,7 +114,7 @@ impl Value {
     }
 
     /// Get [Font Awesome](https://fontawesome.com) icon tag.
-    pub fn icon(&self) -> Result<&'static str, Error> {
+    pub fn icon(&self) -> Result<&'static str> {
         match *self {
             Value::Counter(_) => Ok(r#"<i class="fas fa-sort-numeric-up-alt"></i>"#),
             Value::DataSize(_) => Ok(r#"<i class="far fa-save"></i>"#),
@@ -144,7 +145,7 @@ impl Value {
 impl std::fmt::Display for Value {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
-            Value::None => Ok(()),
+            Value::None => write!(f, "None"),
             Value::Counter(count) => write!(f, r"{} times", count),
             Value::DataSize(size) => f.write_str(&human_format(*size as f64, "B")),
             Value::Text(ref string) => write!(f, r"{}", string),

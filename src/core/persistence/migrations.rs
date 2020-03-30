@@ -1,8 +1,15 @@
 use crate::prelude::*;
 
-pub const MIGRATIONS: &[fn(&Connection) -> Result<()>] = &[|_| Ok(()), migrate_1, migrate_2, migrate_3, migrate_4];
+pub const MIGRATIONS: &[fn(&Connection) -> Result<()>] = &[
+    |_| Ok(()),
+    create_initial_schema,
+    drop_readings_because_of_changed_serialization_format,
+    add_sensor_titles,
+    add_room_titles,
+    denormalize_actual_sensor_values,
+];
 
-fn migrate_1(db: &Connection) -> Result<()> {
+fn create_initial_schema(db: &Connection) -> Result<()> {
     // language=sql
     db.execute_batch(
         r#"
@@ -25,7 +32,7 @@ fn migrate_1(db: &Connection) -> Result<()> {
     Ok(())
 }
 
-fn migrate_2(db: &Connection) -> Result<()> {
+fn drop_readings_because_of_changed_serialization_format(db: &Connection) -> Result<()> {
     // language=sql
     db.execute_batch(
         r#"
@@ -36,7 +43,7 @@ fn migrate_2(db: &Connection) -> Result<()> {
     Ok(())
 }
 
-fn migrate_3(db: &Connection) -> Result<()> {
+fn add_sensor_titles(db: &Connection) -> Result<()> {
     // language=sql
     db.execute_batch(
         r#"
@@ -46,11 +53,23 @@ fn migrate_3(db: &Connection) -> Result<()> {
     Ok(())
 }
 
-fn migrate_4(db: &Connection) -> Result<()> {
+fn add_room_titles(db: &Connection) -> Result<()> {
     // language=sql
     db.execute_batch(
         r#"
             ALTER TABLE sensors ADD COLUMN room_title TEXT NULL DEFAULT NULL;
+        "#,
+    )?;
+    Ok(())
+}
+
+/// Denormalize `sensors` to avoid joining the `readings` table while
+/// fetching actual sensor values. `Value::None` is set by default.
+fn denormalize_actual_sensor_values(db: &Connection) -> Result<()> {
+    // language=sql
+    db.execute_batch(
+        r#"
+            ALTER TABLE sensors ADD COLUMN value BLOB NOT NULL DEFAULT x'81a14ec0'
         "#,
     )?;
     Ok(())

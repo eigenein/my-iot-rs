@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Denormalize `sensors` to speed up selecting actual values from a large database on low-performance boards
+
 ## `0.40.0`
 
 - Add initial room title support
