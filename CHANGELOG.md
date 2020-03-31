@@ -2,6 +2,7 @@
 
 ## `0.41.0`
 
+- Spawn `Db` service by default
 - Bunch of refactorings
 - Introduce `ConnectionExtensions` instead of standalone functions
 - Denormalize `sensors` to speed up selecting actual values from a large database on low-performance boards

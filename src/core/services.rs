@@ -32,7 +32,6 @@ fn spawn(service_id: &str, settings: &ServiceSettings, db: &Arc<Mutex<Connection
         ServiceSettings::Automator(settings) => automator::spawn(service_id, settings, db, bus),
         ServiceSettings::Buienradar(settings) => buienradar::spawn(service_id, settings, bus),
         ServiceSettings::Clock(settings) => clock::spawn(service_id, settings, bus),
-        ServiceSettings::Db(settings) => db::spawn(service_id, settings, db, bus),
         ServiceSettings::Nest(settings) => nest::spawn(service_id, settings, bus),
         ServiceSettings::Telegram(settings) => telegram::spawn(service_id, settings, bus),
     }

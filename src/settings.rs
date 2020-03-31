@@ -35,8 +35,6 @@ pub struct Settings {
 pub enum ServiceSettings {
     /// Regularly emits a counter value.
     Clock(services::clock::Settings),
-    /// Regularly emits database information.
-    Db(services::db::Settings),
     /// Dutch [Buienradar](https://www.buienradar.nl/) weather service.
     Buienradar(services::buienradar::Settings),
     /// Nest API.
