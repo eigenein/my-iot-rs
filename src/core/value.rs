@@ -146,7 +146,7 @@ impl std::fmt::Display for Value {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
             Value::None => write!(f, "None"),
-            Value::Counter(count) => write!(f, r"{} times", count),
+            Value::Counter(count) => write!(f, r"{}", count),
             Value::DataSize(size) => f.write_str(&human_format(*size as f64, "B")),
             Value::Text(ref string) => write!(f, r"{}", string),
             Value::Temperature(temperature) => write!(

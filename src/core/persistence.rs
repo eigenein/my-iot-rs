@@ -2,8 +2,8 @@
 
 use crate::prelude::*;
 use chrono::prelude::*;
-use rusqlite::OptionalExtension;
 use rusqlite::{params, Row};
+use rusqlite::{OptionalExtension, NO_PARAMS};
 use std::path::Path;
 
 mod migrations;
@@ -43,6 +43,10 @@ pub trait ConnectionExtensions {
 
     /// Select the latest sensor readings within the given time interval.
     fn select_readings(&self, sensor_id: &str, since: &DateTime<Local>) -> Result<Vec<Reading>>;
+
+    fn select_sensor_count(&self) -> Result<u64>;
+
+    fn select_reading_count(&self) -> Result<u64>;
 }
 
 impl ConnectionExtensions for Connection {
@@ -68,7 +72,7 @@ impl ConnectionExtensions for Connection {
             ORDER BY sensors.room_title, sensors.sensor_id
             "#,
         )?
-        .query_map(params![], get_actual)?
+        .query_map(NO_PARAMS, get_actual)?
         .map(|r| r.map_err(Error::from))
         .collect()
     }
@@ -82,7 +86,7 @@ impl ConnectionExtensions for Connection {
                 SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()
                 "#,
             )?
-            .query_row(params![], get_i64)
+            .query_row(NO_PARAMS, get_i64)
             .map(|v| v as u64)?)
     }
 
@@ -100,7 +104,7 @@ impl ConnectionExtensions for Connection {
             // language=sql
             .prepare_cached(
                 r#"
-                SELECT readings.timestamp, value
+                SELECT readings.timestamp, readings.value
                 FROM readings
                 INNER JOIN sensors ON sensors.pk = readings.sensor_fk
                 WHERE sensors.sensor_id = ?1 AND readings.timestamp >= ?2
@@ -110,6 +114,22 @@ impl ConnectionExtensions for Connection {
             .query_map(params![sensor_id, since.timestamp_millis()], get_reading)?
             .map(|r| r.map_err(Error::from))
             .collect()
+    }
+
+    fn select_sensor_count(&self) -> Result<u64> {
+        Ok(self
+            // language=sql
+            .prepare("SELECT COUNT(*) FROM sensors")?
+            .query_row(NO_PARAMS, get_i64)
+            .map(|v| v as u64)?)
+    }
+
+    fn select_reading_count(&self) -> Result<u64> {
+        Ok(self
+            // language=sql
+            .prepare("SELECT COUNT(*) FROM readings")?
+            .query_row(NO_PARAMS, get_i64)
+            .map(|v| v as u64)?)
     }
 }
 
@@ -229,11 +249,7 @@ mod tests {
         message.upsert_into(&db)?;
         message.upsert_into(&db)?;
 
-        let reading_count: i64 = db
-            // language=sql
-            .prepare("SELECT COUNT(*) FROM readings")?
-            .query_row(params![], get_i64)?;
-        assert_eq!(reading_count, 1);
+        assert_eq!(db.select_reading_count()?, 1);
 
         Ok(())
     }
@@ -306,11 +322,7 @@ mod tests {
             .message;
         new.upsert_into(&db)?;
 
-        let reading_count = db
-            // language=sql
-            .prepare_cached("SELECT COUNT(*) FROM sensors")?
-            .query_row(params![], get_i64)?;
-        assert_eq!(reading_count, 1);
+        assert_eq!(db.select_sensor_count()?, 1);
 
         Ok(())
     }

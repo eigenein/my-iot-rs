@@ -2,6 +2,7 @@
 
 ## `0.41.0`
 
+- New sensors for `Db`
 - Spawn `Db` service by default
 - Bunch of refactorings
 - Introduce `ConnectionExtensions` instead of standalone functions

@@ -12,14 +12,31 @@ pub fn spawn(db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
 
     supervisor::spawn("my-iot::db", tx.clone(), move || -> Result<()> {
         loop {
-            let size = db.lock().unwrap().select_size()?;
-            tx.send(
-                Composer::new("db::size")
-                    .value(Value::DataSize(size))
-                    .title("Database Size".to_string())
-                    .room_title("System".to_string())
-                    .into(),
-            )?;
+            {
+                let db = db.lock().unwrap();
+                let size = db.select_size()?;
+                tx.send(
+                    Composer::new("db::size")
+                        .value(Value::DataSize(size))
+                        .title("Database Size".to_string())
+                        .room_title("System".to_string())
+                        .into(),
+                )?;
+                tx.send(
+                    Composer::new("db::sensor_count")
+                        .value(Value::Counter(db.select_sensor_count()?))
+                        .title("Sensor Count")
+                        .room_title("System".to_string())
+                        .into(),
+                )?;
+                tx.send(
+                    Composer::new("db::reading_count")
+                        .value(Value::Counter(db.select_reading_count()?))
+                        .title("Reading Count")
+                        .room_title("System".to_string())
+                        .into(),
+                )?;
+            }
             thread::sleep(INTERVAL);
         }
     })?;

@@ -7,12 +7,14 @@
   {% when Value::Boolean with (_) -%}
     {% let column_class = "is-2" -%}
   {% when Value::WindDirection with (_) -%}
-    {% let column_class = "is-3" -%}
+    {% let column_class = "is-2" -%}
   {% when Value::DataSize with (_) -%}
     {% let column_class = "is-2" -%}
   {% when Value::ImageUrl with (_) -%}
     {% let column_class = "is-4" -%}
   {% when Value::Rh with (_) -%}
+    {% let column_class = "is-2" -%}
+  {% when Value::Counter with (_) -%}
     {% let column_class = "is-2" -%}
   {% else -%}
     {% let column_class = "is-3" -%}
