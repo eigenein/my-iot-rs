@@ -22,23 +22,24 @@ lto = "fat"
 codegen-units = 1
 
 [dependencies]
-chrono = { version = "0.4.7", features = ["serde"] }
-chrono-tz = { version = "0.5.1", features = ["serde"] }
-reqwest = { version = "0.10.1", features = ["rustls-tls", "blocking", "gzip", "json"] }
-rouille = "3.0.0"
+chrono = { version = "0.4", features = ["serde"] }
+chrono-tz = { version = "0.5", features = ["serde"] }
+reqwest = { version = "0.10", features = ["rustls-tls", "blocking", "gzip", "json"] }
+rouille = "3.0"
 log = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-eventsource = "0.4.0"
-failure = "0.1.5"
-crossbeam-channel = "0.3.9"
-toml = "0.5.3"
+eventsource = "0.4"
+failure = "0.1"
+crossbeam-channel = "0.3"
+toml = "0.5"
 regex = "1"
-simple_logger = "1.0.1"
+simple_logger = "1.0"
 structopt = "0.3"
-rusqlite = { version = "0.20.0", features = ["bundled"] }
+rusqlite = { version = "0.20", features = ["bundled"] }
 askama = "0.9"
-rmp-serde = "0.14.2"
-uom = { version = "0.26.0", features = ["use_serde", "autoconvert", "f64", "si", "std", "try-from"] }
+rmp-serde = "0.14"
+uom = { version = "0.26", features = ["use_serde", "autoconvert", "f64", "si", "std", "try-from"] }
 dirs = "2.0"
 itertools = "0.9"
+rlua = "0.17"

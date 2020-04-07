@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["_IMPL_DESERIALIZE_FOR_Settings",""]],"fn":[["default_interval_ms",""],["spawn",""]],"struct":[["Settings",""]]});
+initSidebarItems({"fn":[["default_interval_ms",""],["spawn",""]],"struct":[["Settings",""]]});

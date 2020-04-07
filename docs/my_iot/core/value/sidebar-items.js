@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["_IMPL_DESERIALIZE_FOR_PointOfTheCompass",""],["_IMPL_DESERIALIZE_FOR_Value",""],["_IMPL_SERIALIZE_FOR_PointOfTheCompass",""],["_IMPL_SERIALIZE_FOR_Value",""]],"enum":[["PointOfTheCompass","Points of the compass."],["Value","Sensor reading value."]]});
+initSidebarItems({"enum":[["PointOfTheCompass","Points of the compass."],["Value","Sensor reading value."]]});

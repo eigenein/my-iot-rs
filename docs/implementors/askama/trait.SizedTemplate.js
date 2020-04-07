@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["my_iot"] = [{"text":"impl&lt;'a&gt; SizedTemplate for <a class=\"struct\" href=\"my_iot/templates/struct.Index.html\" title=\"struct my_iot::templates::Index\">Index</a>&lt;'a&gt;","synthetic":false,"types":["my_iot::templates::Index"]},{"text":"impl&lt;'a&gt; SizedTemplate for <a class=\"struct\" href=\"my_iot/templates/struct.Actual.html\" title=\"struct my_iot::templates::Actual\">Actual</a>&lt;'a&gt;","synthetic":false,"types":["my_iot::templates::Actual"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

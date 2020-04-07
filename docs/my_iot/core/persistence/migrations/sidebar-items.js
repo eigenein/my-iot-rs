@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["version_1",""],["version_2",""],["version_3",""]]});
+initSidebarItems({"constant":[["MIGRATIONS",""]],"fn":[["add_room_titles",""],["add_sensor_titles",""],["create_initial_schema",""],["denormalize_actual_sensor_values","Denormalize `sensors` to avoid joining the `readings` table while fetching actual sensor values. `Value::None` is set by default."],["drop_readings_because_of_changed_serialization_format",""]]});

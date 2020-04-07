@@ -8,6 +8,15 @@
 <span id="8"> 8</span>
 <span id="9"> 9</span>
 <span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 
@@ -18,6 +27,15 @@
 
     <span class="doccomment">/// Attached value.</span>
     <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">Value</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Reading</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">Reading</span> {
+            <span class="ident">timestamp</span>: <span class="ident">Local</span>::<span class="ident">now</span>(),
+            <span class="ident">value</span>: <span class="ident">Value</span>::<span class="prelude-val">None</span>,
+        }
+    }
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../";window.currentCrate = "my_iot";</script><script src="../../../../aliases.js"></script><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>

@@ -36,43 +36,71 @@
 <span id="36">36</span>
 <span id="37">37</span>
 <span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Web interface templates.</span>
 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">core</span>::<span class="ident">persistence</span>::<span class="ident">ConnectionExtensions</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">askama</span>::<span class="ident">Template</span>;
+<span class="kw">use</span> <span class="ident">itertools</span>::<span class="ident">Itertools</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Template</span>)]</span>
 <span class="attribute">#[<span class="ident">template</span>(<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;index.html&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Index</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">crate_version</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
-    <span class="kw">pub</span> <span class="ident">actuals</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="kw">crate</span>::<span class="ident">core</span>::<span class="ident">persistence</span>::<span class="ident">sensor</span>::<span class="ident">Sensor</span>, <span class="ident">Reading</span>)<span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">actuals</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="ident">Actual</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Template</span>)]</span>
-<span class="attribute">#[<span class="ident">template</span>(<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;sensor.html&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sensor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="attribute">#[<span class="ident">template</span>(<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;actual.html&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Actual</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">crate_version</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
-    <span class="kw">pub</span> <span class="ident">sensor_id</span>: <span class="ident">String</span>,
-    <span class="kw">pub</span> <span class="ident">reading</span>: <span class="ident">Reading</span>,
+    <span class="kw">pub</span> <span class="ident">actual</span>: <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="ident">Actual</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Index</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">actuals</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="kw">crate</span>::<span class="ident">core</span>::<span class="ident">persistence</span>::<span class="ident">sensor</span>::<span class="ident">Sensor</span>, <span class="ident">Reading</span>)<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="ident">Connection</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
+            <span class="ident">actuals</span>: <span class="ident">db</span>
+                .<span class="ident">select_actuals</span>()<span class="question-mark">?</span>
+                .<span class="ident">into_iter</span>()
+                .<span class="ident">group_by</span>(<span class="op">|</span><span class="ident">actual</span><span class="op">|</span> <span class="ident">actual</span>.<span class="ident">sensor</span>.<span class="ident">room_title</span>.<span class="ident">clone</span>())
+                .<span class="ident">into_iter</span>()
+                .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">room_title</span>, <span class="ident">group</span>)<span class="op">|</span> (<span class="ident">room_title</span>, <span class="ident">group</span>.<span class="ident">collect_vec</span>()))
+                .<span class="ident">collect_vec</span>(),
+            <span class="ident">crate_version</span>: <span class="ident">structopt</span>::<span class="ident">clap</span>::<span class="macro">crate_version</span><span class="macro">!</span>(),
+        })
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Actual</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">actual</span>: <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="ident">Actual</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">actuals</span>,
+            <span class="ident">actual</span>,
             <span class="ident">crate_version</span>: <span class="ident">structopt</span>::<span class="ident">clap</span>::<span class="macro">crate_version</span><span class="macro">!</span>(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Sensor</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">sensor_id</span>: <span class="ident">S</span>, <span class="ident">reading</span>: <span class="ident">Reading</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">reading</span>,
-            <span class="ident">sensor_id</span>: <span class="ident">sensor_id</span>.<span class="ident">into</span>(),
-            <span class="ident">crate_version</span>: <span class="ident">structopt</span>::<span class="ident">clap</span>::<span class="macro">crate_version</span><span class="macro">!</span>(),
-        }
+<span class="kw">mod</span> <span class="ident">filters</span> {
+    <span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">DateTime</span>, <span class="ident">Local</span>};
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format_datetime</span>(<span class="ident">datetime</span>: <span class="kw-2">&amp;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Local</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">askama</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">datetime</span>.<span class="ident">format</span>(<span class="string">&quot;%b %d, %H:%M:%S&quot;</span>).<span class="ident">to_string</span>())
     }
 }
 </pre></div>

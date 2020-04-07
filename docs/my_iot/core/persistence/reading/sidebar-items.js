@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["_IMPL_SERIALIZE_FOR_Reading",""]],"struct":[["Reading",""]]});
+initSidebarItems({"struct":[["Reading",""]]});
