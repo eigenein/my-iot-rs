@@ -1,6 +1,8 @@
 # My Internet of Things
 
-Yet another [home automation](https://en.wikipedia.org/wiki/Home_automation). Written in [Rust](https://www.rust-lang.org/). To get started please refer to the [Wiki](https://github.com/eigenein/my-iot-rs/wiki).
+Yet another [home automation](https://en.wikipedia.org/wiki/Home_automation). Written in [Rust](https://www.rust-lang.org/).
+
+At the moment all documentation resides in the `README`. It is incomplete and will likely stay incomplete until features will be stabilized. Nevertheless, I strive to maintain it.
 
 [![Wiki](https://img.shields.io/badge/-Wiki-orange.svg?logo=github)](https://github.com/eigenein/my-iot-rs/wiki)
 [![rustdoc](https://img.shields.io/badge/-rustdoc-lightgray.svg?logo=rust)](https://eigenein.github.io/my-iot-rs/)
@@ -29,6 +31,8 @@ And no, I didn't think about the project name long enough.
 - [Bulma](https://bulma.io/)
 
 ## Installation
+
+There're few different ways to install My IoT. Either way, you get a single executable `my-iot`. Nothing else is needed.
 
 ### Pre-compiled binaries for Raspberry Pi Zero W
 
@@ -71,8 +75,6 @@ This is needed to use some low-level protocols (for instance, [ICMP](https://en.
 
 My IoT is configured with a single [TOML](https://github.com/toml-lang/toml) file. By default, `my-iot.toml` is read from `~/.config` directory.
 
-**TODO**
-
 ### Example
 
 ```toml
@@ -90,8 +92,6 @@ station_id = 6240
 ## systemd
 
 For now please refer to [Raspberry Pi systemd page](https://www.raspberrypi.org/documentation/linux/usage/systemd.md).
-
-**TODO**
 
 ### Example
 
