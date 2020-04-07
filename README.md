@@ -15,8 +15,6 @@ I'm writing something similar to [Home Assistant](https://www.home-assistant.io/
 
 And no, I didn't think about the project name long enough.
 
-[[Home.png]]
-
 ### Why?
 
 - I want to learn [Rust](https://www.rust-lang.org/)
