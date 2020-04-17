@@ -9,6 +9,12 @@ At the moment all documentation resides in the `README`. It is incomplete and wi
 [![Build Status](https://github.com/eigenein/my-iot-rs/workflows/build/badge.svg)](https://github.com/eigenein/my-iot-rs/actions)
 [![GitHub last commit](https://img.shields.io/github/last-commit/eigenein/my-iot-rs?logo=github)](https://github.com/eigenein/my-iot-rs/commits/master)
 
+- [What Is It](what-is-it)
+- [Installation](installation)
+- [Services](services)
+- [Run at System Startup](run-at-system-startup)
+- [Publish on the Internet with NGINX]([publish-on-the-internet-with-nginx])
+
 # What Is It?
 
 I'm writing something similar to [Home Assistant](https://www.home-assistant.io/) from ground up for my tiny set of Wi-Fi enabled devices.

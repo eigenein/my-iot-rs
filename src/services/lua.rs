@@ -92,6 +92,7 @@ fn init_logging(context: Context, service_id: &str) -> Result<()> {
     Ok(())
 }
 
+// TODO: remove this and expose variants as constants instead to make it more portable.
 impl ToLua<'_> for crate::core::message::Type {
     fn to_lua(self, context: Context) -> rlua::Result<rlua::Value> {
         format!("{:?}", self).to_lua(context)
