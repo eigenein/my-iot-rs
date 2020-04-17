@@ -43,6 +43,8 @@ pub enum ServiceSettings {
     Automator(services::automator::Settings),
     /// [Telegram bot](https://core.telegram.org/bots/api) service.
     Telegram(services::telegram::Settings),
+    /// [Lua](https://www.lua.org/) scripting.
+    Lua(services::lua::Settings),
 }
 
 fn default_http_port() -> u16 {

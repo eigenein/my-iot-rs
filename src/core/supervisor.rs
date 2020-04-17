@@ -13,11 +13,11 @@ where
     F: Fn() -> Result<()> + Send + 'static,
 {
     let name = name.into();
-    let sensor = format!("{}::is_running", &name);
+    let sensor = format!("my-iot::{}::is_running", &name);
 
     thread::Builder::new().name(name.clone()).spawn(move || loop {
         // TODO: update thread status.
-        info!("Running {}", &name);
+        info!("Running `{}`", &name);
         // FIXME: dangerous `unwrap`s.
         tx.send(
             Composer::new(&sensor)
@@ -27,8 +27,8 @@ where
         )
         .unwrap();
         match f() {
-            Ok(_) => error!("Thread {} has finished unexpectedly", &name),
-            Err(error) => error!("Thread {} crashed: {:?}", &name, error),
+            Ok(_) => error!("Thread `{}` has finished unexpectedly", &name),
+            Err(error) => error!("Thread `{}` crashed: {:?}", &name, error),
         }
         tx.send(
             Composer::new(&sensor)

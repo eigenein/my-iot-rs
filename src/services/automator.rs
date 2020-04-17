@@ -29,7 +29,7 @@ pub fn spawn(service_id: &str, settings: &Settings, db: &Arc<Mutex<Connection>>,
     let settings = settings.clone();
     let rx = bus.add_rx();
 
-    supervisor::spawn(format!("my-iot::{}", &service_id), tx.clone(), move || {
+    supervisor::spawn(service_id.clone(), tx.clone(), move || {
         for message in &rx {
             for scenario in settings.scenarios.iter() {
                 if scenario.conditions.iter().all(|c| c.is_met(&message)) {

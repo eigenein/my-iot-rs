@@ -34,5 +34,6 @@ fn spawn(service_id: &str, settings: &ServiceSettings, db: &Arc<Mutex<Connection
         ServiceSettings::Clock(settings) => clock::spawn(service_id, settings, bus),
         ServiceSettings::Nest(settings) => nest::spawn(service_id, settings, bus),
         ServiceSettings::Telegram(settings) => telegram::spawn(service_id, settings, bus),
+        ServiceSettings::Lua(settings) => lua::spawn(service_id, settings, bus),
     }
 }

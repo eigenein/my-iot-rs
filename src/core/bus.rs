@@ -41,7 +41,7 @@ impl Bus {
     /// Spawn the bus dispatcher thread.
     pub fn spawn(self) -> Result<()> {
         info!("Spawning message bus…");
-        supervisor::spawn("my-iot::bus", self.add_tx(), move || -> Result<()> {
+        supervisor::spawn("bus", self.add_tx(), move || -> Result<()> {
             for message in &self.rx {
                 debug!("Dispatching {}", &message.sensor.sensor_id);
                 for tx in self.service_txs.iter() {

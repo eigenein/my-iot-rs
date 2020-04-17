@@ -63,7 +63,7 @@ fn spawn_producer(context: Context, bus: &Bus) -> Result<()> {
     let tx = bus.add_tx();
 
     supervisor::spawn(
-        &format!("my-iot::{}::producer", &context.service_id),
+        &format!("{}::producer", &context.service_id),
         tx.clone(),
         move || -> Result<()> {
             let mut offset: Option<i64> = None;
@@ -107,33 +107,29 @@ fn spawn_consumer(context: Context, bus: &mut Bus) -> Result<()> {
     ))?;
     let rx = bus.add_rx();
 
-    supervisor::spawn(
-        format!("my-iot::{}::consumer", &context.service_id),
-        bus.add_tx(),
-        move || {
-            for message in &rx {
-                if message.type_ != MessageType::Write {
-                    continue;
-                }
-                let (chat_id, sensor) = match message_regex.captures(&message.sensor.sensor_id) {
-                    Some(captures) => (captures.get(1).unwrap().as_str(), captures.get(2).unwrap().as_str()),
-                    None => continue,
-                };
-                let chat_id: TelegramChatId = chat_id.into();
-                let error = match message.reading.value {
-                    Value::Text(ref text) if sensor == "message" => send_message(&context, chat_id, text).err(),
-                    Value::ImageUrl(ref url) if sensor == "photo" => send_photo(&context, chat_id, url).err(),
-                    Value::ImageUrl(ref url) if sensor == "animation" => send_animation(&context, chat_id, url).err(),
-                    value => Some(format_err!("cannot send {:?} to {}", &value, &message.sensor.sensor_id)),
-                };
-                // FIXME: return `Result` from the closure.
-                if let Some(error) = error {
-                    error!("{:?}", error);
-                }
+    supervisor::spawn(format!("{}::consumer", &context.service_id), bus.add_tx(), move || {
+        for message in &rx {
+            if message.type_ != MessageType::Write {
+                continue;
             }
-            unreachable!();
-        },
-    )?;
+            let (chat_id, sensor) = match message_regex.captures(&message.sensor.sensor_id) {
+                Some(captures) => (captures.get(1).unwrap().as_str(), captures.get(2).unwrap().as_str()),
+                None => continue,
+            };
+            let chat_id: TelegramChatId = chat_id.into();
+            let error = match message.reading.value {
+                Value::Text(ref text) if sensor == "message" => send_message(&context, chat_id, text).err(),
+                Value::ImageUrl(ref url) if sensor == "photo" => send_photo(&context, chat_id, url).err(),
+                Value::ImageUrl(ref url) if sensor == "animation" => send_animation(&context, chat_id, url).err(),
+                value => Some(format_err!("cannot send {:?} to {}", &value, &message.sensor.sensor_id)),
+            };
+            // FIXME: return `Result` from the closure.
+            if let Some(error) = error {
+                error!("{:?}", error);
+            }
+        }
+        unreachable!();
+    })?;
 
     Ok(())
 }

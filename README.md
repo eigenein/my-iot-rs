@@ -1,5 +1,3 @@
-# My Internet of Things
-
 Yet another [home automation](https://en.wikipedia.org/wiki/Home_automation). Written in [Rust](https://www.rust-lang.org/).
 
 At the moment all documentation resides in the `README`. It is incomplete and will likely stay incomplete until features will be stabilized. Nevertheless, I strive to maintain it.
@@ -29,6 +27,7 @@ And no, I didn't think about the project name long enough.
 - [Rouille](https://github.com/tomaka/rouille)
 - [Askama](https://github.com/djc/askama)
 - [Bulma](https://bulma.io/)
+- [Lua](https://www.lua.org/)
 
 # Installation
 
@@ -91,7 +90,36 @@ station_id = 6240
 
 # Services
 
-# systemd
+**Service** is a kind of interface between My IoT and the real world. You can set up as many services as you want, even multiple services of a same type. A service is typically capable of:
+- Producing messages about something is happening
+- Listening to other services messages and reacting on them
+
+## [Lua](https://www.lua.org/)
+
+**Lua** service allows to react on incoming messages via a Lua script, so you can implement virtually anything.
+
+### Example
+
+```toml
+[services.lua]
+type = "Lua"
+script = '''
+    function on_message(message)
+      info(message.sensor_id)
+      info(message.type)
+    end
+'''
+```
+
+### Builtins
+
+My IoT adds some extra globals to execution context.
+
+#### `debug`, `info`, `warn`, `error`
+
+These functions are similar to the Rust's ones, but they only accept a single string literal as the only parameter. Whatever you pass there will go through My IoT logging and so is manageable by e.g. `journalctl` or whatever logging system you use.
+
+# Run at System Startup
 
 For now please refer to [Raspberry Pi systemd page](https://www.raspberrypi.org/documentation/linux/usage/systemd.md).
 
@@ -134,14 +162,12 @@ journalctl -f -u my-iot
 
 See also: [How To Use Journalctl to View and Manipulate Systemd Logs](https://www.digitalocean.com/community/tutorials/how-to-use-journalctl-to-view-and-manipulate-systemd-logs).
 
-# NGINX
-
-[Nginx](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/) is a good way to publish your installation to the Internet. You can use the provided example to configure it.
+# [Publish on the Internet with NGINX](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/)
 
 ## Checklist
 
 - Configure [Let's Encrypt](https://letsencrypt.org/) or another certificate provider
-- Configure right certificate and private key paths
+- Set right certificate and private key paths
 - Generate `.htpasswd` or configure another way of authentication
 
 ## Example

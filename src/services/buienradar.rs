@@ -85,7 +85,7 @@ pub fn spawn(service_id: &str, settings: &Settings, bus: &mut Bus) -> Result<()>
             .build()?
     };
 
-    supervisor::spawn(format!("my-iot::{}", &service_id), tx.clone(), move || -> Result<()> {
+    supervisor::spawn(service_id.clone(), tx.clone(), move || -> Result<()> {
         loop {
             send_readings(fetch(&client)?, &service_id, station_id, &tx)?;
             thread::sleep(REFRESH_PERIOD);

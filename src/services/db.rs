@@ -10,7 +10,7 @@ pub fn spawn(db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
     let tx = bus.add_tx();
     let db = db.clone();
 
-    supervisor::spawn("my-iot::db", tx.clone(), move || -> Result<()> {
+    supervisor::spawn("db", tx.clone(), move || -> Result<()> {
         loop {
             {
                 let db = db.lock().unwrap();

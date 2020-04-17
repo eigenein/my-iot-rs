@@ -7,7 +7,7 @@ pub fn spawn(db: Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
     let tx = bus.add_tx();
     let rx = bus.add_rx();
 
-    crate::core::supervisor::spawn("my-iot::persistence", tx.clone(), move || {
+    crate::core::supervisor::spawn("persistence", tx.clone(), move || {
         for message in &rx {
             if let Err(error) = process_message(&message, &db, &tx) {
                 error!("{}: {:?}", error, &message);
