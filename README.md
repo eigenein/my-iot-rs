@@ -134,6 +134,14 @@ TODO
 
 TODO
 
+### Recipes
+
+TODO
+
+#### If Nest camera detects a motion, send an animation to Telegram
+
+TODO
+
 # Run at System Startup
 
 For now please refer to [Raspberry Pi `systemd` page](https://www.raspberrypi.org/documentation/linux/usage/systemd.md).
