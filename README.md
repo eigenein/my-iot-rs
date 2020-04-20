@@ -110,9 +110,10 @@ station_id = 6240
 [services.lua]
 type = "Lua"
 script = '''
-    function on_message(message)
-      info(message.sensor_id)
-      info(message.type)
+    sendMessage("hello::world", MESSAGE_READ_NON_LOGGED)
+
+    function onMessage(message)
+      info(string.format("%s: %s", message.sensor_id, message.value))
     end
 '''
 ```
@@ -121,13 +122,21 @@ script = '''
 
 My IoT adds some extra globals to execution context.
 
-#### `debug`, `info`, `warn`, `error`
+#### `debug`, `info`, `warn` and `error`
 
 These functions are similar to the Rust's ones, but they only accept a single string literal as the only parameter. Whatever you pass there will go through My IoT logging and so is manageable by e.g. `journalctl` or whatever logging system you use.
 
+#### `MESSAGE_READ_LOGGED`, `MESSAGE_READ_NON_LOGGED`, `MESSAGE_READ_SNAPSHOT` and `MESSAGE_WRITE`
+
+TODO
+
+#### `function sendMessage(sensor_id, type, {args})`
+
+TODO
+
 # Run at System Startup
 
-For now please refer to [Raspberry Pi systemd page](https://www.raspberrypi.org/documentation/linux/usage/systemd.md).
+For now please refer to [Raspberry Pi `systemd` page](https://www.raspberrypi.org/documentation/linux/usage/systemd.md).
 
 ## Example
 

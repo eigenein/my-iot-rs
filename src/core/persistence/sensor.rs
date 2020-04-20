@@ -6,9 +6,9 @@ pub struct Sensor {
 }
 
 impl Sensor {
-    pub fn new<S: Into<String>>(sensor: S) -> Self {
+    pub fn new<S: Into<String>>(sensor_id: S) -> Self {
         Sensor {
-            sensor_id: sensor.into(),
+            sensor_id: sensor_id.into(),
             title: None,
             room_title: None,
         }

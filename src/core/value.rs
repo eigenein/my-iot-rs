@@ -116,14 +116,14 @@ impl Value {
     /// Get [Font Awesome](https://fontawesome.com) icon tag.
     pub fn icon(&self) -> Result<&'static str> {
         match *self {
+            Value::Bft(_) => Ok(r#"<i class="fas fa-wind"></i>"#),
             Value::Counter(_) => Ok(r#"<i class="fas fa-sort-numeric-up-alt"></i>"#),
             Value::DataSize(_) => Ok(r#"<i class="far fa-save"></i>"#),
-            Value::Text(_) => Ok(r#"<i class="fas fa-quote-left"></i>"#),
-            Value::Temperature(_) => Ok(r#"<i class="fas fa-thermometer-half"></i>"#),
-            Value::Bft(_) => Ok(r#"<i class="fas fa-wind"></i>"#),
-            Value::WindDirection(_) => Ok(r#"<i class="fas fa-wind"></i>"#),
-            Value::Rh(_) => Ok(r#"<i class="fas fa-water"></i>"#),
             Value::Length(_) => Ok(r#"<i class="fas fa-ruler"></i>"#),
+            Value::Rh(_) => Ok(r#"<i class="fas fa-water"></i>"#),
+            Value::Temperature(_) => Ok(r#"<i class="fas fa-thermometer-half"></i>"#),
+            Value::Text(_) => Ok(r#"<i class="fas fa-quote-left"></i>"#),
+            Value::WindDirection(_) => Ok(r#"<i class="fas fa-wind"></i>"#),
             Value::Boolean(value) => Ok(if value {
                 r#"<i class="fas fa-toggle-on"></i>"#
             } else {

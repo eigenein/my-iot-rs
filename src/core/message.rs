@@ -41,11 +41,11 @@ pub struct Composer {
 }
 
 impl Composer {
-    pub fn new<S: Into<String>>(sensor: S) -> Self {
+    pub fn new<S: Into<String>>(sensor_id: S) -> Self {
         Self {
             message: Message {
                 type_: Type::ReadLogged,
-                sensor: Sensor::new(sensor),
+                sensor: Sensor::new(sensor_id),
                 reading: Reading::new(),
             },
         }
