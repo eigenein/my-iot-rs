@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["MESSAGE_ARG_ROOM_TITLE",""],["MESSAGE_ARG_SENSOR_TITLE",""],["MESSAGE_ARG_TIMESTAMP",""],["MESSAGE_ARG_TYPE",""],["MESSAGE_ARG_VALUE",""]],"fn":[["create_args_table",""],["init_constants",""],["init_functions",""],["init_globals",""],["init_logging","Expose logging functions to the context."],["spawn",""]],"struct":[["Settings",""]]});

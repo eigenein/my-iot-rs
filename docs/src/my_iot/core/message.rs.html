@@ -131,11 +131,11 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Composer</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">sensor</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">sensor_id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">message</span>: <span class="ident">Message</span> {
                 <span class="ident">type_</span>: <span class="ident">Type</span>::<span class="ident">ReadLogged</span>,
-                <span class="ident">sensor</span>: <span class="ident">Sensor</span>::<span class="ident">new</span>(<span class="ident">sensor</span>),
+                <span class="ident">sensor</span>: <span class="ident">Sensor</span>::<span class="ident">new</span>(<span class="ident">sensor_id</span>),
                 <span class="ident">reading</span>: <span class="ident">Reading</span>::<span class="ident">new</span>(),
             },
         }
