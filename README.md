@@ -121,23 +121,40 @@ script = '''
 
 ### Builtins
 
-My IoT adds some extra globals to execution context.
+My IoT adds some extra globals to execution context:
 
 #### `debug`, `info`, `warn` and `error`
 
 These functions are similar to the Rust's ones, but they only accept a single string literal as the only parameter. Whatever you pass there will go through My IoT logging and so is manageable by e.g. `journalctl` or whatever logging system you use.
 
-#### `MESSAGE_READ_LOGGED`, `MESSAGE_READ_NON_LOGGED`, `MESSAGE_READ_SNAPSHOT` and `MESSAGE_WRITE`
+#### Message Types
 
-TODO
+| Constant                  |      |
+|---------------------------|------|
+| `MESSAGE_READ_LOGGED`     | TODO |
+| `MESSAGE_READ_NON_LOGGED` | TODO |
+| `MESSAGE_READ_SNAPSHOT`   | TODO |
+| `MESSAGE_WRITE`           | TODO |
 
 #### `function sendMessage(sensor_id, type, {args})`
 
 TODO
 
-### Recipes
+| Index          |      |
+|----------------|------|
+| `type`         | TODO |
+| `room_title`   | TODO |
+| `sensor_title` | TODO |
+| `value`        | TODO |
+| `timestamp`    | TODO |
 
-TODO
+#### Value Constructors
+
+| Function     |                                           |
+|--------------|-------------------------------------------|
+| `toBeaufort` | Converts an integer into wind speed value |
+
+### Recipes
 
 #### If Nest camera detects a motion, send an animation to Telegram
 

@@ -136,6 +136,10 @@ fn init_functions(context: Context, tx: Sender<Message>) -> Result<()> {
             },
         )?,
     )?;
+    globals.set(
+        "toBeaufort",
+        context.create_function(|_, value: u8| Ok(Value::Bft(value)))?,
+    )?;
     Ok(())
 }
 
