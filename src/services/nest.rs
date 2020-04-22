@@ -4,7 +4,6 @@ use crate::Result;
 use chrono::{DateTime, Local};
 use crossbeam_channel::Sender;
 use eventsource::reqwest::Client;
-use failure::format_err;
 use rouille::url::Url;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -35,7 +34,7 @@ pub fn spawn(service_id: &str, settings: &Settings, bus: &mut Bus) -> Result<()>
                 }
             }
         }
-        Err(format_err!("Event source client is unexpectedly exhausted"))
+        Err(InternalError("Event source client is unexpectedly exhausted".into()).into())
     })?;
 
     Ok(())

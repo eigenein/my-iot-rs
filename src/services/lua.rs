@@ -129,7 +129,8 @@ fn init_functions(context: Context, tx: Sender<Message>) -> Result<()> {
         "sendMessage",
         context.create_function(
             move |_, (sensor_id, type_, _args): (String, MessageType, Option<Table>)| {
-                tx.send(Composer::new(sensor_id).type_(type_).message)
+                let composer = Composer::new(sensor_id).type_(type_);
+                tx.send(composer.message)
                     .map_err(|err| rlua::Error::RuntimeError(err.to_string()))?;
                 Ok(())
             },

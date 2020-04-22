@@ -10,6 +10,7 @@ use structopt::StructOpt;
 
 mod consts;
 mod core;
+mod errors;
 mod format;
 mod prelude;
 mod services;

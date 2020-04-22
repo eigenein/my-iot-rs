@@ -73,7 +73,7 @@ impl ConnectionExtensions for Connection {
             "#,
         )?
         .query_map(NO_PARAMS, get_actual)?
-        .map(|r| r.map_err(Error::from))
+        .map(|r| r.map_err(Into::into))
         .collect()
     }
 
@@ -112,7 +112,7 @@ impl ConnectionExtensions for Connection {
                 "#,
             )?
             .query_map(params![sensor_id, since.timestamp_millis()], get_reading)?
-            .map(|r| r.map_err(Error::from))
+            .map(|r| r.map_err(Into::into))
             .collect()
     }
 

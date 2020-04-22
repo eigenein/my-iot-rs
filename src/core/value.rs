@@ -2,7 +2,6 @@
 
 use crate::format::human_format;
 use crate::prelude::*;
-use failure::format_err;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use uom::fmt::DisplayStyle::Abbreviation;
@@ -129,7 +128,7 @@ impl Value {
             } else {
                 r#"<i class="fas fa-toggle-off"></i>"#
             }),
-            _ => Err(format_err!("value has no icon")),
+            _ => Err(InternalError("value has no icon".into()).into()),
         }
     }
 

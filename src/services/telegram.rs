@@ -5,7 +5,6 @@ use crate::prelude::*;
 use crate::supervisor;
 use chrono::{DateTime, Utc};
 use crossbeam_channel::Sender;
-use failure::format_err;
 use log::{debug, error};
 use regex::Regex;
 use reqwest::blocking::Client;
@@ -118,13 +117,15 @@ fn spawn_consumer(context: Context, bus: &mut Bus) -> Result<()> {
             };
             let chat_id: TelegramChatId = chat_id.into();
             let error = match message.reading.value {
-                Value::Text(ref text) if sensor == "message" => send_message(&context, chat_id, text).err(),
-                Value::ImageUrl(ref url) if sensor == "photo" => send_photo(&context, chat_id, url).err(),
-                Value::ImageUrl(ref url) if sensor == "animation" => send_animation(&context, chat_id, url).err(),
-                value => Some(format_err!("cannot send {:?} to {}", &value, &message.sensor.sensor_id)),
+                Value::Text(ref text) if sensor == "message" => send_message(&context, chat_id, text),
+                Value::ImageUrl(ref url) if sensor == "photo" => send_photo(&context, chat_id, url),
+                Value::ImageUrl(ref url) if sensor == "animation" => send_animation(&context, chat_id, url),
+                value => {
+                    Err(InternalError(format!("cannot send {:?} to {}", &value, &message.sensor.sensor_id)).into())
+                }
             };
             // FIXME: return `Result` from the closure.
-            if let Some(error) = error {
+            if let Err(error) = error {
                 error!("{:?}", error);
             }
         }
@@ -153,7 +154,7 @@ fn call_api<P: Serialize + Debug + ?Sized, R: DeserializeOwned>(
             if response.ok {
                 Ok(response.result.unwrap())
             } else {
-                Err(format_err!("{}", response.description.unwrap()))
+                Err(InternalError(response.description.unwrap()).into())
             }
         })
 }

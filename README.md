@@ -109,6 +109,7 @@ station_id = 6240
 ```toml
 [services.lua]
 type = "Lua"
+# language=lua
 script = '''
     sendMessage("hello::world", MESSAGE_READ_NON_LOGGED)
 
