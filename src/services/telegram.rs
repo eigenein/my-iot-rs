@@ -121,7 +121,7 @@ fn spawn_consumer(context: Context, bus: &mut Bus) -> Result<()> {
                 Value::ImageUrl(ref url) if sensor == "photo" => send_photo(&context, chat_id, url),
                 Value::ImageUrl(ref url) if sensor == "animation" => send_animation(&context, chat_id, url),
                 value => {
-                    Err(InternalError(format!("cannot send {:?} to {}", &value, &message.sensor.sensor_id)).into())
+                    Err(InternalError::new(format!("cannot send {:?} to {}", &value, &message.sensor.sensor_id)).into())
                 }
             };
             // FIXME: return `Result` from the closure.
@@ -154,7 +154,7 @@ fn call_api<P: Serialize + Debug + ?Sized, R: DeserializeOwned>(
             if response.ok {
                 Ok(response.result.unwrap())
             } else {
-                Err(InternalError(response.description.unwrap()).into())
+                Err(InternalError::new(response.description.unwrap()).into())
             }
         })
 }

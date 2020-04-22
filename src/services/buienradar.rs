@@ -105,7 +105,7 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
         .station_measurements
         .iter()
         .find(|measurement| measurement.station_id == station_id)
-        .ok_or_else(|| InternalError(format!("station {} is not found", station_id)))?;
+        .ok_or_else(|| InternalError::new(format!("station {} is not found", station_id)))?;
     tx.send(
         Composer::new(format!("{}::{}::weather_description", service_id, station_id))
             .type_(MessageType::ReadLogged)

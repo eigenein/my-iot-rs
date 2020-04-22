@@ -51,7 +51,7 @@ impl Bus {
                 }
                 debug!("Dispatched {}", &message.sensor.sensor_id);
             }
-            Err(InternalError("Receiver channel is unexpectedly exhausted".into()).into())
+            Err(InternalError::new("Receiver channel is unexpectedly exhausted").into())
         })?;
         Ok(())
     }

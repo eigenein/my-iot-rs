@@ -108,7 +108,7 @@ impl Deserialize for PointOfTheCompass {
             13 => Ok(PointOfTheCompass::WestNorthwest),
             14 => Ok(PointOfTheCompass::Northwest),
             15 => Ok(PointOfTheCompass::NorthNorthwest),
-            value => Err(InternalError(format!("invalid point of the compass value: {}", value)).into()),
+            value => Err(InternalError::new(format!("invalid point of the compass value: {}", value)).into()),
         }
     }
 }

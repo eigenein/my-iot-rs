@@ -128,7 +128,7 @@ impl Value {
             } else {
                 r#"<i class="fas fa-toggle-off"></i>"#
             }),
-            _ => Err(InternalError("value has no icon".into()).into()),
+            _ => Err(InternalError::new("value has no icon").into()),
         }
     }
 

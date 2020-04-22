@@ -34,7 +34,7 @@ pub fn spawn(service_id: &str, settings: &Settings, bus: &mut Bus) -> Result<()>
                 }
             }
         }
-        Err(InternalError("Event source client is unexpectedly exhausted".into()).into())
+        Err(InternalError::new("Event source client is unexpectedly exhausted").into())
     })?;
 
     Ok(())
