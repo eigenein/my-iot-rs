@@ -45,14 +45,20 @@ impl Bus {
             for message in &self.rx {
                 debug!("Dispatching {}", &message.sensor.sensor_id);
                 for tx in self.service_txs.iter() {
-                    if let Err(error) = tx.send(message.clone()) {
-                        error!("Could not send the message to {:?}: {:?}", tx, error);
-                    }
+                    message.clone().send_and_forget(&tx);
                 }
                 debug!("Dispatched {}", &message.sensor.sensor_id);
             }
             Err(InternalError::new("Receiver channel is unexpectedly exhausted").into())
         })?;
         Ok(())
+    }
+}
+
+impl Message {
+    /// Send the message via the specified sender and log and ignore any errors.
+    pub fn send_and_forget(self, tx: &Sender<Message>) {
+        tx.send(self)
+            .unwrap_or_else(|error| error!("Could not send the message to {:?}: {:?}", tx, error))
     }
 }

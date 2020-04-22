@@ -16,27 +16,21 @@ where
     let sensor = format!("my-iot::{}::is_running", &name);
 
     thread::Builder::new().name(name.clone()).spawn(move || loop {
-        // TODO: update thread status.
         info!("Running `{}`", &name);
-        // FIXME: dangerous `unwrap`s.
-        tx.send(
-            Composer::new(&sensor)
-                .value(Value::Boolean(true))
-                .room_title("System".to_string())
-                .into(),
-        )
-        .unwrap();
+        Composer::new(&sensor)
+            .value(Value::Boolean(true))
+            .room_title("System".to_string())
+            .message
+            .send_and_forget(&tx);
         match f() {
             Ok(_) => error!("Thread `{}` has finished unexpectedly", &name),
             Err(error) => error!("Thread `{}` crashed: {:?}", &name, error),
         }
-        tx.send(
-            Composer::new(&sensor)
-                .value(Value::Boolean(false))
-                .room_title("System")
-                .into(),
-        )
-        .unwrap();
+        Composer::new(&sensor)
+            .value(Value::Boolean(false))
+            .room_title("System")
+            .message
+            .send_and_forget(&tx);
 
         // FIXME: https://github.com/eigenein/my-iot-rs/issues/47
         thread::sleep(Duration::from_secs(60));
