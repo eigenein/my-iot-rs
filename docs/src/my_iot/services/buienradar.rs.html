@@ -221,7 +221,6 @@
 <span id="221">221</span>
 <span id="222">222</span>
 <span id="223">223</span>
-<span id="224">224</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">consts</span>::<span class="ident">USER_AGENT</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
@@ -230,7 +229,6 @@
 <span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">DateTime</span>, <span class="ident">Local</span>};
 <span class="kw">use</span> <span class="ident">chrono_tz</span>::<span class="ident">Europe</span>::<span class="ident">Amsterdam</span>;
 <span class="kw">use</span> <span class="ident">crossbeam_channel</span>::<span class="ident">Sender</span>;
-<span class="kw">use</span> <span class="ident">failure</span>::<span class="ident">format_err</span>;
 <span class="kw">use</span> <span class="ident">reqwest</span>::<span class="ident">blocking</span>::<span class="ident">Client</span>;
 <span class="kw">use</span> <span class="ident">reqwest</span>::<span class="ident">header</span>::{<span class="ident">HeaderMap</span>, <span class="ident">HeaderValue</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">de</span>, <span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>};
@@ -331,7 +329,7 @@
         .<span class="ident">station_measurements</span>
         .<span class="ident">iter</span>()
         .<span class="ident">find</span>(<span class="op">|</span><span class="ident">measurement</span><span class="op">|</span> <span class="ident">measurement</span>.<span class="ident">station_id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">station_id</span>)
-        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format_err</span><span class="macro">!</span>(<span class="string">&quot;station {} is not found&quot;</span>, <span class="ident">station_id</span>))<span class="question-mark">?</span>;
+        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">InternalError</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;station {} is not found&quot;</span>, <span class="ident">station_id</span>)))<span class="question-mark">?</span>;
     <span class="ident">tx</span>.<span class="ident">send</span>(
         <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::weather_description&quot;</span>, <span class="ident">service_id</span>, <span class="ident">station_id</span>))
             .<span class="ident">type_</span>(<span class="ident">MessageType</span>::<span class="ident">ReadLogged</span>)

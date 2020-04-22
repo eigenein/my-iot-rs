@@ -140,19 +140,33 @@ These functions are similar to the Rust's ones, but they only accept a single st
 
 TODO
 
-| Index          |      |
-|----------------|------|
-| `type`         | TODO |
-| `room_title`   | TODO |
-| `sensor_title` | TODO |
-| `value`        | TODO |
-| `timestamp`    | TODO |
+| Index          | Type |      |
+|----------------|------|------|
+| `type`         | TODO | TODO |
+| `room_title`   | TODO | TODO |
+| `sensor_title` | TODO | TODO |
+| `value`        | TODO | TODO |
+| `timestamp`    | TODO | TODO |
 
 #### Value Constructors
 
-| Function     |                                           |
-|--------------|-------------------------------------------|
-| `toBeaufort` | Converts an integer into wind speed value |
+The engine uses strongly-typed sensor values. Lua, on the other hand, provides only primitive types. Thus, you need to use the constructor functions to convert Lua primitives into sensor values:
+
+| Function     |                                                        |
+|--------------|--------------------------------------------------------|
+| `asBeaufort` | Casts an integer to wind speed value                   |
+| `asCounter`  | Casts a non-negative integer to unit-less counter      |
+| `asImageURL` | Casts a string to image URL                            |
+| `asBoolean`  | Casts a boolean value to internal boolean value        |
+| `asDataSize` | Casts a non-negative integer to data size in bytes     |
+| `asText`     | Casts a string to internal string value                |
+
+#### Points of the Compass
+
+| Constant        |
+|-----------------|
+| `COMPASS_NORTH` |
+| TODO            |
 
 ### Recipes
 

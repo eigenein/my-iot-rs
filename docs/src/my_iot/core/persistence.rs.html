@@ -420,7 +420,7 @@
             &quot;#</span>,
         )<span class="question-mark">?</span>
         .<span class="ident">query_map</span>(<span class="ident">NO_PARAMS</span>, <span class="ident">get_actual</span>)<span class="question-mark">?</span>
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="ident">from</span>))
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">map_err</span>(<span class="ident">Into</span>::<span class="ident">into</span>))
         .<span class="ident">collect</span>()
     }
 
@@ -459,7 +459,7 @@
                 &quot;#</span>,
             )<span class="question-mark">?</span>
             .<span class="ident">query_map</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="ident">sensor_id</span>, <span class="ident">since</span>.<span class="ident">timestamp_millis</span>()], <span class="ident">get_reading</span>)<span class="question-mark">?</span>
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">map_err</span>(<span class="ident">Error</span>::<span class="ident">from</span>))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">map_err</span>(<span class="ident">Into</span>::<span class="ident">into</span>))
             .<span class="ident">collect</span>()
     }
 

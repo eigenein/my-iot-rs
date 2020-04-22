@@ -116,19 +116,26 @@ fn init_logging(context: Context, service_id: &str) -> Result<()> {
 
 fn init_constants(context: Context) -> Result<()> {
     let globals = context.globals();
+
     globals.set("MESSAGE_READ_LOGGED", MessageType::ReadLogged)?;
     globals.set("MESSAGE_READ_NON_LOGGED", MessageType::ReadNonLogged)?;
     globals.set("MESSAGE_READ_SNAPSHOT", MessageType::ReadSnapshot)?;
     globals.set("MESSAGE_WRITE", MessageType::Write)?;
+
+    globals.set("COMPASS_NORTH", PointOfTheCompass::North)?;
+    // TODO
+
     Ok(())
 }
 
 fn init_functions(context: Context, tx: Sender<Message>) -> Result<()> {
     let globals = context.globals();
+
     globals.set(
         "sendMessage",
         context.create_function(
             move |_, (sensor_id, type_, _args): (String, MessageType, Option<Table>)| {
+                // TODO: add `Value` or `Option<Value>` parameter.
                 let composer = Composer::new(sensor_id).type_(type_);
                 tx.send(composer.message)
                     .map_err(|err| rlua::Error::RuntimeError(err.to_string()))?;
@@ -136,10 +143,32 @@ fn init_functions(context: Context, tx: Sender<Message>) -> Result<()> {
             },
         )?,
     )?;
+
     globals.set(
-        "toBeaufort",
+        "asBeaufort",
         context.create_function(|_, value: u8| Ok(Value::Bft(value)))?,
     )?;
+    globals.set(
+        "asCounter",
+        context.create_function(|_, value: u64| Ok(Value::Counter(value)))?,
+    )?;
+    globals.set(
+        "asImageURL",
+        context.create_function(|_, value: String| Ok(Value::ImageUrl(value)))?,
+    )?;
+    globals.set(
+        "asBoolean",
+        context.create_function(|_, value: bool| Ok(Value::Boolean(value)))?,
+    )?;
+    globals.set(
+        "asDataSize",
+        context.create_function(|_, value: u64| Ok(Value::DataSize(value)))?,
+    )?;
+    globals.set(
+        "asText",
+        context.create_function(|_, value: String| Ok(Value::Text(value)))?,
+    )?;
+
     Ok(())
 }
 
@@ -166,6 +195,7 @@ impl UserData for crate::core::value::PointOfTheCompass {
 
 impl<'lua> ToLua<'lua> for Value {
     fn to_lua(self, context: Context<'lua>) -> rlua::Result<rlua::Value> {
+        // TODO: perhaps use `to_lua()` for almost everything?
         Ok(match self {
             Value::Bft(value) => rlua::Value::Integer(value as i64),
             Value::Boolean(value) => rlua::Value::Boolean(value),

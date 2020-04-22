@@ -2,7 +2,7 @@
 
 use crate::prelude::*;
 use chrono::prelude::*;
-use serde::Deserialize;
+use std::collections::HashMap;
 
 /// Services use messages to exchange sensor readings between each other.
 /// Message contains a single sensor reading alongside with some metadata.
@@ -14,7 +14,13 @@ pub struct Message {
     /// Associated sensor instance.
     pub sensor: Sensor,
 
+    /// Associated sensor reading.
     pub reading: Reading,
+
+    /// Unfortunately, not everything fits the message-sensor-reading model.
+    /// Some services may provide additional message flags, which are irrelevant for others.
+    /// This should be used as little as possible.
+    pub metadata: HashMap<String, ()>, // FIXME: value type.
 }
 
 /// Message type.
@@ -27,7 +33,7 @@ pub enum Type {
     /// Think of, for example, a chat message.
     ReadNonLogged,
 
-    /// Sensor reading that invalidates previous reading. Only last reading is stored.
+    /// Sensor reading that invalidates previous reading. Only last reading gets stored.
     /// Think of, for example, a camera snapshot.
     ReadSnapshot,
 
@@ -47,6 +53,7 @@ impl Composer {
                 type_: Type::ReadLogged,
                 sensor: Sensor::new(sensor_id),
                 reading: Reading::new(),
+                metadata: HashMap::new(),
             },
         }
     }
