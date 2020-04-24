@@ -209,12 +209,18 @@
 <span id="209">209</span>
 <span id="210">210</span>
 <span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Executes a Lua script for each message allowing to implement any automation scenarios.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">core</span>::<span class="ident">message</span>::<span class="ident">Type</span> <span class="kw">as</span> <span class="ident">MessageType</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">rlua</span>::{<span class="ident">Context</span>, <span class="ident">Lua</span>, <span class="ident">MetaMethod</span>, <span class="ident">Table</span>, <span class="ident">ToLua</span>, <span class="ident">UserData</span>, <span class="ident">UserDataMethods</span>};
+<span class="kw">use</span> <span class="ident">rlua</span>::{<span class="ident">Context</span>, <span class="ident">FromLua</span>, <span class="ident">Lua</span>, <span class="ident">Table</span>, <span class="ident">ToLua</span>};
 
 <span class="kw">const</span> <span class="ident">MESSAGE_ARG_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;type&quot;</span>;
 <span class="kw">const</span> <span class="ident">MESSAGE_ARG_ROOM_TITLE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;room_title&quot;</span>;
@@ -274,7 +280,6 @@
 
 <span class="kw">fn</span> <span class="ident">init_globals</span>(<span class="ident">context</span>: <span class="ident">Context</span>, <span class="ident">service_id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="ident">init_logging</span>(<span class="ident">context</span>, <span class="ident">service_id</span>)<span class="question-mark">?</span>;
-    <span class="ident">init_constants</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
     <span class="ident">init_functions</span>(<span class="ident">context</span>, <span class="ident">tx</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
@@ -326,99 +331,106 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">init_constants</span>(<span class="ident">context</span>: <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">globals</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">globals</span>();
-
-    <span class="ident">globals</span>.<span class="ident">set</span>(<span class="string">&quot;MESSAGE_READ_LOGGED&quot;</span>, <span class="ident">MessageType</span>::<span class="ident">ReadLogged</span>)<span class="question-mark">?</span>;
-    <span class="ident">globals</span>.<span class="ident">set</span>(<span class="string">&quot;MESSAGE_READ_NON_LOGGED&quot;</span>, <span class="ident">MessageType</span>::<span class="ident">ReadNonLogged</span>)<span class="question-mark">?</span>;
-    <span class="ident">globals</span>.<span class="ident">set</span>(<span class="string">&quot;MESSAGE_READ_SNAPSHOT&quot;</span>, <span class="ident">MessageType</span>::<span class="ident">ReadSnapshot</span>)<span class="question-mark">?</span>;
-    <span class="ident">globals</span>.<span class="ident">set</span>(<span class="string">&quot;MESSAGE_WRITE&quot;</span>, <span class="ident">MessageType</span>::<span class="ident">Write</span>)<span class="question-mark">?</span>;
-
-    <span class="ident">globals</span>.<span class="ident">set</span>(<span class="string">&quot;COMPASS_NORTH&quot;</span>, <span class="ident">PointOfTheCompass</span>::<span class="ident">North</span>)<span class="question-mark">?</span>;
-    <span class="comment">// TODO</span>
-
-    <span class="prelude-val">Ok</span>(())
-}
-
+<span class="doccomment">/// Provides the custom functions to user code.</span>
 <span class="kw">fn</span> <span class="ident">init_functions</span>(<span class="ident">context</span>: <span class="ident">Context</span>, <span class="ident">tx</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">globals</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">globals</span>();
-
     <span class="ident">globals</span>.<span class="ident">set</span>(
         <span class="string">&quot;sendMessage&quot;</span>,
         <span class="ident">context</span>.<span class="ident">create_function</span>(
-            <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, (<span class="ident">sensor_id</span>, <span class="ident">type_</span>, <span class="ident">_args</span>): (<span class="ident">String</span>, <span class="ident">MessageType</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Table</span><span class="op">&gt;</span>)<span class="op">|</span> {
-                <span class="comment">// TODO: add `Value` or `Option&lt;Value&gt;` parameter.</span>
-                <span class="kw">let</span> <span class="ident">composer</span> <span class="op">=</span> <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="ident">sensor_id</span>).<span class="ident">type_</span>(<span class="ident">type_</span>);
-                <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">composer</span>.<span class="ident">message</span>)
-                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">rlua</span>::<span class="ident">Error</span>::<span class="ident">RuntimeError</span>(<span class="ident">err</span>.<span class="ident">to_string</span>()))<span class="question-mark">?</span>;
+            <span class="kw">move</span> <span class="op">|</span><span class="ident">context</span>, (<span class="ident">sensor_id</span>, <span class="ident">type_</span>, <span class="ident">args</span>): (<span class="ident">String</span>, <span class="ident">MessageType</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Table</span><span class="op">&gt;</span>)<span class="op">|</span> {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">composer</span> <span class="op">=</span> <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="ident">sensor_id</span>).<span class="ident">type_</span>(<span class="ident">type_</span>);
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">args</span>) <span class="op">=</span> <span class="ident">args</span> {
+                    <span class="ident">composer</span> <span class="op">=</span> <span class="ident">build_message</span>(<span class="ident">composer</span>, <span class="ident">context</span>, <span class="ident">args</span>)<span class="question-mark">?</span>;
+                }
+                <span class="ident">composer</span>.<span class="ident">message</span>.<span class="ident">send_and_forget</span>(<span class="kw-2">&amp;</span><span class="ident">tx</span>);
                 <span class="prelude-val">Ok</span>(())
             },
         )<span class="question-mark">?</span>,
     )<span class="question-mark">?</span>;
-
-    <span class="ident">globals</span>.<span class="ident">set</span>(
-        <span class="string">&quot;asBeaufort&quot;</span>,
-        <span class="ident">context</span>.<span class="ident">create_function</span>(<span class="op">|</span><span class="kw">_</span>, <span class="ident">value</span>: <span class="ident">u8</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">Bft</span>(<span class="ident">value</span>)))<span class="question-mark">?</span>,
-    )<span class="question-mark">?</span>;
-    <span class="ident">globals</span>.<span class="ident">set</span>(
-        <span class="string">&quot;asCounter&quot;</span>,
-        <span class="ident">context</span>.<span class="ident">create_function</span>(<span class="op">|</span><span class="kw">_</span>, <span class="ident">value</span>: <span class="ident">u64</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="ident">value</span>)))<span class="question-mark">?</span>,
-    )<span class="question-mark">?</span>;
-    <span class="ident">globals</span>.<span class="ident">set</span>(
-        <span class="string">&quot;asImageURL&quot;</span>,
-        <span class="ident">context</span>.<span class="ident">create_function</span>(<span class="op">|</span><span class="kw">_</span>, <span class="ident">value</span>: <span class="ident">String</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">ImageUrl</span>(<span class="ident">value</span>)))<span class="question-mark">?</span>,
-    )<span class="question-mark">?</span>;
-    <span class="ident">globals</span>.<span class="ident">set</span>(
-        <span class="string">&quot;asBoolean&quot;</span>,
-        <span class="ident">context</span>.<span class="ident">create_function</span>(<span class="op">|</span><span class="kw">_</span>, <span class="ident">value</span>: <span class="ident">bool</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="ident">value</span>)))<span class="question-mark">?</span>,
-    )<span class="question-mark">?</span>;
-    <span class="ident">globals</span>.<span class="ident">set</span>(
-        <span class="string">&quot;asDataSize&quot;</span>,
-        <span class="ident">context</span>.<span class="ident">create_function</span>(<span class="op">|</span><span class="kw">_</span>, <span class="ident">value</span>: <span class="ident">u64</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">DataSize</span>(<span class="ident">value</span>)))<span class="question-mark">?</span>,
-    )<span class="question-mark">?</span>;
-    <span class="ident">globals</span>.<span class="ident">set</span>(
-        <span class="string">&quot;asText&quot;</span>,
-        <span class="ident">context</span>.<span class="ident">create_function</span>(<span class="op">|</span><span class="kw">_</span>, <span class="ident">value</span>: <span class="ident">String</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">Text</span>(<span class="ident">value</span>)))<span class="question-mark">?</span>,
-    )<span class="question-mark">?</span>;
-
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">impl</span> <span class="ident">UserData</span> <span class="kw">for</span> <span class="ident">MessageType</span> {
-    <span class="kw">fn</span> <span class="ident">add_methods</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span>, <span class="ident">M</span>: <span class="ident">UserDataMethods</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span>, <span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">methods</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">M</span>) {
-        <span class="ident">methods</span>.<span class="ident">add_meta_function</span>(<span class="ident">MetaMethod</span>::<span class="ident">Eq</span>, <span class="op">|</span><span class="kw">_</span>, (<span class="ident">left</span>, <span class="ident">right</span>): (<span class="ident">MessageType</span>, <span class="ident">MessageType</span>)<span class="op">|</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">left</span> <span class="op">=</span><span class="op">=</span> <span class="ident">right</span>)
-        })
+<span class="doccomment">/// Uses `composer` to build a message from the arguments provided by user in `sendMessage` call.</span>
+<span class="kw">fn</span> <span class="ident">build_message</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">composer</span>: <span class="ident">Composer</span>, <span class="ident">context</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span>, <span class="ident">args</span>: <span class="ident">Table</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">rlua</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Composer</span><span class="op">&gt;</span> {
+    <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">args</span>.<span class="ident">pairs</span>::<span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">rlua</span>::<span class="ident">Value</span><span class="op">&gt;</span>() {
+        <span class="kw">let</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="ident">item</span><span class="question-mark">?</span>;
+        <span class="kw">match</span> <span class="ident">key</span>.<span class="ident">as_ref</span>() {
+            <span class="ident">MESSAGE_ARG_ROOM_TITLE</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">composer</span> <span class="op">=</span> <span class="ident">composer</span>.<span class="ident">room_title</span>(<span class="ident">String</span>::<span class="ident">from_lua</span>(<span class="ident">value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>);
+            }
+            <span class="string">&quot;bft&quot;</span> <span class="op">|</span> <span class="string">&quot;beaufort&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">composer</span> <span class="op">=</span> <span class="ident">composer</span>.<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Bft</span>(<span class="ident">u8</span>::<span class="ident">from_lua</span>(<span class="ident">value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>));
+            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;{} = {:?} can&#39;t be made into an argument&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">value</span>),
+        }
     }
-}
-
-<span class="kw">impl</span> <span class="ident">UserData</span> <span class="kw">for</span> <span class="kw">crate</span>::<span class="ident">core</span>::<span class="ident">value</span>::<span class="ident">PointOfTheCompass</span> {
-    <span class="kw">fn</span> <span class="ident">add_methods</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span>, <span class="ident">M</span>: <span class="ident">UserDataMethods</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span>, <span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">methods</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">M</span>) {
-        <span class="ident">methods</span>.<span class="ident">add_meta_function</span>(
-            <span class="ident">MetaMethod</span>::<span class="ident">Eq</span>,
-            <span class="op">|</span><span class="kw">_</span>,
-             (<span class="ident">left</span>, <span class="ident">right</span>): (
-                <span class="kw">crate</span>::<span class="ident">core</span>::<span class="ident">value</span>::<span class="ident">PointOfTheCompass</span>,
-                <span class="kw">crate</span>::<span class="ident">core</span>::<span class="ident">value</span>::<span class="ident">PointOfTheCompass</span>,
-            )<span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">left</span> <span class="op">=</span><span class="op">=</span> <span class="ident">right</span>),
-        )
-    }
+    <span class="prelude-val">Ok</span>(<span class="ident">composer</span>)
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span> <span class="ident">ToLua</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Value</span> {
     <span class="kw">fn</span> <span class="ident">to_lua</span>(<span class="self">self</span>, <span class="ident">context</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">rlua</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">rlua</span>::<span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="comment">// TODO: perhaps use `to_lua()` for almost everything?</span>
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value</span>::<span class="ident">Bft</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">rlua</span>::<span class="ident">Value</span>::<span class="ident">Integer</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="ident">i64</span>),
-            <span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">rlua</span>::<span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="ident">value</span>),
-            <span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="ident">value</span>) <span class="op">|</span> <span class="ident">Value</span>::<span class="ident">DataSize</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">rlua</span>::<span class="ident">Value</span>::<span class="ident">Integer</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="ident">i64</span>),
-            <span class="ident">Value</span>::<span class="ident">ImageUrl</span>(<span class="ident">value</span>) <span class="op">|</span> <span class="ident">Value</span>::<span class="ident">Text</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">to_lua</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
-            <span class="ident">Value</span>::<span class="ident">Length</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">rlua</span>::<span class="ident">Value</span>::<span class="ident">Number</span>(<span class="ident">value</span>.<span class="ident">value</span>),
-            <span class="ident">Value</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">rlua</span>::<span class="ident">Value</span>::<span class="ident">Nil</span>,
-            <span class="ident">Value</span>::<span class="ident">Rh</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">rlua</span>::<span class="ident">Value</span>::<span class="ident">Number</span>(<span class="ident">value</span>),
-            <span class="ident">Value</span>::<span class="ident">Temperature</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">rlua</span>::<span class="ident">Value</span>::<span class="ident">Number</span>(<span class="ident">value</span>.<span class="ident">value</span>),
-            <span class="ident">Value</span>::<span class="ident">WindDirection</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">to_lua</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
-        })
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Value</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">rlua</span>::<span class="ident">Value</span>::<span class="ident">Nil</span>),
+            <span class="ident">Value</span>::<span class="ident">Bft</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">to_lua</span>(<span class="ident">context</span>),
+            <span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">to_lua</span>(<span class="ident">context</span>),
+            <span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="ident">value</span>) <span class="op">|</span> <span class="ident">Value</span>::<span class="ident">DataSize</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">to_lua</span>(<span class="ident">context</span>),
+            <span class="ident">Value</span>::<span class="ident">ImageUrl</span>(<span class="ident">value</span>) <span class="op">|</span> <span class="ident">Value</span>::<span class="ident">Text</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">to_lua</span>(<span class="ident">context</span>),
+            <span class="ident">Value</span>::<span class="ident">Length</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">value</span>.<span class="ident">to_lua</span>(<span class="ident">context</span>),
+            <span class="ident">Value</span>::<span class="ident">Rh</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">to_lua</span>(<span class="ident">context</span>),
+            <span class="ident">Value</span>::<span class="ident">Temperature</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">value</span>.<span class="ident">to_lua</span>(<span class="ident">context</span>),
+            <span class="ident">Value</span>::<span class="ident">WindDirection</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">to_lua</span>(<span class="ident">context</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span> <span class="ident">ToLua</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PointOfTheCompass</span> {
+    <span class="kw">fn</span> <span class="ident">to_lua</span>(<span class="self">self</span>, <span class="ident">context</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">rlua</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">rlua</span>::<span class="ident">Value</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">PointOfTheCompass</span>::<span class="ident">East</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;EAST&quot;</span>,
+            <span class="ident">PointOfTheCompass</span>::<span class="ident">EastNortheast</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;EAST_NORTH_EAST&quot;</span>,
+            <span class="ident">PointOfTheCompass</span>::<span class="ident">EastSoutheast</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;EAST_SOUTH_EAST&quot;</span>,
+            <span class="ident">PointOfTheCompass</span>::<span class="ident">North</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;NORTH&quot;</span>,
+            <span class="ident">PointOfTheCompass</span>::<span class="ident">Northeast</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;NORTH_EAST&quot;</span>,
+            <span class="ident">PointOfTheCompass</span>::<span class="ident">NorthNortheast</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;NORTH_NORTH_EAST&quot;</span>,
+            <span class="ident">PointOfTheCompass</span>::<span class="ident">NorthNorthwest</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;NORTH_NORTH_WEST&quot;</span>,
+            <span class="ident">PointOfTheCompass</span>::<span class="ident">Northwest</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;NORTH_WEST&quot;</span>,
+            <span class="ident">PointOfTheCompass</span>::<span class="ident">South</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SOUTH&quot;</span>,
+            <span class="ident">PointOfTheCompass</span>::<span class="ident">Southeast</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SOUTH_EAST&quot;</span>,
+            <span class="ident">PointOfTheCompass</span>::<span class="ident">SouthSoutheast</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SOUTH_SOUTH_EAST&quot;</span>,
+            <span class="ident">PointOfTheCompass</span>::<span class="ident">SouthSouthwest</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SOUTH_SOUTH_WEST&quot;</span>,
+            <span class="ident">PointOfTheCompass</span>::<span class="ident">Southwest</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;SOUTH_WEST&quot;</span>,
+            <span class="ident">PointOfTheCompass</span>::<span class="ident">West</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;WEST&quot;</span>,
+            <span class="ident">PointOfTheCompass</span>::<span class="ident">WestNorthwest</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;WEST_NORTH_WEST&quot;</span>,
+            <span class="ident">PointOfTheCompass</span>::<span class="ident">WestSouthwest</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;WEST_SOUTH_WEST&quot;</span>,
+        }
+        .<span class="ident">to_lua</span>(<span class="ident">context</span>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span> <span class="ident">ToLua</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MessageType</span> {
+    <span class="kw">fn</span> <span class="ident">to_lua</span>(<span class="self">self</span>, <span class="ident">context</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">rlua</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">rlua</span>::<span class="ident">Value</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">MessageType</span>::<span class="ident">ReadSnapshot</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;READ_SNAPSHOT&quot;</span>,
+            <span class="ident">MessageType</span>::<span class="ident">ReadNonLogged</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;READ_NON_LOGGED&quot;</span>,
+            <span class="ident">MessageType</span>::<span class="ident">ReadLogged</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;READ_LOGGED&quot;</span>,
+            <span class="ident">MessageType</span>::<span class="ident">Write</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;WRITE&quot;</span>,
+        }
+        .<span class="ident">to_lua</span>(<span class="ident">context</span>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span> <span class="ident">FromLua</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MessageType</span> {
+    <span class="kw">fn</span> <span class="ident">from_lua</span>(<span class="ident">lua_value</span>: <span class="ident">rlua</span>::<span class="ident">Value</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">rlua</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">lua_value</span> {
+            <span class="ident">rlua</span>::<span class="ident">Value</span>::<span class="ident">String</span>(<span class="ident">string</span>) <span class="kw">if</span> <span class="ident">string</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;READ_LOGGED&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">MessageType</span>::<span class="ident">ReadLogged</span>),
+            <span class="ident">rlua</span>::<span class="ident">Value</span>::<span class="ident">String</span>(<span class="ident">string</span>) <span class="kw">if</span> <span class="ident">string</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;READ_NON_LOGGED&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">MessageType</span>::<span class="ident">ReadNonLogged</span>),
+            <span class="ident">rlua</span>::<span class="ident">Value</span>::<span class="ident">String</span>(<span class="ident">string</span>) <span class="kw">if</span> <span class="ident">string</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;READ_SNAPSHOT&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">MessageType</span>::<span class="ident">ReadSnapshot</span>),
+            <span class="ident">rlua</span>::<span class="ident">Value</span>::<span class="ident">String</span>(<span class="ident">string</span>) <span class="kw">if</span> <span class="ident">string</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;WRITE&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">MessageType</span>::<span class="ident">Write</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">rlua</span>::<span class="ident">Error</span>::<span class="ident">RuntimeError</span>(<span class="macro">format</span><span class="macro">!</span>(
+                <span class="string">&quot;{:?} cannot be made into message type&quot;</span>,
+                <span class="kw-2">&amp;</span><span class="ident">lua_value</span>
+            ))),
+        }
     }
 }
 </pre></div>

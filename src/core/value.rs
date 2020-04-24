@@ -114,6 +114,7 @@ impl Value {
 
     /// Get [Font Awesome](https://fontawesome.com) icon tag.
     pub fn icon(&self) -> Result<&'static str> {
+        // TODO: move to templates.
         match *self {
             Value::Bft(_) => Ok(r#"<i class="fas fa-wind"></i>"#),
             Value::Counter(_) => Ok(r#"<i class="fas fa-sort-numeric-up-alt"></i>"#),
@@ -141,6 +142,7 @@ impl Value {
     }
 }
 
+// TODO: move to templates.
 impl std::fmt::Display for Value {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
@@ -204,6 +206,7 @@ pub enum PointOfTheCompass {
     NorthNorthwest,
 }
 
+// TODO: move to templates.
 impl Display for PointOfTheCompass {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {

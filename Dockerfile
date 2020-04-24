@@ -1,4 +1,4 @@
-FROM rust:1.42-buster AS base
+FROM rust:1.43-buster AS base
 LABEL maintainer="Pavel Perestoronin <eigenein@gmail.com>"
 LABEL org.label-schema.description="My IoT builder for different devices"
 LABEL org.label-schema.vcs-url="https://github.com/eigenein/my-iot-rs"
@@ -13,7 +13,7 @@ RUN rustup target add arm-unknown-linux-gnueabihf
 RUN \
     git clone --depth=1 https://github.com/raspberrypi/tools.git \
     && cd tools \
-    && git checkout b0c869bc929587a7e1d20a98e2dc828a24ca396a
+    && git checkout 86d54c61f9a23e5b438bef98f3d1027e2c150896
 ENV \
     PATH=$PWD/tools/arm-bcm2708/arm-linux-gnueabihf/bin:$PATH \
     PREFIX=/usr/local \

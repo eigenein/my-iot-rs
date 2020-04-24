@@ -111,13 +111,17 @@ station_id = 6240
 type = "Lua"
 # language=lua
 script = '''
-    sendMessage("hello::world", MESSAGE_READ_NON_LOGGED)
+    sendMessage("hello::wind", "READ_NON_LOGGED", {bft = 5})
 
     function onMessage(message)
       info(string.format("%s: %s", message.sensor_id, message.value))
     end
 '''
 ```
+
+### `onMessage`
+
+TODO
 
 ### Builtins
 
@@ -127,50 +131,52 @@ My IoT adds some extra globals to execution context:
 
 These functions are similar to the Rust's ones, but they only accept a single string literal as the only parameter. Whatever you pass there will go through My IoT logging and so is manageable by e.g. `journalctl` or whatever logging system you use.
 
-#### Message Types
-
-| Constant                  |      |
-|---------------------------|------|
-| `MESSAGE_READ_LOGGED`     | TODO |
-| `MESSAGE_READ_NON_LOGGED` | TODO |
-| `MESSAGE_READ_SNAPSHOT`   | TODO |
-| `MESSAGE_WRITE`           | TODO |
-
 #### `function sendMessage(sensor_id, type, {args})`
 
-TODO
+Sends out a message with the given `sensor_id` (string), `type` (see below) and arguments `args` (see below). You use this to control other services as well as provide custom sensors.
 
-| Index          | Type |      |
-|----------------|------|------|
-| `type`         | TODO | TODO |
-| `room_title`   | TODO | TODO |
-| `sensor_title` | TODO | TODO |
-| `value`        | TODO | TODO |
-| `timestamp`    | TODO | TODO |
+Possible message `type`-s are:
 
-#### Value Constructors
+| Constant          |      |
+|-------------------|------|
+| `READ_LOGGED`     | TODO |
+| `READ_NON_LOGGED` | TODO |
+| `READ_SNAPSHOT`   | TODO |
+| `WRITE`           | TODO |
 
-The engine uses strongly-typed sensor values. Lua, on the other hand, provides only primitive types. Thus, you need to use the constructor functions to convert Lua primitives into sensor values:
+Optional parameter `args` is a table, which may provide additional message details:
 
-| Function     |                                                        |
-|--------------|--------------------------------------------------------|
-| `asBeaufort` | Casts an integer to wind speed value                   |
-| `asCounter`  | Casts a non-negative integer to unit-less counter      |
-| `asImageURL` | Casts a string to image URL                            |
-| `asBoolean`  | Casts a boolean value to internal boolean value        |
-| `asDataSize` | Casts a non-negative integer to data size in bytes     |
-| `asText`     | Casts a string to internal string value                |
+| Index          | Type   |      |
+|----------------|--------|------|
+| `room_title`   | string | TODO |
+| `sensor_title` | string | TODO |
+| `timestamp`    | number | TODO |
 
-#### Points of the Compass
+All indices are optional. Also, a value is provided via either of the following indices in `args`:
 
-| Constant        |
-|-----------------|
-| `COMPASS_NORTH` |
-| TODO            |
+| Index          | Type    |                     |
+|----------------|---------|---------------------|
+| `bft`          | integer | Beaufort wind force |
 
 ### Recipes
 
 #### If Nest camera detects a motion, send an animation to Telegram
+
+TODO
+
+## Buienradar
+
+TODO
+
+## Clock
+
+TODO
+
+## Nest
+
+TODO
+
+## Telegram
 
 TODO
 

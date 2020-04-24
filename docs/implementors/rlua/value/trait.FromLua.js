@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["my_iot"] = [{"text":"impl&lt;'lua&gt; FromLua&lt;'lua&gt; for <a class=\"enum\" href=\"my_iot/core/message/enum.Type.html\" title=\"enum my_iot::core::message::Type\">MessageType</a>","synthetic":false,"types":["my_iot::core::message::Type"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

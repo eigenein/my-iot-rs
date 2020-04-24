@@ -2,7 +2,7 @@
 
 use crate::core::message::Type as MessageType;
 use crate::prelude::*;
-use rlua::{Context, Lua, MetaMethod, Table, ToLua, UserData, UserDataMethods};
+use rlua::{Context, FromLua, Lua, Table, ToLua};
 
 const MESSAGE_ARG_TYPE: &str = "type";
 const MESSAGE_ARG_ROOM_TITLE: &str = "room_title";
@@ -62,7 +62,6 @@ fn create_args_table<'lua>(context: Context<'lua>, message: &Message) -> rlua::R
 
 fn init_globals(context: Context, service_id: &str, tx: Sender<Message>) -> Result<()> {
     init_logging(context, service_id)?;
-    init_constants(context)?;
     init_functions(context, tx)?;
     Ok(())
 }
@@ -114,98 +113,105 @@ fn init_logging(context: Context, service_id: &str) -> Result<()> {
     Ok(())
 }
 
-fn init_constants(context: Context) -> Result<()> {
-    let globals = context.globals();
-
-    globals.set("MESSAGE_READ_LOGGED", MessageType::ReadLogged)?;
-    globals.set("MESSAGE_READ_NON_LOGGED", MessageType::ReadNonLogged)?;
-    globals.set("MESSAGE_READ_SNAPSHOT", MessageType::ReadSnapshot)?;
-    globals.set("MESSAGE_WRITE", MessageType::Write)?;
-
-    globals.set("COMPASS_NORTH", PointOfTheCompass::North)?;
-    // TODO
-
-    Ok(())
-}
-
+/// Provides the custom functions to user code.
 fn init_functions(context: Context, tx: Sender<Message>) -> Result<()> {
     let globals = context.globals();
-
     globals.set(
         "sendMessage",
         context.create_function(
-            move |_, (sensor_id, type_, _args): (String, MessageType, Option<Table>)| {
-                // TODO: add `Value` or `Option<Value>` parameter.
-                let composer = Composer::new(sensor_id).type_(type_);
-                tx.send(composer.message)
-                    .map_err(|err| rlua::Error::RuntimeError(err.to_string()))?;
+            move |context, (sensor_id, type_, args): (String, MessageType, Option<Table>)| {
+                let mut composer = Composer::new(sensor_id).type_(type_);
+                if let Some(args) = args {
+                    composer = build_message(composer, context, args)?;
+                }
+                composer.message.send_and_forget(&tx);
                 Ok(())
             },
         )?,
     )?;
-
-    globals.set(
-        "asBeaufort",
-        context.create_function(|_, value: u8| Ok(Value::Bft(value)))?,
-    )?;
-    globals.set(
-        "asCounter",
-        context.create_function(|_, value: u64| Ok(Value::Counter(value)))?,
-    )?;
-    globals.set(
-        "asImageURL",
-        context.create_function(|_, value: String| Ok(Value::ImageUrl(value)))?,
-    )?;
-    globals.set(
-        "asBoolean",
-        context.create_function(|_, value: bool| Ok(Value::Boolean(value)))?,
-    )?;
-    globals.set(
-        "asDataSize",
-        context.create_function(|_, value: u64| Ok(Value::DataSize(value)))?,
-    )?;
-    globals.set(
-        "asText",
-        context.create_function(|_, value: String| Ok(Value::Text(value)))?,
-    )?;
-
     Ok(())
 }
 
-impl UserData for MessageType {
-    fn add_methods<'lua, M: UserDataMethods<'lua, Self>>(methods: &mut M) {
-        methods.add_meta_function(MetaMethod::Eq, |_, (left, right): (MessageType, MessageType)| {
-            Ok(left == right)
-        })
+/// Uses `composer` to build a message from the arguments provided by user in `sendMessage` call.
+fn build_message<'lua>(mut composer: Composer, context: Context<'lua>, args: Table<'lua>) -> rlua::Result<Composer> {
+    for item in args.pairs::<String, rlua::Value>() {
+        let (key, value) = item?;
+        match key.as_ref() {
+            MESSAGE_ARG_ROOM_TITLE => {
+                composer = composer.room_title(String::from_lua(value, context)?);
+            }
+            "bft" | "beaufort" => {
+                composer = composer.value(Value::Bft(u8::from_lua(value, context)?));
+            }
+            _ => warn!("{} = {:?} can't be made into an argument", &key, &value),
+        }
     }
-}
-
-impl UserData for crate::core::value::PointOfTheCompass {
-    fn add_methods<'lua, M: UserDataMethods<'lua, Self>>(methods: &mut M) {
-        methods.add_meta_function(
-            MetaMethod::Eq,
-            |_,
-             (left, right): (
-                crate::core::value::PointOfTheCompass,
-                crate::core::value::PointOfTheCompass,
-            )| Ok(left == right),
-        )
-    }
+    Ok(composer)
 }
 
 impl<'lua> ToLua<'lua> for Value {
     fn to_lua(self, context: Context<'lua>) -> rlua::Result<rlua::Value> {
-        // TODO: perhaps use `to_lua()` for almost everything?
-        Ok(match self {
-            Value::Bft(value) => rlua::Value::Integer(value as i64),
-            Value::Boolean(value) => rlua::Value::Boolean(value),
-            Value::Counter(value) | Value::DataSize(value) => rlua::Value::Integer(value as i64),
-            Value::ImageUrl(value) | Value::Text(value) => value.to_lua(context)?,
-            Value::Length(value) => rlua::Value::Number(value.value),
-            Value::None => rlua::Value::Nil,
-            Value::Rh(value) => rlua::Value::Number(value),
-            Value::Temperature(value) => rlua::Value::Number(value.value),
-            Value::WindDirection(value) => value.to_lua(context)?,
-        })
+        match self {
+            Value::None => Ok(rlua::Value::Nil),
+            Value::Bft(value) => value.to_lua(context),
+            Value::Boolean(value) => value.to_lua(context),
+            Value::Counter(value) | Value::DataSize(value) => value.to_lua(context),
+            Value::ImageUrl(value) | Value::Text(value) => value.to_lua(context),
+            Value::Length(value) => value.value.to_lua(context),
+            Value::Rh(value) => value.to_lua(context),
+            Value::Temperature(value) => value.value.to_lua(context),
+            Value::WindDirection(value) => value.to_lua(context),
+        }
+    }
+}
+
+impl<'lua> ToLua<'lua> for PointOfTheCompass {
+    fn to_lua(self, context: Context<'lua>) -> rlua::Result<rlua::Value<'lua>> {
+        match self {
+            PointOfTheCompass::East => "EAST",
+            PointOfTheCompass::EastNortheast => "EAST_NORTH_EAST",
+            PointOfTheCompass::EastSoutheast => "EAST_SOUTH_EAST",
+            PointOfTheCompass::North => "NORTH",
+            PointOfTheCompass::Northeast => "NORTH_EAST",
+            PointOfTheCompass::NorthNortheast => "NORTH_NORTH_EAST",
+            PointOfTheCompass::NorthNorthwest => "NORTH_NORTH_WEST",
+            PointOfTheCompass::Northwest => "NORTH_WEST",
+            PointOfTheCompass::South => "SOUTH",
+            PointOfTheCompass::Southeast => "SOUTH_EAST",
+            PointOfTheCompass::SouthSoutheast => "SOUTH_SOUTH_EAST",
+            PointOfTheCompass::SouthSouthwest => "SOUTH_SOUTH_WEST",
+            PointOfTheCompass::Southwest => "SOUTH_WEST",
+            PointOfTheCompass::West => "WEST",
+            PointOfTheCompass::WestNorthwest => "WEST_NORTH_WEST",
+            PointOfTheCompass::WestSouthwest => "WEST_SOUTH_WEST",
+        }
+        .to_lua(context)
+    }
+}
+
+impl<'lua> ToLua<'lua> for MessageType {
+    fn to_lua(self, context: Context<'lua>) -> rlua::Result<rlua::Value<'lua>> {
+        match self {
+            MessageType::ReadSnapshot => "READ_SNAPSHOT",
+            MessageType::ReadNonLogged => "READ_NON_LOGGED",
+            MessageType::ReadLogged => "READ_LOGGED",
+            MessageType::Write => "WRITE",
+        }
+        .to_lua(context)
+    }
+}
+
+impl<'lua> FromLua<'lua> for MessageType {
+    fn from_lua(lua_value: rlua::Value<'lua>, _: Context<'lua>) -> rlua::Result<Self> {
+        match lua_value {
+            rlua::Value::String(string) if string == "READ_LOGGED" => Ok(MessageType::ReadLogged),
+            rlua::Value::String(string) if string == "READ_NON_LOGGED" => Ok(MessageType::ReadNonLogged),
+            rlua::Value::String(string) if string == "READ_SNAPSHOT" => Ok(MessageType::ReadSnapshot),
+            rlua::Value::String(string) if string == "WRITE" => Ok(MessageType::Write),
+            _ => Err(rlua::Error::RuntimeError(format!(
+                "{:?} cannot be made into message type",
+                &lua_value
+            ))),
+        }
     }
 }
