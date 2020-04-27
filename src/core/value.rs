@@ -43,7 +43,7 @@ pub enum Value {
     #[serde(rename = "BFT")]
     Bft(u8),
 
-    /// [Relative humidity](https://en.wikipedia.org/wiki/Relative_humidity) in percents.
+    /// [Relative humidity](https://en.wikipedia.org/wiki/Relative_humidity) in **percents**.
     #[serde(rename = "RH")]
     Rh(f64),
 
@@ -59,6 +59,12 @@ pub enum Value {
 impl From<ThermodynamicTemperature> for Value {
     fn from(temperature: ThermodynamicTemperature) -> Self {
         Self::Temperature(temperature)
+    }
+}
+
+impl From<Length> for Value {
+    fn from(length: Length) -> Self {
+        Self::Length(length)
     }
 }
 

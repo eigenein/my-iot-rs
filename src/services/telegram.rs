@@ -5,7 +5,7 @@ use crate::prelude::*;
 use crate::supervisor;
 use chrono::{DateTime, Utc};
 use crossbeam_channel::Sender;
-use log::{debug, error};
+use log::debug;
 use regex::Regex;
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, HeaderValue};
@@ -116,18 +116,38 @@ fn spawn_consumer(context: Context, bus: &mut Bus) -> Result<()> {
                 None => continue,
             };
             let chat_id: TelegramChatId = chat_id.into();
-            let error = match message.reading.value {
-                Value::Text(ref text) if sensor == "message" => send_message(&context, chat_id, text),
-                Value::ImageUrl(ref url) if sensor == "photo" => send_photo(&context, chat_id, url),
-                Value::ImageUrl(ref url) if sensor == "animation" => send_animation(&context, chat_id, url),
-                value => {
-                    Err(InternalError::new(format!("cannot send {:?} to {}", &value, &message.sensor.sensor_id)).into())
+            match message.reading.value {
+                Value::Text(ref text) if sensor == "message" => {
+                    send_message(
+                        &context,
+                        chat_id,
+                        text,
+                        !message.metadata.enable_notification.unwrap_or(true),
+                    )?;
                 }
+                Value::ImageUrl(ref url) if sensor == "photo" => {
+                    send_photo(
+                        &context,
+                        chat_id,
+                        url,
+                        !message.metadata.enable_notification.unwrap_or(true),
+                        message.sensor.title.clone(),
+                    )?;
+                }
+                Value::ImageUrl(ref url) if sensor == "animation" => {
+                    send_animation(
+                        &context,
+                        chat_id,
+                        url,
+                        !message.metadata.enable_notification.unwrap_or(true),
+                        message.sensor.title.clone(),
+                    )?;
+                }
+                value => warn!(
+                    "sending `{:?}` to `{}` is not implemented",
+                    &value, &message.sensor.sensor_id
+                ),
             };
-            // FIXME: return `Result` from the closure.
-            if let Err(error) = error {
-                error!("{:?}", error);
-            }
         }
         unreachable!();
     })?;
@@ -174,41 +194,65 @@ fn get_updates(context: &Context, offset: Option<i64>) -> Result<Vec<TelegramUpd
 }
 
 /// <https://core.telegram.org/bots/api#sendmessage>
-fn send_message<T: AsRef<str>>(context: &Context, chat_id: TelegramChatId, text: T) -> Result<TelegramMessage> {
+fn send_message<T: AsRef<str>>(
+    context: &Context,
+    chat_id: TelegramChatId,
+    text: T,
+    disable_notification: bool,
+) -> Result<TelegramMessage> {
     call_api(
         context,
         "sendMessage",
         &json!({
             "chat_id": chat_id,
             "text": text.as_ref(),
+            "disable_notification": disable_notification,
         }),
     )
 }
 
 /// <https://core.telegram.org/bots/api#sendphoto>
-fn send_photo<P: Into<TelegramFile>>(context: &Context, chat_id: TelegramChatId, photo: P) -> Result<TelegramMessage> {
+fn send_photo<P>(
+    context: &Context,
+    chat_id: TelegramChatId,
+    photo: P,
+    disable_notification: bool,
+    caption: Option<String>,
+) -> Result<TelegramMessage>
+where
+    P: Into<TelegramFile>,
+{
     call_api(
         context,
         "sendPhoto",
         &json!({
             "chat_id": chat_id,
             "photo": photo.into(),
+            "disable_notification": disable_notification,
+            "caption": caption, // FIXME: null caption
         }),
     )
 }
 
 /// <https://core.telegram.org/bots/api#sendanimation>
-fn send_animation<A: Into<TelegramFile>>(
+fn send_animation<A>(
     context: &Context,
     chat_id: TelegramChatId,
     animation: A,
-) -> Result<TelegramMessage> {
+    disable_notification: bool,
+    caption: Option<String>,
+) -> Result<TelegramMessage>
+where
+    A: Into<TelegramFile>,
+{
     call_api(
         context,
         "sendAnimation",
         &json!({
             "chat_id": chat_id,
             "animation": animation.into(),
+            "disable_notification": disable_notification,
+            "caption": caption, // FIXME: null caption
         }),
     )
 }

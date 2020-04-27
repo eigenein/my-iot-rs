@@ -3,12 +3,14 @@
 use crate::core::message::Type as MessageType;
 use crate::prelude::*;
 use rlua::{Context, FromLua, Lua, Table, ToLua};
+use uom::si::f64::*;
+use uom::si::*;
 
 const MESSAGE_ARG_TYPE: &str = "type";
 const MESSAGE_ARG_ROOM_TITLE: &str = "room_title";
 const MESSAGE_ARG_SENSOR_TITLE: &str = "sensor_title";
 const MESSAGE_ARG_VALUE: &str = "value";
-const MESSAGE_ARG_TIMESTAMP: &str = "timestamp";
+const MESSAGE_ARG_TIMESTAMP_MILLIS: &str = "timestamp_millis";
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct Settings {
@@ -56,7 +58,10 @@ fn create_args_table<'lua>(context: Context<'lua>, message: &Message) -> rlua::R
     args.set(MESSAGE_ARG_ROOM_TITLE, message.sensor.room_title.clone())?;
     args.set(MESSAGE_ARG_SENSOR_TITLE, message.sensor.title.clone())?;
     args.set(MESSAGE_ARG_VALUE, message.reading.value.clone())?;
-    args.set(MESSAGE_ARG_TIMESTAMP, message.reading.timestamp.timestamp())?;
+    args.set(
+        MESSAGE_ARG_TIMESTAMP_MILLIS,
+        message.reading.timestamp.timestamp_millis(),
+    )?;
     Ok(args)
 }
 
@@ -140,8 +145,53 @@ fn build_message<'lua>(mut composer: Composer, context: Context<'lua>, args: Tab
             MESSAGE_ARG_ROOM_TITLE => {
                 composer = composer.room_title(String::from_lua(value, context)?);
             }
+            MESSAGE_ARG_SENSOR_TITLE => {
+                composer = composer.title(String::from_lua(value, context)?);
+            }
+            MESSAGE_ARG_TIMESTAMP_MILLIS => {
+                composer = composer.timestamp(Local.timestamp_millis(i64::from_lua(value, context)?));
+            }
             "bft" | "beaufort" => {
                 composer = composer.value(Value::Bft(u8::from_lua(value, context)?));
+            }
+            "counter" => {
+                composer = composer.value(Value::Counter(u64::from_lua(value, context)?));
+            }
+            "image_url" => {
+                composer = composer.value(Value::ImageUrl(String::from_lua(value, context)?));
+            }
+            "bool" | "boolean" => {
+                composer = composer.value(Value::Boolean(bool::from_lua(value, context)?));
+            }
+            "wind_direction" | "wind" => {
+                composer = composer.value(Value::WindDirection(PointOfTheCompass::from_lua(value, context)?));
+            }
+            "data_size" => {
+                composer = composer.value(Value::DataSize(u64::from_lua(value, context)?));
+            }
+            "text" => {
+                composer = composer.value(Value::Text(String::from_lua(value, context)?));
+            }
+            "rh" | "humidity" => {
+                composer = composer.value(Value::Rh(f64::from_lua(value, context)?));
+            }
+            "celsius" => {
+                composer = composer.value(
+                    ThermodynamicTemperature::new::<thermodynamic_temperature::degree_celsius>(f64::from_lua(
+                        value, context,
+                    )?),
+                );
+            }
+            "kelvin" => {
+                composer = composer.value(ThermodynamicTemperature::new::<thermodynamic_temperature::kelvin>(
+                    f64::from_lua(value, context)?,
+                ));
+            }
+            "meters" => {
+                composer = composer.value(Length::new::<length::meter>(f64::from_lua(value, context)?));
+            }
+            "enable_notification" => {
+                composer.message.metadata.enable_notification = Some(bool::from_lua(value, context)?);
             }
             _ => warn!("{} = {:?} can't be made into an argument", &key, &value),
         }
@@ -204,13 +254,40 @@ impl<'lua> ToLua<'lua> for MessageType {
 impl<'lua> FromLua<'lua> for MessageType {
     fn from_lua(lua_value: rlua::Value<'lua>, _: Context<'lua>) -> rlua::Result<Self> {
         match lua_value {
-            rlua::Value::String(string) if string == "READ_LOGGED" => Ok(MessageType::ReadLogged),
-            rlua::Value::String(string) if string == "READ_NON_LOGGED" => Ok(MessageType::ReadNonLogged),
-            rlua::Value::String(string) if string == "READ_SNAPSHOT" => Ok(MessageType::ReadSnapshot),
-            rlua::Value::String(string) if string == "WRITE" => Ok(MessageType::Write),
+            rlua::Value::String(string) => match string.to_str()? {
+                "READ_LOGGED" => Ok(MessageType::ReadLogged),
+                "READ_NON_LOGGED" => Ok(MessageType::ReadNonLogged),
+                "READ_SNAPSHOT" => Ok(MessageType::ReadSnapshot),
+                "WRITE" => Ok(MessageType::Write),
+                _ => Err(rlua::Error::RuntimeError(format!(
+                    "`{:?}` cannot be made into a message type, unknown value",
+                    string,
+                ))),
+            },
             _ => Err(rlua::Error::RuntimeError(format!(
-                "{:?} cannot be made into message type",
-                &lua_value
+                "`{:?}` cannot be made into a message type, it must be a string",
+                &lua_value,
+            ))),
+        }
+    }
+}
+
+impl<'lua> FromLua<'lua> for PointOfTheCompass {
+    fn from_lua(lua_value: rlua::Value<'lua>, _: Context<'lua>) -> rlua::Result<Self> {
+        match lua_value {
+            rlua::Value::String(string) => match string.to_str()? {
+                "N" | "NORTH" => Ok(PointOfTheCompass::North),
+                "W" | "WEST" => Ok(PointOfTheCompass::West),
+                "E" | "EAST" => Ok(PointOfTheCompass::East),
+                "S" | "SOUTH" => Ok(PointOfTheCompass::South),
+                _ => Err(rlua::Error::RuntimeError(format!(
+                    "`{:?}` cannot be made into a point of the compass, unknown value",
+                    string,
+                ))),
+            },
+            _ => Err(rlua::Error::RuntimeError(format!(
+                "`{:?}` cannot be made into a point of the compass, it must be a string",
+                &lua_value,
             ))),
         }
     }

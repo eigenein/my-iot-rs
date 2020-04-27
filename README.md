@@ -146,23 +146,44 @@ Possible message `type`-s are:
 
 Optional parameter `args` is a table, which may provide additional message details:
 
-| Index          | Type   |      |
-|----------------|--------|------|
-| `room_title`   | string | TODO |
-| `sensor_title` | string | TODO |
-| `timestamp`    | number | TODO |
+| Index              | Type   |      |
+|--------------------|--------|------|
+| `room_title`       | string | TODO |
+| `sensor_title`     | string | TODO |
+| `timestamp_millis` | number | TODO |
+| TODO               |        |      |
 
 All indices are optional. Also, a value is provided via either of the following indices in `args`:
 
-| Index          | Type    |                     |
-|----------------|---------|---------------------|
-| `bft`          | integer | Beaufort wind force |
+| Index          | Type    |                               |
+|----------------|---------|-------------------------------|
+| `bft`          | integer | Beaufort wind force           |
+| `counter`      | integer | Unsigned unit-less counter    |
+| TODO           |         |                               |
+
+TODO
 
 ### Recipes
 
 #### If Nest camera detects a motion, send an animation to Telegram
 
-TODO
+```lua
+function onMessage(message)
+  -- FIXME: `*::change` sensor may be removed in future.
+  if message.sensor_id == "nest::camera::<camera_id>::animated_image_url::change" then
+    sendMessage("telegram::-1001349838037::animation", "WRITE", {image_url = message.value})
+  end
+end
+```
+
+#### Send Nest camera snapshots to Telegram
+
+```lua
+sendMessage("telegram::-1001349838037::photo", "WRITE", {
+  image_url = message.value,
+  sensor_title = message.room_title,
+})
+```
 
 ## Buienradar
 

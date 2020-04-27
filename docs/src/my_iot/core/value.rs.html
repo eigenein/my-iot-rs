@@ -225,6 +225,12 @@
 <span id="225">225</span>
 <span id="226">226</span>
 <span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implements sensor reading value.</span>
 
@@ -271,7 +277,7 @@
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;BFT&quot;</span>)]</span>
     <span class="ident">Bft</span>(<span class="ident">u8</span>),
 
-    <span class="doccomment">/// [Relative humidity](https://en.wikipedia.org/wiki/Relative_humidity) in percents.</span>
+    <span class="doccomment">/// [Relative humidity](https://en.wikipedia.org/wiki/Relative_humidity) in **percents**.</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;RH&quot;</span>)]</span>
     <span class="ident">Rh</span>(<span class="ident">f64</span>),
 
@@ -287,6 +293,12 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ThermodynamicTemperature</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Value</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">temperature</span>: <span class="ident">ThermodynamicTemperature</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span>::<span class="ident">Temperature</span>(<span class="ident">temperature</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Length</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Value</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">length</span>: <span class="ident">Length</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>::<span class="ident">Length</span>(<span class="ident">length</span>)
     }
 }
 

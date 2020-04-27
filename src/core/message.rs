@@ -5,7 +5,7 @@ use chrono::prelude::*;
 
 /// Services use messages to exchange sensor readings between each other.
 /// Message contains a single sensor reading alongside with some metadata.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct Message {
     /// Message type.
     pub type_: Type,
@@ -15,6 +15,8 @@ pub struct Message {
 
     /// Associated sensor reading.
     pub reading: Reading,
+
+    pub metadata: Metadata,
 }
 
 /// Message type.
@@ -35,6 +37,23 @@ pub enum Type {
     Write,
 }
 
+/// Unfortunately, not everything nicely falls into the model of sensors and readings.
+/// Thus, each message may contain additional metadata or flags that are very service-specific.
+/// Try to use them as little as possible.
+#[derive(Debug, Clone)]
+pub struct Metadata {
+    /// Useful for (for example) instant messaging, where notifications may be fine-tunable.
+    pub enable_notification: Option<bool>,
+}
+
+impl Default for Metadata {
+    fn default() -> Self {
+        Metadata {
+            enable_notification: None,
+        }
+    }
+}
+
 /// Message builder. Prefer to use it instead of directly instantiating a `Message`.
 pub struct Composer {
     pub message: Message,
@@ -47,6 +66,7 @@ impl Composer {
                 type_: Type::ReadLogged,
                 sensor: Sensor::new(sensor_id),
                 reading: Reading::new(),
+                metadata: Metadata::default(),
             },
         }
     }
