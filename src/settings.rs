@@ -3,7 +3,7 @@
 use crate::services;
 use crate::Result;
 use serde::Deserialize;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
@@ -23,10 +23,6 @@ pub struct Settings {
     /// Each entry is a pair of service ID (defined by user) and service settings.
     /// Service ID is normally used as a sensor prefix, for instance: `service_id:service_sensor`.
     pub services: HashMap<String, ServiceSettings>,
-
-    /// Service IDs to disable.
-    #[serde(default = "HashSet::new")]
-    pub disabled_services: HashSet<String>,
 }
 
 /// A service configuration.

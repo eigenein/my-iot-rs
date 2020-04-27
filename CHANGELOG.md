@@ -2,6 +2,7 @@
 
 ## `0.41.0`
 
+- Remove `disabled_services` from settings
 - Lua automation #59
 - New sensors for `Db`
 - Spawn `Db` service by default

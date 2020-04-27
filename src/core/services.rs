@@ -13,13 +13,9 @@ use std::sync::{Arc, Mutex};
 /// - `tx`: output message channel that's used by services to send their messages to.
 pub fn spawn_all(settings: &Settings, db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
     for (service_id, service_settings) in settings.services.iter() {
-        if !settings.disabled_services.contains(service_id.as_str()) {
-            info!("Spawning service `{}`…", service_id);
-            debug!("Settings `{}`: {:?}", service_id, service_settings);
-            spawn(service_id, service_settings, &db, bus)?;
-        } else {
-            warn!("Service `{}` is disabled.", &service_id);
-        }
+        info!("Spawning service `{}`…", service_id);
+        debug!("Settings `{}`: {:?}", service_id, service_settings);
+        spawn(service_id, service_settings, &db, bus)?;
     }
 
     Ok(())
