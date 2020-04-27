@@ -137,12 +137,12 @@ Sends out a message with the given `sensor_id` (string), `type` (see below) and 
 
 Possible message `type`-s are:
 
-| Constant          |      |
-|-------------------|------|
-| `READ_LOGGED`     | TODO |
-| `READ_NON_LOGGED` | TODO |
-| `READ_SNAPSHOT`   | TODO |
-| `WRITE`           | TODO |
+| Constant            |      |
+|---------------------|------|
+| `"READ_LOGGED"`     | TODO |
+| `"READ_NON_LOGGED"` | TODO |
+| `"READ_SNAPSHOT"`   | TODO |
+| `"WRITE"`           | TODO |
 
 Optional parameter `args` is a table, which may provide additional message details:
 
@@ -171,7 +171,7 @@ TODO
 function onMessage(message)
   -- FIXME: `*::change` sensor may be removed in future.
   if message.sensor_id == "nest::camera::<camera_id>::animated_image_url::change" then
-    sendMessage("telegram::-1001349838037::animation", "WRITE", {image_url = message.value})
+    sendMessage("telegram::<chat_id>::animation", "WRITE", {image_url = message.value})
   end
 end
 ```
@@ -179,7 +179,7 @@ end
 #### Send Nest camera snapshots to Telegram
 
 ```lua
-sendMessage("telegram::-1001349838037::photo", "WRITE", {
+sendMessage("telegram::<chat_id>::photo", "WRITE", {
   image_url = message.value,
   sensor_title = message.room_title,
 })
