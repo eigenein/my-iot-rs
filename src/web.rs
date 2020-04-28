@@ -3,16 +3,13 @@
 use crate::prelude::*;
 use crate::settings::Settings;
 use crate::templates;
+use lazy_static::lazy_static;
 use rouille::{router, Response};
+use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::{Arc, Mutex};
 
 const FAVICON: &[u8] = include_bytes!("statics/favicon.ico");
-const FAVICON_16: &[u8] = include_bytes!("statics/favicon-16x16.png");
-const FAVICON_32: &[u8] = include_bytes!("statics/favicon-32x32.png");
-const APPLE_TOUCH_ICON: &[u8] = include_bytes!("statics/apple-touch-icon.png");
-const ANDROID_CHROME_192: &[u8] = include_bytes!("statics/android-chrome-192x192.png");
-const ANDROID_CHROME_512: &[u8] = include_bytes!("statics/android-chrome-512x512.png");
 
 /// Start the web application.
 pub fn start_server(settings: Settings, db: Arc<Mutex<Connection>>) -> ! {
@@ -24,11 +21,10 @@ pub fn start_server(settings: Settings, db: Arc<Mutex<Connection>>) -> ! {
                 (GET) ["/sensors/{sensor_id}", sensor_id: String] => get_sensor(&db, &sensor_id),
                 (GET) ["/sensors/{sensor_id}/json", sensor_id: String] => get_sensor_json(&db, &sensor_id),
                 (GET) ["/favicon.ico"] => Response::from_data("image/x-icon", FAVICON.to_vec()),
-                (GET) ["/apple-touch-icon.png"] => Response::from_data("image/png", APPLE_TOUCH_ICON.to_vec()),
-                (GET) ["/favicon-32x32.png"] => Response::from_data("image/png", FAVICON_32.to_vec()),
-                (GET) ["/favicon-16x16.png"] => Response::from_data("image/png", FAVICON_16.to_vec()),
-                (GET) ["/android-chrome-192x192.png"] => Response::from_data("image/png", ANDROID_CHROME_192.to_vec()),
-                (GET) ["/android-chrome-512x512.png"] => Response::from_data("image/png", ANDROID_CHROME_512.to_vec()),
+                (GET) ["/static/{key}", key: String] => match STATICS.get(key.as_str()) {
+                    Some((content_type, data)) => Response::from_data(content_type, data.clone()),
+                    None => Response::empty_404(),
+                },
                 _ => Response::empty_404(),
             )
         },
@@ -55,4 +51,58 @@ fn get_sensor_json(db: &Arc<Mutex<Connection>>, sensor_id: &str) -> Response {
         Some(actual) => Response::json(&actual.reading),
         None => Response::empty_404(),
     }
+}
+
+lazy_static! {
+    static ref STATICS: HashMap<&'static str, (String, Vec<u8>)> = {
+        let mut map = HashMap::new();
+        map.insert(
+            "favicon-16x16.png",
+            ("image/png".into(), include_bytes!("statics/favicon-16x16.png").to_vec()),
+        );
+        map.insert(
+            "favicon-32x32.png",
+            ("image/png".into(), include_bytes!("statics/favicon-32x32.png").to_vec()),
+        );
+        map.insert(
+            "apple-touch-icon.png",
+            (
+                "image/png".into(),
+                include_bytes!("statics/apple-touch-icon.png").to_vec(),
+            ),
+        );
+        map.insert(
+            "android-chrome-192x192.png",
+            (
+                "image/png".into(),
+                include_bytes!("statics/android-chrome-192x192.png").to_vec(),
+            ),
+        );
+        map.insert(
+            "android-chrome-512x512.png",
+            (
+                "image/png".into(),
+                include_bytes!("statics/android-chrome-512x512.png").to_vec(),
+            ),
+        );
+        map.insert(
+            "bulma.min.css",
+            ("text/css".into(), include_bytes!("statics/bulma.min.css").to_vec()),
+        );
+        map.insert(
+            "bulma-prefers-dark.css",
+            (
+                "text/css".into(),
+                include_bytes!("statics/bulma-prefers-dark.css").to_vec(),
+            ),
+        );
+        map.insert(
+            "plotly-1.5.0.min.js",
+            (
+                "application/javascript".into(),
+                include_bytes!("statics/plotly-1.5.0.min.js").to_vec(),
+            ),
+        );
+        map
+    };
 }

@@ -1,2 +1,2 @@
 docs/* linguist-documentation
-vendor/* linguist-vendored
+src/statics/* linguist-vendored

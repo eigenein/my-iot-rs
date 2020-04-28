@@ -2,6 +2,7 @@
 
 ## `0.41.0`
 
+- Bundle most of the statics, closes #77
 - Remove `disabled_services` from settings
 - Lua automation #59
 - New sensors for `Db`
