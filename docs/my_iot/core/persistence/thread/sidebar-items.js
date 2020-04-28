@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["process_message","Process a message."],["send_messages","Check if sensor value has been updated or changed and send corresponding messages."],["spawn","Spawn the persistence thread."]]});
+initSidebarItems({"fn":[["process_message","Process a message."],["spawn","Spawn the persistence thread."]]});

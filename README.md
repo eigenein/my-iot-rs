@@ -180,21 +180,18 @@ TODO
 #### If Nest camera detects a motion, send an animation to Telegram
 
 ```lua
+ts = {}
+
 function onMessage(message)
-  -- FIXME: `*::change` sensor may be removed in future.
-  if message.sensor_id == "nest::camera::<camera_id>::animated_image_url::change" then
-    sendMessage("telegram::<chat_id>::animation", "WRITE", {image_url = message.value})
+  if (
+    message.sensor_id == "nest::camera::<camera_id>::animated_image_url"
+    and message.timestamp_millis ~= ts[message.sensor_id]
+  ) then
+    sendMessage("telegram::<chat_id>::animation", "WRITE", {image_url = message.value, sensor_title = message.room_title})
+    ts[message.sensor_id] = message.timestamp_millis
+    print(message.timestamp_millis)
   end
 end
-```
-
-#### Send Nest camera snapshots to Telegram
-
-```lua
-sendMessage("telegram::<chat_id>::photo", "WRITE", {
-  image_url = message.value,
-  sensor_title = message.room_title,
-})
 ```
 
 ## Buienradar

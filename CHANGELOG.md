@@ -4,6 +4,8 @@
 
 This release removes the old `Automator` in favour of the new `Lua` service.
 
+Also, I'm removing the automatic `*::update` and `*::change` events, because they require additional database queries to be executed on each event. If needed, similar functionality can be implemented in Lua. See, for example, the recipe to send new Nest camera animations to Telegram.
+
 ## `0.42.0`
 
 - Bundle most of the statics, closes #77
