@@ -1,10 +1,13 @@
 # `my-iot`
 
-## `0.41.0`
+## `0.42.0`
 
 - Bundle most of the statics, closes #77
 - Remove `disabled_services` from settings
 - Lua automation #59
+
+## `0.41.0`
+
 - New sensors for `Db`
 - Spawn `Db` service by default
 - Bunch of refactorings
