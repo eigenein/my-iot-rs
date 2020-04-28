@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ServiceSettings","A service configuration."]],"fn":[["default_http_port",""],["read","Read the settings file."]],"struct":[["Settings","Represents a root settings object."]]});
+initSidebarItems({"enum":[["ServiceSettings","A service configuration."]],"fn":[["default_http_port",""],["default_max_sensor_age_ms","Defaults to 30 days."],["read","Read the settings file."]],"struct":[["Settings","Represents a root settings object."]]});

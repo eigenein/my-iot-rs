@@ -17,19 +17,17 @@ pub fn spawn_all(settings: &Settings, db: &Arc<Mutex<Connection>>, bus: &mut Bus
         debug!("Settings `{}`: {:?}", service_id, service_settings);
         spawn(service_id, service_settings, &db, bus)?;
     }
-
     Ok(())
 }
 
 /// Spawn a service and return a vector of its message sender sides.
-fn spawn(service_id: &str, settings: &ServiceSettings, db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
+fn spawn(service_id: &str, settings: &ServiceSettings, _db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
     // FIXME: I don't really like this large `match`, but I don't know how to fix it properly.
     match settings {
-        ServiceSettings::Automator(settings) => automator::spawn(service_id, settings, db, bus),
         ServiceSettings::Buienradar(settings) => buienradar::spawn(service_id, settings, bus),
         ServiceSettings::Clock(settings) => clock::spawn(service_id, settings, bus),
+        ServiceSettings::Lua(settings) => lua::spawn(service_id, settings, bus),
         ServiceSettings::Nest(settings) => nest::spawn(service_id, settings, bus),
         ServiceSettings::Telegram(settings) => telegram::spawn(service_id, settings, bus),
-        ServiceSettings::Lua(settings) => lua::spawn(service_id, settings, bus),
     }
 }

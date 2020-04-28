@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.43.0`
+
+This release removes the old `Automator` in favour of the new `Lua` service.
+
 ## `0.42.0`
 
 - Bundle most of the statics, closes #77

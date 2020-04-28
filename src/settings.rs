@@ -42,9 +42,6 @@ pub enum ServiceSettings {
     /// Nest API.
     Nest(services::nest::Settings),
 
-    /// Automation.
-    Automator(services::automator::Settings),
-
     /// [Telegram bot](https://core.telegram.org/bots/api) service.
     Telegram(services::telegram::Settings),
 

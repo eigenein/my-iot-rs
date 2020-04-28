@@ -1,4 +1,3 @@
-pub mod automator;
 pub mod buienradar;
 pub mod clock;
 pub mod db;
