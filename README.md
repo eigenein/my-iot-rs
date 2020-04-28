@@ -146,20 +146,32 @@ Possible message `type`-s are:
 
 Optional parameter `args` is a table, which may provide additional message details:
 
-| Index              | Type   |      |
-|--------------------|--------|------|
-| `room_title`       | string | TODO |
-| `sensor_title`     | string | TODO |
-| `timestamp_millis` | number | TODO |
-| TODO               |        |      |
+| Index                 | Type    |      |
+|-----------------------|---------|------|
+| `room_title`          | string  | TODO |
+| `sensor_title`        | string  | TODO |
+| `timestamp_millis`    | number  | TODO |
+| `enable_notification` | boolean | TODO |
 
 All indices are optional. Also, a value is provided via either of the following indices in `args`:
 
-| Index          | Type    |                               |
-|----------------|---------|-------------------------------|
-| `bft`          | integer | Beaufort wind force           |
-| `counter`      | integer | Unsigned unit-less counter    |
-| TODO           |         |                               |
+| Index            | Type    |                                                       |
+|------------------|---------|-------------------------------------------------------|
+| `bft`            | integer | Beaufort wind force                                   |
+| `counter`        | integer | Unsigned unit-less counter                            |
+| `image_url`      | string  | Image                                                 |
+| `bool`           | boolean | `true` and `false`                                    |
+| `wind_direction` | string  | Point of the compass that represents a wind direction |
+| `data_size`      | integer | Data size in bytes                                    |
+| `text`           | string  | Plain text                                            |
+| `rh`             | number  | Relative humidity in percents                         |
+| `celsius`        | number  | Temperature in degrees Celsius                        |
+| `kelvin`         | number  | Temperature in Kelvins                                |
+| `meters`         | number  | Length in meters                                      |
+
+TODO
+
+##### [Points of the Compass](https://en.wikipedia.org/wiki/Points_of_the_compass)
 
 TODO
 

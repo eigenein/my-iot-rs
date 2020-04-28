@@ -187,7 +187,7 @@ fn build_message<'lua>(mut composer: Composer, context: Context<'lua>, args: Tab
                     f64::from_lua(value, context)?,
                 ));
             }
-            "meters" => {
+            "meters" | "metres" => {
                 composer = composer.value(Length::new::<length::meter>(f64::from_lua(value, context)?));
             }
             "enable_notification" => {
