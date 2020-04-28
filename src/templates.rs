@@ -20,10 +20,10 @@ pub struct Actual<'a> {
 }
 
 impl Index<'_> {
-    pub fn new(db: &Connection) -> Result<Self> {
+    pub fn new(db: &Connection, max_sensor_age_ms: i64) -> Result<Self> {
         Ok(Self {
             actuals: db
-                .select_actuals()?
+                .select_actuals(max_sensor_age_ms)?
                 .into_iter()
                 .group_by(|actual| actual.sensor.room_title.clone())
                 .into_iter()

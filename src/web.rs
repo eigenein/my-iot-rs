@@ -17,7 +17,7 @@ pub fn start_server(settings: Settings, db: Arc<Mutex<Connection>>) -> ! {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), settings.http_port),
         move |request| {
             router!(request,
-                (GET) ["/"] => index(&db),
+                (GET) ["/"] => index(&db, &settings),
                 (GET) ["/sensors/{sensor_id}", sensor_id: String] => get_sensor(&db, &sensor_id),
                 (GET) ["/sensors/{sensor_id}/json", sensor_id: String] => get_sensor_json(&db, &sensor_id),
                 (GET) ["/favicon.ico"] => Response::from_data("image/x-icon", FAVICON.to_vec()),
@@ -32,8 +32,12 @@ pub fn start_server(settings: Settings, db: Arc<Mutex<Connection>>) -> ! {
 }
 
 /// Get index page response.
-fn index(db: &Arc<Mutex<Connection>>) -> Response {
-    Response::html(templates::Index::new(&db.lock().unwrap()).unwrap().to_string())
+fn index(db: &Arc<Mutex<Connection>>, settings: &Settings) -> Response {
+    Response::html(
+        templates::Index::new(&db.lock().unwrap(), settings.max_sensor_age_ms)
+            .unwrap()
+            .to_string(),
+    )
 }
 
 /// Get sensor page response.

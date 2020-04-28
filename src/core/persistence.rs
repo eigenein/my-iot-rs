@@ -33,7 +33,7 @@ pub trait ConnectionExtensions {
     /// Get the database `user_version`.
     fn get_version(&self) -> Result<i32>;
 
-    fn select_actuals(&self) -> Result<Vec<Actual>>;
+    fn select_actuals(&self, max_sensor_age_ms: i64) -> Result<Vec<Actual>>;
 
     /// Select database size in bytes.
     fn select_size(&self) -> Result<u64>;
@@ -63,16 +63,20 @@ impl ConnectionExtensions for Connection {
         Ok(version)
     }
 
-    fn select_actuals(&self) -> Result<Vec<Actual>> {
+    fn select_actuals(&self, max_sensor_age_ms: i64) -> Result<Vec<Actual>> {
         self.prepare_cached(
             // language=sql
             r#"
             SELECT sensor_id, title, timestamp, room_title, value
             FROM sensors
+            WHERE timestamp > ?1
             ORDER BY sensors.room_title, sensors.sensor_id
             "#,
         )?
-        .query_map(NO_PARAMS, get_actual)?
+        .query_map(
+            params![Local::now().timestamp_millis() - max_sensor_age_ms as i64],
+            get_actual,
+        )?
         .map(|r| r.map_err(Into::into))
         .collect()
     }
@@ -299,7 +303,7 @@ mod tests {
         let db = Connection::open_and_initialize(":memory:")?;
         message.upsert_into(&db)?;
         assert_eq!(
-            db.select_actuals()?,
+            db.select_actuals(i64::max_value())?,
             vec![Actual {
                 sensor: message.sensor,
                 reading: message.reading
