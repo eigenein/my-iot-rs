@@ -3,6 +3,7 @@ pub use crate::core::message::{Composer, Message, Type as MessageType};
 pub use crate::core::persistence::reading::Reading;
 pub use crate::core::persistence::sensor::Sensor;
 pub use crate::core::persistence::{Actual, ConnectionExtensions};
+pub use crate::core::services::Service;
 pub use crate::core::supervisor;
 pub use crate::core::value::{PointOfTheCompass, Value};
 pub use crate::errors::InternalError;

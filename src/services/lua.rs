@@ -2,7 +2,7 @@
 
 use crate::core::message::Type as MessageType;
 use crate::prelude::*;
-use rlua::{Context, FromLua, Lua, Table, ToLua};
+use rlua::{Context, FromLua, Table, ToLua};
 use uom::si::f64::*;
 use uom::si::*;
 
@@ -13,42 +13,44 @@ const MESSAGE_ARG_VALUE: &str = "value";
 const MESSAGE_ARG_TIMESTAMP_MILLIS: &str = "timestamp_millis";
 
 #[derive(Deserialize, Debug, Clone)]
-pub struct Settings {
+pub struct Lua {
     /// Script body.
     script: String,
 }
 
-pub fn spawn(service_id: &str, settings: &Settings, bus: &mut Bus) -> Result<()> {
-    let service_id = service_id.to_string();
-    let tx = bus.add_tx();
-    let rx = bus.add_rx();
-    let script = settings.script.clone();
+impl Service for Lua {
+    fn spawn(&self, service_id: &str, _db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
+        let service_id = service_id.to_string();
+        let tx = bus.add_tx();
+        let rx = bus.add_rx();
+        let script = self.script.clone();
 
-    supervisor::spawn(service_id.clone(), tx.clone(), move || -> Result<()> {
-        let lua = Lua::new();
-        lua.context(|context| -> Result<()> {
-            init_globals(context, &service_id, tx.clone())?;
+        supervisor::spawn(service_id.clone(), tx.clone(), move || -> Result<()> {
+            let lua = rlua::Lua::new();
+            lua.context(|context| -> Result<()> {
+                init_globals(context, &service_id, tx.clone())?;
 
-            info!("[{}] Loading and executing script…", &service_id);
-            context.load(&script).set_name(&service_id)?.exec()?;
+                info!("[{}] Loading and executing script…", &service_id);
+                context.load(&script).set_name(&service_id)?.exec()?;
 
-            let globals = context.globals();
-            let on_message: rlua::Value = globals.get("onMessage")?;
+                let globals = context.globals();
+                let on_message: rlua::Value = globals.get("onMessage")?;
 
-            info!("[{}] Listening…", &service_id);
-            for message in &rx {
-                if let rlua::Value::Function(on_message) = &on_message {
-                    on_message.call::<_, ()>(create_args_table(context, &message)?)?;
-                } else {
-                    warn!("[{}] `onMessage` is not defined or not a function", &service_id);
+                info!("[{}] Listening…", &service_id);
+                for message in &rx {
+                    if let rlua::Value::Function(on_message) = &on_message {
+                        on_message.call::<_, ()>(create_args_table(context, &message)?)?;
+                    } else {
+                        warn!("[{}] `onMessage` is not defined or not a function", &service_id);
+                    }
                 }
-            }
 
-            unreachable!()
-        })
-    })?;
+                unreachable!()
+            })
+        })?;
 
-    Ok(())
+        Ok(())
+    }
 }
 
 fn create_args_table<'lua>(context: Context<'lua>, message: &Message) -> rlua::Result<Table<'lua>> {

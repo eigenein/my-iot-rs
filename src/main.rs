@@ -68,7 +68,7 @@ fn main() -> Result<()> {
     bus.add_tx()
         .send(Composer::new("my-iot::start").type_(MessageType::ReadNonLogged).into())?;
     core::persistence::thread::spawn(db.clone(), &mut bus)?;
-    services::db::spawn(&db, &mut bus)?;
+    services::db::Db.spawn("db", &db, &mut bus)?;
     core::services::spawn_all(&settings, &db, &mut bus)?;
     bus.spawn()?;
 

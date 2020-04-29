@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["URL",""]],"fn":[["send_readings",""],["spawn",""]],"struct":[["NestCamera",""],["NestCameraLastEvent",""],["NestData",""],["NestDevices",""],["NestEvent","Server-side `put` event."],["NestSmokeCoAlarm",""],["NestThermostat",""],["Settings",""]]});
+initSidebarItems({"constant":[["URL",""]],"fn":[["send_readings",""]],"struct":[["Nest",""],["NestCamera",""],["NestCameraLastEvent",""],["NestData",""],["NestDevices",""],["NestEvent","Server-side `put` event."],["NestSmokeCoAlarm",""],["NestThermostat",""]]});

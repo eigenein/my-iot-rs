@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["default_interval_ms",""],["spawn",""]],"struct":[["Settings",""]]});
+initSidebarItems({"fn":[["default_interval_ms",""]],"struct":[["Clock",""]]});

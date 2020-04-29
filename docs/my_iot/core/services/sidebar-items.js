@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["spawn","Spawn a service and return a vector of its message sender sides."],["spawn_all","Spawn all configured services."]]});
+initSidebarItems({"fn":[["spawn","Spawn a service and return a vector of its message sender sides."],["spawn_all","Spawn all configured services."]],"trait":[["Service",""]]});

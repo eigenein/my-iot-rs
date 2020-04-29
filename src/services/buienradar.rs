@@ -18,9 +18,36 @@ const URL: &str = "https://json.buienradar.nl/";
 const REFRESH_PERIOD: Duration = Duration::from_millis(60000);
 
 #[derive(Deserialize, Debug, Clone)]
-pub struct Settings {
+pub struct Buienradar {
     /// Station ID. Find a one [here](https://json.buienradar.nl/).
     station_id: u32,
+}
+
+impl Service for Buienradar {
+    fn spawn(&self, service_id: &str, _db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
+        let tx = bus.add_tx();
+        let service_id = service_id.to_string();
+        let station_id = self.station_id;
+
+        let client = {
+            let mut headers = HeaderMap::new();
+            headers.insert(reqwest::header::USER_AGENT, HeaderValue::from_static(USER_AGENT));
+            Client::builder()
+                .gzip(true)
+                .timeout(Duration::from_secs(10))
+                .default_headers(headers)
+                .build()?
+        };
+
+        supervisor::spawn(service_id.clone(), tx.clone(), move || -> Result<()> {
+            loop {
+                send_readings(fetch(&client)?, &service_id, station_id, &tx)?;
+                thread::sleep(REFRESH_PERIOD);
+            }
+        })?;
+
+        Ok(())
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -67,31 +94,6 @@ struct BuienradarStationMeasurement {
 
     #[serde(rename = "weatherdescription")]
     weather_description: String,
-}
-
-pub fn spawn(service_id: &str, settings: &Settings, bus: &mut Bus) -> Result<()> {
-    let tx = bus.add_tx();
-    let service_id = service_id.to_string();
-    let station_id = settings.station_id;
-
-    let client = {
-        let mut headers = HeaderMap::new();
-        headers.insert(reqwest::header::USER_AGENT, HeaderValue::from_static(USER_AGENT));
-        Client::builder()
-            .gzip(true)
-            .timeout(Duration::from_secs(10))
-            .default_headers(headers)
-            .build()?
-    };
-
-    supervisor::spawn(service_id.clone(), tx.clone(), move || -> Result<()> {
-        loop {
-            send_readings(fetch(&client)?, &service_id, station_id, &tx)?;
-            thread::sleep(REFRESH_PERIOD);
-        }
-    })?;
-
-    Ok(())
 }
 
 /// Fetch measurement for the configured station.

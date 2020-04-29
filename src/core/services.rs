@@ -1,10 +1,13 @@
 //! Implements generic `Service` trait.
 
 use crate::prelude::*;
-use crate::services::*;
 use crate::settings::*;
 use crate::Result;
 use std::sync::{Arc, Mutex};
+
+pub trait Service {
+    fn spawn(&self, service_id: &str, db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()>;
+}
 
 /// Spawn all configured services.
 ///
@@ -21,13 +24,13 @@ pub fn spawn_all(settings: &Settings, db: &Arc<Mutex<Connection>>, bus: &mut Bus
 }
 
 /// Spawn a service and return a vector of its message sender sides.
-fn spawn(service_id: &str, settings: &ServiceSettings, _db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
-    // FIXME: I don't really like this large `match`, but I don't know how to fix it properly.
-    match settings {
-        ServiceSettings::Buienradar(settings) => buienradar::spawn(service_id, settings, bus),
-        ServiceSettings::Clock(settings) => clock::spawn(service_id, settings, bus),
-        ServiceSettings::Lua(settings) => lua::spawn(service_id, settings, bus),
-        ServiceSettings::Nest(settings) => nest::spawn(service_id, settings, bus),
-        ServiceSettings::Telegram(settings) => telegram::spawn(service_id, settings, bus),
-    }
+fn spawn(service_id: &str, settings: &ServiceSettings, db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
+    let service: &dyn Service = match settings {
+        ServiceSettings::Buienradar(service) => service,
+        ServiceSettings::Clock(service) => service,
+        ServiceSettings::Lua(service) => service,
+        ServiceSettings::Nest(service) => service,
+        ServiceSettings::Telegram(service) => service,
+    };
+    service.spawn(service_id, db, bus)
 }

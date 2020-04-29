@@ -34,19 +34,19 @@ pub struct Settings {
 #[serde(tag = "type")]
 pub enum ServiceSettings {
     /// Regularly emits a counter value.
-    Clock(services::clock::Settings),
+    Clock(services::clock::Clock),
 
     /// Dutch [Buienradar](https://www.buienradar.nl/) weather service.
-    Buienradar(services::buienradar::Settings),
+    Buienradar(services::buienradar::Buienradar),
 
     /// Nest API.
-    Nest(services::nest::Settings),
+    Nest(services::nest::Nest),
 
     /// [Telegram bot](https://core.telegram.org/bots/api) service.
-    Telegram(services::telegram::Settings),
+    Telegram(services::telegram::Telegram),
 
     /// [Lua](https://www.lua.org/) scripting.
-    Lua(services::lua::Settings),
+    Lua(services::lua::Lua),
 }
 
 fn default_http_port() -> u16 {

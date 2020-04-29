@@ -23,15 +23,16 @@ const GET_UPDATES_TIMEOUT: u64 = 60;
 static CLIENT_TIMEOUT: Duration = Duration::from_secs(GET_UPDATES_TIMEOUT + 5);
 
 #[derive(Deserialize, Debug, Clone)]
-pub struct Settings {
+pub struct Telegram {
     token: String,
 }
 
-/// Spawn the service.
-pub fn spawn(service_id: &str, settings: &Settings, bus: &mut Bus) -> Result<()> {
-    spawn_producer(Context::new(service_id, &settings.token)?, bus)?;
-    spawn_consumer(Context::new(service_id, &settings.token)?, bus)?;
-    Ok(())
+impl Service for Telegram {
+    fn spawn(&self, service_id: &str, _db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
+        spawn_producer(Context::new(service_id, &self.token)?, bus)?;
+        spawn_consumer(Context::new(service_id, &self.token)?, bus)?;
+        Ok(())
+    }
 }
 
 struct Context {

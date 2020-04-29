@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["INTERVAL",""]],"fn":[["spawn",""]]});
+initSidebarItems({"constant":[["INTERVAL",""]],"struct":[["Db",""]]});

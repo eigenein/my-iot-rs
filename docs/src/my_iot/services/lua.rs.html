@@ -292,12 +292,14 @@
 <span id="292">292</span>
 <span id="293">293</span>
 <span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Executes a Lua script for each message allowing to implement any automation scenarios.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">core</span>::<span class="ident">message</span>::<span class="ident">Type</span> <span class="kw">as</span> <span class="ident">MessageType</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">rlua</span>::{<span class="ident">Context</span>, <span class="ident">FromLua</span>, <span class="ident">Lua</span>, <span class="ident">Table</span>, <span class="ident">ToLua</span>};
+<span class="kw">use</span> <span class="ident">rlua</span>::{<span class="ident">Context</span>, <span class="ident">FromLua</span>, <span class="ident">Table</span>, <span class="ident">ToLua</span>};
 <span class="kw">use</span> <span class="ident">uom</span>::<span class="ident">si</span>::<span class="ident">f64</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">uom</span>::<span class="ident">si</span>::<span class="kw-2">*</span>;
 
@@ -308,42 +310,44 @@
 <span class="kw">const</span> <span class="ident">MESSAGE_ARG_TIMESTAMP_MILLIS</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;timestamp_millis&quot;</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Settings</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Lua</span> {
     <span class="doccomment">/// Script body.</span>
     <span class="ident">script</span>: <span class="ident">String</span>,
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn</span>(<span class="ident">service_id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">settings</span>: <span class="kw-2">&amp;</span><span class="ident">Settings</span>, <span class="ident">bus</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Bus</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">service_id</span> <span class="op">=</span> <span class="ident">service_id</span>.<span class="ident">to_string</span>();
-    <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <span class="ident">bus</span>.<span class="ident">add_tx</span>();
-    <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">bus</span>.<span class="ident">add_rx</span>();
-    <span class="kw">let</span> <span class="ident">script</span> <span class="op">=</span> <span class="ident">settings</span>.<span class="ident">script</span>.<span class="ident">clone</span>();
+<span class="kw">impl</span> <span class="ident">Service</span> <span class="kw">for</span> <span class="ident">Lua</span> {
+    <span class="kw">fn</span> <span class="ident">spawn</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">service_id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">_db</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Connection</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">bus</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Bus</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">service_id</span> <span class="op">=</span> <span class="ident">service_id</span>.<span class="ident">to_string</span>();
+        <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <span class="ident">bus</span>.<span class="ident">add_tx</span>();
+        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">bus</span>.<span class="ident">add_rx</span>();
+        <span class="kw">let</span> <span class="ident">script</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">script</span>.<span class="ident">clone</span>();
 
-    <span class="ident">supervisor</span>::<span class="ident">spawn</span>(<span class="ident">service_id</span>.<span class="ident">clone</span>(), <span class="ident">tx</span>.<span class="ident">clone</span>(), <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">lua</span> <span class="op">=</span> <span class="ident">Lua</span>::<span class="ident">new</span>();
-        <span class="ident">lua</span>.<span class="ident">context</span>(<span class="op">|</span><span class="ident">context</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-            <span class="ident">init_globals</span>(<span class="ident">context</span>, <span class="kw-2">&amp;</span><span class="ident">service_id</span>, <span class="ident">tx</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
+        <span class="ident">supervisor</span>::<span class="ident">spawn</span>(<span class="ident">service_id</span>.<span class="ident">clone</span>(), <span class="ident">tx</span>.<span class="ident">clone</span>(), <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">lua</span> <span class="op">=</span> <span class="ident">rlua</span>::<span class="ident">Lua</span>::<span class="ident">new</span>();
+            <span class="ident">lua</span>.<span class="ident">context</span>(<span class="op">|</span><span class="ident">context</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+                <span class="ident">init_globals</span>(<span class="ident">context</span>, <span class="kw-2">&amp;</span><span class="ident">service_id</span>, <span class="ident">tx</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
 
-            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;[{}] Loading and executing script…&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">service_id</span>);
-            <span class="ident">context</span>.<span class="ident">load</span>(<span class="kw-2">&amp;</span><span class="ident">script</span>).<span class="ident">set_name</span>(<span class="kw-2">&amp;</span><span class="ident">service_id</span>)<span class="question-mark">?</span>.<span class="ident">exec</span>()<span class="question-mark">?</span>;
+                <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;[{}] Loading and executing script…&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">service_id</span>);
+                <span class="ident">context</span>.<span class="ident">load</span>(<span class="kw-2">&amp;</span><span class="ident">script</span>).<span class="ident">set_name</span>(<span class="kw-2">&amp;</span><span class="ident">service_id</span>)<span class="question-mark">?</span>.<span class="ident">exec</span>()<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">globals</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">globals</span>();
-            <span class="kw">let</span> <span class="ident">on_message</span>: <span class="ident">rlua</span>::<span class="ident">Value</span> <span class="op">=</span> <span class="ident">globals</span>.<span class="ident">get</span>(<span class="string">&quot;onMessage&quot;</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">globals</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">globals</span>();
+                <span class="kw">let</span> <span class="ident">on_message</span>: <span class="ident">rlua</span>::<span class="ident">Value</span> <span class="op">=</span> <span class="ident">globals</span>.<span class="ident">get</span>(<span class="string">&quot;onMessage&quot;</span>)<span class="question-mark">?</span>;
 
-            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;[{}] Listening…&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">service_id</span>);
-            <span class="kw">for</span> <span class="ident">message</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">rx</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">rlua</span>::<span class="ident">Value</span>::<span class="ident">Function</span>(<span class="ident">on_message</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">on_message</span> {
-                    <span class="ident">on_message</span>.<span class="ident">call</span>::<span class="op">&lt;</span><span class="kw">_</span>, ()<span class="op">&gt;</span>(<span class="ident">create_args_table</span>(<span class="ident">context</span>, <span class="kw-2">&amp;</span><span class="ident">message</span>)<span class="question-mark">?</span>)<span class="question-mark">?</span>;
-                } <span class="kw">else</span> {
-                    <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;[{}] `onMessage` is not defined or not a function&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">service_id</span>);
+                <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;[{}] Listening…&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">service_id</span>);
+                <span class="kw">for</span> <span class="ident">message</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">rx</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">rlua</span>::<span class="ident">Value</span>::<span class="ident">Function</span>(<span class="ident">on_message</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">on_message</span> {
+                        <span class="ident">on_message</span>.<span class="ident">call</span>::<span class="op">&lt;</span><span class="kw">_</span>, ()<span class="op">&gt;</span>(<span class="ident">create_args_table</span>(<span class="ident">context</span>, <span class="kw-2">&amp;</span><span class="ident">message</span>)<span class="question-mark">?</span>)<span class="question-mark">?</span>;
+                    } <span class="kw">else</span> {
+                        <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;[{}] `onMessage` is not defined or not a function&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">service_id</span>);
+                    }
                 }
-            }
 
-            <span class="macro">unreachable</span><span class="macro">!</span>()
-        })
-    })<span class="question-mark">?</span>;
+                <span class="macro">unreachable</span><span class="macro">!</span>()
+            })
+        })<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(())
+        <span class="prelude-val">Ok</span>(())
+    }
 }
 
 <span class="kw">fn</span> <span class="ident">create_args_table</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span>(<span class="ident">context</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">rlua</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Table</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span><span class="op">&gt;</span> {

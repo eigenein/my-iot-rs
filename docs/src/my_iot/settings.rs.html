@@ -94,19 +94,19 @@
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">tag</span> <span class="op">=</span> <span class="string">&quot;type&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ServiceSettings</span> {
     <span class="doccomment">/// Regularly emits a counter value.</span>
-    <span class="ident">Clock</span>(<span class="ident">services</span>::<span class="ident">clock</span>::<span class="ident">Settings</span>),
+    <span class="ident">Clock</span>(<span class="ident">services</span>::<span class="ident">clock</span>::<span class="ident">Clock</span>),
 
     <span class="doccomment">/// Dutch [Buienradar](https://www.buienradar.nl/) weather service.</span>
-    <span class="ident">Buienradar</span>(<span class="ident">services</span>::<span class="ident">buienradar</span>::<span class="ident">Settings</span>),
+    <span class="ident">Buienradar</span>(<span class="ident">services</span>::<span class="ident">buienradar</span>::<span class="ident">Buienradar</span>),
 
     <span class="doccomment">/// Nest API.</span>
-    <span class="ident">Nest</span>(<span class="ident">services</span>::<span class="ident">nest</span>::<span class="ident">Settings</span>),
+    <span class="ident">Nest</span>(<span class="ident">services</span>::<span class="ident">nest</span>::<span class="ident">Nest</span>),
 
     <span class="doccomment">/// [Telegram bot](https://core.telegram.org/bots/api) service.</span>
-    <span class="ident">Telegram</span>(<span class="ident">services</span>::<span class="ident">telegram</span>::<span class="ident">Settings</span>),
+    <span class="ident">Telegram</span>(<span class="ident">services</span>::<span class="ident">telegram</span>::<span class="ident">Telegram</span>),
 
     <span class="doccomment">/// [Lua](https://www.lua.org/) scripting.</span>
-    <span class="ident">Lua</span>(<span class="ident">services</span>::<span class="ident">lua</span>::<span class="ident">Settings</span>),
+    <span class="ident">Lua</span>(<span class="ident">services</span>::<span class="ident">lua</span>::<span class="ident">Lua</span>),
 }
 
 <span class="kw">fn</span> <span class="ident">default_http_port</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u16</span> {
