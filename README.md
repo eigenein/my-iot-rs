@@ -232,7 +232,8 @@ cat /lib/systemd/system/my-iot.service
 ```ini
 [Unit]
 Description = my-iot
-After = network.target
+BindsTo = network-online.target
+After = network.target network-online.target
 
 [Service]
 ExecStart = /home/pi/.cargo/bin/my-iot --silent
