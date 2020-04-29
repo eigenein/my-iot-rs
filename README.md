@@ -74,7 +74,7 @@ You may need to manually set capabilities on the produced binary:
 setcap cap_net_raw+ep /home/pi/.cargo/bin/my-iot
 ```
 
-This is needed to use some low-level protocols (for instance, [ICMP](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol) for the [[Ping Service]]) as a non-root user.
+This is needed to use some low-level protocols (for instance, [ICMP](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol)) as a non-root user.
 
 # Settings
 
