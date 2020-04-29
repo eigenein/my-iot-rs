@@ -12,7 +12,7 @@ const MESSAGE_ARG_SENSOR_TITLE: &str = "sensor_title";
 const MESSAGE_ARG_VALUE: &str = "value";
 const MESSAGE_ARG_TIMESTAMP_MILLIS: &str = "timestamp_millis";
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug)]
 pub struct Lua {
     /// Script body.
     script: String,
@@ -213,6 +213,7 @@ impl<'lua> ToLua<'lua> for Value {
             Value::Rh(value) => value.to_lua(context),
             Value::Temperature(value) => value.value.to_lua(context),
             Value::WindDirection(value) => value.to_lua(context),
+            Value::Duration(value) => value.value.to_lua(context),
         }
     }
 }

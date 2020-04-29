@@ -54,6 +54,10 @@ pub enum Value {
     /// Length.
     #[serde(rename = "L")]
     Length(Length),
+
+    /// Duration.
+    #[serde(rename = "D")]
+    Duration(Time),
 }
 
 impl From<ThermodynamicTemperature> for Value {
@@ -65,6 +69,12 @@ impl From<ThermodynamicTemperature> for Value {
 impl From<Length> for Value {
     fn from(length: Length) -> Self {
         Self::Length(length)
+    }
+}
+
+impl From<Time> for Value {
+    fn from(time: Time) -> Self {
+        Self::Duration(time)
     }
 }
 
@@ -83,6 +93,7 @@ impl AsRef<Value> for Value {
 impl Value {
     /// Get [CSS color class](https://bulma.io/documentation/modifiers/color-helpers/).
     pub fn class(&self) -> &str {
+        // TODO: move to templates.
         match *self {
             Value::Bft(number) => match number {
                 0 => "is-light",
@@ -135,7 +146,8 @@ impl Value {
             } else {
                 r#"<i class="fas fa-toggle-off"></i>"#
             }),
-            _ => Err(InternalError::new("value has no icon").into()),
+            Value::Duration(_) => Ok(r#"<i class="far fa-clock"></i>"#),
+            Value::ImageUrl(_) | Value::None => Ok(""),
         }
     }
 
@@ -163,14 +175,15 @@ impl std::fmt::Display for Value {
             ),
             Value::Bft(bft) => write!(f, r"{} BFT", bft),
             Value::WindDirection(point) => write!(f, r"{}", point),
-            Value::Rh(percent) => write!(f, r"{}%", percent),
-            Value::Length(length) => write!(f, r"{}", length.into_format_args(length::meter, Abbreviation)),
+            Value::Rh(percent) => write!(f, "{}%", percent),
+            Value::Length(length) => write!(f, "{}", length.into_format_args(length::meter, Abbreviation)),
             Value::ImageUrl(url) => write!(f, r#"<img src="{}">"#, url),
             Value::Boolean(value) => write!(
                 f,
                 r#"<span class="is-uppercase">{}</span>"#,
                 if *value { "Yes" } else { "No" }
             ),
+            Value::Duration(time) => write!(f, "{}", time.into_format_args(time::second, Abbreviation)),
         }
     }
 }

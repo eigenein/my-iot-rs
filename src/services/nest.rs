@@ -12,7 +12,7 @@ use uom::si::*;
 
 const URL: &str = "https://developer-api.nest.com";
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug)]
 pub struct Nest {
     /// Nest API token.
     token: String,

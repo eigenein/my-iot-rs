@@ -22,7 +22,7 @@ const GET_UPDATES_TIMEOUT: u64 = 60;
 /// individual reqwest timeout.
 static CLIENT_TIMEOUT: Duration = Duration::from_secs(GET_UPDATES_TIMEOUT + 5);
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug)]
 pub struct Telegram {
     token: String,
 }

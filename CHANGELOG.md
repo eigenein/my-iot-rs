@@ -8,6 +8,8 @@ Also, I'm removing the automatic `*::update` and `*::change` events, because the
 
 `Service` trait is re-introduced to simplify service instantiation.
 
+New `Solar` service is introduced to emit durations before and after sunset and sunrise.
+
 ## `0.42.0`
 
 - Bundle most of the statics, closes #77

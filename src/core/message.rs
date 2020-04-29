@@ -96,6 +96,11 @@ impl Composer {
         self
     }
 
+    pub fn optional_room_title(mut self, room_title: Option<String>) -> Self {
+        self.message.sensor.room_title = room_title;
+        self
+    }
+
     #[allow(dead_code)]
     pub fn compose(self) -> Message {
         self.message

@@ -13,7 +13,7 @@ pub fn read<P: AsRef<Path>>(path: P) -> Result<Settings> {
 }
 
 /// Represents a root settings object.
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug)]
 pub struct Settings {
     /// Web server port. It's used for the user interface as well as for webhooks.
     #[serde(default = "default_http_port")]
@@ -30,7 +30,7 @@ pub struct Settings {
 }
 
 /// A service configuration.
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug)]
 #[serde(tag = "type")]
 pub enum ServiceSettings {
     /// Regularly emits a counter value.
@@ -47,6 +47,9 @@ pub enum ServiceSettings {
 
     /// [Lua](https://www.lua.org/) scripting.
     Lua(services::lua::Lua),
+
+    /// Sunrise and sunset messages.
+    Solar(services::solar::Solar),
 }
 
 fn default_http_port() -> u16 {

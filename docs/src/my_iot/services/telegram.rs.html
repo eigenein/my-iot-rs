@@ -342,7 +342,7 @@
 <span class="doccomment">/// individual reqwest timeout.</span>
 <span class="kw">static</span> <span class="ident">CLIENT_TIMEOUT</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="ident">GET_UPDATES_TIMEOUT</span> <span class="op">+</span> <span class="number">5</span>);
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Telegram</span> {
     <span class="ident">token</span>: <span class="ident">String</span>,
 }

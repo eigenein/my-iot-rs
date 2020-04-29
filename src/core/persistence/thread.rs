@@ -24,8 +24,8 @@ fn process_message(message: &Message, db: &Arc<Mutex<Connection>>) -> Result<()>
         &message.sensor.sensor_id, &message.type_, &message.reading.value
     );
     debug!("{:?}", &message);
-    // TODO: handle `ReadSnapshot`.
-    if message.type_ == MessageType::ReadLogged {
+    // TODO: handle `ReadSnapshot` properly.
+    if message.type_ == MessageType::ReadLogged || message.type_ == MessageType::ReadSnapshot {
         let db = db.lock().unwrap();
         message.upsert_into(&db)?;
     }
