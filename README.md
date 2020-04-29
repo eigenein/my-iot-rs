@@ -42,7 +42,7 @@ There're few different ways to install My IoT. Either way, you get a single exec
 ## Pre-compiled binaries for Raspberry Pi Zero W
 
 ```bash
-wget `curl -s https://api.github.com/repos/eigenein/my-iot-rs/releases/latest | grep -o "https://github.com/eigenein/my-iot-rs/releases/download/.*/my-iot-arm-unknown-linux-gnueabihf"` -O ~/bin/my-iot.new && chmod +x ~/bin/my-iot.new && sudo setcap cap_net_raw+ep ~/bin/my-iot.new && mv ~/bin/my-iot.new ~/bin/my-iot && sudo service my-iot restart
+curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/eigenein/my-iot-rs/master/install.sh | bash
 ```
 
 ## Install from crates.io
@@ -121,7 +121,14 @@ script = '''
 
 ### `onMessage`
 
-TODO
+User function with the name of `onMessage` gets called on each message and receives one argument `message` which is a table that contains the following indices:
+
+- `sensor_id`
+- `type`
+- `room_title`
+- `sensor_title`
+- `value`
+- `timestamp_millis`
 
 ### Builtins
 
@@ -169,11 +176,7 @@ All indices are optional. Also, a value is provided via either of the following 
 | `kelvin`         | number  | Temperature in Kelvins                                |
 | `meters`         | number  | Length in meters                                      |
 
-TODO
-
 ##### [Points of the Compass](https://en.wikipedia.org/wiki/Points_of_the_compass)
-
-TODO
 
 ### Recipes
 
@@ -194,25 +197,41 @@ function onMessage(message)
 end
 ```
 
-## Buienradar
+#### «Rise and shine» IKEA Trådfri lights for one hour after sunset
 
-TODO
+```toml
+[services.sun_vijfhuizen]
+type = "Solar"
+latitude = 52.000000
+longitude = 4.000000
+room_title = "Vijfhuizen"
+
+[services.rise_and_shine]
+type = "Lua"
+script = '''
+function onMessage(message)
+  if message.sensor_id == "sun_vijfhuizen::after::sunset" and message.value <= 3600 then
+    local command = string.format(
+      "coap-client -m put -u user -k shared_key -e '{\"5851\": %d}' coaps://GW-XXXXXXXXXXXX.home:5684/15004/131080",
+      math.floor(254 * (message.value / 3600))
+    )
+    if os.execute(command) then
+      error(command)
+    end
+  end
+end
+'''
+```
+
+## Buienradar
 
 ## Clock
 
-TODO
-
 ## Nest
-
-TODO
 
 ## Telegram
 
-TODO
-
 ## Solar
-
-TODO
 
 ```text
 2020-04-29 17:32:17,804 INFO  [my_iot::core::persistence::thread] sun_vijfhuizen::before::sunset: ReadSnapshot Duration(12667.827000000001 s^1)
@@ -244,7 +263,7 @@ Restart = always
 User = pi
 
 [Install]
-WantedBy=multi-user.target
+WantedBy = multi-user.target
 ```
 
 ```bash
@@ -257,8 +276,8 @@ sudo systemctl restart my-iot
 
 ## Logs
 
-```sh
-journalctl -f -u my-iot
+```bash
+journalctl -u my-iot -f
 ```
 
 See also: [How To Use Journalctl to View and Manipulate Systemd Logs](https://www.digitalocean.com/community/tutorials/how-to-use-journalctl-to-view-and-manipulate-systemd-logs).
