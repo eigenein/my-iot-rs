@@ -19,17 +19,13 @@ pub struct Solar {
     #[serde(default = "default_interval_ms")]
     pub interval_ms: u64,
 
-    #[serde(default = "default_no_room_title")]
+    #[serde(default)]
     pub room_title: Option<String>,
 }
 
 /// Defaults to one minute.
 fn default_interval_ms() -> u64 {
     60000
-}
-
-fn default_no_room_title() -> Option<String> {
-    None
 }
 
 impl Service for Solar {

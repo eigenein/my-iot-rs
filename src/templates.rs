@@ -1,6 +1,5 @@
 //! Web interface templates.
 
-use crate::core::persistence::ConnectionExtensions;
 use crate::prelude::*;
 use askama::Template;
 use itertools::Itertools;
