@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+Unified sensor IDs by changing `my-iot::*` to `my_iot::*`.
+
 ## `0.43.0`
 
 This release removes the old `Automator` in favour of the new `Lua` service.

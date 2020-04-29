@@ -13,7 +13,7 @@ where
     F: Fn() -> Result<()> + Send + 'static,
 {
     let name = name.into();
-    let sensor = format!("my-iot::{}::is_running", &name);
+    let sensor = format!("my_iot::{}::is_running", &name);
 
     thread::Builder::new().name(name.clone()).spawn(move || loop {
         info!("Running `{}`", &name);
