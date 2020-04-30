@@ -201,7 +201,7 @@ end
 '''
 ```
 
-#### «Rise and shine» IKEA Trådfri lights for one hour after sunset
+#### «Rise and shine» IKEA Trådfri lights starting one hour before sunset
 
 At the moment of writing the recipe there is no native `Tradfri` service. I'm following [the `coap-client` tutorial](https://github.com/glenndehaan/ikea-tradfri-coap-docs/blob/master/README.md) to control bulbs.
 
@@ -214,20 +214,16 @@ room_title = "Vijfhuizen"
 
 [services.rise_and_shine]
 type = "Lua"
-filter_sensor_ids = "^sun_vijfhuizen::after::sunset$"
+filter_sensor_ids = "^sun_vijfhuizen::before::sunset$"
 script = '''
 function onMessage(message)
   if message.value < 3600 then
-    local command = string.format(
+    os.execute(string.format(
       "coap-client -m put -u user -k shared_key -e '{\"5851\": %d}' coaps://GW-XXXXXXXXXXXX.home:5684/15004/131080",
-      math.floor(255 * (message.value / 3600))
-    )
-    if os.execute(command) then
-      error(command)
-    end
+      math.floor(255 * ((3600 - message.value) / 3600))
+    ))
   end
 end
-'''
 ```
 
 ## Buienradar
