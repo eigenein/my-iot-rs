@@ -345,12 +345,12 @@
     <span class="ident">script</span>: <span class="ident">String</span>,
 
     <span class="doccomment">/// If set to `Some(regex)`, ensures that message handler gets called only for sensor IDs</span>
-    <span class="doccomment">/// that match specified pattern.</span>
+    <span class="doccomment">/// that match specified [pattern](https://docs.rs/regex/).</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">with</span> <span class="op">=</span> <span class="string">&quot;serde_regex&quot;</span>)]</span>
     <span class="ident">filter_sensor_ids</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Regex</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// If set to `Some(regex)`, ensures that message handler doesn&#39;t get called for sensor IDs</span>
-    <span class="doccomment">/// that match specified pattern.</span>
+    <span class="doccomment">/// that match specified [pattern](https://docs.rs/regex/).</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>, <span class="ident">with</span> <span class="op">=</span> <span class="string">&quot;serde_regex&quot;</span>)]</span>
     <span class="ident">skip_sensor_ids</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Regex</span><span class="op">&gt;</span>,
 }

@@ -20,12 +20,12 @@ pub struct Lua {
     script: String,
 
     /// If set to `Some(regex)`, ensures that message handler gets called only for sensor IDs
-    /// that match specified pattern.
+    /// that match specified [pattern](https://docs.rs/regex/).
     #[serde(default, with = "serde_regex")]
     filter_sensor_ids: Option<Regex>,
 
     /// If set to `Some(regex)`, ensures that message handler doesn't get called for sensor IDs
-    /// that match specified pattern.
+    /// that match specified [pattern](https://docs.rs/regex/).
     #[serde(default, with = "serde_regex")]
     skip_sensor_ids: Option<Regex>,
 }
