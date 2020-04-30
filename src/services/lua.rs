@@ -2,6 +2,7 @@
 
 use crate::core::message::Type as MessageType;
 use crate::prelude::*;
+use regex::Regex;
 use rlua::{Context, FromLua, Table, ToLua};
 use uom::si::f64::*;
 use uom::si::*;
@@ -12,10 +13,21 @@ const MESSAGE_ARG_SENSOR_TITLE: &str = "sensor_title";
 const MESSAGE_ARG_VALUE: &str = "value";
 const MESSAGE_ARG_TIMESTAMP_MILLIS: &str = "timestamp_millis";
 
-#[derive(Deserialize, Debug)]
+/// Adds Lua scripting and calls message handler for each incoming message.
+#[derive(Deserialize, Debug, Clone)]
 pub struct Lua {
     /// Script body.
     script: String,
+
+    /// If set to `Some(regex)`, ensures that message handler gets called only for sensor IDs
+    /// that match specified pattern.
+    #[serde(default, with = "serde_regex")]
+    filter_sensor_ids: Option<Regex>,
+
+    /// If set to `Some(regex)`, ensures that message handler doesn't get called for sensor IDs
+    /// that match specified pattern.
+    #[serde(default, with = "serde_regex")]
+    skip_sensor_ids: Option<Regex>,
 }
 
 impl Service for Lua {
@@ -23,7 +35,7 @@ impl Service for Lua {
         let service_id = service_id.to_string();
         let tx = bus.add_tx();
         let rx = bus.add_rx();
-        let script = self.script.clone();
+        let settings = self.clone();
 
         supervisor::spawn(service_id.clone(), tx.clone(), move || -> Result<()> {
             let lua = rlua::Lua::new();
@@ -31,13 +43,28 @@ impl Service for Lua {
                 init_globals(context, &service_id, tx.clone())?;
 
                 info!("[{}] Loading and executing script…", &service_id);
-                context.load(&script).set_name(&service_id)?.exec()?;
+                context.load(&settings.script).set_name(&service_id)?.exec()?;
 
                 let globals = context.globals();
                 let on_message: rlua::Value = globals.get("onMessage")?;
 
                 info!("[{}] Listening…", &service_id);
                 for message in &rx {
+                    if let Some(ref regex) = settings.filter_sensor_ids {
+                        if !regex.is_match(&message.sensor.sensor_id) {
+                            debug!(
+                                "[{}] `{}` does not match the filter",
+                                &service_id, &message.sensor.sensor_id
+                            );
+                            continue;
+                        }
+                    }
+                    if let Some(ref regex) = settings.skip_sensor_ids {
+                        if regex.is_match(&message.sensor.sensor_id) {
+                            debug!("[{}] `{}` is skipped", &service_id, &message.sensor.sensor_id);
+                            continue;
+                        }
+                    }
                     if let rlua::Value::Function(on_message) = &on_message {
                         on_message.call::<_, ()>(create_args_table(context, &message)?)?;
                     } else {

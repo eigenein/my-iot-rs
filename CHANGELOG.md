@@ -4,6 +4,8 @@
 
 Unified sensor IDs by changing `my-iot::*` to `my_iot::*`.
 
+`Lua` service gets the new settings, `filter_sensor_ids` and `skip_sensor_ids`, to simplify filtering (out) messages that will be passed to `onMessage`.
+
 ## `0.43.0`
 
 This release removes the old `Automator` in favour of the new `Lua` service.
