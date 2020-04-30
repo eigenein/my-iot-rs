@@ -66,7 +66,7 @@ sudo make install
 make docker/build/arm-unknown-linux-gnueabihf
 ```
 
-### File capabilities
+### File Capabilities
 
 You may need to manually set capabilities on the produced binary:
 
@@ -182,22 +182,28 @@ All indices are optional. Also, a value is provided via either of the following 
 
 #### If Nest camera detects a motion, send an animation to Telegram
 
-```lua
+```toml
+[services.nest_to_telegram]
+type = "Lua"
+filter_sensor_ids = "^nest::camera::<camera_id>::animated_image_url$"
+script = '''
 ts = {}
 
 function onMessage(message)
-  if (
-    message.sensor_id == "nest::camera::<camera_id>::animated_image_url"
-    and message.timestamp_millis ~= ts[message.sensor_id]
-  ) then
-    sendMessage("telegram::<chat_id>::animation", "WRITE", {image_url = message.value, sensor_title = message.room_title})
+  if message.timestamp_millis ~= ts[message.sensor_id] then
+    sendMessage("telegram::<chat_id>::animation", "WRITE", {
+      image_url = message.value,
+      sensor_title = message.room_title .. " @ " .. os.date("%c", message.timestamp_millis // 1000),
+    })
     ts[message.sensor_id] = message.timestamp_millis
-    print(message.timestamp_millis)
   end
 end
+'''
 ```
 
 #### «Rise and shine» IKEA Trådfri lights for one hour after sunset
+
+At the moment of writing the recipe there is no native `Tradfri` service. I'm following [the `coap-client` tutorial](https://github.com/glenndehaan/ikea-tradfri-coap-docs/blob/master/README.md) to control bulbs.
 
 ```toml
 [services.sun_vijfhuizen]
@@ -208,12 +214,13 @@ room_title = "Vijfhuizen"
 
 [services.rise_and_shine]
 type = "Lua"
+filter_sensor_ids = "^sun_vijfhuizen::after::sunset$"
 script = '''
 function onMessage(message)
-  if message.sensor_id == "sun_vijfhuizen::after::sunset" and message.value <= 3600 then
+  if message.value < 3600 then
     local command = string.format(
       "coap-client -m put -u user -k shared_key -e '{\"5851\": %d}' coaps://GW-XXXXXXXXXXXX.home:5684/15004/131080",
-      math.floor(254 * (message.value / 3600))
+      math.floor(255 * (message.value / 3600))
     )
     if os.execute(command) then
       error(command)
