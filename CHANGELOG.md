@@ -1,6 +1,6 @@
 # `my-iot`
 
-## `master`
+## `0.44.0`
 
 Unified sensor IDs by changing `my-iot::*` to `my_iot::*`.
 
