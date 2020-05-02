@@ -2,10 +2,12 @@
 
 use crate::core::message::Type as MessageType;
 use crate::prelude::*;
+use crate::services::lua::prelude::*;
 use regex::Regex;
-use rlua::{Context, FromLua, Table, ToLua};
 use uom::si::f64::*;
 use uom::si::*;
+
+mod prelude;
 
 const MESSAGE_ARG_TYPE: &str = "type";
 const MESSAGE_ARG_ROOM_TITLE: &str = "room_title";
@@ -46,7 +48,7 @@ impl Service for Lua {
                 context.load(&settings.script).set_name(&service_id)?.exec()?;
 
                 let globals = context.globals();
-                let on_message: rlua::Value = globals.get("onMessage")?;
+                let on_message: LuaValue = globals.get("onMessage")?;
 
                 info!("[{}] Listening…", &service_id);
                 for message in &rx {
@@ -65,7 +67,7 @@ impl Service for Lua {
                             continue;
                         }
                     }
-                    if let rlua::Value::Function(on_message) = &on_message {
+                    if let LuaValue::Function(on_message) = &on_message {
                         on_message.call::<_, ()>(create_args_table(context, &message)?)?;
                     } else {
                         warn!("[{}] `onMessage` is not defined or not a function", &service_id);
@@ -80,7 +82,7 @@ impl Service for Lua {
     }
 }
 
-fn create_args_table<'lua>(context: Context<'lua>, message: &Message) -> rlua::Result<Table<'lua>> {
+fn create_args_table<'lua>(context: LuaContext<'lua>, message: &Message) -> LuaResult<LuaTable<'lua>> {
     let args = context.create_table()?;
     args.set("sensor_id", message.sensor.sensor_id.clone())?;
     args.set(MESSAGE_ARG_TYPE, message.type_)?;
@@ -94,14 +96,14 @@ fn create_args_table<'lua>(context: Context<'lua>, message: &Message) -> rlua::R
     Ok(args)
 }
 
-fn init_globals(context: Context, service_id: &str, tx: Sender<Message>) -> Result<()> {
+fn init_globals(context: LuaContext, service_id: &str, tx: Sender<Message>) -> Result<()> {
     init_logging(context, service_id)?;
     init_functions(context, tx)?;
     Ok(())
 }
 
 /// Expose logging functions to the context.
-fn init_logging(context: Context, service_id: &str) -> Result<()> {
+fn init_logging(context: LuaContext, service_id: &str) -> Result<()> {
     let globals = context.globals();
     {
         let service_id = service_id.to_string();
@@ -148,12 +150,12 @@ fn init_logging(context: Context, service_id: &str) -> Result<()> {
 }
 
 /// Provides the custom functions to user code.
-fn init_functions(context: Context, tx: Sender<Message>) -> Result<()> {
+fn init_functions(context: LuaContext, tx: Sender<Message>) -> Result<()> {
     let globals = context.globals();
     globals.set(
         "sendMessage",
         context.create_function(
-            move |context, (sensor_id, type_, args): (String, MessageType, Option<Table>)| {
+            move |context, (sensor_id, type_, args): (String, MessageType, Option<LuaTable>)| {
                 let mut composer = Composer::new(sensor_id).type_(type_);
                 if let Some(args) = args {
                     composer = build_message(composer, context, args)?;
@@ -167,8 +169,8 @@ fn init_functions(context: Context, tx: Sender<Message>) -> Result<()> {
 }
 
 /// Uses `composer` to build a message from the arguments provided by user in `sendMessage` call.
-fn build_message<'lua>(mut composer: Composer, context: Context<'lua>, args: Table<'lua>) -> rlua::Result<Composer> {
-    for item in args.pairs::<String, rlua::Value>() {
+fn build_message<'lua>(mut composer: Composer, context: LuaContext<'lua>, args: LuaTable<'lua>) -> LuaResult<Composer> {
+    for item in args.pairs::<String, LuaValue>() {
         let (key, value) = item?;
         match key.as_ref() {
             MESSAGE_ARG_ROOM_TITLE => {
@@ -229,9 +231,9 @@ fn build_message<'lua>(mut composer: Composer, context: Context<'lua>, args: Tab
 }
 
 impl<'lua> ToLua<'lua> for Value {
-    fn to_lua(self, context: Context<'lua>) -> rlua::Result<rlua::Value> {
+    fn to_lua(self, context: LuaContext<'lua>) -> LuaResult<LuaValue> {
         match self {
-            Value::None => Ok(rlua::Value::Nil),
+            Value::None => Ok(LuaValue::Nil),
             Value::Bft(value) => value.to_lua(context),
             Value::Boolean(value) => value.to_lua(context),
             Value::Counter(value) | Value::DataSize(value) => value.to_lua(context),
@@ -246,7 +248,7 @@ impl<'lua> ToLua<'lua> for Value {
 }
 
 impl<'lua> ToLua<'lua> for PointOfTheCompass {
-    fn to_lua(self, context: Context<'lua>) -> rlua::Result<rlua::Value<'lua>> {
+    fn to_lua(self, context: LuaContext<'lua>) -> LuaResult<LuaValue<'lua>> {
         match self {
             PointOfTheCompass::East => "EAST",
             PointOfTheCompass::EastNortheast => "EAST_NORTH_EAST",
@@ -270,7 +272,7 @@ impl<'lua> ToLua<'lua> for PointOfTheCompass {
 }
 
 impl<'lua> ToLua<'lua> for MessageType {
-    fn to_lua(self, context: Context<'lua>) -> rlua::Result<rlua::Value<'lua>> {
+    fn to_lua(self, context: LuaContext<'lua>) -> LuaResult<LuaValue<'lua>> {
         match self {
             MessageType::ReadSnapshot => "READ_SNAPSHOT",
             MessageType::ReadNonLogged => "READ_NON_LOGGED",
@@ -282,9 +284,9 @@ impl<'lua> ToLua<'lua> for MessageType {
 }
 
 impl<'lua> FromLua<'lua> for MessageType {
-    fn from_lua(lua_value: rlua::Value<'lua>, _: Context<'lua>) -> rlua::Result<Self> {
+    fn from_lua(lua_value: LuaValue<'lua>, _: LuaContext<'lua>) -> LuaResult<Self> {
         match lua_value {
-            rlua::Value::String(string) => match string.to_str()? {
+            LuaValue::String(string) => match string.to_str()? {
                 "READ_LOGGED" => Ok(MessageType::ReadLogged),
                 "READ_NON_LOGGED" => Ok(MessageType::ReadNonLogged),
                 "READ_SNAPSHOT" => Ok(MessageType::ReadSnapshot),
@@ -303,9 +305,9 @@ impl<'lua> FromLua<'lua> for MessageType {
 }
 
 impl<'lua> FromLua<'lua> for PointOfTheCompass {
-    fn from_lua(lua_value: rlua::Value<'lua>, _: Context<'lua>) -> rlua::Result<Self> {
+    fn from_lua(lua_value: LuaValue<'lua>, _: LuaContext<'lua>) -> LuaResult<Self> {
         match lua_value {
-            rlua::Value::String(string) => match string.to_str()? {
+            LuaValue::String(string) => match string.to_str()? {
                 "N" | "NORTH" => Ok(PointOfTheCompass::North),
                 "W" | "WEST" => Ok(PointOfTheCompass::West),
                 "E" | "EAST" => Ok(PointOfTheCompass::East),
