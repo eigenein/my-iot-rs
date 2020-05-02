@@ -6,7 +6,7 @@
     Number(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>),
     String(String&lt;'lua&gt;),
     Table(<a class="struct" href="../../../../my_iot/services/lua/prelude/struct.LuaTable.html" title="struct my_iot::services::lua::prelude::LuaTable">Table</a>&lt;'lua&gt;),
-    Function(Function&lt;'lua&gt;),
+    Function(<a class="struct" href="../../../../my_iot/services/lua/prelude/struct.LuaFunction.html" title="struct my_iot::services::lua::prelude::LuaFunction">Function</a>&lt;'lua&gt;),
     Thread(Thread&lt;'lua&gt;),
     UserData(AnyUserData&lt;'lua&gt;),
     Error(Error),
@@ -25,7 +25,7 @@ parameter in a Rust callback, and doing so will result in a panic.</p>
 </div><div id="variant.String" class="variant small-section-header"><a href="#variant.String" class="anchor field"></a><code id='String.v'>String(String&lt;'lua&gt;)</code></div><div class='docblock'><p>An interned string, managed by Lua.</p>
 <p>Unlike Rust strings, Lua strings may not be valid UTF-8.</p>
 </div><div id="variant.Table" class="variant small-section-header"><a href="#variant.Table" class="anchor field"></a><code id='Table.v'>Table(<a class="struct" href="../../../../my_iot/services/lua/prelude/struct.LuaTable.html" title="struct my_iot::services::lua::prelude::LuaTable">Table</a>&lt;'lua&gt;)</code></div><div class='docblock'><p>Reference to a Lua table.</p>
-</div><div id="variant.Function" class="variant small-section-header"><a href="#variant.Function" class="anchor field"></a><code id='Function.v'>Function(Function&lt;'lua&gt;)</code></div><div class='docblock'><p>Reference to a Lua function (or closure).</p>
+</div><div id="variant.Function" class="variant small-section-header"><a href="#variant.Function" class="anchor field"></a><code id='Function.v'>Function(<a class="struct" href="../../../../my_iot/services/lua/prelude/struct.LuaFunction.html" title="struct my_iot::services::lua::prelude::LuaFunction">Function</a>&lt;'lua&gt;)</code></div><div class='docblock'><p>Reference to a Lua function (or closure).</p>
 </div><div id="variant.Thread" class="variant small-section-header"><a href="#variant.Thread" class="anchor field"></a><code id='Thread.v'>Thread(Thread&lt;'lua&gt;)</code></div><div class='docblock'><p>Reference to a Lua thread (or coroutine).</p>
 </div><div id="variant.UserData" class="variant small-section-header"><a href="#variant.UserData" class="anchor field"></a><code id='UserData.v'>UserData(AnyUserData&lt;'lua&gt;)</code></div><div class='docblock'><p>Reference to a userdata object that holds a custom type which implements <code>UserData</code>.
 Special builtin userdata types will be represented as other <code>Value</code> variants.</p>

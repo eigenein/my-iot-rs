@@ -10,7 +10,7 @@ pub use crate::errors::InternalError;
 pub use chrono::prelude::*;
 pub use chrono::Duration;
 pub use crossbeam_channel::{Receiver, Sender};
-pub use log::{debug, error, info, log, warn};
+pub use log::{debug, error, info, log, warn, Level as LogLevel};
 pub use rusqlite::Connection;
 pub use serde::{Deserialize, Serialize};
 pub use std::error::Error;

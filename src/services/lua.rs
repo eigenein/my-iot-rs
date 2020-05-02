@@ -1,6 +1,5 @@
 //! Executes a Lua script for each message allowing to implement any automation scenarios.
 
-use crate::core::message::Type as MessageType;
 use crate::prelude::*;
 use crate::services::lua::prelude::*;
 use regex::Regex;
@@ -105,48 +104,26 @@ fn init_globals(context: LuaContext, service_id: &str, tx: Sender<Message>) -> R
 /// Expose logging functions to the context.
 fn init_logging(context: LuaContext, service_id: &str) -> Result<()> {
     let globals = context.globals();
-    {
-        let service_id = service_id.to_string();
-        globals.set(
-            "debug",
-            context.create_function(move |_, string: String| {
-                debug!("[{}] {}", service_id, string);
-                Ok(())
-            })?,
-        )?;
-    }
-    {
-        let service_id = service_id.to_string();
-        globals.set(
-            "info",
-            context.create_function(move |_, string: String| {
-                info!("[{}] {}", service_id, string);
-                Ok(())
-            })?,
-        )?;
-    }
-    {
-        let service_id = service_id.to_string();
-        globals.set(
-            "warn",
-            context.create_function(move |_, string: String| {
-                warn!("[{}] {}", service_id, string);
-                Ok(())
-            })?,
-        )?;
-    }
-    {
-        let service_id = service_id.to_string();
-        globals.set(
-            "error",
-            context.create_function(move |_, string: String| {
-                error!("[{}] {}", service_id, string);
-                Ok(())
-            })?,
-        )?;
-    }
+
+    globals.set(
+        "debug",
+        create_log_function(context, service_id.into(), LogLevel::Debug)?,
+    )?;
+    globals.set("info", create_log_function(context, service_id.into(), LogLevel::Info)?)?;
+    globals.set("warn", create_log_function(context, service_id.into(), LogLevel::Warn)?)?;
+    globals.set(
+        "error",
+        create_log_function(context, service_id.into(), LogLevel::Error)?,
+    )?;
 
     Ok(())
+}
+
+fn create_log_function(context: LuaContext, service_id: String, level: LogLevel) -> LuaResult<LuaFunction> {
+    context.create_function(move |_, message: String| {
+        log!(level, "[{}] {}", service_id, message);
+        Ok(())
+    })
 }
 
 /// Provides the custom functions to user code.

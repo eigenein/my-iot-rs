@@ -3,6 +3,7 @@
 <table><tr class='module-item'><td><a class="macro" href="macro.debug.html" title='my_iot::prelude::debug macro'>debug</a></td><td class='docblock-short'><p>Logs a message at the debug level.</p>
 </td></tr><tr class='module-item'><td><a class="macro" href="macro.error.html" title='my_iot::prelude::error macro'>error</a></td><td class='docblock-short'><p>Logs a message at the error level.</p>
 </td></tr><tr class='module-item'><td><a class="macro" href="macro.info.html" title='my_iot::prelude::info macro'>info</a></td><td class='docblock-short'><p>Logs a message at the info level.</p>
+</td></tr><tr class='module-item'><td><a class="macro" href="macro.log.html" title='my_iot::prelude::log macro'>log</a></td><td class='docblock-short'><p>The standard logging macro.</p>
 </td></tr><tr class='module-item'><td><a class="macro" href="macro.warn.html" title='my_iot::prelude::warn macro'>warn</a></td><td class='docblock-short'><p>Logs a message at the warn level.</p>
 </td></tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table><tr class='module-item'><td><a class="struct" href="struct.Arc.html" title='my_iot::prelude::Arc struct'>Arc</a></td><td class='docblock-short'><p>A thread-safe reference-counting pointer. 'Arc' stands for 'Atomically
@@ -27,7 +28,8 @@ Allows for the nanosecond precision and optional leap second representation.</p>
 </td></tr><tr class='module-item'><td><a class="struct" href="struct.Utc.html" title='my_iot::prelude::Utc struct'>Utc</a></td><td class='docblock-short'><p>The UTC time zone. This is the most efficient time zone when you don't need the local time.
 It is also used as an offset (which is also a dummy type).</p>
 </td></tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
-<table><tr class='module-item'><td><a class="enum" href="enum.SecondsFormat.html" title='my_iot::prelude::SecondsFormat enum'>SecondsFormat</a></td><td class='docblock-short'><p>Specific formatting options for seconds. This may be extended in the
+<table><tr class='module-item'><td><a class="enum" href="enum.LogLevel.html" title='my_iot::prelude::LogLevel enum'>LogLevel</a></td><td class='docblock-short'><p>An enum representing the available verbosity levels of the logger.</p>
+</td></tr><tr class='module-item'><td><a class="enum" href="enum.SecondsFormat.html" title='my_iot::prelude::SecondsFormat enum'>SecondsFormat</a></td><td class='docblock-short'><p>Specific formatting options for seconds. This may be extended in the
 future, so exhaustive matching in external code is not recommended.</p>
 </td></tr><tr class='module-item'><td><a class="enum" href="enum.Weekday.html" title='my_iot::prelude::Weekday enum'>Weekday</a></td><td class='docblock-short'><p>The day of week.</p>
 </td></tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
