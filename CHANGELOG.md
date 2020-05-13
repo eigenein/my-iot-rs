@@ -1,5 +1,13 @@
 # `my-iot`
 
+## `master`
+
+`Composer` interface has been removed in favour of direct instantiation of `Message`-s.
+
+Service intercommunication via "fake" messages doesn't play that nice. However, it was mainly meant to work with the old `Automator`, which is now replaced with `Lua`. Thus, I remove this functionality and leave `Write` messages only to actually change existing sensor value. Fake sensors become discouraged since now.
+
+`Telegram` service won't listen to `Write` messages anymore. Use `Lua` functions instead.
+
 ## `0.44.0`
 
 Unified sensor IDs by changing `my-iot::*` to `my_iot::*`.

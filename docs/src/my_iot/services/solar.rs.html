@@ -93,8 +93,6 @@
 <span id="93">93</span>
 <span id="94">94</span>
 <span id="95">95</span>
-<span id="96">96</span>
-<span id="97">97</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">core</span>::<span class="ident">message</span>::<span class="ident">Type</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
@@ -139,50 +137,48 @@
                 <span class="kw">match</span> <span class="ident">calc_sunrise_and_set</span>(<span class="ident">now</span>, <span class="ident">settings</span>.<span class="ident">latitude</span>, <span class="ident">settings</span>.<span class="ident">longitude</span>)<span class="question-mark">?</span> {
                     <span class="ident">SunriseAndSet</span>::<span class="ident">Daylight</span>(<span class="ident">sunrise</span>, <span class="ident">sunset</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">if</span> <span class="ident">now</span> <span class="op">&lt;</span> <span class="ident">sunrise</span> {
-                            <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::before::sunrise&quot;</span>, <span class="ident">service_id</span>))
+                            <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::before::sunrise&quot;</span>, <span class="ident">service_id</span>))
                                 .<span class="ident">type_</span>(<span class="ident">Type</span>::<span class="ident">ReadSnapshot</span>)
+                                .<span class="ident">sensor_title</span>(<span class="string">&quot;Time Before Sunrise&quot;</span>)
                                 .<span class="ident">optional_room_title</span>(<span class="ident">settings</span>.<span class="ident">room_title</span>.<span class="ident">clone</span>())
                                 .<span class="ident">value</span>(<span class="ident">Time</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">time</span>::<span class="ident">millisecond</span><span class="op">&gt;</span>((<span class="ident">sunrise</span> <span class="op">-</span> <span class="ident">now</span>).<span class="ident">num_milliseconds</span>() <span class="kw">as</span> <span class="ident">f64</span>))
-                                .<span class="ident">message</span>
                                 .<span class="ident">send_and_forget</span>(<span class="kw-2">&amp;</span><span class="ident">tx</span>);
                         }
                         <span class="kw">if</span> <span class="ident">now</span> <span class="op">&lt;</span> <span class="ident">sunset</span> {
-                            <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::before::sunset&quot;</span>, <span class="ident">service_id</span>))
+                            <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::before::sunset&quot;</span>, <span class="ident">service_id</span>))
                                 .<span class="ident">type_</span>(<span class="ident">Type</span>::<span class="ident">ReadSnapshot</span>)
+                                .<span class="ident">sensor_title</span>(<span class="string">&quot;Time Before Sunset&quot;</span>)
                                 .<span class="ident">optional_room_title</span>(<span class="ident">settings</span>.<span class="ident">room_title</span>.<span class="ident">clone</span>())
                                 .<span class="ident">value</span>(<span class="ident">Time</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">time</span>::<span class="ident">millisecond</span><span class="op">&gt;</span>((<span class="ident">sunset</span> <span class="op">-</span> <span class="ident">now</span>).<span class="ident">num_milliseconds</span>() <span class="kw">as</span> <span class="ident">f64</span>))
-                                .<span class="ident">message</span>
                                 .<span class="ident">send_and_forget</span>(<span class="kw-2">&amp;</span><span class="ident">tx</span>);
                         }
                         <span class="kw">if</span> <span class="ident">sunrise</span> <span class="op">&lt;</span> <span class="ident">now</span> {
-                            <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::after::sunrise&quot;</span>, <span class="ident">service_id</span>))
+                            <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::after::sunrise&quot;</span>, <span class="ident">service_id</span>))
                                 .<span class="ident">type_</span>(<span class="ident">Type</span>::<span class="ident">ReadSnapshot</span>)
+                                .<span class="ident">sensor_title</span>(<span class="string">&quot;Time After Sunrise&quot;</span>)
                                 .<span class="ident">optional_room_title</span>(<span class="ident">settings</span>.<span class="ident">room_title</span>.<span class="ident">clone</span>())
                                 .<span class="ident">value</span>(<span class="ident">Time</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">time</span>::<span class="ident">millisecond</span><span class="op">&gt;</span>((<span class="ident">now</span> <span class="op">-</span> <span class="ident">sunrise</span>).<span class="ident">num_milliseconds</span>() <span class="kw">as</span> <span class="ident">f64</span>))
-                                .<span class="ident">message</span>
                                 .<span class="ident">send_and_forget</span>(<span class="kw-2">&amp;</span><span class="ident">tx</span>);
                         }
                         <span class="kw">if</span> <span class="ident">sunset</span> <span class="op">&lt;</span> <span class="ident">now</span> {
-                            <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::after::sunset&quot;</span>, <span class="ident">service_id</span>))
+                            <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::after::sunset&quot;</span>, <span class="ident">service_id</span>))
                                 .<span class="ident">type_</span>(<span class="ident">Type</span>::<span class="ident">ReadSnapshot</span>)
+                                .<span class="ident">sensor_title</span>(<span class="string">&quot;Time After Sunset&quot;</span>)
                                 .<span class="ident">optional_room_title</span>(<span class="ident">settings</span>.<span class="ident">room_title</span>.<span class="ident">clone</span>())
                                 .<span class="ident">value</span>(<span class="ident">Time</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">time</span>::<span class="ident">millisecond</span><span class="op">&gt;</span>((<span class="ident">now</span> <span class="op">-</span> <span class="ident">sunset</span>).<span class="ident">num_milliseconds</span>() <span class="kw">as</span> <span class="ident">f64</span>))
-                                .<span class="ident">message</span>
                                 .<span class="ident">send_and_forget</span>(<span class="kw-2">&amp;</span><span class="ident">tx</span>);
                         }
                     }
                     <span class="ident">SunriseAndSet</span>::<span class="ident">PolarDay</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::polar_day&quot;</span>, <span class="ident">service_id</span>))
+                        <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::polar_day&quot;</span>, <span class="ident">service_id</span>))
                             .<span class="ident">type_</span>(<span class="ident">Type</span>::<span class="ident">ReadNonLogged</span>)
                             .<span class="ident">optional_room_title</span>(<span class="ident">settings</span>.<span class="ident">room_title</span>.<span class="ident">clone</span>())
-                            .<span class="ident">message</span>
                             .<span class="ident">send_and_forget</span>(<span class="kw-2">&amp;</span><span class="ident">tx</span>);
                     }
                     <span class="ident">SunriseAndSet</span>::<span class="ident">PolarNight</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::polar_night&quot;</span>, <span class="ident">service_id</span>))
+                        <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::polar_night&quot;</span>, <span class="ident">service_id</span>))
                             .<span class="ident">type_</span>(<span class="ident">Type</span>::<span class="ident">ReadNonLogged</span>)
                             .<span class="ident">optional_room_title</span>(<span class="ident">settings</span>.<span class="ident">room_title</span>.<span class="ident">clone</span>())
-                            .<span class="ident">message</span>
                             .<span class="ident">send_and_forget</span>(<span class="kw-2">&amp;</span><span class="ident">tx</span>);
                     }
                 }

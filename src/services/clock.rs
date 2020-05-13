@@ -24,7 +24,7 @@ impl Service for Clock {
         supervisor::spawn(service_id.clone(), tx.clone(), move || -> Result<()> {
             let mut counter = 1;
             loop {
-                tx.send(Composer::new(&service_id).value(Value::Counter(counter)).into())?;
+                tx.send(Message::new(&service_id).value(Value::Counter(counter)))?;
                 counter += 1;
                 thread::sleep(interval);
             }

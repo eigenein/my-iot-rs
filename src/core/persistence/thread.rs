@@ -21,7 +21,7 @@ pub fn spawn(db: Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
 fn process_message(message: &Message, db: &Arc<Mutex<Connection>>) -> Result<()> {
     info!(
         "{}: {:?} {:?}",
-        &message.sensor.sensor_id, &message.type_, &message.reading.value
+        &message.sensor.id, &message.type_, &message.reading.value
     );
     debug!("{:?}", &message);
     // TODO: handle `ReadSnapshot` properly.

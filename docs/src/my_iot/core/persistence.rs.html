@@ -341,13 +341,6 @@
 <span id="341">341</span>
 <span id="342">342</span>
 <span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
-<span id="350">350</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Database interface.</span>
 
@@ -504,7 +497,7 @@
 
 <span class="kw">fn</span> <span class="ident">get_sensor</span>(<span class="ident">row</span>: <span class="kw-2">&amp;</span><span class="ident">Row</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">rusqlite</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Sensor</span><span class="op">&gt;</span> {
     <span class="prelude-val">Ok</span>(<span class="ident">Sensor</span> {
-        <span class="ident">sensor_id</span>: <span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;sensor_id&quot;</span>)<span class="question-mark">?</span>,
+        <span class="ident">id</span>: <span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;sensor_id&quot;</span>)<span class="question-mark">?</span>,
         <span class="ident">title</span>: <span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;title&quot;</span>)<span class="question-mark">?</span>,
         <span class="ident">room_title</span>: <span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;room_title&quot;</span>)<span class="question-mark">?</span>,
     })
@@ -561,7 +554,7 @@
             &quot;#</span>,
         )<span class="question-mark">?</span>
         .<span class="ident">execute</span>(<span class="macro">params</span><span class="macro">!</span>[
-            <span class="self">self</span>.<span class="ident">sensor</span>.<span class="ident">sensor_id</span>,
+            <span class="self">self</span>.<span class="ident">sensor</span>.<span class="ident">id</span>,
             <span class="self">self</span>.<span class="ident">sensor</span>.<span class="ident">title</span>,
             <span class="ident">timestamp</span>,
             <span class="self">self</span>.<span class="ident">sensor</span>.<span class="ident">room_title</span>,
@@ -581,7 +574,7 @@
             ON CONFLICT (sensor_fk, timestamp) DO UPDATE SET value = excluded.value
             &quot;#</span>,
         )<span class="question-mark">?</span>
-        .<span class="ident">execute</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="self">self</span>.<span class="ident">sensor</span>.<span class="ident">sensor_id</span>, <span class="ident">timestamp</span>, <span class="ident">value</span>])<span class="question-mark">?</span>;
+        .<span class="ident">execute</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="self">self</span>.<span class="ident">sensor</span>.<span class="ident">id</span>, <span class="ident">timestamp</span>, <span class="ident">value</span>])<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
     }
@@ -595,10 +588,9 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">double_upsert_keeps_one_reading</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
-        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
+        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">Message</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
             .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="number">42</span>))
-            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>))
-            .<span class="ident">message</span>;
+            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>));
 
         <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Connection</span>::<span class="ident">open_and_initialize</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>;
         <span class="ident">message</span>.<span class="ident">upsert_into</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span>;
@@ -618,10 +610,9 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">select_last_reading_ok</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
-        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
+        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">Message</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
             .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="number">42</span>))
-            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>))
-            .<span class="ident">message</span>;
+            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>));
         <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Connection</span>::<span class="ident">open_and_initialize</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>;
         <span class="ident">message</span>.<span class="ident">upsert_into</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span>;
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">db</span>.<span class="ident">select_last_reading</span>(<span class="string">&quot;test&quot;</span>)<span class="question-mark">?</span>, <span class="prelude-val">Some</span>(<span class="ident">message</span>.<span class="ident">into</span>()));
@@ -631,15 +622,13 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">select_last_reading_returns_newer_reading</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Connection</span>::<span class="ident">open_and_initialize</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
+        <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">Message</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
             .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="number">42</span>))
-            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_127_000</span>))
-            .<span class="ident">message</span>;
+            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_127_000</span>));
         <span class="ident">old</span>.<span class="ident">upsert_into</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
+        <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <span class="ident">Message</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
             .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="number">42</span>))
-            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>))
-            .<span class="ident">message</span>;
+            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>));
         <span class="ident">new</span>.<span class="ident">upsert_into</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span>;
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">db</span>.<span class="ident">select_last_reading</span>(<span class="string">&quot;test&quot;</span>)<span class="question-mark">?</span>, <span class="prelude-val">Some</span>(<span class="ident">new</span>.<span class="ident">into</span>()));
         <span class="prelude-val">Ok</span>(())
@@ -647,10 +636,9 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">select_actuals_ok</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
-        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
+        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">Message</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
             .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="number">42</span>))
-            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>))
-            .<span class="ident">compose</span>();
+            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>));
         <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Connection</span>::<span class="ident">open_and_initialize</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>;
         <span class="ident">message</span>.<span class="ident">upsert_into</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span>;
         <span class="macro">assert_eq</span><span class="macro">!</span>(
@@ -666,15 +654,13 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">existing_sensor_is_reused</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Connection</span>::<span class="ident">open_and_initialize</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
+        <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">Message</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
             .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="number">42</span>))
-            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>))
-            .<span class="ident">message</span>;
+            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>));
         <span class="ident">old</span>.<span class="ident">upsert_into</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <span class="ident">Composer</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
+        <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <span class="ident">Message</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
             .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="number">42</span>))
-            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_129_000</span>))
-            .<span class="ident">message</span>;
+            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_129_000</span>));
         <span class="ident">new</span>.<span class="ident">upsert_into</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span>;
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">db</span>.<span class="ident">select_sensor_count</span>()<span class="question-mark">?</span>, <span class="number">1</span>);

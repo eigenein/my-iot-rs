@@ -41,50 +41,48 @@ impl Service for Solar {
                 match calc_sunrise_and_set(now, settings.latitude, settings.longitude)? {
                     SunriseAndSet::Daylight(sunrise, sunset) => {
                         if now < sunrise {
-                            Composer::new(format!("{}::before::sunrise", service_id))
+                            Message::new(format!("{}::before::sunrise", service_id))
                                 .type_(Type::ReadSnapshot)
+                                .sensor_title("Time Before Sunrise")
                                 .optional_room_title(settings.room_title.clone())
                                 .value(Time::new::<time::millisecond>((sunrise - now).num_milliseconds() as f64))
-                                .message
                                 .send_and_forget(&tx);
                         }
                         if now < sunset {
-                            Composer::new(format!("{}::before::sunset", service_id))
+                            Message::new(format!("{}::before::sunset", service_id))
                                 .type_(Type::ReadSnapshot)
+                                .sensor_title("Time Before Sunset")
                                 .optional_room_title(settings.room_title.clone())
                                 .value(Time::new::<time::millisecond>((sunset - now).num_milliseconds() as f64))
-                                .message
                                 .send_and_forget(&tx);
                         }
                         if sunrise < now {
-                            Composer::new(format!("{}::after::sunrise", service_id))
+                            Message::new(format!("{}::after::sunrise", service_id))
                                 .type_(Type::ReadSnapshot)
+                                .sensor_title("Time After Sunrise")
                                 .optional_room_title(settings.room_title.clone())
                                 .value(Time::new::<time::millisecond>((now - sunrise).num_milliseconds() as f64))
-                                .message
                                 .send_and_forget(&tx);
                         }
                         if sunset < now {
-                            Composer::new(format!("{}::after::sunset", service_id))
+                            Message::new(format!("{}::after::sunset", service_id))
                                 .type_(Type::ReadSnapshot)
+                                .sensor_title("Time After Sunset")
                                 .optional_room_title(settings.room_title.clone())
                                 .value(Time::new::<time::millisecond>((now - sunset).num_milliseconds() as f64))
-                                .message
                                 .send_and_forget(&tx);
                         }
                     }
                     SunriseAndSet::PolarDay => {
-                        Composer::new(format!("{}::polar_day", service_id))
+                        Message::new(format!("{}::polar_day", service_id))
                             .type_(Type::ReadNonLogged)
                             .optional_room_title(settings.room_title.clone())
-                            .message
                             .send_and_forget(&tx);
                     }
                     SunriseAndSet::PolarNight => {
-                        Composer::new(format!("{}::polar_night", service_id))
+                        Message::new(format!("{}::polar_night", service_id))
                             .type_(Type::ReadNonLogged)
                             .optional_room_title(settings.room_title.clone())
-                            .message
                             .send_and_forget(&tx);
                     }
                 }

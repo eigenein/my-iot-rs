@@ -52,17 +52,14 @@ impl Service for Lua {
                 info!("[{}] Listening…", &service_id);
                 for message in &rx {
                     if let Some(ref regex) = settings.filter_sensor_ids {
-                        if !regex.is_match(&message.sensor.sensor_id) {
-                            debug!(
-                                "[{}] `{}` does not match the filter",
-                                &service_id, &message.sensor.sensor_id
-                            );
+                        if !regex.is_match(&message.sensor.id) {
+                            debug!("[{}] `{}` does not match the filter", &service_id, &message.sensor.id);
                             continue;
                         }
                     }
                     if let Some(ref regex) = settings.skip_sensor_ids {
-                        if regex.is_match(&message.sensor.sensor_id) {
-                            debug!("[{}] `{}` is skipped", &service_id, &message.sensor.sensor_id);
+                        if regex.is_match(&message.sensor.id) {
+                            debug!("[{}] `{}` is skipped", &service_id, &message.sensor.id);
                             continue;
                         }
                     }
@@ -83,7 +80,7 @@ impl Service for Lua {
 
 fn create_args_table<'lua>(context: LuaContext<'lua>, message: &Message) -> LuaResult<LuaTable<'lua>> {
     let args = context.create_table()?;
-    args.set("sensor_id", message.sensor.sensor_id.clone())?;
+    args.set("sensor_id", message.sensor.id.clone())?;
     args.set(MESSAGE_ARG_TYPE, message.type_)?;
     args.set(MESSAGE_ARG_ROOM_TITLE, message.sensor.room_title.clone())?;
     args.set(MESSAGE_ARG_SENSOR_TITLE, message.sensor.title.clone())?;
@@ -133,11 +130,11 @@ fn init_functions(context: LuaContext, tx: Sender<Message>) -> Result<()> {
         "sendMessage",
         context.create_function(
             move |context, (sensor_id, type_, args): (String, MessageType, Option<LuaTable>)| {
-                let mut composer = Composer::new(sensor_id).type_(type_);
+                let mut message = Message::new(sensor_id).type_(type_);
                 if let Some(args) = args {
-                    composer = build_message(composer, context, args)?;
+                    enrich_message(&mut message, context, args)?;
                 }
-                composer.message.send_and_forget(&tx);
+                message.send_and_forget(&tx);
                 Ok(())
             },
         )?,
@@ -145,66 +142,62 @@ fn init_functions(context: LuaContext, tx: Sender<Message>) -> Result<()> {
     Ok(())
 }
 
-/// Uses `composer` to build a message from the arguments provided by user in `sendMessage` call.
-fn build_message<'lua>(mut composer: Composer, context: LuaContext<'lua>, args: LuaTable<'lua>) -> LuaResult<Composer> {
+/// Modify the message from the arguments provided by user in `sendMessage` call.
+fn enrich_message<'lua>(message: &mut Message, context: LuaContext<'lua>, args: LuaTable<'lua>) -> LuaResult<()> {
     for item in args.pairs::<String, LuaValue>() {
         let (key, value) = item?;
         match key.as_ref() {
             MESSAGE_ARG_ROOM_TITLE => {
-                composer = composer.room_title(String::from_lua(value, context)?);
+                message.sensor.room_title = FromLua::from_lua(value, context)?;
             }
             MESSAGE_ARG_SENSOR_TITLE => {
-                composer = composer.title(String::from_lua(value, context)?);
+                message.sensor.title = FromLua::from_lua(value, context)?;
             }
             MESSAGE_ARG_TIMESTAMP_MILLIS => {
-                composer = composer.timestamp(Local.timestamp_millis(i64::from_lua(value, context)?));
+                message.reading.timestamp = Local.timestamp_millis(i64::from_lua(value, context)?);
             }
             "bft" | "beaufort" => {
-                composer = composer.value(Value::Bft(u8::from_lua(value, context)?));
+                message.reading.value = Value::Bft(u8::from_lua(value, context)?);
             }
             "counter" => {
-                composer = composer.value(Value::Counter(u64::from_lua(value, context)?));
+                message.reading.value = Value::Counter(u64::from_lua(value, context)?);
             }
             "image_url" => {
-                composer = composer.value(Value::ImageUrl(String::from_lua(value, context)?));
+                message.reading.value = Value::ImageUrl(String::from_lua(value, context)?);
             }
             "bool" | "boolean" => {
-                composer = composer.value(Value::Boolean(bool::from_lua(value, context)?));
+                message.reading.value = Value::Boolean(bool::from_lua(value, context)?);
             }
             "wind_direction" | "wind" => {
-                composer = composer.value(Value::WindDirection(PointOfTheCompass::from_lua(value, context)?));
+                message.reading.value = Value::WindDirection(PointOfTheCompass::from_lua(value, context)?);
             }
             "data_size" => {
-                composer = composer.value(Value::DataSize(u64::from_lua(value, context)?));
+                message.reading.value = Value::DataSize(u64::from_lua(value, context)?);
             }
             "text" => {
-                composer = composer.value(Value::Text(String::from_lua(value, context)?));
+                message.reading.value = Value::Text(String::from_lua(value, context)?);
             }
             "rh" | "humidity" => {
-                composer = composer.value(Value::Rh(f64::from_lua(value, context)?));
+                message.reading.value = Value::Rh(f64::from_lua(value, context)?);
             }
             "celsius" => {
-                composer = composer.value(
-                    ThermodynamicTemperature::new::<thermodynamic_temperature::degree_celsius>(f64::from_lua(
-                        value, context,
-                    )?),
-                );
+                message.reading.value = ThermodynamicTemperature::new::<thermodynamic_temperature::degree_celsius>(
+                    f64::from_lua(value, context)?,
+                )
+                .into();
             }
             "kelvin" => {
-                composer = composer.value(ThermodynamicTemperature::new::<thermodynamic_temperature::kelvin>(
-                    f64::from_lua(value, context)?,
-                ));
+                message.reading.value =
+                    ThermodynamicTemperature::new::<thermodynamic_temperature::kelvin>(f64::from_lua(value, context)?)
+                        .into();
             }
             "meters" | "metres" => {
-                composer = composer.value(Length::new::<length::meter>(f64::from_lua(value, context)?));
-            }
-            "enable_notification" => {
-                composer.message.metadata.enable_notification = Some(bool::from_lua(value, context)?);
+                message.reading.value = Length::new::<length::meter>(f64::from_lua(value, context)?).into();
             }
             _ => warn!("{} = {:?} can't be made into an argument", &key, &value),
         }
     }
-    Ok(composer)
+    Ok(())
 }
 
 impl<'lua> ToLua<'lua> for Value {

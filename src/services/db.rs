@@ -19,25 +19,22 @@ impl Service for Db {
                     let db = db.lock().unwrap();
                     let size = db.select_size()?;
                     tx.send(
-                        Composer::new("db::size")
+                        Message::new("db::size")
                             .value(Value::DataSize(size))
-                            .title("Database Size".to_string())
-                            .room_title("System".to_string())
-                            .into(),
+                            .sensor_title("Database Size".to_string())
+                            .room_title("System".to_string()),
                     )?;
                     tx.send(
-                        Composer::new("db::sensor_count")
+                        Message::new("db::sensor_count")
                             .value(Value::Counter(db.select_sensor_count()?))
-                            .title("Sensor Count")
-                            .room_title("System".to_string())
-                            .into(),
+                            .sensor_title("Sensor Count")
+                            .room_title("System".to_string()),
                     )?;
                     tx.send(
-                        Composer::new("db::reading_count")
+                        Message::new("db::reading_count")
                             .value(Value::Counter(db.select_reading_count()?))
-                            .title("Reading Count")
-                            .room_title("System".to_string())
-                            .into(),
+                            .sensor_title("Reading Count")
+                            .room_title("System".to_string()),
                     )?;
                 }
                 thread::sleep(INTERVAL);

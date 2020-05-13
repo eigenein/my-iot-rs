@@ -13,13 +13,13 @@
             {% let value = actual.reading.value.as_ref() %}
             {% include "partials/value.html" %}
           {% else -%}
-            {{ actual.sensor.display_title() -}}
+            {{ actual.sensor.title.as_deref().unwrap_or(actual.sensor.id.as_str()) -}}
           {% endif -%}
         </h1>
 
         <h2 class="subtitle is-6">
           {% if actual.reading.value.is_inline() -%}
-            <span title="{{ actual.sensor.sensor_id }}">{{ actual.sensor.display_title() }}</span>
+            <span title="{{ actual.sensor.id }}">{{ actual.sensor.title.as_deref().unwrap_or(actual.sensor.id.as_str()) }}</span>
           {% endif -%}
           <span><i class="far fa-clock"></i></span>
           <span title="{{ actual.reading.timestamp.to_string() }}">

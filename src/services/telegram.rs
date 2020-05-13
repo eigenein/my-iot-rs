@@ -6,7 +6,6 @@ use crate::supervisor;
 use chrono::{DateTime, Utc};
 use crossbeam_channel::Sender;
 use log::debug;
-use regex::Regex;
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::de::DeserializeOwned;
@@ -18,8 +17,8 @@ use std::time::Duration;
 /// > Should be positive, short polling should be used for testing purposes only.
 const GET_UPDATES_TIMEOUT: u64 = 60;
 
-/// Global client timeout. Based on `GET_UPDATES_TIMEOUT` because `reqwest` does not allow to set
-/// individual reqwest timeout.
+/// Global client timeout. Based on `GET_UPDATES_TIMEOUT` because `reqwest` does not allow setting
+/// individual request timeout.
 static CLIENT_TIMEOUT: Duration = Duration::from_secs(GET_UPDATES_TIMEOUT + 5);
 
 #[derive(Deserialize, Debug)]
@@ -29,9 +28,7 @@ pub struct Telegram {
 
 impl Service for Telegram {
     fn spawn(&self, service_id: &str, _db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
-        spawn_producer(Context::new(service_id, &self.token)?, bus)?;
-        spawn_consumer(Context::new(service_id, &self.token)?, bus)?;
-        Ok(())
+        spawn_producer(Context::new(service_id, &self.token)?, bus)
     }
 }
 
@@ -87,71 +84,13 @@ fn send_readings(context: &Context, tx: &Sender<Message>, update: &TelegramUpdat
     if let Some(ref message) = update.message {
         if let Some(ref text) = message.text {
             tx.send(
-                Composer::new(format!("{}::{}::message", &context.service_id, message.chat.id))
+                Message::new(format!("{}::{}::message", &context.service_id, message.chat.id))
                     .type_(MessageType::ReadNonLogged)
                     .value(Value::Text(text.into()))
-                    .timestamp(message.date)
-                    .into(),
+                    .timestamp(message.date),
             )?;
         }
     }
-
-    Ok(())
-}
-
-/// Spawn thread that listens for `Control` messages and communicates back to Telegram.
-fn spawn_consumer(context: Context, bus: &mut Bus) -> Result<()> {
-    let message_regex = Regex::new(&format!(
-        r"^{}::(?P<chat_id>\-?\d+)::(?P<sensor>\w+)",
-        &context.service_id,
-    ))?;
-    let rx = bus.add_rx();
-
-    supervisor::spawn(format!("{}::consumer", &context.service_id), bus.add_tx(), move || {
-        for message in &rx {
-            if message.type_ != MessageType::Write {
-                continue;
-            }
-            let (chat_id, sensor) = match message_regex.captures(&message.sensor.sensor_id) {
-                Some(captures) => (captures.get(1).unwrap().as_str(), captures.get(2).unwrap().as_str()),
-                None => continue,
-            };
-            let chat_id: TelegramChatId = chat_id.into();
-            match message.reading.value {
-                Value::Text(ref text) if sensor == "message" => {
-                    send_message(
-                        &context,
-                        chat_id,
-                        text,
-                        !message.metadata.enable_notification.unwrap_or(true),
-                    )?;
-                }
-                Value::ImageUrl(ref url) if sensor == "photo" => {
-                    send_photo(
-                        &context,
-                        chat_id,
-                        url,
-                        !message.metadata.enable_notification.unwrap_or(true),
-                        message.sensor.title.clone(),
-                    )?;
-                }
-                Value::ImageUrl(ref url) if sensor == "animation" => {
-                    send_animation(
-                        &context,
-                        chat_id,
-                        url,
-                        !message.metadata.enable_notification.unwrap_or(true),
-                        message.sensor.title.clone(),
-                    )?;
-                }
-                value => warn!(
-                    "sending `{:?}` to `{}` is not implemented",
-                    &value, &message.sensor.sensor_id
-                ),
-            };
-        }
-        unreachable!();
-    })?;
 
     Ok(())
 }
@@ -195,6 +134,7 @@ fn get_updates(context: &Context, offset: Option<i64>) -> Result<Vec<TelegramUpd
 }
 
 /// <https://core.telegram.org/bots/api#sendmessage>
+#[allow(dead_code)]
 fn send_message<T: AsRef<str>>(
     context: &Context,
     chat_id: TelegramChatId,
@@ -213,6 +153,7 @@ fn send_message<T: AsRef<str>>(
 }
 
 /// <https://core.telegram.org/bots/api#sendphoto>
+#[allow(dead_code)]
 fn send_photo<P>(
     context: &Context,
     chat_id: TelegramChatId,
@@ -236,6 +177,7 @@ where
 }
 
 /// <https://core.telegram.org/bots/api#sendanimation>
+#[allow(dead_code)]
 fn send_animation<A>(
     context: &Context,
     chat_id: TelegramChatId,

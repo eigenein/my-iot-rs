@@ -43,13 +43,13 @@ impl Bus {
         info!("Spawning message bus…");
         supervisor::spawn("bus", self.add_tx(), move || -> Result<()> {
             for message in &self.rx {
-                debug!("Dispatching {}", &message.sensor.sensor_id);
+                debug!("Dispatching {}", &message.sensor.id);
                 for tx in self.service_txs.iter() {
                     message.clone().send_and_forget(&tx);
                 }
-                debug!("Dispatched {}", &message.sensor.sensor_id);
+                debug!("Dispatched {}", &message.sensor.id);
             }
-            Err(InternalError::new("Receiver channel is unexpectedly exhausted").into())
+            Err(InternalError::new("Receiver channel got unexpectedly exhausted").into())
         })?;
         Ok(())
     }

@@ -1,5 +1,5 @@
 pub use crate::core::bus::Bus;
-pub use crate::core::message::{Composer, Message, Type as MessageType};
+pub use crate::core::message::{Message, Type as MessageType};
 pub use crate::core::persistence::reading::Reading;
 pub use crate::core::persistence::sensor::Sensor;
 pub use crate::core::persistence::{Actual, ConnectionExtensions};

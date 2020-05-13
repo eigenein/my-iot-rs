@@ -153,7 +153,7 @@ fn migrate(db: &mut Connection) -> Result<()> {
 
 fn get_sensor(row: &Row) -> rusqlite::Result<Sensor> {
     Ok(Sensor {
-        sensor_id: row.get("sensor_id")?,
+        id: row.get("sensor_id")?,
         title: row.get("title")?,
         room_title: row.get("room_title")?,
     })
@@ -210,7 +210,7 @@ impl Message {
             "#,
         )?
         .execute(params![
-            self.sensor.sensor_id,
+            self.sensor.id,
             self.sensor.title,
             timestamp,
             self.sensor.room_title,
@@ -230,7 +230,7 @@ impl Message {
             ON CONFLICT (sensor_fk, timestamp) DO UPDATE SET value = excluded.value
             "#,
         )?
-        .execute(params![self.sensor.sensor_id, timestamp, value])?;
+        .execute(params![self.sensor.id, timestamp, value])?;
 
         Ok(())
     }
@@ -244,10 +244,9 @@ mod tests {
 
     #[test]
     fn double_upsert_keeps_one_reading() -> Result {
-        let message = Composer::new("test")
+        let message = Message::new("test")
             .value(Value::Counter(42))
-            .timestamp(Local.timestamp_millis(1_566_424_128_000))
-            .message;
+            .timestamp(Local.timestamp_millis(1_566_424_128_000));
 
         let db = Connection::open_and_initialize(":memory:")?;
         message.upsert_into(&db)?;
@@ -267,10 +266,9 @@ mod tests {
 
     #[test]
     fn select_last_reading_ok() -> Result {
-        let message = Composer::new("test")
+        let message = Message::new("test")
             .value(Value::Counter(42))
-            .timestamp(Local.timestamp_millis(1_566_424_128_000))
-            .message;
+            .timestamp(Local.timestamp_millis(1_566_424_128_000));
         let db = Connection::open_and_initialize(":memory:")?;
         message.upsert_into(&db)?;
         assert_eq!(db.select_last_reading("test")?, Some(message.into()));
@@ -280,15 +278,13 @@ mod tests {
     #[test]
     fn select_last_reading_returns_newer_reading() -> Result {
         let db = Connection::open_and_initialize(":memory:")?;
-        let old = Composer::new("test")
+        let old = Message::new("test")
             .value(Value::Counter(42))
-            .timestamp(Local.timestamp_millis(1_566_424_127_000))
-            .message;
+            .timestamp(Local.timestamp_millis(1_566_424_127_000));
         old.upsert_into(&db)?;
-        let new = Composer::new("test")
+        let new = Message::new("test")
             .value(Value::Counter(42))
-            .timestamp(Local.timestamp_millis(1_566_424_128_000))
-            .message;
+            .timestamp(Local.timestamp_millis(1_566_424_128_000));
         new.upsert_into(&db)?;
         assert_eq!(db.select_last_reading("test")?, Some(new.into()));
         Ok(())
@@ -296,10 +292,9 @@ mod tests {
 
     #[test]
     fn select_actuals_ok() -> Result {
-        let message = Composer::new("test")
+        let message = Message::new("test")
             .value(Value::Counter(42))
-            .timestamp(Local.timestamp_millis(1_566_424_128_000))
-            .compose();
+            .timestamp(Local.timestamp_millis(1_566_424_128_000));
         let db = Connection::open_and_initialize(":memory:")?;
         message.upsert_into(&db)?;
         assert_eq!(
@@ -315,15 +310,13 @@ mod tests {
     #[test]
     fn existing_sensor_is_reused() -> Result {
         let db = Connection::open_and_initialize(":memory:")?;
-        let old = Composer::new("test")
+        let old = Message::new("test")
             .value(Value::Counter(42))
-            .timestamp(Local.timestamp_millis(1_566_424_128_000))
-            .message;
+            .timestamp(Local.timestamp_millis(1_566_424_128_000));
         old.upsert_into(&db)?;
-        let new = Composer::new("test")
+        let new = Message::new("test")
             .value(Value::Counter(42))
-            .timestamp(Local.timestamp_millis(1_566_424_129_000))
-            .message;
+            .timestamp(Local.timestamp_millis(1_566_424_129_000));
         new.upsert_into(&db)?;
 
         assert_eq!(db.select_sensor_count()?, 1);

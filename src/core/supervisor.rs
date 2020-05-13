@@ -17,19 +17,17 @@ where
 
     thread::Builder::new().name(name.clone()).spawn(move || loop {
         info!("Running `{}`", &name);
-        Composer::new(&sensor)
+        Message::new(&sensor)
             .value(Value::Boolean(true))
             .room_title("System".to_string())
-            .message
             .send_and_forget(&tx);
         match f() {
             Ok(_) => error!("Thread `{}` has finished unexpectedly", &name),
             Err(error) => error!("Thread `{}` crashed: {:?}", &name, error),
         }
-        Composer::new(&sensor)
+        Message::new(&sensor)
             .value(Value::Boolean(false))
             .room_title("System")
-            .message
             .send_and_forget(&tx);
 
         // FIXME: https://github.com/eigenein/my-iot-rs/issues/47

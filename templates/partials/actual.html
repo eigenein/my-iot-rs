@@ -23,10 +23,10 @@
 <style>.reading { height: 100% }</style>
 
 <div class="column {{ column_class }}">
-  <a href="/sensors/{{ actual.sensor.sensor_id }}">
+  <a href="/sensors/{{ actual.sensor.id }}">
     <div class="notification reading {{ actual.reading.value.class() }}">
-      <p class="title is-6" title="{{ actual.sensor.sensor_id }}">
-        {{ actual.sensor.display_title() }}
+      <p class="title is-6" title="{{ actual.sensor.id }}">
+        {{ actual.sensor.title.as_deref().unwrap_or(actual.sensor.id.as_str()) }}
       </p>
       <p class="subtitle is-7" title="{{ actual.reading.timestamp.to_string() }}">
         {{ actual.reading.timestamp|format_datetime }}

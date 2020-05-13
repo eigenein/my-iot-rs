@@ -109,67 +109,61 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
         .find(|measurement| measurement.station_id == station_id)
         .ok_or_else(|| InternalError::new(format!("station {} is not found", station_id)))?;
     tx.send(
-        Composer::new(format!("{}::{}::weather_description", service_id, station_id))
+        Message::new(format!("{}::{}::weather_description", service_id, station_id))
             .type_(MessageType::ReadLogged)
             .value(Value::Text(measurement.weather_description.clone()))
             .timestamp(measurement.timestamp)
-            .title("Description")
-            .room_title(&measurement.name)
-            .into(),
+            .sensor_title("Description")
+            .room_title(&measurement.name),
     )?;
     if let Some(degrees) = measurement.temperature {
         tx.send(
-            Composer::new(format!("{}::{}::temperature", service_id, station_id))
+            Message::new(format!("{}::{}::temperature", service_id, station_id))
                 .type_(MessageType::ReadLogged)
                 .value(ThermodynamicTemperature::new::<thermodynamic_temperature::degree_celsius>(degrees))
                 .timestamp(measurement.timestamp)
-                .title("Temperature")
-                .room_title(&measurement.name)
-                .into(),
+                .sensor_title("Temperature")
+                .room_title(&measurement.name),
         )?;
     }
     if let Some(degrees) = measurement.ground_temperature {
         tx.send(
-            Composer::new(format!("{}::{}::ground_temperature", service_id, station_id))
+            Message::new(format!("{}::{}::ground_temperature", service_id, station_id))
                 .type_(MessageType::ReadLogged)
                 .value(ThermodynamicTemperature::new::<thermodynamic_temperature::degree_celsius>(degrees))
                 .timestamp(measurement.timestamp)
-                .title("Ground Temperature")
-                .room_title(&measurement.name)
-                .into(),
+                .sensor_title("Ground Temperature")
+                .room_title(&measurement.name),
         )?;
     }
     if let Some(degrees) = measurement.feel_temperature {
         tx.send(
-            Composer::new(format!("{}::{}::feel_temperature", service_id, station_id))
+            Message::new(format!("{}::{}::feel_temperature", service_id, station_id))
                 .type_(MessageType::ReadLogged)
                 .value(ThermodynamicTemperature::new::<thermodynamic_temperature::degree_celsius>(degrees))
                 .timestamp(measurement.timestamp)
-                .title("Feel Temperature")
-                .room_title(&measurement.name)
-                .into(),
+                .sensor_title("Feel Temperature")
+                .room_title(&measurement.name),
         )?;
     }
     if let Some(bft) = measurement.wind_speed_bft {
         tx.send(
-            Composer::new(format!("{}::{}::wind_speed_bft", service_id, station_id))
+            Message::new(format!("{}::{}::wind_speed_bft", service_id, station_id))
                 .type_(MessageType::ReadLogged)
                 .value(Value::Bft(bft))
                 .timestamp(measurement.timestamp)
-                .title("Wind Force")
-                .room_title(&measurement.name)
-                .into(),
+                .sensor_title("Wind Force")
+                .room_title(&measurement.name),
         )?;
     }
     if let Some(point) = measurement.wind_direction {
         tx.send(
-            Composer::new(format!("{}::{}::wind_direction", service_id, station_id))
+            Message::new(format!("{}::{}::wind_direction", service_id, station_id))
                 .type_(MessageType::ReadLogged)
                 .value(Value::WindDirection(point))
                 .timestamp(measurement.timestamp)
-                .title("Wind Direction")
-                .room_title(&measurement.name)
-                .into(),
+                .sensor_title("Wind Direction")
+                .room_title(&measurement.name),
         )?;
     }
     Ok(())

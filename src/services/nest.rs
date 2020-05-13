@@ -47,66 +47,60 @@ fn send_readings(service_id: &str, event: &NestEvent, tx: &Sender<Message>) -> R
 
     for (id, thermostat) in event.data.devices.thermostats.iter() {
         tx.send(
-            Composer::new(format!("{}::thermostat::{}::ambient_temperature", service_id, &id))
+            Message::new(format!("{}::thermostat::{}::ambient_temperature", service_id, &id))
                 .value(
                     ThermodynamicTemperature::new::<thermodynamic_temperature::degree_celsius>(
                         thermostat.ambient_temperature_c,
                     ),
                 )
                 .timestamp(now)
-                .title("Ambient Temperature")
-                .room_title(&thermostat.where_name)
-                .into(),
+                .sensor_title("Ambient Temperature")
+                .room_title(&thermostat.where_name),
         )?;
         tx.send(
-            Composer::new(format!("{}::thermostat::{}::humidity", service_id, &id))
+            Message::new(format!("{}::thermostat::{}::humidity", service_id, &id))
                 .value(Value::Rh(thermostat.humidity))
                 .timestamp(now)
-                .title("Humidity")
-                .room_title(&thermostat.where_name)
-                .into(),
+                .sensor_title("Humidity")
+                .room_title(&thermostat.where_name),
         )?;
     }
 
     for (id, camera) in event.data.devices.cameras.iter() {
         tx.send(
-            Composer::new(format!("{}::camera::{}::snapshot_url", service_id, &id))
+            Message::new(format!("{}::camera::{}::snapshot_url", service_id, &id))
                 .value(Value::ImageUrl(camera.snapshot_url.clone()))
                 .timestamp(now)
-                .title("Snapshot")
-                .room_title(&camera.where_name)
-                .into(),
+                .sensor_title("Snapshot")
+                .room_title(&camera.where_name),
         )?;
 
         tx.send(
-            Composer::new(format!("{}::camera::{}::is_online", service_id, &id))
+            Message::new(format!("{}::camera::{}::is_online", service_id, &id))
                 .value(camera.is_online)
                 .timestamp(now)
-                .title("Camera Online")
-                .room_title(&camera.where_name)
-                .into(),
+                .sensor_title("Camera Online")
+                .room_title(&camera.where_name),
         )?;
 
         if let Some(ref event) = camera.last_event {
             tx.send(
-                Composer::new(format!("{}::camera::{}::animated_image_url", service_id, &id))
+                Message::new(format!("{}::camera::{}::animated_image_url", service_id, &id))
                     .value(Value::ImageUrl(event.animated_image_url.clone()))
                     .timestamp(event.start_time)
-                    .title("Last Event")
-                    .room_title(&camera.where_name)
-                    .into(),
+                    .sensor_title("Last Event")
+                    .room_title(&camera.where_name),
             )?;
         }
     }
 
     for (id, alarm) in event.data.devices.smoke_co_alarms.iter() {
         tx.send(
-            Composer::new(format!("{}::smoke_co_alarm::{}::is_online", service_id, &id))
+            Message::new(format!("{}::smoke_co_alarm::{}::is_online", service_id, &id))
                 .value(alarm.is_online)
                 .timestamp(now)
-                .title("Protect Online")
-                .room_title(&alarm.where_name)
-                .into(),
+                .sensor_title("Protect Online")
+                .room_title(&alarm.where_name),
         )?;
     }
 

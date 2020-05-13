@@ -49,14 +49,14 @@ fn main() -> Result<()> {
         Level::Info
     })?;
 
-    info!("Reading settings…");
+    info!("Reading the settings…");
     let settings = settings::read(
         opt.settings
             .unwrap_or_else(|| home_dir().unwrap().join(".config").join("my-iot.toml")),
     )?;
     debug!("Settings: {:?}", &settings);
 
-    info!("Opening database…");
+    info!("Opening the database…");
     let db = Arc::new(Mutex::new(Connection::open_and_initialize(&opt.db)?));
 
     // Starting up multi-producer multi-consumer bus:
@@ -66,7 +66,7 @@ fn main() -> Result<()> {
     info!("Starting services…");
     let mut bus = Bus::new();
     bus.add_tx()
-        .send(Composer::new("my-iot::start").type_(MessageType::ReadNonLogged).into())?;
+        .send(Message::new("my-iot::start").type_(MessageType::ReadNonLogged))?;
     core::persistence::thread::spawn(db.clone(), &mut bus)?;
     services::db::Db.spawn("db", &db, &mut bus)?;
     core::services::spawn_all(&settings, &db, &mut bus)?;
