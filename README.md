@@ -3,7 +3,7 @@ Yet another [home automation](https://en.wikipedia.org/wiki/Home_automation). Wr
 At the moment all documentation resides in the `README`. It is incomplete and will likely stay incomplete until features will be stabilized. Nevertheless, I strive to maintain it.
 
 [![Wiki](https://img.shields.io/badge/-Wiki-orange.svg?logo=github)](https://github.com/eigenein/my-iot-rs/wiki)
-[![rustdoc](https://img.shields.io/badge/-rustdoc-lightgray.svg?logo=rust)](https://eigenein.github.io/my-iot-rs/)
+[![rustdoc](https://img.shields.io/badge/-rustdoc-gray.svg?logo=rust)](https://eigenein.github.io/my-iot-rs/)
 [![Crates.io](https://img.shields.io/crates/v/my-iot?logo=rust)](https://crates.io/crates/my-iot)
 [![Crates.io](https://img.shields.io/crates/l/my-iot)](https://crates.io/crates/my-iot)
 [![Build Status](https://github.com/eigenein/my-iot-rs/workflows/build/badge.svg)](https://github.com/eigenein/my-iot-rs/actions)
