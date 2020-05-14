@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["filters",""]],"struct":[["Actual",""],["Index",""]]});
+initSidebarItems({"mod":[["filters",""]],"struct":[["IndexTemplate",""],["SensorTemplate",""]]});

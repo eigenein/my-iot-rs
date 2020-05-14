@@ -34,7 +34,7 @@ pub fn start_server(settings: Settings, db: Arc<Mutex<Connection>>) -> ! {
 /// Get index page response.
 fn index(db: &Arc<Mutex<Connection>>, settings: &Settings) -> Response {
     Response::html(
-        templates::Index::new(&db.lock().unwrap(), settings.max_sensor_age_ms)
+        templates::IndexTemplate::new(&db.lock().unwrap(), settings.max_sensor_age_ms)
             .unwrap()
             .to_string(),
     )
@@ -44,7 +44,7 @@ fn index(db: &Arc<Mutex<Connection>>, settings: &Settings) -> Response {
 fn get_sensor(db: &Arc<Mutex<Connection>>, sensor_id: &str) -> Response {
     let actual = db.lock().unwrap().select_last_reading(&sensor_id).unwrap();
     match actual {
-        Some(actual) => Response::html(templates::Actual::new(actual).to_string()),
+        Some(actual) => Response::html(templates::SensorTemplate::new(actual).to_string()),
         None => Response::empty_404(),
     }
 }

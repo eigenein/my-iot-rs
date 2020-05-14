@@ -6,19 +6,19 @@ use itertools::Itertools;
 
 #[derive(Template)]
 #[template(path = "index.html")]
-pub struct Index<'a> {
+pub struct IndexTemplate<'a> {
     pub crate_version: &'a str,
-    pub actuals: Vec<(Option<String>, Vec<crate::prelude::Actual>)>,
+    pub actuals: Vec<(Option<String>, Vec<Actual>)>,
 }
 
 #[derive(Template)]
-#[template(path = "actual.html")]
-pub struct Actual<'a> {
+#[template(path = "sensor.html")]
+pub struct SensorTemplate<'a> {
     pub crate_version: &'a str,
-    pub actual: crate::prelude::Actual,
+    pub actual: Actual,
 }
 
-impl Index<'_> {
+impl IndexTemplate<'_> {
     pub fn new(db: &Connection, max_sensor_age_ms: i64) -> Result<Self> {
         Ok(Self {
             actuals: db
@@ -33,8 +33,8 @@ impl Index<'_> {
     }
 }
 
-impl Actual<'_> {
-    pub fn new(actual: crate::prelude::Actual) -> Self {
+impl SensorTemplate<'_> {
+    pub fn new(actual: Actual) -> Self {
         Self {
             actual,
             crate_version: structopt::clap::crate_version!(),
