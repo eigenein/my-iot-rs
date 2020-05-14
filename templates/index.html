@@ -3,8 +3,7 @@
 {% block body %}
   <section class="hero is-info">
     <div class="hero-head">
-      {% let navbar_item = "index" %}
-      {% include "partials/navbar.html" %}
+      {{ NavbarTemplate::new("index")|safe }}
     </div>
     <div class="hero-body">
       <div class="container">
@@ -16,7 +15,14 @@
   {% for (room_title, group) in actuals %}
     <section class="section">
       <div class="container">
-        <h2 class="title is-5">{% match room_title %}{% when Some with (room_title) %}{{ room_title }}{% else %}No room{% endmatch %}</h2>
+        <h2 class="title is-5">
+          {% match room_title -%}
+            {% when Some with (room_title) -%}
+              {{ room_title -}}
+            {% else -%}
+              No room
+          {% endmatch -%}
+        </h2>
         <div class="columns is-multiline">
           {% for actual in group %}
             {% include "partials/sensor_tile.html" %}

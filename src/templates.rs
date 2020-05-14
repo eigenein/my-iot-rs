@@ -6,19 +6,11 @@ use itertools::Itertools;
 
 #[derive(Template)]
 #[template(path = "index.html")]
-pub struct IndexTemplate<'a> {
-    pub crate_version: &'a str,
+pub struct IndexTemplate {
     pub actuals: Vec<(Option<String>, Vec<Actual>)>,
 }
 
-#[derive(Template)]
-#[template(path = "sensor.html")]
-pub struct SensorTemplate<'a> {
-    pub crate_version: &'a str,
-    pub actual: Actual,
-}
-
-impl IndexTemplate<'_> {
+impl IndexTemplate {
     pub fn new(db: &Connection, max_sensor_age_ms: i64) -> Result<Self> {
         Ok(Self {
             actuals: db
@@ -28,18 +20,36 @@ impl IndexTemplate<'_> {
                 .into_iter()
                 .map(|(room_title, group)| (room_title, group.collect_vec()))
                 .collect_vec(),
-            crate_version: structopt::clap::crate_version!(),
         })
     }
 }
 
-impl SensorTemplate<'_> {
+#[derive(Template)]
+#[template(path = "sensor.html")]
+pub struct SensorTemplate {
+    pub actual: Actual,
+}
+
+impl SensorTemplate {
     pub fn new(actual: Actual) -> Self {
-        Self {
-            actual,
-            crate_version: structopt::clap::crate_version!(),
-        }
+        Self { actual }
     }
+}
+
+#[derive(Template)]
+#[template(path = "partials/navbar.html")]
+pub struct NavbarTemplate<'a> {
+    pub selected_item: &'a str,
+}
+
+impl<'a> NavbarTemplate<'a> {
+    pub fn new(selected_item: &'a str) -> Self {
+        NavbarTemplate { selected_item }
+    }
+}
+
+fn crate_version() -> &'static str {
+    structopt::clap::crate_version!()
 }
 
 mod filters {

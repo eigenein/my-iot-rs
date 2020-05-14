@@ -3,8 +3,7 @@
 {% block body %}
   <section class="hero {{ actual.reading.value.class() }}">
     <div class="hero-head">
-      {% let navbar_item = "actual" %}
-      {% include "partials/navbar.html" %}
+      {{ NavbarTemplate::new("sensor")|safe }}
     </div>
     <div class="hero-body">
       <div class="container">
