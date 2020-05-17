@@ -78,7 +78,7 @@ This is needed to use some low-level protocols (for instance, [ICMP](https://en.
 
 # Settings
 
-My IoT is configured with a single [TOML](https://github.com/toml-lang/toml) file. By default, `my-iot.toml` is read from `~/.config` directory.
+My IoT is configured with a single [TOML](https://github.com/toml-lang/toml) file. By default, it is read from `~/.config/my-iot.toml`.
 
 ## Example
 
@@ -158,7 +158,6 @@ Optional parameter `args` is a table, which may provide additional message detai
 | `room_title`          | string  | TODO |
 | `sensor_title`        | string  | TODO |
 | `timestamp_millis`    | number  | TODO |
-| `enable_notification` | boolean | TODO |
 
 All indices are optional. Also, a value is provided via either of the following indices in `args`:
 
@@ -166,7 +165,7 @@ All indices are optional. Also, a value is provided via either of the following 
 |------------------|---------|-------------------------------------------------------|
 | `bft`            | integer | Beaufort wind force                                   |
 | `counter`        | integer | Unsigned unit-less counter                            |
-| `image_url`      | string  | Image                                                 |
+| `image_url`      | string  | Image URL                                             |
 | `bool`           | boolean | `true` and `false`                                    |
 | `wind_direction` | string  | Point of the compass that represents a wind direction |
 | `data_size`      | integer | Data size in bytes                                    |
@@ -179,27 +178,6 @@ All indices are optional. Also, a value is provided via either of the following 
 ##### [Points of the Compass](https://en.wikipedia.org/wiki/Points_of_the_compass)
 
 ### Recipes
-
-#### If Nest camera detects a motion, send an animation to Telegram
-
-```toml
-[services.nest_to_telegram]
-type = "Lua"
-filter_sensor_ids = "^nest::camera::<camera_id>::animated_image_url$"
-script = '''
-ts = {}
-
-function onMessage(message)
-  if message.timestamp_millis ~= ts[message.sensor_id] then
-    sendMessage("telegram::<chat_id>::animation", "WRITE", {
-      image_url = message.value,
-      sensor_title = message.room_title .. " @ " .. os.date("%c", message.timestamp_millis // 1000),
-    })
-    ts[message.sensor_id] = message.timestamp_millis
-  end
-end
-'''
-```
 
 #### «Rise and shine» IKEA Trådfri lights starting one hour before sunset
 
@@ -231,6 +209,8 @@ end
 ## Clock
 
 ## Nest
+
+https://github.com/eigenein/my-iot-rs/issues/66
 
 ## Telegram
 
