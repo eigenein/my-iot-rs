@@ -42,7 +42,7 @@ There're few different ways to install My IoT. Either way, you get a single exec
 ## Pre-compiled binaries for Raspberry Pi Zero W
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/eigenein/my-iot-rs/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/eigenein/my-iot-rs/master/install.sh | bash
 ```
 
 ## Install from crates.io
