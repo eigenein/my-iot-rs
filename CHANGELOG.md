@@ -8,6 +8,8 @@ Service intercommunication via "fake" messages doesn't play that nice. However, 
 
 `Telegram` service won't listen to `Write` messages anymore. Use `Lua` functions instead.
 
+**All sensors and readings will be dropped again.** Sensor primary and foreign keys have been changed to [SeaHash](https://ticki.github.io/blog/seahash-explained/)-ed sensor IDs. This allowed removing the dependency on auto-generated primary keys.
+
 ## `0.44.0`
 
 Unified sensor IDs by changing `my-iot::*` to `my_iot::*`.

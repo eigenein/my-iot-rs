@@ -9,11 +9,11 @@ const INTERVAL: Duration = Duration::from_secs(60);
 pub struct Db;
 
 impl Service for Db {
-    fn spawn(&self, _service_id: &str, db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
+    fn spawn(&self, service_id: &str, db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
         let db = db.clone();
 
-        supervisor::spawn("db", tx.clone(), move || -> Result<()> {
+        supervisor::spawn(service_id, tx.clone(), move || -> Result<()> {
             loop {
                 {
                     let db = db.lock().unwrap();

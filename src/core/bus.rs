@@ -41,7 +41,7 @@ impl Bus {
     /// Spawn the bus dispatcher thread.
     pub fn spawn(self) -> Result<()> {
         info!("Spawning message bus…");
-        supervisor::spawn("bus", self.add_tx(), move || -> Result<()> {
+        supervisor::spawn("system::bus", self.add_tx(), move || -> Result<()> {
             for message in &self.rx {
                 debug!("Dispatching {}", &message.sensor.id);
                 for tx in self.service_txs.iter() {

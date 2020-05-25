@@ -7,6 +7,7 @@ pub const MIGRATIONS: &[fn(&Connection) -> Result<()>] = &[
     add_sensor_titles,
     add_room_titles,
     denormalize_actual_sensor_values,
+    drop_readings_because_of_changed_sensor_pks,
 ];
 
 fn create_initial_schema(db: &Connection) -> Result<()> {
@@ -70,6 +71,19 @@ fn denormalize_actual_sensor_values(db: &Connection) -> Result<()> {
     db.execute_batch(
         r#"
             ALTER TABLE sensors ADD COLUMN value BLOB NOT NULL DEFAULT x'81a14ec0'
+        "#,
+    )?;
+    Ok(())
+}
+
+fn drop_readings_because_of_changed_sensor_pks(db: &Connection) -> Result<()> {
+    // language=sql
+    db.execute_batch(
+        r#"
+            -- noinspection SqlWithoutWhere
+            DELETE FROM readings;
+            -- noinspection SqlWithoutWhere
+            DELETE FROM sensors;
         "#,
     )?;
     Ok(())

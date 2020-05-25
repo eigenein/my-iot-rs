@@ -30,7 +30,7 @@ pub trait ConnectionExtensions {
     fn select_size(&self) -> Result<u64>;
 
     /// Select the very last sensor reading.
-    fn select_last_reading(&self, sensor_id: &str) -> Result<Option<(Sensor, Reading)>>;
+    fn get_sensor(&self, sensor_id: &str) -> Result<Option<(Sensor, Reading)>>;
 
     /// Select the latest sensor readings within the given time interval.
     fn select_readings(&self, sensor_id: &str, since: &DateTime<Local>) -> Result<Vec<Reading>>;
@@ -85,7 +85,7 @@ impl ConnectionExtensions for Connection {
             .map(|v| v as u64)?)
     }
 
-    fn select_last_reading(&self, sensor_id: &str) -> Result<Option<(Sensor, Reading)>> {
+    fn get_sensor(&self, sensor_id: &str) -> Result<Option<(Sensor, Reading)>> {
         Ok(self
             // language=sql
             .prepare_cached(r#"SELECT * FROM sensors WHERE sensors.sensor_id = ?1"#)?
@@ -95,18 +95,18 @@ impl ConnectionExtensions for Connection {
 
     #[allow(dead_code)]
     fn select_readings(&self, sensor_id: &str, since: &DateTime<Local>) -> Result<Vec<Reading>> {
+        let sensor_fk = signed_seahash(sensor_id.as_bytes());
         self
             // language=sql
             .prepare_cached(
                 r#"
-                SELECT readings.timestamp, readings.value
+                SELECT timestamp, value
                 FROM readings
-                INNER JOIN sensors ON sensors.pk = readings.sensor_fk
-                WHERE sensors.sensor_id = ?1 AND readings.timestamp >= ?2
+                WHERE readings.sensor_fk = ?1 AND readings.timestamp >= ?2
                 ORDER BY readings.timestamp
                 "#,
             )?
-            .query_map(params![sensor_id, since.timestamp_millis()], get_reading)?
+            .query_map(params![sensor_fk, since.timestamp_millis()], get_reading)?
             .map(|r| r.map_err(Into::into))
             .collect()
     }
@@ -181,6 +181,7 @@ impl Value {
 
 impl Message {
     pub fn upsert_into(&self, db: &Connection) -> Result<()> {
+        let sensor_pk = signed_seahash(self.sensor.id.as_bytes());
         let timestamp = self.reading.timestamp.timestamp_millis();
         let value = self.reading.value.serialize_to_vec()?;
 
@@ -189,8 +190,8 @@ impl Message {
             r#"
             -- noinspection SqlResolve @ any/"excluded"
             -- noinspection SqlInsertValues
-            INSERT INTO sensors (sensor_id, title, timestamp, room_title, value) VALUES (?1, ?2, ?3, ?4, ?5)
-            ON CONFLICT (sensor_id) DO UPDATE SET
+            INSERT INTO sensors (pk, sensor_id, title, timestamp, room_title, value) VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+            ON CONFLICT (pk) DO UPDATE SET
                 timestamp = excluded.timestamp,
                 title = excluded.title,
                 room_title = excluded.room_title,
@@ -198,6 +199,7 @@ impl Message {
             "#,
         )?
         .execute(params![
+            sensor_pk,
             self.sensor.id,
             self.sensor.title,
             timestamp,
@@ -210,18 +212,19 @@ impl Message {
             r#"
             -- noinspection SqlResolve @ any/"excluded"
             INSERT INTO readings (sensor_fk, timestamp, value)
-            VALUES ((
-                SELECT pk
-                FROM sensors
-                WHERE sensor_id = ?1
-            ), ?2, ?3)
+            VALUES (?1, ?2, ?3)
             ON CONFLICT (sensor_fk, timestamp) DO UPDATE SET value = excluded.value
             "#,
         )?
-        .execute(params![self.sensor.id, timestamp, value])?;
+        .execute(params![sensor_pk, timestamp, value])?;
 
         Ok(())
     }
+}
+
+/// SQLite wants signed integers.
+fn signed_seahash(buffer: &[u8]) -> i64 {
+    seahash::hash(buffer) as i64
 }
 
 #[cfg(test)]
@@ -248,7 +251,7 @@ mod tests {
     #[test]
     fn select_last_reading_returns_none_on_empty_database() -> Result {
         let db = Connection::open_and_initialize(":memory:")?;
-        assert_eq!(db.select_last_reading("test")?, None);
+        assert_eq!(db.get_sensor("test")?, None);
         Ok(())
     }
 
@@ -259,7 +262,7 @@ mod tests {
             .timestamp(Local.timestamp_millis(1_566_424_128_000));
         let db = Connection::open_and_initialize(":memory:")?;
         message.upsert_into(&db)?;
-        assert_eq!(db.select_last_reading("test")?, Some(message.into()));
+        assert_eq!(db.get_sensor("test")?, Some(message.into()));
         Ok(())
     }
 
@@ -274,7 +277,7 @@ mod tests {
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000));
         new.upsert_into(&db)?;
-        assert_eq!(db.select_last_reading("test")?, Some(new.into()));
+        assert_eq!(db.get_sensor("test")?, Some(new.into()));
         Ok(())
     }
 
@@ -317,12 +320,15 @@ mod tests {
         Ok(())
     }
 
-    #[allow(dead_code)]
-    fn get_sensor_pk(db: &Connection, sensor_id: &str) -> crate::Result<Option<i64>> {
-        Ok(db
-            // language=sql
-            .prepare_cached("SELECT pk FROM sensors WHERE sensor_id = ?1")?
-            .query_row(params![sensor_id], get_i64)
-            .optional()?)
+    #[test]
+    fn select_readings_ok() -> Result {
+        let db = Connection::open_and_initialize(":memory:")?;
+        let message = Message::new("test")
+            .value(Value::Counter(42))
+            .timestamp(Local.timestamp_millis(1_566_424_128_000));
+        message.upsert_into(&db)?;
+        let readings = db.select_readings("test", &Local.timestamp_millis(0))?;
+        assert_eq!(readings.get(0).unwrap(), &message.reading);
+        Ok(())
     }
 }
