@@ -7,7 +7,8 @@ use itertools::Itertools;
 #[derive(Template)]
 #[template(path = "index.html")]
 pub struct IndexTemplate {
-    pub actuals: Vec<(Option<String>, Vec<Actual>)>,
+    #[allow(clippy::type_complexity)]
+    pub actuals: Vec<(Option<String>, Vec<(Sensor, Reading)>)>,
 }
 
 impl IndexTemplate {
@@ -16,7 +17,7 @@ impl IndexTemplate {
             actuals: db
                 .select_actuals(max_sensor_age_ms)?
                 .into_iter()
-                .group_by(|actual| actual.sensor.room_title.clone())
+                .group_by(|(sensor, _)| sensor.room_title.clone())
                 .into_iter()
                 .map(|(room_title, group)| (room_title, group.collect_vec()))
                 .collect_vec(),
@@ -27,12 +28,13 @@ impl IndexTemplate {
 #[derive(Template)]
 #[template(path = "sensor.html")]
 pub struct SensorTemplate {
-    pub actual: Actual,
+    pub sensor: Sensor,
+    pub reading: Reading,
 }
 
 impl SensorTemplate {
-    pub fn new(actual: Actual) -> Self {
-        Self { actual }
+    pub fn new(sensor: Sensor, reading: Reading) -> Self {
+        Self { sensor, reading }
     }
 }
 
@@ -66,12 +68,25 @@ impl<'a> ValuePartialTemplate<'a> {
 #[derive(Template)]
 #[template(path = "partials/sensor_tile.html")]
 pub struct SensorTilePartialTemplate<'a> {
-    pub actual: &'a Actual,
+    pub sensor: &'a Sensor,
+
+    /// The actual reading.
+    pub reading: &'a Reading,
 }
 
 impl<'a> SensorTilePartialTemplate<'a> {
-    pub fn new(actual: &'a Actual) -> Self {
-        SensorTilePartialTemplate { actual }
+    pub fn new(sensor: &'a Sensor, reading: &'a Reading) -> Self {
+        SensorTilePartialTemplate { sensor, reading }
+    }
+}
+
+impl Value {
+    /// Get whether value could be rendered inline.
+    pub fn is_inline(&self) -> bool {
+        match self {
+            Value::ImageUrl(_) => false,
+            _ => true,
+        }
     }
 }
 

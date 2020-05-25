@@ -1,5 +1,5 @@
 {% let column_class -%}
-{% match actual.reading.value -%}
+{% match reading.value -%}
   {% when Value::Temperature with (_) -%}
     {% let column_class = "is-2" -%}
   {% when Value::Bft with (_) -%}
@@ -23,16 +23,16 @@
 <style>.reading { height: 100% }</style>
 
 <div class="column {{ column_class }}">
-  <a href="/sensors/{{ actual.sensor.id }}">
-    <div class="notification reading {{ actual.reading.value.class() }}">
-      <p class="title is-6" title="{{ actual.sensor.id }}">
-        {{ actual.sensor.title.as_deref().unwrap_or(actual.sensor.id.as_str()) }}
+  <a href="/sensors/{{ sensor.id }}">
+    <div class="notification reading {{ reading.value.class() }}">
+      <p class="title is-6" title="{{ sensor.id }}">
+        {{ sensor.title.as_deref().unwrap_or(sensor.id.as_str()) }}
       </p>
-      <p class="subtitle is-7" title="{{ actual.reading.timestamp.to_string() }}">
-        {{ actual.reading.timestamp|format_datetime }}
+      <p class="subtitle is-7" title="{{ reading.timestamp.to_string() }}">
+        {{ reading.timestamp|format_datetime }}
       </p>
-      <p class="has-text-centered has-text-weight-bold" title='{{ "{:?}"|format(actual.reading.value) }}'>
-        {{ ValuePartialTemplate::new(actual.reading.value)|safe }}
+      <p class="has-text-centered has-text-weight-bold" title='{{ "{:?}"|format(reading.value) }}'>
+        {{ ValuePartialTemplate::new(reading.value)|safe }}
       </p>
     </div>
   </a>

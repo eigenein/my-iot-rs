@@ -44,7 +44,7 @@ fn index(db: &Arc<Mutex<Connection>>, settings: &Settings) -> Response {
 fn get_sensor(db: &Arc<Mutex<Connection>>, sensor_id: &str) -> Response {
     let actual = db.lock().unwrap().select_last_reading(&sensor_id).unwrap();
     match actual {
-        Some(actual) => Response::html(templates::SensorTemplate::new(actual).to_string()),
+        Some((sensor, reading)) => Response::html(templates::SensorTemplate::new(sensor, reading).to_string()),
         None => Response::empty_404(),
     }
 }
@@ -52,7 +52,7 @@ fn get_sensor(db: &Arc<Mutex<Connection>>, sensor_id: &str) -> Response {
 /// Get last sensor value JSON response.
 fn get_sensor_json(db: &Arc<Mutex<Connection>>, sensor_id: &str) -> Response {
     match db.lock().unwrap().select_last_reading(&sensor_id).unwrap() {
-        Some(actual) => Response::json(&actual.reading),
+        Some((_, reading)) => Response::json(&reading),
         None => Response::empty_404(),
     }
 }

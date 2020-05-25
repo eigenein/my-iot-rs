@@ -150,14 +150,6 @@ impl Value {
             Value::ImageUrl(_) | Value::None => Ok(""),
         }
     }
-
-    /// Get whether value could be rendered inline.
-    pub fn is_inline(&self) -> bool {
-        match self {
-            Value::ImageUrl(_) => false,
-            _ => true,
-        }
-    }
 }
 
 // TODO: move to templates.

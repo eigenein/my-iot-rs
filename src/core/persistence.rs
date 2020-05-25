@@ -12,18 +12,9 @@ pub mod reading;
 pub mod sensor;
 pub mod thread;
 
-#[derive(Debug, PartialEq)]
-pub struct Actual {
-    pub sensor: Sensor,
-    pub reading: Reading,
-}
-
-impl From<Message> for Actual {
+impl From<Message> for (Sensor, Reading) {
     fn from(message: Message) -> Self {
-        Actual {
-            sensor: message.sensor,
-            reading: message.reading,
-        }
+        (message.sensor, message.reading)
     }
 }
 
@@ -33,13 +24,13 @@ pub trait ConnectionExtensions {
     /// Get the database `user_version`.
     fn get_version(&self) -> Result<i32>;
 
-    fn select_actuals(&self, max_sensor_age_ms: i64) -> Result<Vec<Actual>>;
+    fn select_actuals(&self, max_sensor_age_ms: i64) -> Result<Vec<(Sensor, Reading)>>;
 
     /// Select database size in bytes.
     fn select_size(&self) -> Result<u64>;
 
     /// Select the very last sensor reading.
-    fn select_last_reading(&self, sensor_id: &str) -> Result<Option<Actual>>;
+    fn select_last_reading(&self, sensor_id: &str) -> Result<Option<(Sensor, Reading)>>;
 
     /// Select the latest sensor readings within the given time interval.
     fn select_readings(&self, sensor_id: &str, since: &DateTime<Local>) -> Result<Vec<Reading>>;
@@ -63,7 +54,7 @@ impl ConnectionExtensions for Connection {
         Ok(version)
     }
 
-    fn select_actuals(&self, max_sensor_age_ms: i64) -> Result<Vec<Actual>> {
+    fn select_actuals(&self, max_sensor_age_ms: i64) -> Result<Vec<(Sensor, Reading)>> {
         self.prepare_cached(
             // language=sql
             r#"
@@ -94,7 +85,7 @@ impl ConnectionExtensions for Connection {
             .map(|v| v as u64)?)
     }
 
-    fn select_last_reading(&self, sensor_id: &str) -> Result<Option<Actual>> {
+    fn select_last_reading(&self, sensor_id: &str) -> Result<Option<(Sensor, Reading)>> {
         Ok(self
             // language=sql
             .prepare_cached(r#"SELECT * FROM sensors WHERE sensors.sensor_id = ?1"#)?
@@ -168,11 +159,8 @@ fn get_reading(row: &Row) -> rusqlite::Result<Reading> {
     })
 }
 
-fn get_actual(row: &Row) -> rusqlite::Result<Actual> {
-    Ok(Actual {
-        sensor: get_sensor(row)?,
-        reading: get_reading(row)?,
-    })
+fn get_actual(row: &Row) -> rusqlite::Result<(Sensor, Reading)> {
+    Ok((get_sensor(row)?, get_reading(row)?))
 }
 
 fn get_i64(row: &Row) -> rusqlite::Result<i64> {
@@ -299,10 +287,7 @@ mod tests {
         message.upsert_into(&db)?;
         assert_eq!(
             db.select_actuals(i64::max_value())?,
-            vec![Actual {
-                sensor: message.sensor,
-                reading: message.reading
-            }]
+            vec![(message.sensor, message.reading)]
         );
         Ok(())
     }

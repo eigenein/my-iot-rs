@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["get_actual",""],["get_i64",""],["get_reading",""],["get_sensor",""],["migrate",""]],"mod":[["migrations",""],["primitives",""],["reading",""],["sensor",""],["thread",""]],"struct":[["Actual",""]],"trait":[["ConnectionExtensions",""]]});
+initSidebarItems({"fn":[["get_actual",""],["get_i64",""],["get_reading",""],["get_sensor",""],["migrate",""]],"mod":[["migrations",""],["primitives",""],["reading",""],["sensor",""],["thread",""]],"trait":[["ConnectionExtensions",""]]});

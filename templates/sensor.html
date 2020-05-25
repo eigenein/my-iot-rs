@@ -1,40 +1,40 @@
 {% extends "base.html" %}
 
 {% block body %}
-  <section class="hero {{ actual.reading.value.class() }}">
+  <section class="hero {{ reading.value.class() }}">
     <div class="hero-head">
       {{ NavbarPartialTemplate::new("sensor")|safe }}
     </div>
     <div class="hero-body">
       <div class="container">
-        <h1 class="title is-4" title='{{ "{:?}"|format(actual.reading.value) }}'>
-          {% if actual.reading.value.is_inline() -%}
-            {{ ValuePartialTemplate::new(actual.reading.value)|safe }}
+        <h1 class="title is-4" title='{{ "{:?}"|format(reading.value) }}'>
+          {% if reading.value.is_inline() -%}
+            {{ ValuePartialTemplate::new(reading.value)|safe }}
           {% else -%}
-            {{ actual.sensor.title.as_deref().unwrap_or(actual.sensor.id.as_str()) -}}
+            {{ sensor.title.as_deref().unwrap_or(sensor.id.as_str()) -}}
           {% endif -%}
         </h1>
 
         <h2 class="subtitle is-6">
-          {% if actual.reading.value.is_inline() -%}
-            <span title="{{ actual.sensor.id }}">{{ actual.sensor.title.as_deref().unwrap_or(actual.sensor.id.as_str()) }}</span>
+          {% if reading.value.is_inline() -%}
+            <span title="{{ sensor.id }}">{{ sensor.title.as_deref().unwrap_or(sensor.id.as_str()) }}</span>
           {% endif -%}
           <span><i class="far fa-clock"></i></span>
-          <span title="{{ actual.reading.timestamp.to_string() }}">
-            {{ actual.reading.timestamp|format_datetime }}
+          <span title="{{ reading.timestamp.to_string() }}">
+            {{ reading.timestamp|format_datetime }}
           </span>
         </h2>
       </div>
     </div>
   </section>
 
-  {% if actual.reading.value.is_inline() %}
+  {% if reading.value.is_inline() %}
   {% else %}
     <section class="section">
       <div class="container">
         <div class="message">
           <div class="message-body">
-            {{ ValuePartialTemplate::new(actual.reading.value)|safe }}
+            {{ ValuePartialTemplate::new(reading.value)|safe }}
           </div>
         </div>
       </div>
@@ -44,10 +44,10 @@
   <section class="section">
     <div class="container">
       <h3 class="title is-5">Latest reading</h3>
-      <h4 class="subtitle is-7">This is stored in the database</h4>
+      <h4 class="subtitle is-7">This is stored in the database. Keep in mind that it may contain sensitive information</h4>
       <div class="message">
         <div class="message-body">
-          <pre><code>{{ "{:#?}"|format(actual.reading) }}</code></pre>
+          <pre><code>{{ "{:#?}"|format(reading) }}</code></pre>
         </div>
       </div>
     </div>

@@ -326,21 +326,6 @@
 <span id="326">326</span>
 <span id="327">327</span>
 <span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Database interface.</span>
 
@@ -356,18 +341,9 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">sensor</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">thread</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Actual</span> {
-    <span class="kw">pub</span> <span class="ident">sensor</span>: <span class="ident">Sensor</span>,
-    <span class="kw">pub</span> <span class="ident">reading</span>: <span class="ident">Reading</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Actual</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span> <span class="kw">for</span> (<span class="ident">Sensor</span>, <span class="ident">Reading</span>) {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">message</span>: <span class="ident">Message</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Actual</span> {
-            <span class="ident">sensor</span>: <span class="ident">message</span>.<span class="ident">sensor</span>,
-            <span class="ident">reading</span>: <span class="ident">message</span>.<span class="ident">reading</span>,
-        }
+        (<span class="ident">message</span>.<span class="ident">sensor</span>, <span class="ident">message</span>.<span class="ident">reading</span>)
     }
 }
 
@@ -377,13 +353,13 @@
     <span class="doccomment">/// Get the database `user_version`.</span>
     <span class="kw">fn</span> <span class="ident">get_version</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">select_actuals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">max_sensor_age_ms</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Actual</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">select_actuals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">max_sensor_age_ms</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Sensor</span>, <span class="ident">Reading</span>)<span class="op">&gt;</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Select database size in bytes.</span>
     <span class="kw">fn</span> <span class="ident">select_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Select the very last sensor reading.</span>
-    <span class="kw">fn</span> <span class="ident">select_last_reading</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sensor_id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Actual</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">select_last_reading</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sensor_id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Sensor</span>, <span class="ident">Reading</span>)<span class="op">&gt;</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Select the latest sensor readings within the given time interval.</span>
     <span class="kw">fn</span> <span class="ident">select_readings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sensor_id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">since</span>: <span class="kw-2">&amp;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Local</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span><span class="op">&gt;</span>;
@@ -407,7 +383,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">version</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">select_actuals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">max_sensor_age_ms</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Actual</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">select_actuals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">max_sensor_age_ms</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Sensor</span>, <span class="ident">Reading</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">prepare_cached</span>(
             <span class="comment">// language=sql</span>
             <span class="string">r#&quot;
@@ -438,7 +414,7 @@
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span> <span class="kw">as</span> <span class="ident">u64</span>)<span class="question-mark">?</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">select_last_reading</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sensor_id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Actual</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">select_last_reading</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sensor_id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Sensor</span>, <span class="ident">Reading</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>
             <span class="comment">// language=sql</span>
             .<span class="ident">prepare_cached</span>(<span class="string">r#&quot;SELECT * FROM sensors WHERE sensors.sensor_id = ?1&quot;#</span>)<span class="question-mark">?</span>
@@ -512,11 +488,8 @@
     })
 }
 
-<span class="kw">fn</span> <span class="ident">get_actual</span>(<span class="ident">row</span>: <span class="kw-2">&amp;</span><span class="ident">Row</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">rusqlite</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Actual</span><span class="op">&gt;</span> {
-    <span class="prelude-val">Ok</span>(<span class="ident">Actual</span> {
-        <span class="ident">sensor</span>: <span class="ident">get_sensor</span>(<span class="ident">row</span>)<span class="question-mark">?</span>,
-        <span class="ident">reading</span>: <span class="ident">get_reading</span>(<span class="ident">row</span>)<span class="question-mark">?</span>,
-    })
+<span class="kw">fn</span> <span class="ident">get_actual</span>(<span class="ident">row</span>: <span class="kw-2">&amp;</span><span class="ident">Row</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">rusqlite</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Sensor</span>, <span class="ident">Reading</span>)<span class="op">&gt;</span> {
+    <span class="prelude-val">Ok</span>((<span class="ident">get_sensor</span>(<span class="ident">row</span>)<span class="question-mark">?</span>, <span class="ident">get_reading</span>(<span class="ident">row</span>)<span class="question-mark">?</span>))
 }
 
 <span class="kw">fn</span> <span class="ident">get_i64</span>(<span class="ident">row</span>: <span class="kw-2">&amp;</span><span class="ident">Row</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">rusqlite</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
@@ -643,10 +616,7 @@
         <span class="ident">message</span>.<span class="ident">upsert_into</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span>;
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="ident">db</span>.<span class="ident">select_actuals</span>(<span class="ident">i64</span>::<span class="ident">max_value</span>())<span class="question-mark">?</span>,
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Actual</span> {
-                <span class="ident">sensor</span>: <span class="ident">message</span>.<span class="ident">sensor</span>,
-                <span class="ident">reading</span>: <span class="ident">message</span>.<span class="ident">reading</span>
-            }]
+            <span class="macro">vec</span><span class="macro">!</span>[(<span class="ident">message</span>.<span class="ident">sensor</span>, <span class="ident">message</span>.<span class="ident">reading</span>)]
         );
         <span class="prelude-val">Ok</span>(())
     }

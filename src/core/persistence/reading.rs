@@ -8,12 +8,3 @@ pub struct Reading {
     /// Attached value.
     pub value: Value,
 }
-
-impl Reading {
-    pub fn new() -> Self {
-        Reading {
-            timestamp: Local::now(),
-            value: Value::None,
-        }
-    }
-}

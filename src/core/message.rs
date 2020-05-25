@@ -38,8 +38,15 @@ impl Message {
     pub fn new<S: Into<String>>(sensor_id: S) -> Self {
         Message {
             type_: Type::ReadLogged,
-            sensor: Sensor::new(sensor_id),
-            reading: Reading::new(),
+            sensor: Sensor {
+                id: sensor_id.into(),
+                title: None,
+                room_title: None,
+            },
+            reading: Reading {
+                timestamp: Local::now(),
+                value: Value::None,
+            },
         }
     }
 

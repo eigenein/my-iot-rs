@@ -24,8 +24,8 @@
           {% endmatch -%}
         </h2>
         <div class="columns is-multiline">
-          {% for actual in group %}
-            {{ SensorTilePartialTemplate::new(actual)|safe }}
+          {% for (sensor, reading) in group %}
+            {{ SensorTilePartialTemplate::new(sensor, reading)|safe }}
           {% endfor %}
         </div>
       </div>
