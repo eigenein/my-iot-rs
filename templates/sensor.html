@@ -3,14 +3,13 @@
 {% block body %}
   <section class="hero {{ actual.reading.value.class() }}">
     <div class="hero-head">
-      {{ NavbarTemplate::new("sensor")|safe }}
+      {{ NavbarPartialTemplate::new("sensor")|safe }}
     </div>
     <div class="hero-body">
       <div class="container">
         <h1 class="title is-4" title='{{ "{:?}"|format(actual.reading.value) }}'>
           {% if actual.reading.value.is_inline() -%}
-            {% let value = actual.reading.value.as_ref() %}
-            {% include "partials/value.html" %}
+            {{ ValuePartialTemplate::new(actual.reading.value)|safe }}
           {% else -%}
             {{ actual.sensor.title.as_deref().unwrap_or(actual.sensor.id.as_str()) -}}
           {% endif -%}
@@ -35,8 +34,7 @@
       <div class="container">
         <div class="message">
           <div class="message-body">
-            {% let value = actual.reading.value.as_ref() %}
-            {% include "partials/value.html" %}
+            {{ ValuePartialTemplate::new(actual.reading.value)|safe }}
           </div>
         </div>
       </div>

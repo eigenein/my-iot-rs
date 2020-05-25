@@ -36,15 +36,42 @@ impl SensorTemplate {
     }
 }
 
+/// Navigation bar.
 #[derive(Template)]
 #[template(path = "partials/navbar.html")]
-pub struct NavbarTemplate<'a> {
+pub struct NavbarPartialTemplate<'a> {
     pub selected_item: &'a str,
 }
 
-impl<'a> NavbarTemplate<'a> {
+impl<'a> NavbarPartialTemplate<'a> {
     pub fn new(selected_item: &'a str) -> Self {
-        NavbarTemplate { selected_item }
+        NavbarPartialTemplate { selected_item }
+    }
+}
+
+/// `Value` renderer.
+#[derive(Template)]
+#[template(path = "partials/value.html")]
+pub struct ValuePartialTemplate<'a> {
+    pub value: &'a Value,
+}
+
+impl<'a> ValuePartialTemplate<'a> {
+    pub fn new(value: &'a Value) -> Self {
+        ValuePartialTemplate { value }
+    }
+}
+
+/// Dashboard tile.
+#[derive(Template)]
+#[template(path = "partials/sensor_tile.html")]
+pub struct SensorTilePartialTemplate<'a> {
+    pub actual: &'a Actual,
+}
+
+impl<'a> SensorTilePartialTemplate<'a> {
+    pub fn new(actual: &'a Actual) -> Self {
+        SensorTilePartialTemplate { actual }
     }
 }
 

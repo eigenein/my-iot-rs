@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["crate_version",""]],"mod":[["filters",""]],"struct":[["IndexTemplate",""],["NavbarTemplate",""],["SensorTemplate",""]]});
+initSidebarItems({"fn":[["crate_version",""]],"mod":[["filters",""]],"struct":[["IndexTemplate",""],["NavbarPartialTemplate","Navigation bar."],["SensorTemplate",""],["SensorTilePartialTemplate","Dashboard tile."],["ValuePartialTemplate","`Value` renderer."]]});

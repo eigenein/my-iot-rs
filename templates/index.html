@@ -3,7 +3,7 @@
 {% block body %}
   <section class="hero is-info">
     <div class="hero-head">
-      {{ NavbarTemplate::new("index")|safe }}
+      {{ NavbarPartialTemplate::new("index")|safe }}
     </div>
     <div class="hero-body">
       <div class="container">
@@ -25,7 +25,7 @@
         </h2>
         <div class="columns is-multiline">
           {% for actual in group %}
-            {% include "partials/sensor_tile.html" %}
+            {{ SensorTilePartialTemplate::new(actual)|safe }}
           {% endfor %}
         </div>
       </div>
