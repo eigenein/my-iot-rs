@@ -29,7 +29,7 @@ fn default_interval_ms() -> u64 {
 }
 
 impl Service for Solar {
-    fn spawn(&self, service_id: &str, _db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
+    fn spawn(&self, service_id: &str, bus: &mut Bus, _db: &Arc<Mutex<Connection>>) -> Result<()> {
         let service_id = service_id.to_string();
         let tx = bus.add_tx();
         let interval = Duration::from_millis(self.interval_ms);

@@ -32,7 +32,7 @@ pub struct Lua {
 }
 
 impl Service for Lua {
-    fn spawn(&self, service_id: &str, _db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
+    fn spawn(&self, service_id: &str, bus: &mut Bus, _db: &Arc<Mutex<Connection>>) -> Result<()> {
         let service_id = service_id.to_string();
         let tx = bus.add_tx();
         let rx = bus.add_rx();

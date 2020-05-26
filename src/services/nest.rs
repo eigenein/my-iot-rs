@@ -19,7 +19,7 @@ pub struct Nest {
 }
 
 impl Service for Nest {
-    fn spawn(&self, service_id: &str, _db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
+    fn spawn(&self, service_id: &str, bus: &mut Bus, _db: &Arc<Mutex<Connection>>) -> Result<()> {
         let service_id = service_id.to_string();
         let token = self.token.clone();
         let tx = bus.add_tx();

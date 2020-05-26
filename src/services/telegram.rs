@@ -22,7 +22,7 @@ pub struct Telegram {
 }
 
 impl Service for Telegram {
-    fn spawn(&self, service_id: &str, _db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
+    fn spawn(&self, service_id: &str, bus: &mut Bus, _db: &Arc<Mutex<Connection>>) -> Result<()> {
         let service_id = service_id.to_string();
         let tx = bus.add_tx();
         let token = self.token.clone();
@@ -33,7 +33,7 @@ impl Service for Telegram {
             loop {
                 for update in get_updates(&client, &token, offset)?.iter() {
                     offset = offset.max(Some(update.update_id + 1));
-                    send_readings(&service_id, &tx, &update).unwrap();
+                    send_readings(&service_id, &tx, &update)?;
                 }
                 debug!("{}: next offset: {:?}", &service_id, offset);
             }

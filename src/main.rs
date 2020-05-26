@@ -59,16 +59,12 @@ fn main() -> Result<()> {
     info!("Opening the database…");
     let db = Arc::new(Mutex::new(Connection::open_and_initialize(&opt.db)?));
 
-    // Starting up multi-producer multi-consumer bus:
-    // - services create and return their input channels
-    // - services send their messages out to `dispatcher_tx`
-    // - the dispatcher sends out each message from `dispatcher_rx` to the services input channels
     info!("Starting services…");
     let mut bus = Bus::new();
     bus.add_tx()
         .send(Message::new("my-iot::start").type_(MessageType::ReadNonLogged))?;
     core::persistence::thread::spawn(db.clone(), &mut bus)?;
-    services::db::Db.spawn("system::db", &db, &mut bus)?;
+    services::db::Db.spawn("system::db", &mut bus, &db)?;
     core::services::spawn_all(&settings, &db, &mut bus)?;
     bus.spawn()?;
 

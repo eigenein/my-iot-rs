@@ -15,7 +15,7 @@ pub fn new(settings: &ServiceSettings) -> Box<&dyn Service> {
         ServiceSettings::Clock(service) => service,
         ServiceSettings::Lua(service) => service,
         ServiceSettings::Nest(service) => service,
-        ServiceSettings::Telegram(service) => service,
         ServiceSettings::Solar(service) => service,
+        ServiceSettings::Telegram(service) => service,
     })
 }

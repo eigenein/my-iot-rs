@@ -25,7 +25,7 @@ pub struct Settings {
 
     /// Services configuration.
     /// Each entry is a pair of service ID (defined by user) and service settings.
-    /// Service ID is normally used as a sensor prefix, for instance: `service_id:service_sensor`.
+    /// Service ID is normally used as a sensor prefix, for instance: `service_id::service_sensor`.
     pub services: HashMap<String, ServiceSettings>,
 }
 

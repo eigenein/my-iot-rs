@@ -24,7 +24,7 @@ pub struct Buienradar {
 }
 
 impl Service for Buienradar {
-    fn spawn(&self, service_id: &str, _db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
+    fn spawn(&self, service_id: &str, bus: &mut Bus, _db: &Arc<Mutex<Connection>>) -> Result<()> {
         let tx = bus.add_tx();
         let service_id = service_id.to_string();
         let station_id = self.station_id;
