@@ -17,7 +17,7 @@ use uom::si::*;
 const URL: &str = "https://json.buienradar.nl/";
 const REFRESH_PERIOD: Duration = Duration::from_millis(60000);
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Buienradar {
     /// Station ID. Find a one [here](https://json.buienradar.nl/).
     station_id: u32,

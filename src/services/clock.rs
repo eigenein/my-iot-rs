@@ -4,7 +4,7 @@ use serde::Deserialize;
 use std::thread;
 use std::time::Duration;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Clock {
     /// Interval in milliseconds.
     #[serde(default = "default_interval_ms")]

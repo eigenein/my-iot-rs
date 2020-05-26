@@ -14,11 +14,12 @@ use serde_json::json;
 use std::fmt::Debug;
 use std::time::Duration;
 
-const CLIENT_TIMEOUT: Duration = Duration::from_secs(60);
+const CLIENT_TIMEOUT_SECS: u64 = 60;
+const CLIENT_TIMEOUT: Duration = Duration::from_secs(CLIENT_TIMEOUT_SECS);
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Telegram {
-    token: String,
+    pub token: String,
 }
 
 impl Telegram {
@@ -43,7 +44,7 @@ impl Telegram {
     }
 }
 
-fn new_client() -> Result<Client> {
+pub fn new_client() -> Result<Client> {
     let mut headers = HeaderMap::new();
     headers.insert(reqwest::header::USER_AGENT, HeaderValue::from_static(USER_AGENT));
 
@@ -73,7 +74,7 @@ fn send_readings(service_id: &str, tx: &Sender<Message>, update: &TelegramUpdate
 }
 
 /// Call [Telegram Bot API](https://core.telegram.org/bots/api) method.
-fn call_api<P: Serialize + Debug + ?Sized, R: DeserializeOwned>(
+pub fn call_api<P: Serialize + Debug + ?Sized, R: DeserializeOwned>(
     client: &Client,
     token: &str,
     method: &str,
@@ -91,6 +92,7 @@ fn call_api<P: Serialize + Debug + ?Sized, R: DeserializeOwned>(
             if response.ok {
                 Ok(response.result.unwrap())
             } else {
+                error!("Telegram error: {:?}", response.description);
                 Err(InternalError::new(response.description.unwrap()).into())
             }
         })
@@ -105,115 +107,14 @@ fn get_updates(client: &Client, token: &str, offset: Option<i64>) -> Result<Vec<
         &json!({
             "offset": offset,
             "limit": null,
-            "timeout": CLIENT_TIMEOUT,
+            "timeout": CLIENT_TIMEOUT_SECS,
             "allowed_updates": ["message"],
         }),
     )
 }
 
-/// <https://core.telegram.org/bots/api#sendmessage>
-#[allow(dead_code)]
-fn send_message<T: AsRef<str>>(
-    client: &Client,
-    token: &str,
-    chat_id: TelegramChatId,
-    text: T,
-    disable_notification: bool,
-) -> Result<TelegramMessage> {
-    call_api(
-        client,
-        token,
-        "sendMessage",
-        &json!({
-            "chat_id": chat_id,
-            "text": text.as_ref(),
-            "disable_notification": disable_notification,
-        }),
-    )
-}
-
-/// <https://core.telegram.org/bots/api#sendphoto>
-#[allow(dead_code)]
-fn send_photo<P>(
-    client: &Client,
-    token: &str,
-    chat_id: TelegramChatId,
-    photo: P,
-    disable_notification: bool,
-    caption: Option<String>,
-) -> Result<TelegramMessage>
-where
-    P: Into<TelegramFile>,
-{
-    call_api(
-        client,
-        token,
-        "sendPhoto",
-        &json!({
-            "chat_id": chat_id,
-            "photo": photo.into(),
-            "disable_notification": disable_notification,
-            "caption": caption, // FIXME: null caption
-        }),
-    )
-}
-
-/// <https://core.telegram.org/bots/api#sendanimation>
-#[allow(dead_code)]
-fn send_animation<A>(
-    client: &Client,
-    token: &str,
-    chat_id: TelegramChatId,
-    animation: A,
-    disable_notification: bool,
-    caption: Option<String>,
-) -> Result<TelegramMessage>
-where
-    A: Into<TelegramFile>,
-{
-    call_api(
-        client,
-        token,
-        "sendAnimation",
-        &json!({
-            "chat_id": chat_id,
-            "animation": animation.into(),
-            "disable_notification": disable_notification,
-            "caption": caption, // FIXME: null caption
-        }),
-    )
-}
-
-#[derive(Serialize, Debug)]
-#[serde(untagged)]
-enum TelegramChatId {
-    UniqueId(i64),
-    Username(String),
-}
-
-impl From<&str> for TelegramChatId {
-    fn from(string: &str) -> Self {
-        match string.parse::<i64>() {
-            Ok(chat_id) => TelegramChatId::UniqueId(chat_id),
-            Err(_) => TelegramChatId::Username(string.into()),
-        }
-    }
-}
-
-#[derive(Serialize, Debug)]
-#[serde(untagged)]
-enum TelegramFile {
-    Url(String),
-}
-
-impl From<&String> for TelegramFile {
-    fn from(string: &String) -> Self {
-        TelegramFile::Url(string.into())
-    }
-}
-
 /// <https://core.telegram.org/bots/api#making-requests>
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 struct TelegramResponse<T> {
     ok: bool,
     description: Option<String>,
@@ -228,7 +129,7 @@ struct TelegramUpdate {
 
 /// <https://core.telegram.org/bots/api#message>
 #[derive(Deserialize, Debug)]
-struct TelegramMessage {
+pub struct TelegramMessage {
     message_id: i64,
 
     #[serde(deserialize_with = "chrono::serde::ts_seconds::deserialize")]
@@ -240,6 +141,6 @@ struct TelegramMessage {
 
 /// <https://core.telegram.org/bots/api#chat>
 #[derive(Deserialize, Debug)]
-struct TelegramChat {
+pub struct TelegramChat {
     id: i64,
 }

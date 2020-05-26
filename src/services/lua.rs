@@ -9,6 +9,7 @@ use uom::si::f64::*;
 use uom::si::*;
 
 mod prelude;
+mod telegram;
 
 const MESSAGE_ARG_TYPE: &str = "type";
 const MESSAGE_ARG_ROOM_TITLE: &str = "room_title";
@@ -34,22 +35,23 @@ pub struct Lua {
 }
 
 impl Lua {
-    pub fn spawn(&self, service_id: &str, bus: &mut Bus, _services: &HashMap<String, Service>) -> Result<()> {
+    pub fn spawn(&self, service_id: &str, bus: &mut Bus, services: &HashMap<String, Service>) -> Result<()> {
         let service_id = service_id.to_string();
         let tx = bus.add_tx();
         let rx = bus.add_rx();
         let settings = self.clone();
+        let services = services.clone();
 
         supervisor::spawn(service_id.clone(), tx.clone(), move || -> Result<()> {
             let lua = rlua::Lua::new();
             lua.context(|context| -> Result<()> {
-                init_globals(context, &service_id, tx.clone())?;
+                init_logging(context, &service_id)?;
+                init_functions(context, tx.clone())?;
+                init_services(context, &services)?;
 
                 info!("[{}] Loading and executing script…", &service_id);
                 context.load(&settings.script).set_name(&service_id)?.exec()?;
-
-                let globals = context.globals();
-                let on_message: LuaValue = globals.get("onMessage")?;
+                let on_message: LuaValue = context.globals().get("onMessage")?;
 
                 info!("[{}] Listening…", &service_id);
                 for message in &rx {
@@ -101,31 +103,18 @@ fn create_args_table<'lua>(context: LuaContext<'lua>, message: &Message) -> LuaR
     Ok(args)
 }
 
-fn init_globals(context: LuaContext, service_id: &str, tx: Sender<Message>) -> Result<()> {
-    init_logging(context, service_id)?;
-    init_functions(context, tx)?;
-    Ok(())
-}
-
 /// Expose logging functions to the context.
 fn init_logging(context: LuaContext, service_id: &str) -> Result<()> {
     let globals = context.globals();
-
-    globals.set(
-        "debug",
-        create_log_function(context, service_id.into(), LogLevel::Debug)?,
-    )?;
-    globals.set("info", create_log_function(context, service_id.into(), LogLevel::Info)?)?;
-    globals.set("warn", create_log_function(context, service_id.into(), LogLevel::Warn)?)?;
-    globals.set(
-        "error",
-        create_log_function(context, service_id.into(), LogLevel::Error)?,
-    )?;
-
+    globals.set("debug", create_log_function(context, service_id, LogLevel::Debug)?)?;
+    globals.set("info", create_log_function(context, service_id, LogLevel::Info)?)?;
+    globals.set("warn", create_log_function(context, service_id, LogLevel::Warn)?)?;
+    globals.set("error", create_log_function(context, service_id, LogLevel::Error)?)?;
     Ok(())
 }
 
-fn create_log_function(context: LuaContext, service_id: String, level: LogLevel) -> LuaResult<LuaFunction> {
+fn create_log_function<S: Into<String>>(context: LuaContext, service_id: S, level: LogLevel) -> LuaResult<LuaFunction> {
+    let service_id = service_id.into();
     context.create_function(move |_, message: String| {
         log!(level, "[{}] {}", service_id, message);
         Ok(())
@@ -209,19 +198,31 @@ fn enrich_message<'lua>(message: &mut Message, context: LuaContext<'lua>, args: 
     Ok(())
 }
 
+fn init_services(context: LuaContext, services: &HashMap<String, Service>) -> Result<()> {
+    let globals = context.globals();
+    for (service_id, service) in services.iter() {
+        let service_id = service_id.to_string();
+        match service {
+            Service::Telegram(telegram) => globals.set(service_id, telegram::Telegram::new(&telegram.token)?),
+            _ => Ok(()),
+        }?;
+    }
+    Ok(())
+}
+
 impl<'lua> ToLua<'lua> for Value {
     fn to_lua(self, context: LuaContext<'lua>) -> LuaResult<LuaValue> {
         match self {
-            Value::None => Ok(LuaValue::Nil),
             Value::Bft(value) => value.to_lua(context),
             Value::Boolean(value) => value.to_lua(context),
             Value::Counter(value) | Value::DataSize(value) => value.to_lua(context),
+            Value::Duration(value) => value.value.to_lua(context),
             Value::ImageUrl(value) | Value::Text(value) => value.to_lua(context),
             Value::Length(value) => value.value.to_lua(context),
+            Value::None => Ok(LuaValue::Nil),
             Value::Rh(value) => value.to_lua(context),
             Value::Temperature(value) => value.value.to_lua(context),
             Value::WindDirection(value) => value.to_lua(context),
-            Value::Duration(value) => value.value.to_lua(context),
         }
     }
 }

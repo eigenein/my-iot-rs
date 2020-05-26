@@ -30,7 +30,7 @@ pub struct Settings {
 }
 
 /// A service configuration.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
 pub enum Service {
     /// Regularly emits a counter value.

@@ -26,8 +26,7 @@ fn process_message(message: &Message, db: &Arc<Mutex<Connection>>) -> Result<()>
     debug!("{:?}", &message);
     // TODO: handle `ReadSnapshot` properly.
     if message.type_ == MessageType::ReadLogged || message.type_ == MessageType::ReadSnapshot {
-        let db = db.lock().unwrap();
-        message.upsert_into(&db)?;
+        message.upsert_into(&db.lock().unwrap())?;
     }
     Ok(())
 }
