@@ -1,8 +1,7 @@
 //! Implements generic `Service` trait.
 
 use crate::prelude::*;
-use crate::settings::*;
-use std::sync::{Arc, Mutex};
+use crate::settings::Settings;
 
 pub trait Service {
     fn spawn(&self, service_id: &str, bus: &mut Bus, db: &Arc<Mutex<Connection>>) -> Result<()>;
