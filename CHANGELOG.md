@@ -10,6 +10,8 @@ Service intercommunication via "fake" messages doesn't play that nice. However, 
 
 **All sensors and readings will be dropped again.** Sensor primary and foreign keys have been changed to [SeaHash](https://ticki.github.io/blog/seahash-explained/)-ed sensor IDs. This allowed removing the dependency on auto-generated primary keys.
 
+Settings file is now specified as an optional positional argument: `my-iot my-iot.toml`.
+
 ## `0.44.0`
 
 Unified sensor IDs by changing `my-iot::*` to `my_iot::*`.

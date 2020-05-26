@@ -2,7 +2,6 @@
 
 use crate::core::supervisor;
 use crate::prelude::*;
-use dirs::home_dir;
 use log::Level;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
@@ -29,13 +28,13 @@ struct Opt {
     #[structopt(short = "v", long = "verbose", conflicts_with = "silent")]
     verbose: bool,
 
-    /// Settings file
-    #[structopt(long, parse(from_os_str), env = "MYIOT_SETTINGS")]
-    settings: Option<PathBuf>,
-
     /// Database URL
     #[structopt(long, env = "MYIOT_DB", default_value = "my-iot.sqlite3")]
     db: String,
+
+    /// Settings file
+    #[structopt(parse(from_os_str), env = "MYIOT_SETTINGS", default_value = "my-iot.toml")]
+    settings: PathBuf,
 }
 
 /// Entry point.
@@ -50,10 +49,7 @@ fn main() -> Result<()> {
     })?;
 
     info!("Reading the settings…");
-    let settings = settings::read(
-        opt.settings
-            .unwrap_or_else(|| home_dir().unwrap().join(".config").join("my-iot.toml")),
-    )?;
+    let settings = settings::read(opt.settings)?;
     debug!("Settings: {:?}", &settings);
 
     info!("Opening the database…");

@@ -78,7 +78,7 @@ This is needed to use some low-level protocols (for instance, [ICMP](https://en.
 
 # Settings
 
-My IoT is configured with a single [TOML](https://github.com/toml-lang/toml) file. By default, it is read from `~/.config/my-iot.toml`.
+My IoT is configured by a single [TOML](https://github.com/toml-lang/toml) file specified as the argument.
 
 ## Example
 

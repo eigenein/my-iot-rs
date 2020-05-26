@@ -39,7 +39,6 @@ rusqlite = { version = "0.20", features = ["bundled"] }
 askama = { git = "https://github.com/djc/askama", rev = "4abebf55b37d51c4ce56a43445d357ac4f96699e" }
 rmp-serde = "0.14"
 uom = { version = "0.26", features = ["use_serde", "autoconvert", "f64", "si", "std", "try-from"] }
-dirs = "2.0"
 itertools = "0.9"
 rlua = "0.17"
 lazy_static = "1"
