@@ -14,12 +14,7 @@ use serde_json::json;
 use std::fmt::Debug;
 use std::time::Duration;
 
-/// > Should be positive, short polling should be used for testing purposes only.
-const GET_UPDATES_TIMEOUT: u64 = 60;
-
-/// Global client timeout. Based on `GET_UPDATES_TIMEOUT` because `reqwest` does not allow setting
-/// individual request timeout.
-static CLIENT_TIMEOUT: Duration = Duration::from_secs(GET_UPDATES_TIMEOUT + 5);
+const CLIENT_TIMEOUT: Duration = Duration::from_secs(60);
 
 #[derive(Deserialize, Debug)]
 pub struct Telegram {
@@ -28,63 +23,45 @@ pub struct Telegram {
 
 impl Service for Telegram {
     fn spawn(&self, service_id: &str, _db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
-        spawn_producer(Context::new(service_id, &self.token)?, bus)
-    }
-}
+        let service_id = service_id.to_string();
+        let tx = bus.add_tx();
+        let token = self.token.clone();
+        let client = new_client()?;
 
-struct Context {
-    client: Client,
-    service_id: String,
-    token: String,
-}
-
-impl Context {
-    fn new(service_id: &str, token: &str) -> Result<Self> {
-        let mut headers = HeaderMap::new();
-        headers.insert(reqwest::header::USER_AGENT, HeaderValue::from_static(USER_AGENT));
-
-        Ok(Self {
-            client: Client::builder()
-                .gzip(true)
-                .timeout(CLIENT_TIMEOUT)
-                .default_headers(headers)
-                .build()?,
-            service_id: service_id.into(),
-            token: token.into(),
-        })
-    }
-}
-
-/// Spawn thread that listens for Telegram updates and produces reading messages.
-fn spawn_producer(context: Context, bus: &Bus) -> Result<()> {
-    let tx = bus.add_tx();
-
-    supervisor::spawn(
-        &format!("{}::producer", &context.service_id),
-        tx.clone(),
-        move || -> Result<()> {
+        supervisor::spawn(service_id.clone(), tx.clone(), move || -> Result<()> {
             let mut offset: Option<i64> = None;
             loop {
-                for update in get_updates(&context, offset)?.iter() {
+                for update in get_updates(&client, &token, offset)?.iter() {
                     offset = offset.max(Some(update.update_id + 1));
-                    send_readings(&context, &tx, &update).unwrap();
+                    send_readings(&service_id, &tx, &update).unwrap();
                 }
-                debug!("{}: next offset: {:?}", &context.service_id, offset);
+                debug!("{}: next offset: {:?}", &service_id, offset);
             }
-        },
-    )?;
+        })?;
 
-    Ok(())
+        Ok(())
+    }
+}
+
+fn new_client() -> Result<Client> {
+    let mut headers = HeaderMap::new();
+    headers.insert(reqwest::header::USER_AGENT, HeaderValue::from_static(USER_AGENT));
+
+    Ok(Client::builder()
+        .gzip(true)
+        .timeout(CLIENT_TIMEOUT)
+        .default_headers(headers)
+        .build()?)
 }
 
 /// Send reading messages from the provided Telegram update.
-fn send_readings(context: &Context, tx: &Sender<Message>, update: &TelegramUpdate) -> Result<()> {
-    debug!("{}: {:?}", &context.service_id, &update);
+fn send_readings(service_id: &str, tx: &Sender<Message>, update: &TelegramUpdate) -> Result<()> {
+    debug!("{}: {:?}", service_id, &update);
 
     if let Some(ref message) = update.message {
         if let Some(ref text) = message.text {
             tx.send(
-                Message::new(format!("{}::{}::message", &context.service_id, message.chat.id))
+                Message::new(format!("{}::{}::message", service_id, message.chat.id))
                     .type_(MessageType::ReadNonLogged)
                     .value(Value::Text(text.into()))
                     .timestamp(message.date),
@@ -97,15 +74,15 @@ fn send_readings(context: &Context, tx: &Sender<Message>, update: &TelegramUpdat
 
 /// Call [Telegram Bot API](https://core.telegram.org/bots/api) method.
 fn call_api<P: Serialize + Debug + ?Sized, R: DeserializeOwned>(
-    context: &Context,
+    client: &Client,
+    token: &str,
     method: &str,
     parameters: &P,
 ) -> Result<R> {
     debug!("{}({:?})", &method, parameters);
     // FIXME: https://github.com/eigenein/my-iot-rs/issues/44
-    context
-        .client
-        .get(&format!("https://api.telegram.org/bot{}/{}", &context.token, method))
+    client
+        .get(&format!("https://api.telegram.org/bot{}/{}", token, method))
         .json(parameters)
         .send()?
         .json::<TelegramResponse<R>>()
@@ -120,14 +97,15 @@ fn call_api<P: Serialize + Debug + ?Sized, R: DeserializeOwned>(
 }
 
 /// <https://core.telegram.org/bots/api#getupdates>
-fn get_updates(context: &Context, offset: Option<i64>) -> Result<Vec<TelegramUpdate>> {
+fn get_updates(client: &Client, token: &str, offset: Option<i64>) -> Result<Vec<TelegramUpdate>> {
     call_api(
-        context,
+        client,
+        token,
         "getUpdates",
         &json!({
             "offset": offset,
             "limit": null,
-            "timeout": GET_UPDATES_TIMEOUT,
+            "timeout": CLIENT_TIMEOUT,
             "allowed_updates": ["message"],
         }),
     )
@@ -136,13 +114,15 @@ fn get_updates(context: &Context, offset: Option<i64>) -> Result<Vec<TelegramUpd
 /// <https://core.telegram.org/bots/api#sendmessage>
 #[allow(dead_code)]
 fn send_message<T: AsRef<str>>(
-    context: &Context,
+    client: &Client,
+    token: &str,
     chat_id: TelegramChatId,
     text: T,
     disable_notification: bool,
 ) -> Result<TelegramMessage> {
     call_api(
-        context,
+        client,
+        token,
         "sendMessage",
         &json!({
             "chat_id": chat_id,
@@ -155,7 +135,8 @@ fn send_message<T: AsRef<str>>(
 /// <https://core.telegram.org/bots/api#sendphoto>
 #[allow(dead_code)]
 fn send_photo<P>(
-    context: &Context,
+    client: &Client,
+    token: &str,
     chat_id: TelegramChatId,
     photo: P,
     disable_notification: bool,
@@ -165,7 +146,8 @@ where
     P: Into<TelegramFile>,
 {
     call_api(
-        context,
+        client,
+        token,
         "sendPhoto",
         &json!({
             "chat_id": chat_id,
@@ -179,7 +161,8 @@ where
 /// <https://core.telegram.org/bots/api#sendanimation>
 #[allow(dead_code)]
 fn send_animation<A>(
-    context: &Context,
+    client: &Client,
+    token: &str,
     chat_id: TelegramChatId,
     animation: A,
     disable_notification: bool,
@@ -189,7 +172,8 @@ where
     A: Into<TelegramFile>,
 {
     call_api(
-        context,
+        client,
+        token,
         "sendAnimation",
         &json!({
             "chat_id": chat_id,
