@@ -26,13 +26,13 @@ pub struct Settings {
     /// Services configuration.
     /// Each entry is a pair of service ID (defined by user) and service settings.
     /// Service ID is normally used as a sensor prefix, for instance: `service_id::service_sensor`.
-    pub services: HashMap<String, ServiceSettings>,
+    pub services: HashMap<String, Service>,
 }
 
 /// A service configuration.
 #[derive(Deserialize, Debug)]
 #[serde(tag = "type")]
-pub enum ServiceSettings {
+pub enum Service {
     /// Regularly emits a counter value.
     Clock(services::clock::Clock),
 

@@ -15,8 +15,8 @@ fn default_interval_ms() -> u64 {
     1000
 }
 
-impl Service for Clock {
-    fn spawn(&self, service_id: &str, bus: &mut Bus, _db: &Arc<Mutex<Connection>>) -> Result<()> {
+impl Clock {
+    pub fn spawn(&self, service_id: &str, bus: &mut Bus) -> Result<()> {
         let service_id = service_id.to_string();
         let interval = Duration::from_millis(self.interval_ms);
         let tx = bus.add_tx();

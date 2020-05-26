@@ -21,8 +21,8 @@ pub struct Telegram {
     token: String,
 }
 
-impl Service for Telegram {
-    fn spawn(&self, service_id: &str, bus: &mut Bus, _db: &Arc<Mutex<Connection>>) -> Result<()> {
+impl Telegram {
+    pub fn spawn(&self, service_id: &str, bus: &mut Bus) -> Result<()> {
         let service_id = service_id.to_string();
         let tx = bus.add_tx();
         let token = self.token.clone();

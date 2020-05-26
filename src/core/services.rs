@@ -1,18 +1,21 @@
 //! Implements generic `Service` trait.
 
 use crate::prelude::*;
-use crate::settings::Settings;
+use crate::settings::{Service, Settings};
 
-pub trait Service {
-    fn spawn(&self, service_id: &str, bus: &mut Bus, db: &Arc<Mutex<Connection>>) -> Result<()>;
-}
-
-/// Spawn all configured services.
-pub fn spawn_all(settings: &Settings, db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
-    for (service_id, service_settings) in settings.services.iter() {
+/// Spawn all the configured services.
+pub fn spawn_all(settings: &Settings, _db: &Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
+    for (service_id, service) in settings.services.iter() {
         info!("Spawning service `{}`…", service_id);
-        debug!("Settings `{}`: {:?}", service_id, service_settings);
-        crate::services::new(service_settings).spawn(service_id, bus, db)?;
+        debug!("Settings `{}`: {:?}", service_id, service);
+        match service {
+            Service::Buienradar(service) => service.spawn(service_id, bus),
+            Service::Clock(service) => service.spawn(service_id, bus),
+            Service::Lua(service) => service.spawn(service_id, bus),
+            Service::Nest(service) => service.spawn(service_id, bus),
+            Service::Solar(service) => service.spawn(service_id, bus),
+            Service::Telegram(service) => service.spawn(service_id, bus),
+        }?;
     }
     Ok(())
 }

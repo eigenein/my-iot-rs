@@ -31,8 +31,8 @@ pub struct Lua {
     skip_sensor_ids: Option<Regex>,
 }
 
-impl Service for Lua {
-    fn spawn(&self, service_id: &str, bus: &mut Bus, _db: &Arc<Mutex<Connection>>) -> Result<()> {
+impl Lua {
+    pub fn spawn(&self, service_id: &str, bus: &mut Bus) -> Result<()> {
         let service_id = service_id.to_string();
         let tx = bus.add_tx();
         let rx = bus.add_rx();

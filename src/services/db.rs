@@ -8,8 +8,8 @@ const INTERVAL: Duration = Duration::from_secs(60);
 
 pub struct Db;
 
-impl Service for Db {
-    fn spawn(&self, service_id: &str, bus: &mut Bus, db: &Arc<Mutex<Connection>>) -> Result<()> {
+impl Db {
+    pub fn spawn(&self, service_id: &str, bus: &mut Bus, db: &Arc<Mutex<Connection>>) -> Result<()> {
         let tx = bus.add_tx();
         let db = db.clone();
 
