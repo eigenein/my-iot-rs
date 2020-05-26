@@ -2,7 +2,9 @@
 
 use crate::prelude::*;
 use crate::services::lua::prelude::*;
+use crate::settings::Service;
 use regex::Regex;
+use std::collections::HashMap;
 use uom::si::f64::*;
 use uom::si::*;
 
@@ -32,7 +34,7 @@ pub struct Lua {
 }
 
 impl Lua {
-    pub fn spawn(&self, service_id: &str, bus: &mut Bus) -> Result<()> {
+    pub fn spawn(&self, service_id: &str, bus: &mut Bus, _services: &HashMap<String, Service>) -> Result<()> {
         let service_id = service_id.to_string();
         let tx = bus.add_tx();
         let rx = bus.add_rx();
@@ -51,22 +53,12 @@ impl Lua {
 
                 info!("[{}] Listening…", &service_id);
                 for message in &rx {
-                    if let Some(ref regex) = settings.filter_sensor_ids {
-                        if !regex.is_match(&message.sensor.id) {
-                            debug!("[{}] `{}` does not match the filter", &service_id, &message.sensor.id);
-                            continue;
+                    if settings.is_match(&service_id, &message) {
+                        if let LuaValue::Function(on_message) = &on_message {
+                            on_message.call::<_, ()>(create_args_table(context, &message)?)?;
+                        } else {
+                            warn!("[{}] `onMessage` is not defined or not a function", &service_id);
                         }
-                    }
-                    if let Some(ref regex) = settings.skip_sensor_ids {
-                        if regex.is_match(&message.sensor.id) {
-                            debug!("[{}] `{}` is skipped", &service_id, &message.sensor.id);
-                            continue;
-                        }
-                    }
-                    if let LuaValue::Function(on_message) = &on_message {
-                        on_message.call::<_, ()>(create_args_table(context, &message)?)?;
-                    } else {
-                        warn!("[{}] `onMessage` is not defined or not a function", &service_id);
                     }
                 }
 
@@ -75,6 +67,23 @@ impl Lua {
         })?;
 
         Ok(())
+    }
+
+    /// Checks whether the message matches the filters.
+    fn is_match(&self, service_id: &str, message: &Message) -> bool {
+        if let Some(ref regex) = self.filter_sensor_ids {
+            if !regex.is_match(&message.sensor.id) {
+                debug!("[{}] `{}` does not match the filter", &service_id, &message.sensor.id);
+                return false;
+            }
+        }
+        if let Some(ref regex) = self.skip_sensor_ids {
+            if regex.is_match(&message.sensor.id) {
+                debug!("[{}] `{}` is skipped", &service_id, &message.sensor.id);
+                return false;
+            }
+        }
+        true
     }
 }
 
