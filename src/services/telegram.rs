@@ -4,7 +4,6 @@ use crate::consts::USER_AGENT;
 use crate::prelude::*;
 use crate::supervisor;
 use chrono::{DateTime, Utc};
-use crossbeam_channel::Sender;
 use log::debug;
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, HeaderValue};

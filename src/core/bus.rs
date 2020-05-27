@@ -18,7 +18,7 @@ pub struct Bus {
 
 impl Bus {
     pub fn new() -> Self {
-        let (tx, rx) = crossbeam_channel::unbounded::<Message>();
+        let (tx, rx) = crossbeam::channel::unbounded::<Message>();
         Self {
             tx,
             rx,
@@ -33,7 +33,7 @@ impl Bus {
 
     /// Get a new receiver to subscribe to the bus.
     pub fn add_rx(&mut self) -> Receiver<Message> {
-        let (tx, rx) = crossbeam_channel::unbounded();
+        let (tx, rx) = crossbeam::channel::unbounded();
         self.service_txs.push(tx);
         rx
     }

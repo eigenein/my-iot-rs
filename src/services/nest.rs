@@ -2,7 +2,6 @@ use crate::prelude::*;
 use crate::supervisor;
 use crate::Result;
 use chrono::{DateTime, Local};
-use crossbeam_channel::Sender;
 use eventsource::reqwest::Client;
 use rouille::url::Url;
 use serde::Deserialize;

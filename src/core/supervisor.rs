@@ -1,7 +1,6 @@
 //! Allows to monitor thread status and automatically respawn a crashed thread.
 
 use crate::prelude::*;
-use crossbeam_channel::Sender;
 use log::{error, info};
 use std::time::Duration;
 use std::{io, thread};

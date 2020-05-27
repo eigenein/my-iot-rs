@@ -4,7 +4,6 @@ use crate::supervisor;
 use chrono::offset::TimeZone;
 use chrono::{DateTime, Local};
 use chrono_tz::Europe::Amsterdam;
-use crossbeam_channel::Sender;
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::{de, Deserialize, Deserializer};
