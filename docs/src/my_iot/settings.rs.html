@@ -109,12 +109,12 @@
     <span class="ident">Solar</span>(<span class="ident">services</span>::<span class="ident">solar</span>::<span class="ident">Solar</span>),
 }
 
-<span class="kw">fn</span> <span class="ident">default_http_port</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u16</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_http_port</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u16</span> {
     <span class="number">8081</span>
 }
 
 <span class="doccomment">/// Defaults to 30 days.</span>
-<span class="kw">fn</span> <span class="ident">default_max_sensor_age_ms</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i64</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_max_sensor_age_ms</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i64</span> {
     <span class="number">30</span> <span class="op">*</span> <span class="number">24</span> <span class="op">*</span> <span class="number">60</span> <span class="op">*</span> <span class="number">60</span> <span class="op">*</span> <span class="number">1000</span>
 }
 </pre></div>
