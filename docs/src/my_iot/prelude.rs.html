@@ -16,6 +16,7 @@
 <span id="16">16</span>
 <span id="17">17</span>
 <span id="18">18</span>
+<span id="19">19</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">core</span>::<span class="ident">bus</span>::<span class="ident">Bus</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">core</span>::<span class="ident">message</span>::{<span class="ident">Message</span>, <span class="ident">Type</span> <span class="kw">as</span> <span class="ident">MessageType</span>};
@@ -27,7 +28,8 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">errors</span>::<span class="ident">InternalError</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">Duration</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">crossbeam_channel</span>::{<span class="ident">Receiver</span>, <span class="ident">Sender</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">crossbeam</span>::<span class="ident">channel</span>::{<span class="ident">Receiver</span>, <span class="ident">Sender</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">crossbeam</span>::<span class="ident">thread</span>::<span class="ident">Scope</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">error</span>, <span class="ident">info</span>, <span class="ident">log</span>, <span class="ident">warn</span>, <span class="ident">Level</span> <span class="kw">as</span> <span class="ident">LogLevel</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">rusqlite</span>::<span class="ident">Connection</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
