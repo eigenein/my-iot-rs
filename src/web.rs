@@ -35,12 +35,10 @@ pub fn start_server(settings: &Settings, db: Arc<Mutex<Connection>>) -> Result<(
 }
 
 #[get("/")]
-fn index(db: State<Arc<Mutex<Connection>>>, max_sensor_age_ms: State<MaxSensorAgeMs>) -> Html<String> {
-    Html(
-        templates::IndexTemplate::new(&db.lock().unwrap(), max_sensor_age_ms.0)
-            .unwrap()
-            .to_string(),
-    )
+fn index(db: State<Arc<Mutex<Connection>>>, max_sensor_age_ms: State<MaxSensorAgeMs>) -> Result<Html<String>> {
+    Ok(Html(
+        templates::IndexTemplate::new(&db.lock().unwrap(), max_sensor_age_ms.0)?.to_string(),
+    ))
 }
 
 #[get("/favicon.ico")]
