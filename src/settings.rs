@@ -49,11 +49,11 @@ pub enum Service {
     Solar(services::solar::Solar),
 }
 
-fn default_http_port() -> u16 {
+pub fn default_http_port() -> u16 {
     8081
 }
 
 /// Defaults to 30 days.
-fn default_max_sensor_age_ms() -> i64 {
+pub fn default_max_sensor_age_ms() -> i64 {
     30 * 24 * 60 * 60 * 1000
 }

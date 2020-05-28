@@ -7,7 +7,7 @@ use lazy_static::lazy_static;
 use rocket::config::Environment;
 use rocket::http::ContentType;
 use rocket::response::content::{Content, Html};
-use rocket::{get, routes, Config, State};
+use rocket::{get, routes, Config, Rocket, State};
 use rocket_contrib::json::Json;
 use std::collections::HashMap;
 
@@ -17,7 +17,11 @@ struct MaxSensorAgeMs(i64);
 
 /// Start the web application.
 pub fn start_server(settings: &Settings, db: Arc<Mutex<Connection>>) -> Result<()> {
-    rocket::custom(
+    Err(Box::new(make_rocket(settings, db)?.launch()))
+}
+
+fn make_rocket(settings: &Settings, db: Arc<Mutex<Connection>>) -> Result<Rocket> {
+    Ok(rocket::custom(
         Config::build(Environment::Production)
             .port(settings.http_port)
             .keep_alive(60)
@@ -28,10 +32,7 @@ pub fn start_server(settings: &Settings, db: Arc<Mutex<Connection>>) -> Result<(
     .mount(
         "/",
         routes![index, get_favicon, get_static, get_sensor, get_sensor_json],
-    )
-    .launch();
-
-    Ok(())
+    ))
 }
 
 #[get("/")]
@@ -54,21 +55,21 @@ fn get_static(key: String) -> Option<Content<&'static [u8]>> {
 }
 
 #[get("/sensors/<sensor_id>")]
-fn get_sensor(db: State<Arc<Mutex<Connection>>>, sensor_id: String) -> Option<Html<String>> {
-    db.lock()
+fn get_sensor(db: State<Arc<Mutex<Connection>>>, sensor_id: String) -> Result<Option<Html<String>>> {
+    Ok(db
+        .lock()
         .unwrap()
-        .get_sensor(&sensor_id)
-        .unwrap()
-        .map(|(sensor, reading)| Html(templates::SensorTemplate::new(sensor, reading).to_string()))
+        .get_sensor(&sensor_id)?
+        .map(|(sensor, reading)| Html(templates::SensorTemplate::new(sensor, reading).to_string())))
 }
 
 #[get("/sensors/<sensor_id>/json")]
-fn get_sensor_json(db: State<Arc<Mutex<Connection>>>, sensor_id: String) -> Option<Json<Reading>> {
-    db.lock()
+fn get_sensor_json(db: State<Arc<Mutex<Connection>>>, sensor_id: String) -> Result<Option<Json<Reading>>> {
+    Ok(db
+        .lock()
         .unwrap()
-        .get_sensor(&sensor_id)
-        .unwrap()
-        .map(|(_, reading)| Json(reading))
+        .get_sensor(&sensor_id)?
+        .map(|(_, reading)| Json(reading)))
 }
 
 lazy_static! {
@@ -123,4 +124,43 @@ lazy_static! {
         );
         map
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::settings::*;
+    use rocket::http::Status;
+    use rocket::local::Client;
+
+    type Result = crate::Result<()>;
+
+    #[test]
+    fn index_ok() -> Result {
+        let client = client()?;
+        let response = client.get("/").dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.content_type(), Some(ContentType::HTML));
+        Ok(())
+    }
+
+    #[test]
+    fn favicon_ok() -> Result {
+        let client = client()?;
+        let response = client.get("/favicon.ico").dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.content_type(), Some(ContentType::Icon));
+        Ok(())
+    }
+
+    fn client() -> crate::Result<Client> {
+        Ok(Client::new(make_rocket(
+            &Settings {
+                http_port: default_http_port(),
+                max_sensor_age_ms: default_max_sensor_age_ms(),
+                services: HashMap::new(),
+            },
+            Arc::new(Mutex::new(Connection::open_and_initialize(":memory:")?)),
+        )?)?)
+    }
 }
