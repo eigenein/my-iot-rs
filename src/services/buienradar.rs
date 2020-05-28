@@ -1,11 +1,9 @@
-use crate::consts::USER_AGENT;
 use crate::prelude::*;
 use crate::supervisor;
 use chrono::offset::TimeZone;
 use chrono::{DateTime, Local};
 use chrono_tz::Europe::Amsterdam;
 use reqwest::blocking::Client;
-use reqwest::header::{HeaderMap, HeaderValue};
 use serde::{de, Deserialize, Deserializer};
 use std::thread;
 use std::time::Duration;
@@ -25,16 +23,7 @@ pub struct Buienradar {
 impl Buienradar {
     pub fn spawn<'env>(&'env self, scope: &Scope<'env>, service_id: &'env str, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
-
-        let client = {
-            let mut headers = HeaderMap::new();
-            headers.insert(reqwest::header::USER_AGENT, HeaderValue::from_static(USER_AGENT));
-            Client::builder()
-                .gzip(true)
-                .timeout(Duration::from_secs(10))
-                .default_headers(headers)
-                .build()?
-        };
+        let client = client_builder().timeout(Duration::from_secs(10)).build()?;
 
         supervisor::spawn(scope, service_id, tx.clone(), move || -> Result<()> {
             loop {

@@ -4,109 +4,122 @@ use crate::prelude::*;
 use crate::settings::Settings;
 use crate::templates;
 use lazy_static::lazy_static;
-use rouille::{router, Response};
+use rocket::config::Environment;
+use rocket::http::ContentType;
+use rocket::response::content::{Content, Html};
+use rocket::{get, routes, Config, State};
+use rocket_contrib::json::Json;
 use std::collections::HashMap;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::sync::{Arc, Mutex};
 
 const FAVICON: &[u8] = include_bytes!("statics/favicon.ico");
 
-/// Start the web application.
-pub fn start_server(settings: &Settings, db: Arc<Mutex<Connection>>) -> ! {
-    let http_port = settings.http_port;
-    let max_sensor_age_ms = settings.max_sensor_age_ms;
+struct MaxSensorAgeMs(i64);
 
-    rouille::start_server(
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), http_port),
-        move |request| {
-            router!(request,
-                (GET) ["/"] => index(&db, max_sensor_age_ms),
-                (GET) ["/sensors/{sensor_id}", sensor_id: String] => get_sensor(&db, &sensor_id),
-                (GET) ["/sensors/{sensor_id}/json", sensor_id: String] => get_sensor_json(&db, &sensor_id),
-                (GET) ["/favicon.ico"] => Response::from_data("image/x-icon", FAVICON.to_vec()),
-                (GET) ["/static/{key}", key: String] => match STATICS.get(key.as_str()) {
-                    Some((content_type, data)) => Response::from_data(content_type, data.clone()),
-                    None => Response::empty_404(),
-                },
-                _ => Response::empty_404(),
-            )
-        },
+/// Start the web application.
+pub fn start_server(settings: &Settings, db: Arc<Mutex<Connection>>) -> Result<()> {
+    rocket::custom(
+        Config::build(Environment::Production)
+            .port(settings.http_port)
+            .keep_alive(60)
+            .finalize()?,
     )
+    .manage(MaxSensorAgeMs(settings.max_sensor_age_ms))
+    .manage(db)
+    .mount(
+        "/",
+        routes![index, get_favicon, get_static, get_sensor, get_sensor_json],
+    )
+    .launch();
+
+    Ok(())
 }
 
-/// Get index page response.
-fn index(db: &Arc<Mutex<Connection>>, max_sensor_age_ms: i64) -> Response {
-    Response::html(
-        templates::IndexTemplate::new(&db.lock().unwrap(), max_sensor_age_ms)
+#[get("/")]
+fn index(db: State<Arc<Mutex<Connection>>>, max_sensor_age_ms: State<MaxSensorAgeMs>) -> Html<String> {
+    Html(
+        templates::IndexTemplate::new(&db.lock().unwrap(), max_sensor_age_ms.0)
             .unwrap()
             .to_string(),
     )
 }
 
-/// Get sensor page response.
-fn get_sensor(db: &Arc<Mutex<Connection>>, sensor_id: &str) -> Response {
-    let actual = db.lock().unwrap().get_sensor(&sensor_id).unwrap();
-    match actual {
-        Some((sensor, reading)) => Response::html(templates::SensorTemplate::new(sensor, reading).to_string()),
-        None => Response::empty_404(),
-    }
+#[get("/favicon.ico")]
+fn get_favicon() -> Content<&'static [u8]> {
+    Content(ContentType::Icon, FAVICON)
 }
 
-/// Get last sensor value JSON response.
-fn get_sensor_json(db: &Arc<Mutex<Connection>>, sensor_id: &str) -> Response {
-    match db.lock().unwrap().get_sensor(&sensor_id).unwrap() {
-        Some((_, reading)) => Response::json(&reading),
-        None => Response::empty_404(),
-    }
+#[get("/static/<key>")]
+fn get_static(key: String) -> Option<Content<&'static [u8]>> {
+    STATICS
+        .get(key.as_str())
+        .map(|(content_type, content)| Content(content_type.clone(), &content[..]))
+}
+
+#[get("/sensors/<sensor_id>")]
+fn get_sensor(db: State<Arc<Mutex<Connection>>>, sensor_id: String) -> Option<Html<String>> {
+    db.lock()
+        .unwrap()
+        .get_sensor(&sensor_id)
+        .unwrap()
+        .map(|(sensor, reading)| Html(templates::SensorTemplate::new(sensor, reading).to_string()))
+}
+
+#[get("/sensors/<sensor_id>/json")]
+fn get_sensor_json(db: State<Arc<Mutex<Connection>>>, sensor_id: String) -> Option<Json<Reading>> {
+    db.lock()
+        .unwrap()
+        .get_sensor(&sensor_id)
+        .unwrap()
+        .map(|(_, reading)| Json(reading))
 }
 
 lazy_static! {
-    static ref STATICS: HashMap<&'static str, (String, Vec<u8>)> = {
+    static ref STATICS: HashMap<&'static str, (ContentType, Vec<u8>)> = {
         let mut map = HashMap::new();
         map.insert(
             "favicon-16x16.png",
-            ("image/png".into(), include_bytes!("statics/favicon-16x16.png").to_vec()),
+            (ContentType::PNG, include_bytes!("statics/favicon-16x16.png").to_vec()),
         );
         map.insert(
             "favicon-32x32.png",
-            ("image/png".into(), include_bytes!("statics/favicon-32x32.png").to_vec()),
+            (ContentType::PNG, include_bytes!("statics/favicon-32x32.png").to_vec()),
         );
         map.insert(
             "apple-touch-icon.png",
             (
-                "image/png".into(),
+                ContentType::PNG,
                 include_bytes!("statics/apple-touch-icon.png").to_vec(),
             ),
         );
         map.insert(
             "android-chrome-192x192.png",
             (
-                "image/png".into(),
+                ContentType::PNG,
                 include_bytes!("statics/android-chrome-192x192.png").to_vec(),
             ),
         );
         map.insert(
             "android-chrome-512x512.png",
             (
-                "image/png".into(),
+                ContentType::PNG,
                 include_bytes!("statics/android-chrome-512x512.png").to_vec(),
             ),
         );
         map.insert(
             "bulma.min.css",
-            ("text/css".into(), include_bytes!("statics/bulma.min.css").to_vec()),
+            (ContentType::CSS, include_bytes!("statics/bulma.min.css").to_vec()),
         );
         map.insert(
             "bulma-prefers-dark.css",
             (
-                "text/css".into(),
+                ContentType::CSS,
                 include_bytes!("statics/bulma-prefers-dark.css").to_vec(),
             ),
         );
         map.insert(
             "plotly-1.5.0.min.js",
             (
-                "application/javascript".into(),
+                ContentType::JavaScript,
                 include_bytes!("statics/plotly-1.5.0.min.js").to_vec(),
             ),
         );

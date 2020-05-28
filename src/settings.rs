@@ -39,9 +39,6 @@ pub enum Service {
     /// Dutch [Buienradar](https://www.buienradar.nl/) weather service.
     Buienradar(services::buienradar::Buienradar),
 
-    /// Nest API.
-    Nest(services::nest::Nest),
-
     /// [Telegram bot](https://core.telegram.org/bots/api) service.
     Telegram(services::telegram::Telegram),
 

@@ -70,7 +70,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">services</span>::<span class="ident">lua</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">services</span>::<span class="ident">telegram</span>::{<span class="ident">call_api</span>, <span class="ident">new_client</span>, <span class="ident">TelegramMessage</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">services</span>::<span class="ident">telegram</span>::{<span class="ident">call_api</span>, <span class="ident">TelegramMessage</span>};
 <span class="kw">use</span> <span class="ident">reqwest</span>::<span class="ident">blocking</span>::<span class="ident">Client</span>;
 <span class="kw">use</span> <span class="ident">rlua</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">serde_json</span>::{<span class="ident">json</span>, <span class="ident">Value</span> <span class="kw">as</span> <span class="ident">JsonValue</span>};
@@ -84,7 +84,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">token</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
             <span class="ident">token</span>: <span class="ident">token</span>.<span class="ident">into</span>(),
-            <span class="ident">client</span>: <span class="ident">new_client</span>()<span class="question-mark">?</span>,
+            <span class="ident">client</span>: <span class="ident">client_builder</span>().<span class="ident">build</span>()<span class="question-mark">?</span>,
         })
     }
 }

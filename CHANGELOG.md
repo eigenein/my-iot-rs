@@ -12,6 +12,8 @@ Service intercommunication via "fake" messages doesn't play that nice. However, 
 
 Settings file is now specified as an optional positional argument: `my-iot my-iot.toml`.
 
+**`Nest` service has been removed due to the Google migration.**
+
 ## `0.44.0`
 
 Unified sensor IDs by changing `my-iot::*` to `my_iot::*`.

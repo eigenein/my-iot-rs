@@ -1,12 +1,10 @@
 //! [Telegram bot](https://core.telegram.org/bots/api) service able to receive and send messages.
 
-use crate::consts::USER_AGENT;
 use crate::prelude::*;
 use crate::supervisor;
 use chrono::{DateTime, Utc};
 use log::debug;
 use reqwest::blocking::Client;
-use reqwest::header::{HeaderMap, HeaderValue};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -14,7 +12,6 @@ use std::fmt::Debug;
 use std::time::Duration;
 
 const CLIENT_TIMEOUT_SECS: u64 = 60;
-const CLIENT_TIMEOUT: Duration = Duration::from_secs(CLIENT_TIMEOUT_SECS);
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct Telegram {
@@ -24,7 +21,9 @@ pub struct Telegram {
 impl Telegram {
     pub fn spawn<'env>(&'env self, scope: &Scope<'env>, service_id: &'env str, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
-        let client = new_client()?;
+        let client = client_builder()
+            .timeout(Duration::from_secs(CLIENT_TIMEOUT_SECS + 1))
+            .build()?;
 
         supervisor::spawn(scope, service_id, tx.clone(), move || -> Result<()> {
             let mut offset: Option<i64> = None;
@@ -39,17 +38,6 @@ impl Telegram {
 
         Ok(())
     }
-}
-
-pub fn new_client() -> Result<Client> {
-    let mut headers = HeaderMap::new();
-    headers.insert(reqwest::header::USER_AGENT, HeaderValue::from_static(USER_AGENT));
-
-    Ok(Client::builder()
-        .gzip(true)
-        .timeout(CLIENT_TIMEOUT)
-        .default_headers(headers)
-        .build()?)
 }
 
 /// Send reading messages from the provided Telegram update.

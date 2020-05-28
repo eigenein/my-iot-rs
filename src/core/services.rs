@@ -12,7 +12,6 @@ pub fn spawn_all<'env>(scope: &Scope<'env>, settings: &'env Settings, bus: &mut 
             Service::Buienradar(buienradar) => buienradar.spawn(scope, service_id, bus),
             Service::Clock(clock) => clock.spawn(scope, service_id, bus),
             Service::Lua(lua) => lua.spawn(scope, service_id, bus, &settings.services),
-            Service::Nest(nest) => nest.spawn(scope, service_id, bus),
             Service::Solar(solar) => solar.spawn(scope, service_id, bus),
             Service::Telegram(telegram) => telegram.spawn(scope, service_id, bus),
         }?;

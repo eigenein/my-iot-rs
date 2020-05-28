@@ -2,7 +2,7 @@
 
 use crate::prelude::*;
 use crate::services::lua::prelude::*;
-use crate::services::telegram::{call_api, new_client, TelegramMessage};
+use crate::services::telegram::{call_api, TelegramMessage};
 use reqwest::blocking::Client;
 use rlua::prelude::*;
 use serde_json::{json, Value as JsonValue};
@@ -16,7 +16,7 @@ impl Telegram {
     pub fn new<T: Into<String>>(token: T) -> Result<Self> {
         Ok(Self {
             token: token.into(),
-            client: new_client()?,
+            client: client_builder().build()?,
         })
     }
 }

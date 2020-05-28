@@ -1,5 +1,7 @@
 //! Entry point.
 
+#![feature(proc_macro_hygiene, decl_macro)]
+
 use crate::core::supervisor;
 use crate::prelude::*;
 use log::Level;
@@ -7,7 +9,6 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use structopt::StructOpt;
 
-mod consts;
 mod core;
 mod errors;
 mod format;
@@ -55,7 +56,7 @@ fn main() -> Result<()> {
     info!("Opening the database…");
     let db = Arc::new(Mutex::new(Connection::open_and_initialize(&opt.db)?));
 
-    crossbeam::thread::scope(|scope| {
+    crossbeam::thread::scope(|scope| -> Result<()> {
         info!("Starting services…");
         let mut bus = Bus::new();
         bus.add_tx()
@@ -68,5 +69,7 @@ fn main() -> Result<()> {
         info!("Starting web server on port {}…", settings.http_port);
         web::start_server(&settings, db)
     })
-    .unwrap()
+    .unwrap()?;
+
+    Ok(())
 }

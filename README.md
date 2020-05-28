@@ -208,10 +208,6 @@ end
 
 ## Clock
 
-## Nest
-
-https://github.com/eigenein/my-iot-rs/issues/66
-
 ## Telegram
 
 ## Solar

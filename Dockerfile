@@ -1,4 +1,4 @@
-FROM rust:1.43-buster AS base
+FROM rustlang/rust:nightly-buster AS base
 LABEL maintainer="Pavel Perestoronin <eigenein@gmail.com>"
 LABEL org.label-schema.description="My IoT builder for different devices"
 LABEL org.label-schema.vcs-url="https://github.com/eigenein/my-iot-rs"
