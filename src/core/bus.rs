@@ -39,9 +39,9 @@ impl Bus {
     }
 
     /// Spawn the bus dispatcher thread.
-    pub fn spawn(self) -> Result<()> {
+    pub fn spawn(self, scope: &Scope) -> Result<()> {
         info!("Spawning message bus…");
-        supervisor::spawn("system::bus", self.add_tx(), move || -> Result<()> {
+        supervisor::spawn(scope, "system::bus", self.add_tx(), move || -> Result<()> {
             for message in &self.rx {
                 debug!("Dispatching {}", &message.sensor.id);
                 for tx in self.service_txs.iter() {

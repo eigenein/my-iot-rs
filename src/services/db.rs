@@ -1,6 +1,5 @@
 use crate::prelude::*;
 use crate::supervisor;
-use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
@@ -9,11 +8,16 @@ const INTERVAL: Duration = Duration::from_secs(60);
 pub struct Db;
 
 impl Db {
-    pub fn spawn(&self, service_id: &str, bus: &mut Bus, db: &Arc<Mutex<Connection>>) -> Result<()> {
+    pub fn spawn<'env>(
+        &self,
+        scope: &Scope<'env>,
+        service_id: &'env str,
+        bus: &mut Bus,
+        db: Arc<Mutex<Connection>>,
+    ) -> Result<()> {
         let tx = bus.add_tx();
-        let db = db.clone();
 
-        supervisor::spawn(service_id, tx.clone(), move || -> Result<()> {
+        supervisor::spawn(scope, service_id, tx.clone(), move || -> Result<()> {
             loop {
                 {
                     let db = db.lock().unwrap();

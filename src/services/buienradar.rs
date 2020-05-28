@@ -23,10 +23,8 @@ pub struct Buienradar {
 }
 
 impl Buienradar {
-    pub fn spawn(&self, service_id: &str, bus: &mut Bus) -> Result<()> {
+    pub fn spawn<'env>(&'env self, scope: &Scope<'env>, service_id: &'env str, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
-        let service_id = service_id.to_string();
-        let station_id = self.station_id;
 
         let client = {
             let mut headers = HeaderMap::new();
@@ -38,9 +36,9 @@ impl Buienradar {
                 .build()?
         };
 
-        supervisor::spawn(service_id.clone(), tx.clone(), move || -> Result<()> {
+        supervisor::spawn(scope, service_id, tx.clone(), move || -> Result<()> {
             loop {
-                send_readings(fetch(&client)?, &service_id, station_id, &tx)?;
+                send_readings(fetch(&client)?, &service_id, self.station_id, &tx)?;
                 thread::sleep(REFRESH_PERIOD);
             }
         })?;

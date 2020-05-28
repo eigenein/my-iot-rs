@@ -12,12 +12,15 @@ use std::sync::{Arc, Mutex};
 const FAVICON: &[u8] = include_bytes!("statics/favicon.ico");
 
 /// Start the web application.
-pub fn start_server(settings: Settings, db: Arc<Mutex<Connection>>) -> ! {
+pub fn start_server(settings: &Settings, db: Arc<Mutex<Connection>>) -> ! {
+    let http_port = settings.http_port;
+    let max_sensor_age_ms = settings.max_sensor_age_ms;
+
     rouille::start_server(
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), settings.http_port),
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), http_port),
         move |request| {
             router!(request,
-                (GET) ["/"] => index(&db, &settings),
+                (GET) ["/"] => index(&db, max_sensor_age_ms),
                 (GET) ["/sensors/{sensor_id}", sensor_id: String] => get_sensor(&db, &sensor_id),
                 (GET) ["/sensors/{sensor_id}/json", sensor_id: String] => get_sensor_json(&db, &sensor_id),
                 (GET) ["/favicon.ico"] => Response::from_data("image/x-icon", FAVICON.to_vec()),
@@ -32,9 +35,9 @@ pub fn start_server(settings: Settings, db: Arc<Mutex<Connection>>) -> ! {
 }
 
 /// Get index page response.
-fn index(db: &Arc<Mutex<Connection>>, settings: &Settings) -> Response {
+fn index(db: &Arc<Mutex<Connection>>, max_sensor_age_ms: i64) -> Response {
     Response::html(
-        templates::IndexTemplate::new(&db.lock().unwrap(), settings.max_sensor_age_ms)
+        templates::IndexTemplate::new(&db.lock().unwrap(), max_sensor_age_ms)
             .unwrap()
             .to_string(),
     )

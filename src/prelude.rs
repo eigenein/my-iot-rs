@@ -9,6 +9,7 @@ pub use crate::errors::InternalError;
 pub use chrono::prelude::*;
 pub use chrono::Duration;
 pub use crossbeam::channel::{Receiver, Sender};
+pub use crossbeam::thread::Scope;
 pub use log::{debug, error, info, log, warn, Level as LogLevel};
 pub use rusqlite::Connection;
 pub use serde::{Deserialize, Serialize};

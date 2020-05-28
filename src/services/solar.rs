@@ -29,22 +29,20 @@ fn default_interval_ms() -> u64 {
 }
 
 impl Solar {
-    pub fn spawn(&self, service_id: &str, bus: &mut Bus) -> Result<()> {
-        let service_id = service_id.to_string();
+    pub fn spawn<'env>(&'env self, scope: &Scope<'env>, service_id: &'env str, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
         let interval = Duration::from_millis(self.interval_ms);
-        let settings = self.clone();
 
-        supervisor::spawn(service_id.clone(), tx.clone(), move || -> Result<()> {
+        supervisor::spawn(scope, service_id, tx.clone(), move || -> Result<()> {
             loop {
                 let now = Utc::now();
-                match calc_sunrise_and_set(now, settings.latitude, settings.longitude)? {
+                match calc_sunrise_and_set(now, self.latitude, self.longitude)? {
                     SunriseAndSet::Daylight(sunrise, sunset) => {
                         if now < sunrise {
                             Message::new(format!("{}::before::sunrise", service_id))
                                 .type_(Type::ReadSnapshot)
                                 .sensor_title("Time Before Sunrise")
-                                .optional_room_title(settings.room_title.clone())
+                                .optional_room_title(self.room_title.clone())
                                 .value(Time::new::<time::millisecond>((sunrise - now).num_milliseconds() as f64))
                                 .send_and_forget(&tx);
                         }
@@ -52,7 +50,7 @@ impl Solar {
                             Message::new(format!("{}::before::sunset", service_id))
                                 .type_(Type::ReadSnapshot)
                                 .sensor_title("Time Before Sunset")
-                                .optional_room_title(settings.room_title.clone())
+                                .optional_room_title(self.room_title.clone())
                                 .value(Time::new::<time::millisecond>((sunset - now).num_milliseconds() as f64))
                                 .send_and_forget(&tx);
                         }
@@ -60,7 +58,7 @@ impl Solar {
                             Message::new(format!("{}::after::sunrise", service_id))
                                 .type_(Type::ReadSnapshot)
                                 .sensor_title("Time After Sunrise")
-                                .optional_room_title(settings.room_title.clone())
+                                .optional_room_title(self.room_title.clone())
                                 .value(Time::new::<time::millisecond>((now - sunrise).num_milliseconds() as f64))
                                 .send_and_forget(&tx);
                         }
@@ -68,7 +66,7 @@ impl Solar {
                             Message::new(format!("{}::after::sunset", service_id))
                                 .type_(Type::ReadSnapshot)
                                 .sensor_title("Time After Sunset")
-                                .optional_room_title(settings.room_title.clone())
+                                .optional_room_title(self.room_title.clone())
                                 .value(Time::new::<time::millisecond>((now - sunset).num_milliseconds() as f64))
                                 .send_and_forget(&tx);
                         }
@@ -76,13 +74,13 @@ impl Solar {
                     SunriseAndSet::PolarDay => {
                         Message::new(format!("{}::polar_day", service_id))
                             .type_(Type::ReadNonLogged)
-                            .optional_room_title(settings.room_title.clone())
+                            .optional_room_title(self.room_title.clone())
                             .send_and_forget(&tx);
                     }
                     SunriseAndSet::PolarNight => {
                         Message::new(format!("{}::polar_night", service_id))
                             .type_(Type::ReadNonLogged)
-                            .optional_room_title(settings.room_title.clone())
+                            .optional_room_title(self.room_title.clone())
                             .send_and_forget(&tx);
                     }
                 }

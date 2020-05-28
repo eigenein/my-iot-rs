@@ -22,16 +22,14 @@ pub struct Telegram {
 }
 
 impl Telegram {
-    pub fn spawn(&self, service_id: &str, bus: &mut Bus) -> Result<()> {
-        let service_id = service_id.to_string();
+    pub fn spawn<'env>(&'env self, scope: &Scope<'env>, service_id: &'env str, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
-        let token = self.token.clone();
         let client = new_client()?;
 
-        supervisor::spawn(service_id.clone(), tx.clone(), move || -> Result<()> {
+        supervisor::spawn(scope, service_id, tx.clone(), move || -> Result<()> {
             let mut offset: Option<i64> = None;
             loop {
-                for update in get_updates(&client, &token, offset)?.iter() {
+                for update in get_updates(&client, &self.token, offset)?.iter() {
                     offset = offset.max(Some(update.update_id + 1));
                     send_readings(&service_id, &tx, &update)?;
                 }

@@ -35,14 +35,17 @@ pub struct Lua {
 }
 
 impl Lua {
-    pub fn spawn(&self, service_id: &str, bus: &mut Bus, services: &HashMap<String, Service>) -> Result<()> {
-        let service_id = service_id.to_string();
+    pub fn spawn<'env>(
+        &'env self,
+        scope: &Scope<'env>,
+        service_id: &'env str,
+        bus: &mut Bus,
+        services: &'env HashMap<String, Service>,
+    ) -> Result<()> {
         let tx = bus.add_tx();
         let rx = bus.add_rx();
-        let settings = self.clone();
-        let services = services.clone();
 
-        supervisor::spawn(service_id.clone(), tx.clone(), move || -> Result<()> {
+        supervisor::spawn(scope, service_id, tx.clone(), move || -> Result<()> {
             let lua = rlua::Lua::new();
             lua.context(|context| -> Result<()> {
                 init_logging(context, &service_id)?;
@@ -50,12 +53,12 @@ impl Lua {
                 init_services(context, &services)?;
 
                 info!("[{}] Loading and executing script…", &service_id);
-                context.load(&settings.script).set_name(&service_id)?.exec()?;
+                context.load(&self.script).set_name(&service_id)?.exec()?;
                 let on_message: LuaValue = context.globals().get("onMessage")?;
 
                 info!("[{}] Listening…", &service_id);
                 for message in &rx {
-                    if settings.is_match(&service_id, &message) {
+                    if self.is_match(&service_id, &message) {
                         if let LuaValue::Function(on_message) = &on_message {
                             on_message.call::<_, ()>(create_args_table(context, &message)?)?;
                         } else {

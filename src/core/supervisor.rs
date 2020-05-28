@@ -1,4 +1,4 @@
-//! Allows to monitor thread status and automatically respawn a crashed thread.
+//! Allows monitoring thread status and automatically re-spawning a crashed thread.
 
 use crate::prelude::*;
 use log::{error, info};
@@ -6,15 +6,13 @@ use std::time::Duration;
 use std::{io, thread};
 
 /// Spawn a supervised named thread.
-pub fn spawn<N, F>(name: N, tx: Sender<Message>, f: F) -> io::Result<()>
+pub fn spawn<'env, F>(scope: &Scope<'env>, name: &'env str, tx: Sender<Message>, f: F) -> io::Result<()>
 where
-    N: Into<String>,
-    F: Fn() -> Result<()> + Send + 'static,
+    F: Fn() -> Result<()> + Send + 'env,
 {
-    let name = name.into();
-    let sensor = format!("my_iot::{}::is_running", &name);
+    let sensor = format!("my_iot::{}::is_running", name);
 
-    thread::Builder::new().name(name.clone()).spawn(move || loop {
+    scope.builder().name(name.to_string()).spawn(move |_| loop {
         info!("Running `{}`", &name);
         Message::new(&sensor)
             .value(Value::Boolean(true))

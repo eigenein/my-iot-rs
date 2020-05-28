@@ -18,13 +18,11 @@ pub struct Nest {
 }
 
 impl Nest {
-    pub fn spawn(&self, service_id: &str, bus: &mut Bus) -> Result<()> {
-        let service_id = service_id.to_string();
-        let token = self.token.clone();
+    pub fn spawn<'env>(&'env self, scope: &Scope<'env>, service_id: &'env str, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
 
-        supervisor::spawn(service_id.clone(), tx.clone(), move || -> Result<()> {
-            let client = Client::new(Url::parse_with_params(URL, &[("auth", &token)]).unwrap());
+        supervisor::spawn(scope, service_id, tx.clone(), move || -> Result<()> {
+            let client = Client::new(Url::parse_with_params(URL, &[("auth", &self.token)]).unwrap());
             for event in client {
                 if let Ok(event) = event {
                     if let Some(event_type) = event.event_type {
