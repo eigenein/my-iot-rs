@@ -30,7 +30,7 @@ And no, I didn't think about the project name long enough.
 ## Stack
 
 - [Rust](https://www.rust-lang.org/)
-- [Rouille](https://github.com/tomaka/rouille)
+- [Rocket](https://rocket.rs/)
 - [Askama](https://github.com/djc/askama)
 - [Bulma](https://bulma.io/)
 - [Lua](https://www.lua.org/)
