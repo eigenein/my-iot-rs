@@ -12,13 +12,13 @@ use std::time::Duration;
 
 const CLIENT_TIMEOUT_SECS: u64 = 60;
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Telegram {
     pub secrets: Secrets,
 }
 
 /// Secrets section.
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Secrets {
     pub token: String,
 }

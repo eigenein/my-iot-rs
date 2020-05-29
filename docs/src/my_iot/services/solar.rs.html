@@ -106,7 +106,7 @@
 <span class="kw">use</span> <span class="ident">uom</span>::<span class="ident">si</span>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Emits durations to and after sunrise and sunset.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Solar</span> {
     <span class="doccomment">/// Message interval in milliseconds.</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_interval_ms&quot;</span>)]</span>
@@ -118,7 +118,7 @@
     <span class="kw">pub</span> <span class="ident">secrets</span>: <span class="ident">Secrets</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Secrets</span> {
     <span class="doccomment">/// Latitude in [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System) system, ranging from `-90.0` to `90.0`.</span>
     <span class="kw">pub</span> <span class="ident">latitude</span>: <span class="ident">f64</span>,

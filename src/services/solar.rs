@@ -7,7 +7,7 @@ use uom::si::f64::*;
 use uom::si::*;
 
 /// Emits durations to and after sunrise and sunset.
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Solar {
     /// Message interval in milliseconds.
     #[serde(default = "default_interval_ms")]
@@ -19,7 +19,7 @@ pub struct Solar {
     pub secrets: Secrets,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Secrets {
     /// Latitude in [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System) system, ranging from `-90.0` to `90.0`.
     pub latitude: f64,

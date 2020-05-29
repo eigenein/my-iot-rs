@@ -328,7 +328,7 @@
 <span class="kw">const</span> <span class="ident">MESSAGE_ARG_TIMESTAMP_MILLIS</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;timestamp_millis&quot;</span>;
 
 <span class="doccomment">/// Adds Lua scripting and calls message handler for each incoming message.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Lua</span> {
     <span class="doccomment">/// Script body.</span>
     <span class="ident">script</span>: <span class="ident">String</span>,

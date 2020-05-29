@@ -22,7 +22,7 @@ pub fn read<P: AsRef<Path> + std::fmt::Debug>(paths: Vec<P>) -> Result<Settings>
 }
 
 /// Settings root.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Settings {
     /// Web server port. It's used for the user interface as well as for webhooks.
     #[serde(default = "default_http_port")]
@@ -39,7 +39,7 @@ pub struct Settings {
 }
 
 /// Service settings section.
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 #[serde(tag = "type")]
 pub enum Service {
     /// Regularly emits a counter value.

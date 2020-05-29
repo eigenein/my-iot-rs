@@ -18,7 +18,7 @@ const MESSAGE_ARG_VALUE: &str = "value";
 const MESSAGE_ARG_TIMESTAMP_MILLIS: &str = "timestamp_millis";
 
 /// Adds Lua scripting and calls message handler for each incoming message.
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Lua {
     /// Script body.
     script: String,

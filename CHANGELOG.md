@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.47.0`
+
+- Settings view page
+
 ## `0.46.0`
 
 - `my-iot` now accepts multiple settings files. They're concatenated and the result is parsed as if it was a single TOML file.

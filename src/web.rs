@@ -29,17 +29,30 @@ fn make_rocket(settings: &Settings, db: Arc<Mutex<Connection>>) -> Result<Rocket
     )
     .manage(MaxSensorAgeMs(settings.max_sensor_age_ms))
     .manage(db)
+    .manage(settings.clone())
     .mount(
         "/",
-        routes![index, get_favicon, get_static, get_sensor, get_sensor_json],
+        routes![
+            get_index,
+            get_settings,
+            get_favicon,
+            get_static,
+            get_sensor,
+            get_sensor_json
+        ],
     ))
 }
 
 #[get("/")]
-fn index(db: State<Arc<Mutex<Connection>>>, max_sensor_age_ms: State<MaxSensorAgeMs>) -> Result<Html<String>> {
+fn get_index(db: State<Arc<Mutex<Connection>>>, max_sensor_age_ms: State<MaxSensorAgeMs>) -> Result<Html<String>> {
     Ok(Html(
         templates::IndexTemplate::new(&db.lock().unwrap(), max_sensor_age_ms.0)?.to_string(),
     ))
+}
+
+#[get("/settings")]
+fn get_settings(settings: State<Settings>) -> Result<Html<String>> {
+    Ok(Html(templates::SettingsTemplate::new(&settings)?.to_string()))
 }
 
 #[get("/favicon.ico")]

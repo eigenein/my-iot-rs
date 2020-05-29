@@ -1,6 +1,7 @@
 //! Web interface templates.
 
 use crate::prelude::*;
+use crate::settings::Settings;
 use askama::Template;
 use itertools::Itertools;
 
@@ -21,6 +22,20 @@ impl IndexTemplate {
                 .into_iter()
                 .map(|(room_title, group)| (room_title, group.collect_vec()))
                 .collect_vec(),
+        })
+    }
+}
+
+#[derive(Template)]
+#[template(path = "settings.html")]
+pub struct SettingsTemplate {
+    pub settings: String,
+}
+
+impl SettingsTemplate {
+    pub fn new(settings: &Settings) -> Result<Self> {
+        Ok(SettingsTemplate {
+            settings: toml::to_string_pretty(&settings)?,
         })
     }
 }
