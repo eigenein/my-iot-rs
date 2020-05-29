@@ -21,11 +21,11 @@ mod web;
 #[derive(StructOpt, Debug)]
 #[structopt(name = "my-iot", author, about)]
 struct Opt {
-    /// Show warning and error messages only
+    /// Show only warnings and errors
     #[structopt(short = "s", long = "silent", conflicts_with = "verbose")]
     silent: bool,
 
-    /// Show debug messages
+    /// Show all log messages
     #[structopt(short = "v", long = "verbose", conflicts_with = "silent")]
     verbose: bool,
 
@@ -33,9 +33,9 @@ struct Opt {
     #[structopt(long, env = "MYIOT_DB", default_value = "my-iot.sqlite3")]
     db: String,
 
-    /// Settings file
+    /// Settings files
     #[structopt(parse(from_os_str), env = "MYIOT_SETTINGS", default_value = "my-iot.toml")]
-    settings: PathBuf,
+    settings: Vec<PathBuf>,
 }
 
 /// Entry point.

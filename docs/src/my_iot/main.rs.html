@@ -97,11 +97,11 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>, <span class="ident">Debug</span>)]</span>
 <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;my-iot&quot;</span>, <span class="ident">author</span>, <span class="ident">about</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Opt</span> {
-    <span class="doccomment">/// Show warning and error messages only</span>
+    <span class="doccomment">/// Show only warnings and errors</span>
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">short</span> <span class="op">=</span> <span class="string">&quot;s&quot;</span>, <span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;silent&quot;</span>, <span class="ident">conflicts_with</span> <span class="op">=</span> <span class="string">&quot;verbose&quot;</span>)]</span>
     <span class="ident">silent</span>: <span class="ident">bool</span>,
 
-    <span class="doccomment">/// Show debug messages</span>
+    <span class="doccomment">/// Show all log messages</span>
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">short</span> <span class="op">=</span> <span class="string">&quot;v&quot;</span>, <span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;verbose&quot;</span>, <span class="ident">conflicts_with</span> <span class="op">=</span> <span class="string">&quot;silent&quot;</span>)]</span>
     <span class="ident">verbose</span>: <span class="ident">bool</span>,
 
@@ -109,9 +109,9 @@
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">long</span>, <span class="ident">env</span> <span class="op">=</span> <span class="string">&quot;MYIOT_DB&quot;</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;my-iot.sqlite3&quot;</span>)]</span>
     <span class="ident">db</span>: <span class="ident">String</span>,
 
-    <span class="doccomment">/// Settings file</span>
+    <span class="doccomment">/// Settings files</span>
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">parse</span>(<span class="ident">from_os_str</span>), <span class="ident">env</span> <span class="op">=</span> <span class="string">&quot;MYIOT_SETTINGS&quot;</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;my-iot.toml&quot;</span>)]</span>
-    <span class="ident">settings</span>: <span class="ident">PathBuf</span>,
+    <span class="ident">settings</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Entry point.</span>

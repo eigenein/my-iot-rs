@@ -15,6 +15,8 @@ At the moment all documentation resides in the `README`. It is incomplete and wi
 - [Run at System Startup](#run-at-system-startup)
 - [Publish on the Internet with NGINX](#publish-on-the-internet-with-nginx)
 
+---
+
 # What Is It?
 
 I'm writing something similar to [Home Assistant](https://www.home-assistant.io/) from ground up for my tiny set of Wi-Fi enabled devices.
@@ -34,6 +36,8 @@ And no, I didn't think about the project name long enough.
 - [Askama](https://github.com/djc/askama)
 - [Bulma](https://bulma.io/)
 - [Lua](https://www.lua.org/)
+
+---
 
 # Installation
 
@@ -76,23 +80,40 @@ setcap cap_net_raw+ep /home/pi/.cargo/bin/my-iot
 
 This is needed to use some low-level protocols (for instance, [ICMP](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol)) as a non-root user.
 
+---
+
 # Settings
 
-My IoT is configured by a single [TOML](https://github.com/toml-lang/toml) file specified as the argument.
+My IoT is configured using [TOML](https://github.com/toml-lang/toml) files specified as command-line arguments:
+
+```bash
+my-iot my-iot.toml
+```
+
+[Here](https://eigenein.github.io/my-iot-rs/my_iot/settings/struct.Settings.html) you can find the auto-generated docs for the settings.
 
 ## Example
 
 ```toml
+# my-iot.toml
+
 http_port = 8080
 
+# `heartbeat` is a user-defined service ID.
 [services.heartbeat]
 type = "Clock"
 interval_ms = 2000
 
-[services.buienradar]
+[services.weather]
 type = "Buienradar"
 station_id = 6240
 ```
+
+## Securing Secrets
+
+TODO
+
+---
 
 # Services
 
@@ -107,7 +128,7 @@ station_id = 6240
 ### Example
 
 ```toml
-[services.lua]
+[services.example]
 type = "Lua"
 # language=lua
 script = '''
@@ -217,6 +238,8 @@ end
 2020-04-29 17:32:17,806 INFO  [my_iot::core::persistence::thread] sun_vijfhuizen::after::sunrise: ReadSnapshot Duration(40832.16 s^1)
 ```
 
+---
+
 # Run at System Startup
 
 For now please refer to [Raspberry Pi `systemd` page](https://www.raspberrypi.org/documentation/linux/usage/systemd.md).
@@ -260,6 +283,8 @@ journalctl -u my-iot -f
 ```
 
 See also: [How To Use Journalctl to View and Manipulate Systemd Logs](https://www.digitalocean.com/community/tutorials/how-to-use-journalctl-to-view-and-manipulate-systemd-logs).
+
+---
 
 # [Publish on the Internet with NGINX](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/)
 

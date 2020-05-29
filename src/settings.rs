@@ -1,18 +1,27 @@
 //! Settings structs.
 
+use crate::prelude::*;
 use crate::services;
-use crate::Result;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
 /// Read the settings file.
-pub fn read<P: AsRef<Path>>(path: P) -> Result<Settings> {
-    toml::from_str(&fs::read_to_string(path)?).map_err(Into::into)
+pub fn read<P: AsRef<Path> + std::fmt::Debug>(paths: Vec<P>) -> Result<Settings> {
+    Ok(toml::from_str(
+        &paths
+            .iter()
+            .map(|path| -> Result<String> {
+                info!("Reading {:?}…", path);
+                Ok(fs::read_to_string(path)?)
+            })
+            .collect::<Result<Vec<String>>>()?
+            .join("\n\n"),
+    )?)
 }
 
-/// Represents a root settings object.
+/// Settings root.
 #[derive(Deserialize, Debug)]
 pub struct Settings {
     /// Web server port. It's used for the user interface as well as for webhooks.
@@ -29,7 +38,7 @@ pub struct Settings {
     pub services: HashMap<String, Service>,
 }
 
-/// A service configuration.
+/// Service settings section.
 #[derive(Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
 pub enum Service {

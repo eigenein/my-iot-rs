@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- `my-iot` now accepts multiple settings files. They're concatenated and the result is parsed as if it was a single TOML file.
+
 ## `0.45.0`
 
 Service intercommunication via "fake" messages doesn't play that nice. However, it was mainly meant to work with the old `Automator`, which is now replaced with `Lua`. Thus, I remove this functionality and leave `Write` messages only to actually change existing sensor value. Fake sensors become discouraged since now.
