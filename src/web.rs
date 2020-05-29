@@ -34,6 +34,7 @@ fn make_rocket(settings: &Settings, db: Arc<Mutex<Connection>>) -> Result<Rocket
         "/",
         routes![
             get_index,
+            get_sensors,
             get_settings,
             get_favicon,
             get_static,
@@ -44,9 +45,14 @@ fn make_rocket(settings: &Settings, db: Arc<Mutex<Connection>>) -> Result<Rocket
 }
 
 #[get("/")]
-fn get_index(db: State<Arc<Mutex<Connection>>>, max_sensor_age_ms: State<MaxSensorAgeMs>) -> Result<Html<String>> {
+fn get_index() -> Html<String> {
+    Html(templates::IndexTemplate::new().to_string())
+}
+
+#[get("/sensors")]
+fn get_sensors(db: State<Arc<Mutex<Connection>>>, max_sensor_age_ms: State<MaxSensorAgeMs>) -> Result<Html<String>> {
     Ok(Html(
-        templates::IndexTemplate::new(&db.lock().unwrap(), max_sensor_age_ms.0)?.to_string(),
+        templates::SensorsTemplate::new(&db.lock().unwrap(), max_sensor_age_ms.0)?.to_string(),
     ))
 }
 

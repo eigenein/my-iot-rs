@@ -7,12 +7,22 @@ use itertools::Itertools;
 
 #[derive(Template)]
 #[template(path = "index.html")]
-pub struct IndexTemplate {
+pub struct IndexTemplate {}
+
+impl IndexTemplate {
+    pub fn new() -> Self {
+        IndexTemplate {}
+    }
+}
+
+#[derive(Template)]
+#[template(path = "sensors.html")]
+pub struct SensorsTemplate {
     #[allow(clippy::type_complexity)]
     pub actuals: Vec<(Option<String>, Vec<(Sensor, Reading)>)>,
 }
 
-impl IndexTemplate {
+impl SensorsTemplate {
     pub fn new(db: &Connection, max_sensor_age_ms: i64) -> Result<Self> {
         Ok(Self {
             actuals: db
