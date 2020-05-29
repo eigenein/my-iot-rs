@@ -134,7 +134,7 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
     }
     if let Some(bft) = measurement.wind_speed_bft {
         tx.send(
-            Message::new(format!("{}::{}::wind_speed_bft", service_id, station_id))
+            Message::new(format!("{}::{}::wind_force", service_id, station_id))
                 .type_(MessageType::ReadLogged)
                 .value(Value::Bft(bft))
                 .timestamp(measurement.timestamp)

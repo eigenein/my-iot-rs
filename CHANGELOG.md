@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Renamed Buienradar `wind_speed_bft` to `wind_force`
+
 ## `0.47.0`
 
 - Settings view page
