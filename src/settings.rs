@@ -62,7 +62,7 @@ pub fn default_http_port() -> u16 {
     8081
 }
 
-/// Defaults to 30 days.
+/// Defaults to 14 days.
 pub fn default_max_sensor_age_ms() -> i64 {
-    30 * 24 * 60 * 60 * 1000
+    14 * 24 * 60 * 60 * 1000
 }

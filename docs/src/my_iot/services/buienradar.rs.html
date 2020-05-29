@@ -340,7 +340,7 @@
     }
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bft</span>) <span class="op">=</span> <span class="ident">measurement</span>.<span class="ident">wind_speed_bft</span> {
         <span class="ident">tx</span>.<span class="ident">send</span>(
-            <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::wind_speed_bft&quot;</span>, <span class="ident">service_id</span>, <span class="ident">station_id</span>))
+            <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::wind_force&quot;</span>, <span class="ident">service_id</span>, <span class="ident">station_id</span>))
                 .<span class="ident">type_</span>(<span class="ident">MessageType</span>::<span class="ident">ReadLogged</span>)
                 .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Bft</span>(<span class="ident">bft</span>))
                 .<span class="ident">timestamp</span>(<span class="ident">measurement</span>.<span class="ident">timestamp</span>)

@@ -177,6 +177,12 @@
 <span id="177">177</span>
 <span id="178">178</span>
 <span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implements web server.</span>
 
@@ -214,6 +220,7 @@
         <span class="string">&quot;/&quot;</span>,
         <span class="macro">routes</span><span class="macro">!</span>[
             <span class="ident">get_index</span>,
+            <span class="ident">get_sensors</span>,
             <span class="ident">get_settings</span>,
             <span class="ident">get_favicon</span>,
             <span class="ident">get_static</span>,
@@ -224,9 +231,14 @@
 }
 
 <span class="attribute">#[<span class="ident">get</span>(<span class="string">&quot;/&quot;</span>)]</span>
-<span class="kw">fn</span> <span class="ident">get_index</span>(<span class="ident">db</span>: <span class="ident">State</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Connection</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">max_sensor_age_ms</span>: <span class="ident">State</span><span class="op">&lt;</span><span class="ident">MaxSensorAgeMs</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Html</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">get_index</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Html</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="ident">Html</span>(<span class="ident">templates</span>::<span class="ident">IndexTemplate</span>::<span class="ident">new</span>().<span class="ident">to_string</span>())
+}
+
+<span class="attribute">#[<span class="ident">get</span>(<span class="string">&quot;/sensors&quot;</span>)]</span>
+<span class="kw">fn</span> <span class="ident">get_sensors</span>(<span class="ident">db</span>: <span class="ident">State</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Connection</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">max_sensor_age_ms</span>: <span class="ident">State</span><span class="op">&lt;</span><span class="ident">MaxSensorAgeMs</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Html</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="prelude-val">Ok</span>(<span class="ident">Html</span>(
-        <span class="ident">templates</span>::<span class="ident">IndexTemplate</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>(), <span class="ident">max_sensor_age_ms</span>.<span class="number">0</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>(),
+        <span class="ident">templates</span>::<span class="ident">SensorsTemplate</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>(), <span class="ident">max_sensor_age_ms</span>.<span class="number">0</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>(),
     ))
 }
 
