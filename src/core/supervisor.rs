@@ -17,6 +17,7 @@ where
         Message::new(&sensor)
             .value(Value::Boolean(true))
             .room_title("System".to_string())
+            .sensor_title(format!("Running {}", name))
             .send_and_forget(&tx);
         match f() {
             Ok(_) => error!("Thread `{}` has finished unexpectedly", &name),
@@ -25,6 +26,7 @@ where
         Message::new(&sensor)
             .value(Value::Boolean(false))
             .room_title("System")
+            .sensor_title(format!("Running {}", name))
             .send_and_forget(&tx);
 
         // FIXME: https://github.com/eigenein/my-iot-rs/issues/47

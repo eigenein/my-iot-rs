@@ -3,6 +3,7 @@
 ## `master`
 
 - Renamed Buienradar `wind_speed_bft` to `wind_force`
+- Added titles to supervisor sensors
 
 ## `0.47.0`
 
