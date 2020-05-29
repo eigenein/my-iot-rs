@@ -135,7 +135,7 @@ latitude = 52.3667
 longitude = 4.8945
 ```
 
-And then you run My IoT as `my-iot my-iot.toml secrets.toml`.
+Then you run My IoT as `my-iot my-iot.toml secrets.toml`.
 
 ---
 
@@ -224,6 +224,8 @@ All indices are optional. Also, a value is provided via either of the following 
 
 ### Recipes
 
+I store my settings on [GitHub Gist](https://gist.github.com/eigenein/f4af6ca1d8db0cd36de981429aa3e6e2) as an extra example.
+
 #### «Rise and shine» IKEA Trådfri lights starting one hour before sunset
 
 At the moment of writing the recipe there is no native `Tradfri` service. I'm following [the `coap-client` tutorial](https://github.com/glenndehaan/ikea-tradfri-coap-docs/blob/master/README.md) to control bulbs.
@@ -281,7 +283,7 @@ BindsTo = network-online.target
 After = network.target network-online.target
 
 [Service]
-ExecStart = /home/pi/.cargo/bin/my-iot --silent my-iot.toml secrets.toml
+ExecStart = /home/pi/bin/my-iot --silent my-iot/my-iot.toml my-iot/secrets.toml
 WorkingDirectory = /home/pi
 StandardOutput = journal
 StandardError = journal
