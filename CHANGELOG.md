@@ -4,6 +4,7 @@
 
 - Renamed Buienradar `wind_speed_bft` to `wind_force`
 - Added titles to supervisor sensors
+- Lower `default_max_sensor_age_ms` to 14 days
 
 ## `0.47.0`
 
