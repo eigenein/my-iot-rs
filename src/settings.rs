@@ -32,10 +32,31 @@ pub struct Settings {
     #[serde(default = "default_max_sensor_age_ms")]
     pub max_sensor_age_ms: i64,
 
+    #[serde(default)]
+    pub dashboard: DashboardSettings,
+
     /// Services configuration.
     /// Each entry is a pair of service ID (defined by user) and service settings.
     /// Service ID is normally used as a sensor prefix, for instance: `service_id::service_sensor`.
     pub services: HashMap<String, Service>,
+}
+
+#[derive(Deserialize, Debug, Clone, Serialize)]
+pub struct DashboardSettings {
+    #[serde(default)]
+    pub temperature_sensor: Option<String>,
+
+    #[serde(default)]
+    pub feel_temperature_sensor: Option<String>,
+}
+
+impl Default for DashboardSettings {
+    fn default() -> Self {
+        Self {
+            temperature_sensor: None,
+            feel_temperature_sensor: None,
+        }
+    }
 }
 
 /// Service settings section.

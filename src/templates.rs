@@ -4,14 +4,47 @@ use crate::prelude::*;
 use crate::settings::Settings;
 use askama::Template;
 use itertools::Itertools;
+use std::collections::HashMap;
 
 #[derive(Template)]
 #[template(path = "index.html")]
-pub struct IndexTemplate {}
+pub struct IndexTemplate {
+    pub temperature: Value,
+    pub feel_temperature: Value,
+}
+
+impl Default for IndexTemplate {
+    fn default() -> Self {
+        Self {
+            temperature: Value::None,
+            feel_temperature: Value::None,
+        }
+    }
+}
 
 impl IndexTemplate {
-    pub fn new() -> Self {
-        IndexTemplate {}
+    pub fn new(db: &Connection, settings: &Settings) -> Result<Self> {
+        let mut template = Self::default();
+
+        let actuals: HashMap<String, Reading> = db
+            .select_actuals(settings.max_sensor_age_ms)?
+            .into_iter()
+            .map(|(sensor, reading)| (sensor.id, reading))
+            .collect();
+
+        template.temperature = Self::get_value(&actuals, &settings.dashboard.temperature_sensor);
+        template.feel_temperature = Self::get_value(&actuals, &settings.dashboard.feel_temperature_sensor);
+
+        Ok(template)
+    }
+
+    fn get_value(actuals: &HashMap<String, Reading>, sensor_id: &Option<String>) -> Value {
+        if let Some(ref sensor_id) = sensor_id {
+            if let Some(reading) = actuals.get(sensor_id) {
+                return reading.value.clone();
+            }
+        }
+        Value::None
     }
 }
 
@@ -44,7 +77,7 @@ pub struct SettingsTemplate {
 
 impl SettingsTemplate {
     pub fn new(settings: &Settings) -> Result<Self> {
-        Ok(SettingsTemplate {
+        Ok(Self {
             settings: toml::to_string_pretty(&settings)?,
         })
     }

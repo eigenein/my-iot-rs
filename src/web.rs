@@ -45,8 +45,10 @@ fn make_rocket(settings: &Settings, db: Arc<Mutex<Connection>>) -> Result<Rocket
 }
 
 #[get("/")]
-fn get_index() -> Html<String> {
-    Html(templates::IndexTemplate::new().to_string())
+fn get_index(db: State<Arc<Mutex<Connection>>>, settings: State<Settings>) -> Result<Html<String>> {
+    Ok(Html(
+        templates::IndexTemplate::new(&db.lock().unwrap(), &settings)?.to_string(),
+    ))
 }
 
 #[get("/sensors")]
@@ -178,6 +180,7 @@ mod tests {
                 http_port: default_http_port(),
                 max_sensor_age_ms: default_max_sensor_age_ms(),
                 services: HashMap::new(),
+                dashboard: DashboardSettings::default(),
             },
             Arc::new(Mutex::new(Connection::open_and_initialize(":memory:")?)),
         )?)?)
