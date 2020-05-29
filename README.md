@@ -111,7 +111,31 @@ station_id = 6240
 
 ## Securing Secrets
 
-TODO
+It's a common pattern to split configuration into non-secret and secret parts, where non-secret part is stored under a version control.
+
+`my-iot` allows specifying multiple settings files, it means that you can put your secrets in a separate file excluded by `.gitignore`. Services provide separate configuration section to allow moving it out of public part.
+
+For example:
+
+```toml
+# my-iot.toml:
+[services.telegram]
+type = "Telegram"
+
+[services.sun_amsterdam]
+type = "Solar"
+room_title = "Amsterdam"
+
+# secrets.toml:
+[services.telegram.secrets]
+token = "..."
+
+[services.sun_amsterdam.secrets]
+latitude = 52.3667
+longitude = 4.8945
+```
+
+And then you run My IoT as `my-iot my-iot.toml secrets.toml`.
 
 ---
 
@@ -257,7 +281,7 @@ BindsTo = network-online.target
 After = network.target network-online.target
 
 [Service]
-ExecStart = /home/pi/.cargo/bin/my-iot --silent
+ExecStart = /home/pi/.cargo/bin/my-iot --silent my-iot.toml secrets.toml
 WorkingDirectory = /home/pi
 StandardOutput = journal
 StandardError = journal

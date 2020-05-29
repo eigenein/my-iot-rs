@@ -9,18 +9,23 @@ use uom::si::*;
 /// Emits durations to and after sunrise and sunset.
 #[derive(Deserialize, Debug, Clone)]
 pub struct Solar {
-    /// Latitude in [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System) system, ranging from `-90.0` to `90.0`.
-    pub latitude: f64,
-
-    /// Longitude in [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System) system, ranging from `-180.0` to `180.0`
-    pub longitude: f64,
-
     /// Message interval in milliseconds.
     #[serde(default = "default_interval_ms")]
     pub interval_ms: u64,
 
     #[serde(default)]
     pub room_title: Option<String>,
+
+    pub secrets: Secrets,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct Secrets {
+    /// Latitude in [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System) system, ranging from `-90.0` to `90.0`.
+    pub latitude: f64,
+
+    /// Longitude in [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System) system, ranging from `-180.0` to `180.0`
+    pub longitude: f64,
 }
 
 /// Defaults to one minute.
@@ -36,7 +41,7 @@ impl Solar {
         supervisor::spawn(scope, service_id, tx.clone(), move || -> Result<()> {
             loop {
                 let now = Utc::now();
-                match calc_sunrise_and_set(now, self.latitude, self.longitude)? {
+                match calc_sunrise_and_set(now, self.secrets.latitude, self.secrets.longitude)? {
                     SunriseAndSet::Daylight(sunrise, sunset) => {
                         if now < sunrise {
                             Message::new(format!("{}::before::sunrise", service_id))

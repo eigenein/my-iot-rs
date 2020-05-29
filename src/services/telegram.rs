@@ -2,7 +2,6 @@
 
 use crate::prelude::*;
 use crate::supervisor;
-use chrono::{DateTime, Utc};
 use log::debug;
 use reqwest::blocking::Client;
 use serde::de::DeserializeOwned;
@@ -15,6 +14,12 @@ const CLIENT_TIMEOUT_SECS: u64 = 60;
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct Telegram {
+    pub secrets: Secrets,
+}
+
+/// Secrets section.
+#[derive(Deserialize, Debug, Clone)]
+pub struct Secrets {
     pub token: String,
 }
 
@@ -28,7 +33,7 @@ impl Telegram {
         supervisor::spawn(scope, service_id, tx.clone(), move || -> Result<()> {
             let mut offset: Option<i64> = None;
             loop {
-                for update in get_updates(&client, &self.token, offset)?.iter() {
+                for update in get_updates(&client, &self.secrets.token, offset)?.iter() {
                     offset = offset.max(Some(update.update_id + 1));
                     send_readings(&service_id, &tx, &update)?;
                 }

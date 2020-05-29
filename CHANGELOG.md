@@ -1,8 +1,9 @@
 # `my-iot`
 
-## `master`
+## `0.46.0`
 
 - `my-iot` now accepts multiple settings files. They're concatenated and the result is parsed as if it was a single TOML file.
+- `Telegram` and `Solar` secrets have been moved into the separate `secrets` section, it means that from now on you can split secrets and non-secrets between different TOML files.
 
 ## `0.45.0`
 

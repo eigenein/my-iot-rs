@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["default_interval_ms","Defaults to one minute."]],"struct":[["Solar","Emits durations to and after sunrise and sunset."]]});
+initSidebarItems({"fn":[["default_interval_ms","Defaults to one minute."]],"struct":[["Secrets",""],["Solar","Emits durations to and after sunrise and sunset."]]});
