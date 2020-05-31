@@ -43,10 +43,10 @@ struct BuienradarFeed {
 
 #[derive(Deserialize, Debug)]
 struct BuienradarFeedActual {
-    #[serde(deserialize_with = "date_format")]
+    #[serde(deserialize_with = "deserialize_datetime")]
     sunrise: DateTime<Local>,
 
-    #[serde(deserialize_with = "date_format")]
+    #[serde(deserialize_with = "deserialize_datetime")]
     sunset: DateTime<Local>,
 
     #[serde(rename = "stationmeasurements")]
@@ -72,10 +72,14 @@ struct BuienradarStationMeasurement {
     #[serde(rename = "windspeedBft")]
     wind_speed_bft: Option<u8>,
 
-    #[serde(deserialize_with = "date_format")]
+    #[serde(deserialize_with = "deserialize_datetime")]
     timestamp: DateTime<Local>,
 
-    #[serde(default, rename = "winddirection", deserialize_with = "point_of_the_compass")]
+    #[serde(
+        default,
+        rename = "winddirection",
+        deserialize_with = "deserialize_point_of_the_compass"
+    )]
     wind_direction: Option<PointOfTheCompass>,
 
     #[serde(rename = "weatherdescription")]
@@ -156,7 +160,7 @@ fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32
 }
 
 /// Implements [custom date/time format](https://serde.rs/custom-date-format.html) with Amsterdam timezone.
-fn date_format<'de, D: Deserializer<'de>>(deserializer: D) -> std::result::Result<DateTime<Local>, D::Error> {
+fn deserialize_datetime<'de, D: Deserializer<'de>>(deserializer: D) -> std::result::Result<DateTime<Local>, D::Error> {
     Ok(Amsterdam
         .datetime_from_str(&String::deserialize(deserializer)?, "%Y-%m-%dT%H:%M:%S")
         .map_err(de::Error::custom)?
@@ -164,7 +168,7 @@ fn date_format<'de, D: Deserializer<'de>>(deserializer: D) -> std::result::Resul
 }
 
 /// Translates Dutch wind direction acronyms.
-pub fn point_of_the_compass<'de, D: Deserializer<'de>>(
+pub fn deserialize_point_of_the_compass<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> std::result::Result<Option<PointOfTheCompass>, D::Error> {
     match String::deserialize(deserializer)?.as_ref() {
