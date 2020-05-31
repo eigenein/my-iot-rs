@@ -43,8 +43,6 @@ impl Db {
                 }
                 thread::sleep(INTERVAL);
             }
-        })?;
-
-        Ok(())
+        })
     }
 }

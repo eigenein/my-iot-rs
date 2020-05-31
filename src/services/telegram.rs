@@ -39,9 +39,7 @@ impl Telegram {
                 }
                 debug!("{}: next offset: {:?}", &service_id, offset);
             }
-        })?;
-
-        Ok(())
+        })
     }
 }
 

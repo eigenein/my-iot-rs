@@ -13,6 +13,7 @@ pub fn spawn_all<'env>(scope: &Scope<'env>, settings: &'env Settings, bus: &mut 
             Service::Clock(clock) => clock.spawn(scope, service_id, bus),
             Service::Lua(lua) => lua.spawn(scope, service_id, bus, &settings.services),
             Service::Solar(solar) => solar.spawn(scope, service_id, bus),
+            Service::Tado(tado) => tado.spawn(scope, service_id, bus),
             Service::Telegram(telegram) => telegram.spawn(scope, service_id, bus),
         }?;
     }

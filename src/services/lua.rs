@@ -69,9 +69,7 @@ impl Lua {
 
                 unreachable!()
             })
-        })?;
-
-        Ok(())
+        })
     }
 
     /// Checks whether the message matches the filters.

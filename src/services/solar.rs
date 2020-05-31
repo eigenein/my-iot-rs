@@ -91,8 +91,6 @@ impl Solar {
                 }
                 thread::sleep(interval);
             }
-        })?;
-
-        Ok(())
+        })
     }
 }

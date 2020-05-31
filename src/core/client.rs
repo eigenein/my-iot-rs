@@ -1,5 +1,6 @@
 use reqwest::blocking::{Client, ClientBuilder};
 use reqwest::header::{HeaderMap, HeaderValue};
+use std::time::Duration;
 use structopt::clap::crate_version;
 
 pub const USER_AGENT: &str = concat!(
@@ -11,5 +12,9 @@ pub const USER_AGENT: &str = concat!(
 pub fn builder() -> ClientBuilder {
     let mut headers = HeaderMap::new();
     headers.insert(reqwest::header::USER_AGENT, HeaderValue::from_static(USER_AGENT));
-    Client::builder().gzip(true).use_rustls_tls().default_headers(headers)
+    Client::builder()
+        .gzip(true)
+        .use_rustls_tls()
+        .default_headers(headers)
+        .timeout(Duration::from_secs(10))
 }

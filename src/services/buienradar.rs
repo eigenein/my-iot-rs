@@ -1,7 +1,6 @@
 use crate::prelude::*;
 use crate::supervisor;
 use chrono::offset::TimeZone;
-use chrono::{DateTime, Local};
 use chrono_tz::Europe::Amsterdam;
 use reqwest::blocking::Client;
 use serde::{de, Deserialize, Deserializer};
@@ -23,29 +22,29 @@ pub struct Buienradar {
 impl Buienradar {
     pub fn spawn<'env>(&'env self, scope: &Scope<'env>, service_id: &'env str, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
-        let client = client_builder().timeout(Duration::from_secs(10)).build()?;
+        let client = client_builder().build()?;
 
         supervisor::spawn(scope, service_id, tx.clone(), move || -> Result<()> {
             loop {
                 send_readings(fetch(&client)?, &service_id, self.station_id, &tx)?;
                 thread::sleep(REFRESH_PERIOD);
             }
-        })?;
-
-        Ok(())
+        })
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 struct BuienradarFeed {
     actual: BuienradarFeedActual,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 struct BuienradarFeedActual {
+    #[allow(dead_code)]
     #[serde(deserialize_with = "deserialize_datetime")]
     sunrise: DateTime<Local>,
 
+    #[allow(dead_code)]
     #[serde(deserialize_with = "deserialize_datetime")]
     sunset: DateTime<Local>,
 
@@ -53,7 +52,7 @@ struct BuienradarFeedActual {
     station_measurements: Vec<BuienradarStationMeasurement>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Clone)]
 struct BuienradarStationMeasurement {
     #[serde(rename = "stationid")]
     station_id: u32,
@@ -169,7 +168,7 @@ fn deserialize_datetime<'de, D: Deserializer<'de>>(deserializer: D) -> std::resu
 }
 
 /// Translates Dutch wind direction acronyms.
-pub fn deserialize_point_of_the_compass<'de, D: Deserializer<'de>>(
+fn deserialize_point_of_the_compass<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> std::result::Result<Option<PointOfTheCompass>, D::Error> {
     match Option::<String>::deserialize(deserializer)? {
@@ -199,7 +198,7 @@ pub fn deserialize_point_of_the_compass<'de, D: Deserializer<'de>>(
     }
 }
 
-pub fn deserialize_temperature<'de, D: Deserializer<'de>>(
+fn deserialize_temperature<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> std::result::Result<Option<ThermodynamicTemperature>, D::Error> {
     Ok(Option::<f64>::deserialize(deserializer)?

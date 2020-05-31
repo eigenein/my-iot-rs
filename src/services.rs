@@ -3,4 +3,5 @@ pub mod clock;
 pub mod db;
 pub mod lua;
 pub mod solar;
+pub mod tado;
 pub mod telegram;

@@ -8,13 +8,12 @@ pub use crate::core::supervisor;
 pub use crate::core::value::{PointOfTheCompass, Value};
 pub use crate::errors::InternalError;
 pub use chrono::prelude::*;
-pub use chrono::Duration;
-pub use chrono::{DateTime, Utc};
+pub use chrono::{DateTime, Local, Utc};
 pub use crossbeam::channel::{Receiver, Sender};
 pub use crossbeam::thread::Scope;
 pub use log::{debug, error, info, log, warn, Level as LogLevel};
 pub use rusqlite::Connection;
-pub use serde::{Deserialize, Serialize};
+pub use serde::{Deserialize, Deserializer, Serialize};
 pub use std::error::Error;
 pub use std::sync::{Arc, Mutex};
 

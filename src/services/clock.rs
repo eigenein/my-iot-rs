@@ -27,8 +27,6 @@ impl Clock {
                 counter += 1;
                 thread::sleep(interval);
             }
-        })?;
-
-        Ok(())
+        })
     }
 }

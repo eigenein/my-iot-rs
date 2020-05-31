@@ -226,12 +226,10 @@
 <span id="226">226</span>
 <span id="227">227</span>
 <span id="228">228</span>
-<span id="229">229</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">supervisor</span>;
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">offset</span>::<span class="ident">TimeZone</span>;
-<span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">DateTime</span>, <span class="ident">Local</span>};
 <span class="kw">use</span> <span class="ident">chrono_tz</span>::<span class="ident">Europe</span>::<span class="ident">Amsterdam</span>;
 <span class="kw">use</span> <span class="ident">reqwest</span>::<span class="ident">blocking</span>::<span class="ident">Client</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">de</span>, <span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>};
@@ -253,29 +251,29 @@
 <span class="kw">impl</span> <span class="ident">Buienradar</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn</span><span class="op">&lt;</span><span class="lifetime">&#39;env</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;env</span> <span class="self">self</span>, <span class="ident">scope</span>: <span class="kw-2">&amp;</span><span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;env</span><span class="op">&gt;</span>, <span class="ident">service_id</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;env</span> <span class="ident">str</span>, <span class="ident">bus</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Bus</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <span class="ident">bus</span>.<span class="ident">add_tx</span>();
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">client_builder</span>().<span class="ident">timeout</span>(<span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">10</span>)).<span class="ident">build</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">client_builder</span>().<span class="ident">build</span>()<span class="question-mark">?</span>;
 
         <span class="ident">supervisor</span>::<span class="ident">spawn</span>(<span class="ident">scope</span>, <span class="ident">service_id</span>, <span class="ident">tx</span>.<span class="ident">clone</span>(), <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
             <span class="kw">loop</span> {
                 <span class="ident">send_readings</span>(<span class="ident">fetch</span>(<span class="kw-2">&amp;</span><span class="ident">client</span>)<span class="question-mark">?</span>, <span class="kw-2">&amp;</span><span class="ident">service_id</span>, <span class="self">self</span>.<span class="ident">station_id</span>, <span class="kw-2">&amp;</span><span class="ident">tx</span>)<span class="question-mark">?</span>;
                 <span class="ident">thread</span>::<span class="ident">sleep</span>(<span class="ident">REFRESH_PERIOD</span>);
             }
-        })<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(())
+        })
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>)]</span>
 <span class="kw">struct</span> <span class="ident">BuienradarFeed</span> {
     <span class="ident">actual</span>: <span class="ident">BuienradarFeedActual</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>)]</span>
 <span class="kw">struct</span> <span class="ident">BuienradarFeedActual</span> {
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">deserialize_with</span> <span class="op">=</span> <span class="string">&quot;deserialize_datetime&quot;</span>)]</span>
     <span class="ident">sunrise</span>: <span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Local</span><span class="op">&gt;</span>,
 
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">deserialize_with</span> <span class="op">=</span> <span class="string">&quot;deserialize_datetime&quot;</span>)]</span>
     <span class="ident">sunset</span>: <span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Local</span><span class="op">&gt;</span>,
 
@@ -283,7 +281,7 @@
     <span class="ident">station_measurements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BuienradarStationMeasurement</span><span class="op">&gt;</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">struct</span> <span class="ident">BuienradarStationMeasurement</span> {
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;stationid&quot;</span>)]</span>
     <span class="ident">station_id</span>: <span class="ident">u32</span>,
@@ -399,7 +397,7 @@
 }
 
 <span class="doccomment">/// Translates Dutch wind direction acronyms.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deserialize_point_of_the_compass</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+<span class="kw">fn</span> <span class="ident">deserialize_point_of_the_compass</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(
     <span class="ident">deserializer</span>: <span class="ident">D</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PointOfTheCompass</span><span class="op">&gt;</span>, <span class="ident">D</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="prelude-ty">Option</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>::<span class="ident">deserialize</span>(<span class="ident">deserializer</span>)<span class="question-mark">?</span> {
@@ -429,7 +427,7 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deserialize_temperature</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+<span class="kw">fn</span> <span class="ident">deserialize_temperature</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(
     <span class="ident">deserializer</span>: <span class="ident">D</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ThermodynamicTemperature</span><span class="op">&gt;</span>, <span class="ident">D</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
     <span class="prelude-val">Ok</span>(<span class="prelude-ty">Option</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>::<span class="ident">deserialize</span>(<span class="ident">deserializer</span>)<span class="question-mark">?</span>

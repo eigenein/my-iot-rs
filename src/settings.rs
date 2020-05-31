@@ -63,20 +63,23 @@ impl Default for DashboardSettings {
 #[derive(Deserialize, Debug, Clone, Serialize)]
 #[serde(tag = "type")]
 pub enum Service {
-    /// Regularly emits a counter value.
-    Clock(services::clock::Clock),
-
     /// Dutch [Buienradar](https://www.buienradar.nl/) weather service.
     Buienradar(services::buienradar::Buienradar),
 
-    /// [Telegram bot](https://core.telegram.org/bots/api) service.
-    Telegram(services::telegram::Telegram),
+    /// Regularly emits a counter value.
+    Clock(services::clock::Clock),
 
     /// [Lua](https://www.lua.org/) scripting.
     Lua(services::lua::Lua),
 
     /// Sunrise and sunset messages.
     Solar(services::solar::Solar),
+
+    /// [tado°](https://www.tado.com/) API.
+    Tado(services::tado::Tado),
+
+    /// [Telegram bot](https://core.telegram.org/bots/api) service.
+    Telegram(services::telegram::Telegram),
 }
 
 pub fn default_http_port() -> u16 {

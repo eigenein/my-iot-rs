@@ -2,11 +2,11 @@
 
 use crate::prelude::*;
 use log::{error, info};
+use std::thread;
 use std::time::Duration;
-use std::{io, thread};
 
 /// Spawn a supervised named thread.
-pub fn spawn<'env, F>(scope: &Scope<'env>, name: &'env str, tx: Sender<Message>, f: F) -> io::Result<()>
+pub fn spawn<'env, F>(scope: &Scope<'env>, name: &'env str, tx: Sender<Message>, f: F) -> Result<()>
 where
     F: Fn() -> Result<()> + Send + 'env,
 {

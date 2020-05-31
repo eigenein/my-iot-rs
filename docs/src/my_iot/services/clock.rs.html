@@ -30,8 +30,6 @@
 <span id="30">30</span>
 <span id="31">31</span>
 <span id="32">32</span>
-<span id="33">33</span>
-<span id="34">34</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">supervisor</span>;
@@ -62,9 +60,7 @@
                 <span class="ident">counter</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="ident">thread</span>::<span class="ident">sleep</span>(<span class="ident">interval</span>);
             }
-        })<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(())
+        })
     }
 }
 </pre></div>
