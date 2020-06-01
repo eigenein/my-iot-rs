@@ -69,7 +69,5 @@ fn main() -> Result<()> {
         info!("Starting web server on port {}…", settings.http_port);
         web::start_server(&settings, db)
     })
-    .unwrap()?;
-
-    Ok(())
+    .unwrap()
 }

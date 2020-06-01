@@ -4,7 +4,7 @@ use crate::prelude::*;
 use reqwest::blocking::Client;
 use reqwest::Url;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
 
 const CLIENT_ID: &str = "public-api-preview";
 const CLIENT_SECRET: &str = "4HJGRffVR8xb3XdEUQpjgZ1VplJi6Xgw";
@@ -24,14 +24,11 @@ pub struct Secrets {
 
 impl Tado {
     pub fn spawn<'env>(&'env self, scope: &Scope<'env>, service_id: &'env str, bus: &mut Bus) -> Result<()> {
-        let tx = bus.add_tx();
         let client = client_builder().build()?;
 
-        debug!("Logging in…");
-        self.login(&client)?;
-        info!("Logged in");
+        self.login(&client).unwrap();
 
-        supervisor::spawn(scope, service_id, tx, move || -> Result<()> {
+        supervisor::spawn(scope, service_id, bus.add_tx(), move || -> Result<()> {
             loop {
                 thread::sleep(REFRESH_PERIOD);
             }
@@ -39,7 +36,8 @@ impl Tado {
     }
 
     fn login(&self, client: &Client) -> Result<LoginResponse> {
-        Ok(client
+        debug!("Logging in…");
+        let response = client
             .post(Url::parse_with_params(
                 "https://auth.tado.com/oauth/token",
                 &[
@@ -52,7 +50,9 @@ impl Tado {
                 ],
             )?)
             .send()?
-            .json::<LoginResponse>()?)
+            .json::<LoginResponse>()?;
+        debug!("Logged in, token expires at: {:?}", response.expires_at);
+        Ok(response)
     }
 }
 
@@ -60,12 +60,12 @@ impl Tado {
 struct LoginResponse {
     pub access_token: String,
 
-    #[serde(deserialize_with = "deserialize_duration")]
-    pub expires_in: Duration,
+    #[serde(rename = "expires_in", deserialize_with = "deserialize_expires_at")]
+    pub expires_at: SystemTime,
 
     pub refresh_token: String,
 }
 
-fn deserialize_duration<'de, D: Deserializer<'de>>(deserializer: D) -> std::result::Result<Duration, D::Error> {
-    Ok(Duration::from_secs(Deserialize::deserialize(deserializer)?))
+fn deserialize_expires_at<'de, D: Deserializer<'de>>(deserializer: D) -> std::result::Result<SystemTime, D::Error> {
+    Ok(SystemTime::now() + Duration::from_secs(Deserialize::deserialize(deserializer)?))
 }

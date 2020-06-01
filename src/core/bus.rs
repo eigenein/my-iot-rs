@@ -49,7 +49,7 @@ impl Bus {
                 }
                 debug!("Dispatched {}", &message.sensor.id);
             }
-            Err(InternalError::new("Receiver channel got unexpectedly exhausted").into())
+            unreachable!();
         })?;
         Ok(())
     }
@@ -58,7 +58,8 @@ impl Bus {
 impl Message {
     /// Send the message via the specified sender and log and ignore any errors.
     pub fn send_and_forget(self, tx: &Sender<Message>) {
-        tx.send(self)
-            .unwrap_or_else(|error| error!("Could not send the message to {:?}: {:?}", tx, error))
+        if let Err(error) = tx.send(self) {
+            error!("Could not send the message: {}", error.to_string());
+        }
     }
 }

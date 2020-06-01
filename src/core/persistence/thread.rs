@@ -5,7 +5,7 @@ pub fn spawn(scope: &Scope, db: Arc<Mutex<Connection>>, bus: &mut Bus) -> Result
     info!("Spawning readings persistence…");
     let rx = bus.add_rx();
 
-    crate::core::supervisor::spawn(scope, "system::persistence", bus.add_tx(), move || {
+    supervisor::spawn(scope, "system::persistence", bus.add_tx(), move || {
         for message in &rx {
             if let Err(error) = process_message(&message, &db) {
                 error!("{}: {:?}", error, &message);
