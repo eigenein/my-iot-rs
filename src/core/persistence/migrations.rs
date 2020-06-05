@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use chrono::Duration;
 
 pub const MIGRATIONS: &[fn(&Connection) -> Result<()>] = &[
     |_| Ok(()),
@@ -8,6 +9,7 @@ pub const MIGRATIONS: &[fn(&Connection) -> Result<()>] = &[
     add_room_titles,
     denormalize_actual_sensor_values,
     drop_readings_because_of_changed_sensor_pks,
+    add_sensor_expires_at,
 ];
 
 fn create_initial_schema(db: &Connection) -> Result<()> {
@@ -70,7 +72,7 @@ fn denormalize_actual_sensor_values(db: &Connection) -> Result<()> {
     // language=sql
     db.execute_batch(
         r#"
-            ALTER TABLE sensors ADD COLUMN value BLOB NOT NULL DEFAULT x'81a14ec0'
+            ALTER TABLE sensors ADD COLUMN value BLOB NOT NULL DEFAULT x'81a14ec0';
         "#,
     )?;
     Ok(())
@@ -86,5 +88,14 @@ fn drop_readings_because_of_changed_sensor_pks(db: &Connection) -> Result<()> {
             DELETE FROM sensors;
         "#,
     )?;
+    Ok(())
+}
+
+/// Add expiration timestamp to each sensor, set it to 14 days from the current time.
+fn add_sensor_expires_at(db: &Connection) -> Result<()> {
+    db.execute_batch(&format!(
+        "ALTER TABLE sensors ADD COLUMN expires_at INTEGER NOT NULL DEFAULT {}",
+        (Local::now() + Duration::days(14)).timestamp_millis(),
+    ))?;
     Ok(())
 }

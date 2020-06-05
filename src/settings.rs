@@ -28,10 +28,6 @@ pub struct Settings {
     #[serde(default = "default_http_port")]
     pub http_port: u16,
 
-    /// Maximum duration while any sensor may be inactive before it gets hidden from the UI.
-    #[serde(default = "default_max_sensor_age_ms")]
-    pub max_sensor_age_ms: i64,
-
     #[serde(default)]
     pub dashboard: DashboardSettings,
 
@@ -84,9 +80,4 @@ pub enum Service {
 
 pub fn default_http_port() -> u16 {
     8081
-}
-
-/// Defaults to 14 days.
-pub fn default_max_sensor_age_ms() -> i64 {
-    14 * 24 * 60 * 60 * 1000
 }

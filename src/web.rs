@@ -13,8 +13,6 @@ use std::collections::HashMap;
 
 const FAVICON: &[u8] = include_bytes!("statics/favicon.ico");
 
-struct MaxSensorAgeMs(i64);
-
 /// Start the web application.
 pub fn start_server(settings: &Settings, db: Arc<Mutex<Connection>>) -> Result<()> {
     Err(Box::new(make_rocket(settings, db)?.launch()))
@@ -27,7 +25,6 @@ fn make_rocket(settings: &Settings, db: Arc<Mutex<Connection>>) -> Result<Rocket
             .keep_alive(60)
             .finalize()?,
     )
-    .manage(MaxSensorAgeMs(settings.max_sensor_age_ms)) // FIXME
     .manage(db)
     .manage(settings.clone())
     .mount(
@@ -52,10 +49,8 @@ fn get_index(db: State<Arc<Mutex<Connection>>>, settings: State<Settings>) -> Re
 }
 
 #[get("/sensors")]
-fn get_sensors(db: State<Arc<Mutex<Connection>>>, max_sensor_age_ms: State<MaxSensorAgeMs>) -> Result<Html<String>> {
-    Ok(Html(
-        templates::SensorsTemplate::new(&db.lock().unwrap(), max_sensor_age_ms.0)?.to_string(),
-    ))
+fn get_sensors(db: State<Arc<Mutex<Connection>>>) -> Result<Html<String>> {
+    Ok(Html(templates::SensorsTemplate::new(&db.lock().unwrap())?.to_string()))
 }
 
 #[get("/settings")]
@@ -178,7 +173,6 @@ mod tests {
         Ok(Client::new(make_rocket(
             &Settings {
                 http_port: default_http_port(),
-                max_sensor_age_ms: default_max_sensor_age_ms(),
                 services: HashMap::new(),
                 dashboard: DashboardSettings::default(),
             },

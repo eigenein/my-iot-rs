@@ -27,13 +27,14 @@ impl IndexTemplate {
         let mut template = Self::default();
 
         let actuals: HashMap<String, Reading> = db
-            .select_actuals(settings.max_sensor_age_ms)?
+            .select_actuals()?
             .into_iter()
             .map(|(sensor, reading)| (sensor.id, reading))
             .collect();
 
-        template.temperature = Self::get_dashboard_value(&actuals, &settings.dashboard.temperature_sensor);
-        template.feel_temperature = Self::get_dashboard_value(&actuals, &settings.dashboard.feel_temperature_sensor);
+        let dashboard = &settings.dashboard;
+        template.temperature = Self::get_dashboard_value(&actuals, &dashboard.temperature_sensor);
+        template.feel_temperature = Self::get_dashboard_value(&actuals, &dashboard.feel_temperature_sensor);
 
         Ok(template)
     }
@@ -55,10 +56,10 @@ pub struct SensorsTemplate {
 }
 
 impl SensorsTemplate {
-    pub fn new(db: &Connection, max_sensor_age_ms: i64) -> Result<Self> {
+    pub fn new(db: &Connection) -> Result<Self> {
         Ok(Self {
             actuals: db
-                .select_actuals(max_sensor_age_ms)?
+                .select_actuals()?
                 .into_iter()
                 .group_by(|(sensor, _)| sensor.room_title.clone())
                 .into_iter()

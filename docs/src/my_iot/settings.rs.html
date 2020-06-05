@@ -81,15 +81,6 @@
 <span id="81">81</span>
 <span id="82">82</span>
 <span id="83">83</span>
-<span id="84">84</span>
-<span id="85">85</span>
-<span id="86">86</span>
-<span id="87">87</span>
-<span id="88">88</span>
-<span id="89">89</span>
-<span id="90">90</span>
-<span id="91">91</span>
-<span id="92">92</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Settings structs.</span>
 
@@ -120,10 +111,6 @@
     <span class="doccomment">/// Web server port. It&#39;s used for the user interface as well as for webhooks.</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_http_port&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">http_port</span>: <span class="ident">u16</span>,
-
-    <span class="doccomment">/// Maximum duration while any sensor may be inactive before it gets hidden from the UI.</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_max_sensor_age_ms&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">max_sensor_age_ms</span>: <span class="ident">i64</span>,
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="kw">pub</span> <span class="ident">dashboard</span>: <span class="ident">DashboardSettings</span>,
@@ -177,11 +164,6 @@
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_http_port</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u16</span> {
     <span class="number">8081</span>
-}
-
-<span class="doccomment">/// Defaults to 14 days.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_max_sensor_age_ms</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i64</span> {
-    <span class="number">14</span> <span class="op">*</span> <span class="number">24</span> <span class="op">*</span> <span class="number">60</span> <span class="op">*</span> <span class="number">60</span> <span class="op">*</span> <span class="number">1000</span>
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "my_iot";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

@@ -2,6 +2,8 @@
 
 ## `master`
 
+- Introduced an individual sensor time-to-live, closes #86
+
 ## `0.48.0`
 
 - Renamed Buienradar `wind_speed_bft` to `wind_force`

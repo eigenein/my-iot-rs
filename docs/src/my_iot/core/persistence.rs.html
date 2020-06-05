@@ -332,6 +332,30 @@
 <span id="332">332</span>
 <span id="333">333</span>
 <span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Database interface.</span>
 
@@ -359,7 +383,7 @@
     <span class="doccomment">/// Get the database `user_version`.</span>
     <span class="kw">fn</span> <span class="ident">get_version</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">select_actuals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">max_sensor_age_ms</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Sensor</span>, <span class="ident">Reading</span>)<span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">select_actuals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Sensor</span>, <span class="ident">Reading</span>)<span class="op">&gt;</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Select database size in bytes.</span>
     <span class="kw">fn</span> <span class="ident">select_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>;
@@ -389,20 +413,12 @@
         <span class="prelude-val">Ok</span>(<span class="ident">version</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">select_actuals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">max_sensor_age_ms</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Sensor</span>, <span class="ident">Reading</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">select_actuals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Sensor</span>, <span class="ident">Reading</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">prepare_cached</span>(
             <span class="comment">// language=sql</span>
-            <span class="string">r#&quot;
-            SELECT sensor_id, title, timestamp, room_title, value
-            FROM sensors
-            WHERE timestamp &gt; ?1
-            ORDER BY sensors.room_title, sensors.sensor_id
-            &quot;#</span>,
+            <span class="string">r&quot;SELECT * FROM sensors WHERE expires_at &gt; ?1 ORDER BY room_title, sensor_id&quot;</span>,
         )<span class="question-mark">?</span>
-        .<span class="ident">query_map</span>(
-            <span class="macro">params</span><span class="macro">!</span>[<span class="ident">Local</span>::<span class="ident">now</span>().<span class="ident">timestamp_millis</span>() <span class="op">-</span> <span class="ident">max_sensor_age_ms</span> <span class="kw">as</span> <span class="ident">i64</span>],
-            <span class="ident">get_actual</span>,
-        )<span class="question-mark">?</span>
+        .<span class="ident">query_map</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="ident">Local</span>::<span class="ident">now</span>().<span class="ident">timestamp_millis</span>()], <span class="ident">get_actual</span>)<span class="question-mark">?</span>
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">map_err</span>(<span class="ident">Into</span>::<span class="ident">into</span>))
         .<span class="ident">collect</span>()
     }
@@ -423,8 +439,13 @@
     <span class="kw">fn</span> <span class="ident">get_sensor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sensor_id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Sensor</span>, <span class="ident">Reading</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>
             <span class="comment">// language=sql</span>
-            .<span class="ident">prepare_cached</span>(<span class="string">r#&quot;SELECT * FROM sensors WHERE sensors.sensor_id = ?1&quot;#</span>)<span class="question-mark">?</span>
-            .<span class="ident">query_row</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="ident">sensor_id</span>], <span class="ident">get_actual</span>)
+            .<span class="ident">prepare_cached</span>(
+                <span class="string">r#&quot;
+                SELECT * FROM sensors
+                WHERE sensor_id = ?1 AND expires_at &gt; ?2
+                &quot;#</span>,
+            )<span class="question-mark">?</span>
+            .<span class="ident">query_row</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="ident">sensor_id</span>, <span class="ident">Local</span>::<span class="ident">now</span>().<span class="ident">timestamp_millis</span>()], <span class="ident">get_actual</span>)
             .<span class="ident">optional</span>()<span class="question-mark">?</span>)
     }
 
@@ -437,8 +458,8 @@
                 <span class="string">r#&quot;
                 SELECT timestamp, value
                 FROM readings
-                WHERE readings.sensor_fk = ?1 AND readings.timestamp &gt;= ?2
-                ORDER BY readings.timestamp
+                WHERE sensor_fk = ?1 AND timestamp &gt;= ?2
+                ORDER BY timestamp
                 &quot;#</span>,
             )<span class="question-mark">?</span>
             .<span class="ident">query_map</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="ident">sensor_fk</span>, <span class="ident">since</span>.<span class="ident">timestamp_millis</span>()], <span class="ident">get_reading</span>)<span class="question-mark">?</span>
@@ -482,6 +503,7 @@
         <span class="ident">id</span>: <span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;sensor_id&quot;</span>)<span class="question-mark">?</span>,
         <span class="ident">title</span>: <span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;title&quot;</span>)<span class="question-mark">?</span>,
         <span class="ident">room_title</span>: <span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;room_title&quot;</span>)<span class="question-mark">?</span>,
+        <span class="ident">expires_at</span>: <span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="ident">row</span>.<span class="ident">get</span>(<span class="string">&quot;expires_at&quot;</span>)<span class="question-mark">?</span>),
     })
 }
 
@@ -525,12 +547,14 @@
             <span class="string">r#&quot;
             -- noinspection SqlResolve @ any/&quot;excluded&quot;
             -- noinspection SqlInsertValues
-            INSERT INTO sensors (pk, sensor_id, title, timestamp, room_title, value) VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+            INSERT INTO sensors (pk, sensor_id, title, timestamp, room_title, value, expires_at)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
             ON CONFLICT (pk) DO UPDATE SET
                 timestamp = excluded.timestamp,
                 title = excluded.title,
                 room_title = excluded.room_title,
-                value = excluded.value
+                value = excluded.value,
+                expires_at = excluded.expires_at
             &quot;#</span>,
         )<span class="question-mark">?</span>
         .<span class="ident">execute</span>(<span class="macro">params</span><span class="macro">!</span>[
@@ -540,6 +564,7 @@
             <span class="ident">timestamp</span>,
             <span class="self">self</span>.<span class="ident">sensor</span>.<span class="ident">room_title</span>,
             <span class="ident">value</span>,
+            <span class="self">self</span>.<span class="ident">sensor</span>.<span class="ident">expires_at</span>.<span class="ident">timestamp_millis</span>(),
         ])<span class="question-mark">?</span>;
 
         <span class="ident">db</span>.<span class="ident">prepare_cached</span>(
@@ -594,7 +619,8 @@
     <span class="kw">fn</span> <span class="ident">select_last_reading_ok</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">Message</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
             .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="number">42</span>))
-            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>));
+            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>))
+            .<span class="ident">expires_at</span>(<span class="ident">Local</span>.<span class="ident">ymd</span>(<span class="number">9999</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">and_hms</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>));
         <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Connection</span>::<span class="ident">open_and_initialize</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>;
         <span class="ident">message</span>.<span class="ident">upsert_into</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span>;
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">db</span>.<span class="ident">get_sensor</span>(<span class="string">&quot;test&quot;</span>)<span class="question-mark">?</span>, <span class="prelude-val">Some</span>(<span class="ident">message</span>.<span class="ident">into</span>()));
@@ -604,15 +630,14 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">select_last_reading_returns_newer_reading</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Connection</span>::<span class="ident">open_and_initialize</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">Message</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">Message</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
             .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="number">42</span>))
-            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_127_000</span>));
-        <span class="ident">old</span>.<span class="ident">upsert_into</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <span class="ident">Message</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
-            .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="number">42</span>))
-            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>));
-        <span class="ident">new</span>.<span class="ident">upsert_into</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">db</span>.<span class="ident">get_sensor</span>(<span class="string">&quot;test&quot;</span>)<span class="question-mark">?</span>, <span class="prelude-val">Some</span>(<span class="ident">new</span>.<span class="ident">into</span>()));
+            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_127_000</span>))
+            .<span class="ident">expires_at</span>(<span class="ident">Local</span>.<span class="ident">ymd</span>(<span class="number">9999</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">and_hms</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>));
+        <span class="ident">message</span>.<span class="ident">upsert_into</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span>;
+        <span class="ident">message</span> <span class="op">=</span> <span class="ident">message</span>.<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>));
+        <span class="ident">message</span>.<span class="ident">upsert_into</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span>;
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">db</span>.<span class="ident">get_sensor</span>(<span class="string">&quot;test&quot;</span>)<span class="question-mark">?</span>, <span class="prelude-val">Some</span>(<span class="ident">message</span>.<span class="ident">into</span>()));
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -620,13 +645,11 @@
     <span class="kw">fn</span> <span class="ident">select_actuals_ok</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">Message</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
             .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="number">42</span>))
-            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>));
+            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>))
+            .<span class="ident">expires_at</span>(<span class="ident">Local</span>.<span class="ident">ymd</span>(<span class="number">9999</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">and_hms</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>));
         <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Connection</span>::<span class="ident">open_and_initialize</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>;
         <span class="ident">message</span>.<span class="ident">upsert_into</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">db</span>.<span class="ident">select_actuals</span>(<span class="ident">i64</span>::<span class="ident">max_value</span>())<span class="question-mark">?</span>,
-            <span class="macro">vec</span><span class="macro">!</span>[(<span class="ident">message</span>.<span class="ident">sensor</span>, <span class="ident">message</span>.<span class="ident">reading</span>)]
-        );
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">db</span>.<span class="ident">select_actuals</span>()<span class="question-mark">?</span>, <span class="macro">vec</span><span class="macro">!</span>[(<span class="ident">message</span>.<span class="ident">sensor</span>, <span class="ident">message</span>.<span class="ident">reading</span>)]);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -660,10 +683,35 @@
         <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Connection</span>::<span class="ident">open_and_initialize</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">Message</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
             .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="number">42</span>))
-            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>));
+            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>))
+            .<span class="ident">expires_at</span>(<span class="ident">Local</span>.<span class="ident">ymd</span>(<span class="number">9999</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">and_hms</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>));
         <span class="ident">message</span>.<span class="ident">upsert_into</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">readings</span> <span class="op">=</span> <span class="ident">db</span>.<span class="ident">select_readings</span>(<span class="string">&quot;test&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">0</span>))<span class="question-mark">?</span>;
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">readings</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">unwrap</span>(), <span class="kw-2">&amp;</span><span class="ident">message</span>.<span class="ident">reading</span>);
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">select_actuals_does_not_return_expired_sensor</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+        <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Connection</span>::<span class="ident">open_and_initialize</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>;
+        <span class="ident">Message</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
+            .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="number">42</span>))
+            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>))
+            .<span class="ident">expires_at</span>(<span class="ident">Local</span>::<span class="ident">now</span>())
+            .<span class="ident">upsert_into</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span>;
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">db</span>.<span class="ident">select_actuals</span>()<span class="question-mark">?</span>.<span class="ident">len</span>(), <span class="number">0</span>);
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">get_sensor_does_not_return_expired_sensor</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
+        <span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">Connection</span>::<span class="ident">open_and_initialize</span>(<span class="string">&quot;:memory:&quot;</span>)<span class="question-mark">?</span>;
+        <span class="ident">Message</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>)
+            .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Counter</span>(<span class="number">42</span>))
+            .<span class="ident">timestamp</span>(<span class="ident">Local</span>.<span class="ident">timestamp_millis</span>(<span class="number">1_566_424_128_000</span>))
+            .<span class="ident">expires_at</span>(<span class="ident">Local</span>::<span class="ident">now</span>())
+            .<span class="ident">upsert_into</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>)<span class="question-mark">?</span>;
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">db</span>.<span class="ident">get_sensor</span>(<span class="string">&quot;test&quot;</span>)<span class="question-mark">?</span>, <span class="prelude-val">None</span>);
         <span class="prelude-val">Ok</span>(())
     }
 }

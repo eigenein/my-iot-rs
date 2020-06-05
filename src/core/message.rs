@@ -1,6 +1,7 @@
 //! Describes a sensor reading and related structures.
 
 use crate::prelude::*;
+use chrono::Duration;
 
 /// Services use messages to exchange sensor readings between each other.
 /// Message contains a single sensor reading alongside with some metadata.
@@ -42,6 +43,7 @@ impl Message {
                 id: sensor_id.into(),
                 title: None,
                 room_title: None,
+                expires_at: Local::now() + Duration::days(14),
             },
             reading: Reading {
                 timestamp: Local::now(),
@@ -77,6 +79,11 @@ impl Message {
 
     pub fn timestamp<T: Into<DateTime<Local>>>(mut self, timestamp: T) -> Self {
         self.reading.timestamp = timestamp.into();
+        self
+    }
+
+    pub fn expires_at<T: Into<DateTime<Local>>>(mut self, timestamp: T) -> Self {
+        self.sensor.expires_at = timestamp.into();
         self
     }
 }
