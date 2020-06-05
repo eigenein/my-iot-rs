@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use crate::supervisor;
 use chrono::offset::TimeZone;
 use chrono_tz::Europe::Amsterdam;
 use reqwest::blocking::Client;
@@ -20,16 +19,22 @@ pub struct Buienradar {
 }
 
 impl Buienradar {
-    pub fn spawn<'env>(&'env self, scope: &Scope<'env>, service_id: &'env str, bus: &mut Bus) -> Result<()> {
+    pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
         let client = client_builder().build()?;
 
-        supervisor::spawn(scope, service_id, tx.clone(), move || -> Result<()> {
-            loop {
-                self.send_readings(self.fetch(&client)?, &service_id, &tx)?;
-                thread::sleep(REFRESH_PERIOD);
+        thread::Builder::new().name(service_id.clone()).spawn(move || loop {
+            if let Err(error) = self.loop_(&client, &service_id, &tx) {
+                error!("Failed to refresh the sensors: {}", error.to_string());
             }
-        })
+            thread::sleep(REFRESH_PERIOD);
+        })?;
+
+        Ok(())
+    }
+
+    fn loop_(&self, client: &Client, service_id: &str, tx: &Sender) -> Result<()> {
+        self.send_readings(self.fetch(&client)?, &service_id, &tx)
     }
 
     /// Fetch measurement for the configured station.
@@ -38,7 +43,7 @@ impl Buienradar {
     }
 
     /// Sends out readings based on Buienradar station measurement.
-    fn send_readings(&self, actual: BuienradarFeedActual, service_id: &str, tx: &Sender<Message>) -> Result<()> {
+    fn send_readings(&self, actual: BuienradarFeedActual, service_id: &str, tx: &Sender) -> Result<()> {
         let measurement = actual
             .station_measurements
             .iter()

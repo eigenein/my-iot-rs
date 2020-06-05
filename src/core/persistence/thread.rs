@@ -1,18 +1,20 @@
 use crate::prelude::*;
 
 /// Spawn the persistence thread.
-pub fn spawn(scope: &Scope, db: Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
+pub fn spawn(db: Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
     info!("Spawning readings persistence…");
     let rx = bus.add_rx();
 
-    supervisor::spawn(scope, "system::persistence", bus.add_tx(), move || {
-        for message in &rx {
-            if let Err(error) = process_message(&message, &db) {
-                error!("{}: {:?}", error, &message);
+    thread::Builder::new()
+        .name("system::persistence".into())
+        .spawn(move || {
+            for message in &rx {
+                if let Err(error) = process_message(&message, &db) {
+                    error!("{}: {:?}", error, &message);
+                }
             }
-        }
-        unreachable!();
-    })?;
+            unreachable!();
+        })?;
 
     Ok(())
 }

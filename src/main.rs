@@ -2,7 +2,6 @@
 
 #![feature(proc_macro_hygiene, decl_macro)]
 
-use crate::core::supervisor;
 use crate::prelude::*;
 use log::Level;
 use std::path::PathBuf;
@@ -56,18 +55,15 @@ fn main() -> Result<()> {
     info!("Opening the database…");
     let db = Arc::new(Mutex::new(Connection::open_and_initialize(&opt.db)?));
 
-    crossbeam::thread::scope(|scope| -> Result<()> {
-        info!("Starting services…");
-        let mut bus = Bus::new();
-        bus.add_tx()
-            .send(Message::new("my-iot::start").type_(MessageType::ReadNonLogged))?;
-        core::persistence::thread::spawn(scope, db.clone(), &mut bus)?;
-        services::db::Db.spawn(scope, "system::db", &mut bus, db.clone())?;
-        core::services::spawn_all(scope, &settings, &mut bus)?;
-        bus.spawn(scope)?;
+    info!("Starting services…");
+    let mut bus = Bus::new();
+    bus.add_tx()
+        .send(Message::new("my-iot::start").type_(MessageType::ReadNonLogged))?;
+    core::persistence::thread::spawn(db.clone(), &mut bus)?;
+    services::db::Db.spawn("system::db".into(), &mut bus, db.clone())?;
+    core::services::spawn_all(&settings, &mut bus)?;
+    bus.spawn()?;
 
-        info!("Starting web server on port {}…", settings.http_port);
-        web::start_server(&settings, db)
-    })
-    .unwrap()
+    info!("Starting web server on port {}…", settings.http_port);
+    web::start_server(&settings, db)
 }

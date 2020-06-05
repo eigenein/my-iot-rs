@@ -7,13 +7,13 @@ use crate::prelude::*;
 
 pub struct Bus {
     /// Service message inbox senders.
-    service_txs: Vec<Sender<Message>>,
+    service_txs: Vec<Sender>,
 
     /// The bus message inbox sender.
-    tx: Sender<Message>,
+    tx: Sender,
 
     /// The bus message inbox receiver.
-    rx: Receiver<Message>,
+    rx: Receiver,
 }
 
 impl Bus {
@@ -27,21 +27,21 @@ impl Bus {
     }
 
     /// Get a new message sender. Essentially, it makes a clone of the bus inbox.
-    pub fn add_tx(&self) -> Sender<Message> {
+    pub fn add_tx(&self) -> Sender {
         self.tx.clone()
     }
 
     /// Get a new receiver to subscribe to the bus.
-    pub fn add_rx(&mut self) -> Receiver<Message> {
+    pub fn add_rx(&mut self) -> Receiver {
         let (tx, rx) = crossbeam::channel::unbounded();
         self.service_txs.push(tx);
         rx
     }
 
     /// Spawn the bus dispatcher thread.
-    pub fn spawn(self, scope: &Scope) -> Result<()> {
+    pub fn spawn(self) -> Result<()> {
         info!("Spawning message bus…");
-        supervisor::spawn(scope, "system::bus", self.add_tx(), move || -> Result<()> {
+        thread::Builder::new().name("system::bus".into()).spawn(move || {
             for message in &self.rx {
                 debug!("Dispatching {}", &message.sensor.id);
                 for tx in self.service_txs.iter() {
@@ -57,7 +57,7 @@ impl Bus {
 
 impl Message {
     /// Send the message via the specified sender and log and ignore any errors.
-    pub fn send_and_forget(self, tx: &Sender<Message>) {
+    pub fn send_and_forget(self, tx: &Sender) {
         if let Err(error) = tx.send(self) {
             error!("Could not send the message: {}", error.to_string());
         }

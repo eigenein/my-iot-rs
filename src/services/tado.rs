@@ -23,16 +23,16 @@ pub struct Secrets {
 }
 
 impl Tado {
-    pub fn spawn<'env>(&'env self, scope: &Scope<'env>, service_id: &'env str, bus: &mut Bus) -> Result<()> {
+    pub fn spawn(self, service_id: String, _bus: &mut Bus) -> Result<()> {
         let client = client_builder().build()?;
 
-        self.login(&client).unwrap();
+        self.login(&client)?;
 
-        supervisor::spawn(scope, service_id, bus.add_tx(), move || -> Result<()> {
-            loop {
-                thread::sleep(REFRESH_PERIOD);
-            }
-        })
+        thread::Builder::new().name(service_id).spawn(move || loop {
+            thread::sleep(REFRESH_PERIOD);
+        })?;
+
+        Ok(())
     }
 
     fn login(&self, client: &Client) -> Result<LoginResponse> {

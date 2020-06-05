@@ -35,37 +35,45 @@ pub struct Lua {
 }
 
 impl Lua {
-    pub fn spawn<'env>(
-        &'env self,
-        scope: &Scope<'env>,
-        service_id: &'env str,
-        bus: &mut Bus,
-        services: &'env HashMap<String, Service>,
-    ) -> Result<()> {
+    pub fn spawn(self, service_id: String, bus: &mut Bus, services: HashMap<String, Service>) -> Result<()> {
         let tx = bus.add_tx();
         let rx = bus.add_rx();
 
-        supervisor::spawn(scope, service_id, tx.clone(), move || -> Result<()> {
-            let lua = rlua::Lua::new();
-            lua.context(|context| -> Result<()> {
-                init_logging(context, &service_id)?;
-                init_functions(context, tx.clone())?;
-                init_services(context, &services)?;
+        let lua = rlua::Lua::new();
+        lua.context(|context| -> Result<()> {
+            init_logging(context, &service_id)?;
+            init_functions(context, tx.clone())?;
+            init_services(context, &services)?;
 
-                info!("[{}] Loading and executing script…", &service_id);
-                context.load(&self.script).set_name(&service_id)?.exec()?;
-                let on_message: LuaFunction = context.globals().get("onMessage")?;
+            info!("[{}] Loading and executing the script…", &service_id);
+            context.load(&self.script).set_name(&service_id)?.exec()?;
 
+            Ok(())
+        })?;
+
+        thread::Builder::new().name(service_id.clone()).spawn(move || {
+            lua.context(|context| {
                 info!("[{}] Listening…", &service_id);
                 for message in &rx {
-                    if self.is_match(&service_id, &message) {
-                        on_message.call::<_, ()>(create_args_table(context, &message)?)?;
+                    if !(self.is_match(&service_id, &message)) {
+                        continue;
+                    }
+                    if let Err(error) = context
+                        .globals()
+                        .get::<_, LuaFunction>("onMessage")
+                        .and_then(|on_message| {
+                            create_args_table(context, &message).and_then(|args| on_message.call::<_, ()>(args))
+                        })
+                    {
+                        error!("Failed to handle the message: {}", error.to_string());
                     }
                 }
 
                 unreachable!()
-            })
-        })
+            });
+        })?;
+
+        Ok(())
     }
 
     /// Checks whether the message matches the filters.
@@ -119,7 +127,7 @@ fn create_log_function<S: Into<String>>(context: LuaContext, service_id: S, leve
 }
 
 /// Provides the custom functions to user code.
-fn init_functions(context: LuaContext, tx: Sender<Message>) -> Result<()> {
+fn init_functions(context: LuaContext, tx: Sender) -> Result<()> {
     let globals = context.globals();
     globals.set(
         "sendMessage",

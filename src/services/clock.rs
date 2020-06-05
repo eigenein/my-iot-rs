@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use crate::supervisor;
 use serde::Deserialize;
 use std::thread;
 use std::time::Duration;
@@ -16,17 +15,21 @@ fn default_interval_ms() -> u64 {
 }
 
 impl Clock {
-    pub fn spawn<'env>(&self, scope: &Scope<'env>, service_id: &'env str, bus: &mut Bus) -> Result<()> {
+    pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
         let interval = Duration::from_millis(self.interval_ms);
         let tx = bus.add_tx();
 
-        supervisor::spawn(scope, service_id, tx.clone(), move || -> Result<()> {
+        thread::Builder::new().name(service_id.clone()).spawn(move || {
             let mut counter = 1;
             loop {
-                tx.send(Message::new(service_id).value(Value::Counter(counter)))?;
+                Message::new(&service_id)
+                    .value(Value::Counter(counter))
+                    .send_and_forget(&tx);
                 counter += 1;
                 thread::sleep(interval);
             }
-        })
+        })?;
+
+        Ok(())
     }
 }

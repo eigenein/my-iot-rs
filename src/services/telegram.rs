@@ -1,7 +1,6 @@
 //! [Telegram bot](https://core.telegram.org/bots/api) service able to receive and send messages.
 
 use crate::prelude::*;
-use crate::supervisor;
 use log::debug;
 use reqwest::blocking::Client;
 use serde::de::DeserializeOwned;
@@ -25,26 +24,39 @@ pub struct Secrets {
 }
 
 impl Telegram {
-    pub fn spawn<'env>(&'env self, scope: &Scope<'env>, service_id: &'env str, bus: &mut Bus) -> Result<()> {
+    pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
         let client = client_builder()
             .timeout(Duration::from_secs(CLIENT_TIMEOUT_SECS + 1))
             .build()?;
 
-        supervisor::spawn(scope, service_id, tx.clone(), move || -> Result<()> {
+        thread::Builder::new().name(service_id.clone()).spawn(move || {
             let mut offset: Option<i64> = None;
             loop {
-                for update in get_updates(&client, &self.secrets.token, offset)?.iter() {
-                    offset = offset.max(Some(update.update_id + 1));
-                    self.send_readings(&service_id, &tx, &update)?;
+                match self.loop_(&client, &service_id, offset, &tx) {
+                    Ok(new_offset) => offset = new_offset,
+                    Err(error) => {
+                        error!("Failed to refresh the sensors: {}", error.to_string());
+                    }
                 }
-                debug!("{}: next offset: {:?}", &service_id, offset);
             }
-        })
+        })?;
+
+        Ok(())
+    }
+
+    fn loop_(&self, client: &Client, service_id: &str, offset: Option<i64>, tx: &Sender) -> Result<Option<i64>> {
+        let mut offset = offset;
+        for update in get_updates(&client, &self.secrets.token, offset)?.iter() {
+            offset = offset.max(Some(update.update_id + 1));
+            self.send_readings(&service_id, &tx, &update)?;
+        }
+        debug!("{}: next offset: {:?}", &service_id, offset);
+        Ok(offset)
     }
 
     /// Send reading messages from the provided Telegram update.
-    fn send_readings(&self, service_id: &str, tx: &Sender<Message>, update: &TelegramUpdate) -> Result<()> {
+    fn send_readings(&self, service_id: &str, tx: &Sender, update: &TelegramUpdate) -> Result<()> {
         debug!("{}: {:?}", service_id, &update);
 
         if let Some(ref message) = update.message {

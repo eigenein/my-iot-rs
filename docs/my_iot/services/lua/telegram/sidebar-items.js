@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["TelegramChatId",""]],"struct":[["Telegram",""]]});
+initSidebarItems({"struct":[["Telegram",""]]});

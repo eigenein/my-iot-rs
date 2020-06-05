@@ -60,17 +60,12 @@
 <span id="60">60</span>
 <span id="61">61</span>
 <span id="62">62</span>
-<span id="63">63</span>
-<span id="64">64</span>
-<span id="65">65</span>
-<span id="66">66</span>
-<span id="67">67</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Telegram service for Lua.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">services</span>::<span class="ident">lua</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">services</span>::<span class="ident">telegram</span>::{<span class="ident">call_api</span>, <span class="ident">TelegramMessage</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">services</span>::<span class="ident">telegram</span>::{<span class="ident">call_api</span>, <span class="ident">TelegramChatId</span>, <span class="ident">TelegramMessage</span>};
 <span class="kw">use</span> <span class="ident">reqwest</span>::<span class="ident">blocking</span>::<span class="ident">Client</span>;
 <span class="kw">use</span> <span class="ident">rlua</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">serde_json</span>::{<span class="ident">json</span>, <span class="ident">Value</span> <span class="kw">as</span> <span class="ident">JsonValue</span>};
@@ -87,11 +82,6 @@
             <span class="ident">client</span>: <span class="ident">client_builder</span>().<span class="ident">build</span>()<span class="question-mark">?</span>,
         })
     }
-}
-
-<span class="kw">enum</span> <span class="ident">TelegramChatId</span> {
-    <span class="ident">UniqueId</span>(<span class="ident">i64</span>),
-    <span class="ident">Username</span>(<span class="ident">String</span>),
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span> <span class="ident">FromLua</span><span class="op">&lt;</span><span class="lifetime">&#39;lua</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TelegramChatId</span> {
