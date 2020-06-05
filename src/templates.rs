@@ -32,19 +32,17 @@ impl IndexTemplate {
             .map(|(sensor, reading)| (sensor.id, reading))
             .collect();
 
-        template.temperature = Self::get_value(&actuals, &settings.dashboard.temperature_sensor);
-        template.feel_temperature = Self::get_value(&actuals, &settings.dashboard.feel_temperature_sensor);
+        template.temperature = Self::get_dashboard_value(&actuals, &settings.dashboard.temperature_sensor);
+        template.feel_temperature = Self::get_dashboard_value(&actuals, &settings.dashboard.feel_temperature_sensor);
 
         Ok(template)
     }
 
-    fn get_value(actuals: &HashMap<String, Reading>, sensor_id: &Option<String>) -> Value {
-        if let Some(ref sensor_id) = sensor_id {
-            if let Some(reading) = actuals.get(sensor_id) {
-                return reading.value.clone();
-            }
-        }
-        Value::None
+    /// Returns actual sensor value or `Value::None` otherwise.
+    fn get_dashboard_value(actuals: &HashMap<String, Reading>, sensor_id: &Option<String>) -> Value {
+        sensor_id
+            .and_then(|sensor_id| actuals.get(&sensor_id))
+            .map_or(Value::None, |reading| reading.value.clone())
     }
 }
 

@@ -1,5 +1,7 @@
 # `my-iot`
 
+## `master`
+
 ## `0.48.0`
 
 - Renamed Buienradar `wind_speed_bft` to `wind_force`

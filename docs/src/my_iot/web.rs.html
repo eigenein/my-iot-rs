@@ -216,7 +216,7 @@
             .<span class="ident">keep_alive</span>(<span class="number">60</span>)
             .<span class="ident">finalize</span>()<span class="question-mark">?</span>,
     )
-    .<span class="ident">manage</span>(<span class="ident">MaxSensorAgeMs</span>(<span class="ident">settings</span>.<span class="ident">max_sensor_age_ms</span>))
+    .<span class="ident">manage</span>(<span class="ident">MaxSensorAgeMs</span>(<span class="ident">settings</span>.<span class="ident">max_sensor_age_ms</span>)) <span class="comment">// FIXME</span>
     .<span class="ident">manage</span>(<span class="ident">db</span>)
     .<span class="ident">manage</span>(<span class="ident">settings</span>.<span class="ident">clone</span>())
     .<span class="ident">mount</span>(

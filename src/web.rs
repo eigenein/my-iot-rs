@@ -27,7 +27,7 @@ fn make_rocket(settings: &Settings, db: Arc<Mutex<Connection>>) -> Result<Rocket
             .keep_alive(60)
             .finalize()?,
     )
-    .manage(MaxSensorAgeMs(settings.max_sensor_age_ms))
+    .manage(MaxSensorAgeMs(settings.max_sensor_age_ms)) // FIXME
     .manage(db)
     .manage(settings.clone())
     .mount(
