@@ -41,7 +41,8 @@ impl IndexTemplate {
     /// Returns actual sensor value or `Value::None` otherwise.
     fn get_dashboard_value(actuals: &HashMap<String, Reading>, sensor_id: &Option<String>) -> Value {
         sensor_id
-            .and_then(|sensor_id| actuals.get(&sensor_id))
+            .as_ref()
+            .and_then(|sensor_id| actuals.get(sensor_id))
             .map_or(Value::None, |reading| reading.value.clone())
     }
 }
