@@ -2,7 +2,7 @@
 
 use crate::prelude::*;
 use crate::services::lua::prelude::*;
-use crate::services::telegram::{call_api, TelegramMessage};
+use crate::services::telegram::{call_api, TelegramChatId, TelegramMessage};
 use reqwest::blocking::Client;
 use rlua::prelude::*;
 use serde_json::{json, Value as JsonValue};
@@ -19,11 +19,6 @@ impl Telegram {
             client: client_builder().build()?,
         })
     }
-}
-
-enum TelegramChatId {
-    UniqueId(i64),
-    Username(String),
 }
 
 impl<'lua> FromLua<'lua> for TelegramChatId {

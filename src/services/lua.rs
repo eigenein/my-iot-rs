@@ -54,16 +54,12 @@ impl Lua {
 
                 info!("[{}] Loading and executing script…", &service_id);
                 context.load(&self.script).set_name(&service_id)?.exec()?;
-                let on_message: LuaValue = context.globals().get("onMessage")?;
+                let on_message: LuaFunction = context.globals().get("onMessage")?;
 
                 info!("[{}] Listening…", &service_id);
                 for message in &rx {
                     if self.is_match(&service_id, &message) {
-                        if let LuaValue::Function(on_message) = &on_message {
-                            on_message.call::<_, ()>(create_args_table(context, &message)?)?;
-                        } else {
-                            warn!("[{}] `onMessage` is not defined or not a function", &service_id);
-                        }
+                        on_message.call::<_, ()>(create_args_table(context, &message)?)?;
                     }
                 }
 

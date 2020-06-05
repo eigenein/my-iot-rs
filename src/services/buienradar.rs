@@ -26,137 +26,137 @@ impl Buienradar {
 
         supervisor::spawn(scope, service_id, tx.clone(), move || -> Result<()> {
             loop {
-                send_readings(fetch(&client)?, &service_id, self.station_id, &tx)?;
+                self.send_readings(self.fetch(&client)?, &service_id, &tx)?;
                 thread::sleep(REFRESH_PERIOD);
             }
         })
+    }
+
+    /// Fetch measurement for the configured station.
+    fn fetch(&self, client: &Client) -> Result<BuienradarFeedActual> {
+        Ok(client.get(URL).send()?.json::<BuienradarFeed>()?.actual)
+    }
+
+    /// Sends out readings based on Buienradar station measurement.
+    fn send_readings(&self, actual: BuienradarFeedActual, service_id: &str, tx: &Sender<Message>) -> Result<()> {
+        let measurement = actual
+            .station_measurements
+            .iter()
+            .find(|measurement| measurement.station_id == self.station_id)
+            .ok_or_else(|| InternalError::new(format!("station {} is not found", self.station_id)))?;
+        tx.send(
+            Message::new(format!("{}::{}::weather_description", service_id, self.station_id))
+                .type_(MessageType::ReadLogged)
+                .value(Value::Text(measurement.weather_description.clone()))
+                .timestamp(measurement.timestamp)
+                .sensor_title("Description")
+                .room_title(&measurement.name),
+        )?;
+        if let Some(temperature) = measurement.temperature {
+            tx.send(
+                Message::new(format!("{}::{}::temperature", service_id, self.station_id))
+                    .type_(MessageType::ReadLogged)
+                    .value(temperature)
+                    .timestamp(measurement.timestamp)
+                    .sensor_title("Temperature")
+                    .room_title(&measurement.name),
+            )?;
+        }
+        if let Some(temperature) = measurement.ground_temperature {
+            tx.send(
+                Message::new(format!("{}::{}::ground_temperature", service_id, self.station_id))
+                    .type_(MessageType::ReadLogged)
+                    .value(temperature)
+                    .timestamp(measurement.timestamp)
+                    .sensor_title("Ground Temperature")
+                    .room_title(&measurement.name),
+            )?;
+        }
+        if let Some(temperature) = measurement.feel_temperature {
+            tx.send(
+                Message::new(format!("{}::{}::feel_temperature", service_id, self.station_id))
+                    .type_(MessageType::ReadLogged)
+                    .value(temperature)
+                    .timestamp(measurement.timestamp)
+                    .sensor_title("Feel Temperature")
+                    .room_title(&measurement.name),
+            )?;
+        }
+        if let Some(bft) = measurement.wind_speed_bft {
+            tx.send(
+                Message::new(format!("{}::{}::wind_force", service_id, self.station_id))
+                    .type_(MessageType::ReadLogged)
+                    .value(Value::Bft(bft))
+                    .timestamp(measurement.timestamp)
+                    .sensor_title("Wind Force")
+                    .room_title(&measurement.name),
+            )?;
+        }
+        if let Some(point) = measurement.wind_direction {
+            tx.send(
+                Message::new(format!("{}::{}::wind_direction", service_id, self.station_id))
+                    .type_(MessageType::ReadLogged)
+                    .value(Value::WindDirection(point))
+                    .timestamp(measurement.timestamp)
+                    .sensor_title("Wind Direction")
+                    .room_title(&measurement.name),
+            )?;
+        }
+        Ok(())
     }
 }
 
 #[derive(Deserialize)]
 struct BuienradarFeed {
-    actual: BuienradarFeedActual,
+    pub actual: BuienradarFeedActual,
 }
 
 #[derive(Deserialize)]
 struct BuienradarFeedActual {
     #[allow(dead_code)]
     #[serde(deserialize_with = "deserialize_datetime")]
-    sunrise: DateTime<Local>,
+    pub sunrise: DateTime<Local>,
 
     #[allow(dead_code)]
     #[serde(deserialize_with = "deserialize_datetime")]
-    sunset: DateTime<Local>,
+    pub sunset: DateTime<Local>,
 
     #[serde(rename = "stationmeasurements")]
-    station_measurements: Vec<BuienradarStationMeasurement>,
+    pub station_measurements: Vec<BuienradarStationMeasurement>,
 }
 
 #[derive(Deserialize, Clone)]
 struct BuienradarStationMeasurement {
     #[serde(rename = "stationid")]
-    station_id: u32,
+    pub station_id: u32,
 
     #[serde(rename = "stationname")]
-    name: String,
+    pub name: String,
 
     #[serde(default, deserialize_with = "deserialize_temperature")]
-    temperature: Option<ThermodynamicTemperature>,
+    pub temperature: Option<ThermodynamicTemperature>,
 
     #[serde(default, rename = "groundtemperature", deserialize_with = "deserialize_temperature")]
-    ground_temperature: Option<ThermodynamicTemperature>,
+    pub ground_temperature: Option<ThermodynamicTemperature>,
 
     #[serde(default, rename = "feeltemperature", deserialize_with = "deserialize_temperature")]
-    feel_temperature: Option<ThermodynamicTemperature>,
+    pub feel_temperature: Option<ThermodynamicTemperature>,
 
     #[serde(default, rename = "windspeedBft")]
-    wind_speed_bft: Option<u8>,
+    pub wind_speed_bft: Option<u8>,
 
     #[serde(deserialize_with = "deserialize_datetime")]
-    timestamp: DateTime<Local>,
+    pub timestamp: DateTime<Local>,
 
     #[serde(
         default,
         rename = "winddirection",
         deserialize_with = "deserialize_point_of_the_compass"
     )]
-    wind_direction: Option<PointOfTheCompass>,
+    pub wind_direction: Option<PointOfTheCompass>,
 
     #[serde(rename = "weatherdescription")]
-    weather_description: String,
-}
-
-/// Fetch measurement for the configured station.
-fn fetch(client: &Client) -> Result<BuienradarFeedActual> {
-    Ok(client.get(URL).send()?.json::<BuienradarFeed>()?.actual)
-}
-
-/// Sends out readings based on Buienradar station measurement.
-fn send_readings(actual: BuienradarFeedActual, service_id: &str, station_id: u32, tx: &Sender<Message>) -> Result<()> {
-    let measurement = actual
-        .station_measurements
-        .iter()
-        .find(|measurement| measurement.station_id == station_id)
-        .ok_or_else(|| InternalError::new(format!("station {} is not found", station_id)))?;
-    tx.send(
-        Message::new(format!("{}::{}::weather_description", service_id, station_id))
-            .type_(MessageType::ReadLogged)
-            .value(Value::Text(measurement.weather_description.clone()))
-            .timestamp(measurement.timestamp)
-            .sensor_title("Description")
-            .room_title(&measurement.name),
-    )?;
-    if let Some(temperature) = measurement.temperature {
-        tx.send(
-            Message::new(format!("{}::{}::temperature", service_id, station_id))
-                .type_(MessageType::ReadLogged)
-                .value(temperature)
-                .timestamp(measurement.timestamp)
-                .sensor_title("Temperature")
-                .room_title(&measurement.name),
-        )?;
-    }
-    if let Some(temperature) = measurement.ground_temperature {
-        tx.send(
-            Message::new(format!("{}::{}::ground_temperature", service_id, station_id))
-                .type_(MessageType::ReadLogged)
-                .value(temperature)
-                .timestamp(measurement.timestamp)
-                .sensor_title("Ground Temperature")
-                .room_title(&measurement.name),
-        )?;
-    }
-    if let Some(temperature) = measurement.feel_temperature {
-        tx.send(
-            Message::new(format!("{}::{}::feel_temperature", service_id, station_id))
-                .type_(MessageType::ReadLogged)
-                .value(temperature)
-                .timestamp(measurement.timestamp)
-                .sensor_title("Feel Temperature")
-                .room_title(&measurement.name),
-        )?;
-    }
-    if let Some(bft) = measurement.wind_speed_bft {
-        tx.send(
-            Message::new(format!("{}::{}::wind_force", service_id, station_id))
-                .type_(MessageType::ReadLogged)
-                .value(Value::Bft(bft))
-                .timestamp(measurement.timestamp)
-                .sensor_title("Wind Force")
-                .room_title(&measurement.name),
-        )?;
-    }
-    if let Some(point) = measurement.wind_direction {
-        tx.send(
-            Message::new(format!("{}::{}::wind_direction", service_id, station_id))
-                .type_(MessageType::ReadLogged)
-                .value(Value::WindDirection(point))
-                .timestamp(measurement.timestamp)
-                .sensor_title("Wind Direction")
-                .room_title(&measurement.name),
-        )?;
-    }
-    Ok(())
+    pub weather_description: String,
 }
 
 /// Implements [custom date/time format](https://serde.rs/custom-date-format.html) with Amsterdam timezone.
