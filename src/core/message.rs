@@ -86,4 +86,9 @@ impl Message {
         self.sensor.expires_at = timestamp.into();
         self
     }
+
+    pub fn expires_in<T: Into<Duration>>(mut self, ttl: T) -> Self {
+        self.sensor.expires_at = Local::now() + ttl.into();
+        self
+    }
 }

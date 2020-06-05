@@ -231,6 +231,13 @@
 <span id="231">231</span>
 <span id="232">232</span>
 <span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">offset</span>::<span class="ident">TimeZone</span>;
@@ -283,13 +290,15 @@
             .<span class="ident">iter</span>()
             .<span class="ident">find</span>(<span class="op">|</span><span class="ident">measurement</span><span class="op">|</span> <span class="ident">measurement</span>.<span class="ident">station_id</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">station_id</span>)
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">InternalError</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;station {} is not found&quot;</span>, <span class="self">self</span>.<span class="ident">station_id</span>)))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">expires_at</span> <span class="op">=</span> <span class="ident">Local</span>::<span class="ident">now</span>() <span class="op">+</span> <span class="ident">chrono</span>::<span class="ident">Duration</span>::<span class="ident">days</span>(<span class="number">1</span>);
         <span class="ident">tx</span>.<span class="ident">send</span>(
             <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::{}::weather_description&quot;</span>, <span class="ident">service_id</span>, <span class="self">self</span>.<span class="ident">station_id</span>))
                 .<span class="ident">type_</span>(<span class="ident">MessageType</span>::<span class="ident">ReadLogged</span>)
                 .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Text</span>(<span class="ident">measurement</span>.<span class="ident">weather_description</span>.<span class="ident">clone</span>()))
                 .<span class="ident">timestamp</span>(<span class="ident">measurement</span>.<span class="ident">timestamp</span>)
                 .<span class="ident">sensor_title</span>(<span class="string">&quot;Description&quot;</span>)
-                .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">name</span>),
+                .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">name</span>)
+                .<span class="ident">expires_at</span>(<span class="ident">expires_at</span>),
         )<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">temperature</span>) <span class="op">=</span> <span class="ident">measurement</span>.<span class="ident">temperature</span> {
             <span class="ident">tx</span>.<span class="ident">send</span>(
@@ -298,7 +307,8 @@
                     .<span class="ident">value</span>(<span class="ident">temperature</span>)
                     .<span class="ident">timestamp</span>(<span class="ident">measurement</span>.<span class="ident">timestamp</span>)
                     .<span class="ident">sensor_title</span>(<span class="string">&quot;Temperature&quot;</span>)
-                    .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">name</span>),
+                    .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">name</span>)
+                    .<span class="ident">expires_at</span>(<span class="ident">expires_at</span>),
             )<span class="question-mark">?</span>;
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">temperature</span>) <span class="op">=</span> <span class="ident">measurement</span>.<span class="ident">ground_temperature</span> {
@@ -308,7 +318,8 @@
                     .<span class="ident">value</span>(<span class="ident">temperature</span>)
                     .<span class="ident">timestamp</span>(<span class="ident">measurement</span>.<span class="ident">timestamp</span>)
                     .<span class="ident">sensor_title</span>(<span class="string">&quot;Ground Temperature&quot;</span>)
-                    .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">name</span>),
+                    .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">name</span>)
+                    .<span class="ident">expires_at</span>(<span class="ident">expires_at</span>),
             )<span class="question-mark">?</span>;
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">temperature</span>) <span class="op">=</span> <span class="ident">measurement</span>.<span class="ident">feel_temperature</span> {
@@ -318,7 +329,8 @@
                     .<span class="ident">value</span>(<span class="ident">temperature</span>)
                     .<span class="ident">timestamp</span>(<span class="ident">measurement</span>.<span class="ident">timestamp</span>)
                     .<span class="ident">sensor_title</span>(<span class="string">&quot;Feel Temperature&quot;</span>)
-                    .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">name</span>),
+                    .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">name</span>)
+                    .<span class="ident">expires_at</span>(<span class="ident">expires_at</span>),
             )<span class="question-mark">?</span>;
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bft</span>) <span class="op">=</span> <span class="ident">measurement</span>.<span class="ident">wind_speed_bft</span> {
@@ -328,7 +340,8 @@
                     .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Bft</span>(<span class="ident">bft</span>))
                     .<span class="ident">timestamp</span>(<span class="ident">measurement</span>.<span class="ident">timestamp</span>)
                     .<span class="ident">sensor_title</span>(<span class="string">&quot;Wind Force&quot;</span>)
-                    .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">name</span>),
+                    .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">name</span>)
+                    .<span class="ident">expires_at</span>(<span class="ident">expires_at</span>),
             )<span class="question-mark">?</span>;
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">point</span>) <span class="op">=</span> <span class="ident">measurement</span>.<span class="ident">wind_direction</span> {
@@ -338,7 +351,8 @@
                     .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">WindDirection</span>(<span class="ident">point</span>))
                     .<span class="ident">timestamp</span>(<span class="ident">measurement</span>.<span class="ident">timestamp</span>)
                     .<span class="ident">sensor_title</span>(<span class="string">&quot;Wind Direction&quot;</span>)
-                    .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">name</span>),
+                    .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="ident">measurement</span>.<span class="ident">name</span>)
+                    .<span class="ident">expires_at</span>(<span class="ident">expires_at</span>),
             )<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())

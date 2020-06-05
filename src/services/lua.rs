@@ -16,6 +16,8 @@ const MESSAGE_ARG_ROOM_TITLE: &str = "room_title";
 const MESSAGE_ARG_SENSOR_TITLE: &str = "sensor_title";
 const MESSAGE_ARG_VALUE: &str = "value";
 const MESSAGE_ARG_TIMESTAMP_MILLIS: &str = "timestamp_millis";
+const MESSAGE_ARG_EXPIRES_AT_MILLIS: &str = "expires_at_millis";
+const MESSAGE_ARG_EXPIRES_IN_MILLIS: &str = "expires_in_millis";
 
 /// Adds Lua scripting and calls message handler for each incoming message.
 #[derive(Deserialize, Debug, Clone, Serialize)]
@@ -158,6 +160,13 @@ fn enrich_message<'lua>(message: &mut Message, context: LuaContext<'lua>, args: 
             }
             MESSAGE_ARG_TIMESTAMP_MILLIS => {
                 message.reading.timestamp = Local.timestamp_millis(i64::from_lua(value, context)?);
+            }
+            MESSAGE_ARG_EXPIRES_AT_MILLIS => {
+                message.sensor.expires_at = Local.timestamp_millis(i64::from_lua(value, context)?);
+            }
+            MESSAGE_ARG_EXPIRES_IN_MILLIS => {
+                message.sensor.expires_at =
+                    Local::now() + chrono::Duration::milliseconds(i64::from_lua(value, context)?);
             }
             "bft" | "beaufort" => {
                 message.reading.value = Value::Bft(u8::from_lua(value, context)?);

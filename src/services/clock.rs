@@ -17,6 +17,7 @@ fn default_interval_ms() -> u64 {
 impl Clock {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
         let interval = Duration::from_millis(self.interval_ms);
+        let ttl = chrono::Duration::milliseconds(self.interval_ms as i64);
         let tx = bus.add_tx();
 
         thread::Builder::new().name(service_id.clone()).spawn(move || {
@@ -24,6 +25,7 @@ impl Clock {
             loop {
                 Message::new(&service_id)
                     .value(Value::Counter(counter))
+                    .expires_in(ttl)
                     .send_and_forget(&tx);
                 counter += 1;
                 thread::sleep(interval);

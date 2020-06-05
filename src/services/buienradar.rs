@@ -49,13 +49,15 @@ impl Buienradar {
             .iter()
             .find(|measurement| measurement.station_id == self.station_id)
             .ok_or_else(|| InternalError::new(format!("station {} is not found", self.station_id)))?;
+        let expires_at = Local::now() + chrono::Duration::days(1);
         tx.send(
             Message::new(format!("{}::{}::weather_description", service_id, self.station_id))
                 .type_(MessageType::ReadLogged)
                 .value(Value::Text(measurement.weather_description.clone()))
                 .timestamp(measurement.timestamp)
                 .sensor_title("Description")
-                .room_title(&measurement.name),
+                .room_title(&measurement.name)
+                .expires_at(expires_at),
         )?;
         if let Some(temperature) = measurement.temperature {
             tx.send(
@@ -64,7 +66,8 @@ impl Buienradar {
                     .value(temperature)
                     .timestamp(measurement.timestamp)
                     .sensor_title("Temperature")
-                    .room_title(&measurement.name),
+                    .room_title(&measurement.name)
+                    .expires_at(expires_at),
             )?;
         }
         if let Some(temperature) = measurement.ground_temperature {
@@ -74,7 +77,8 @@ impl Buienradar {
                     .value(temperature)
                     .timestamp(measurement.timestamp)
                     .sensor_title("Ground Temperature")
-                    .room_title(&measurement.name),
+                    .room_title(&measurement.name)
+                    .expires_at(expires_at),
             )?;
         }
         if let Some(temperature) = measurement.feel_temperature {
@@ -84,7 +88,8 @@ impl Buienradar {
                     .value(temperature)
                     .timestamp(measurement.timestamp)
                     .sensor_title("Feel Temperature")
-                    .room_title(&measurement.name),
+                    .room_title(&measurement.name)
+                    .expires_at(expires_at),
             )?;
         }
         if let Some(bft) = measurement.wind_speed_bft {
@@ -94,7 +99,8 @@ impl Buienradar {
                     .value(Value::Bft(bft))
                     .timestamp(measurement.timestamp)
                     .sensor_title("Wind Force")
-                    .room_title(&measurement.name),
+                    .room_title(&measurement.name)
+                    .expires_at(expires_at),
             )?;
         }
         if let Some(point) = measurement.wind_direction {
@@ -104,7 +110,8 @@ impl Buienradar {
                     .value(Value::WindDirection(point))
                     .timestamp(measurement.timestamp)
                     .sensor_title("Wind Direction")
-                    .room_title(&measurement.name),
+                    .room_title(&measurement.name)
+                    .expires_at(expires_at),
             )?;
         }
         Ok(())

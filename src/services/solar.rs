@@ -37,6 +37,7 @@ impl Solar {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
         let interval = Duration::from_millis(self.interval_ms);
+        let ttl = chrono::Duration::days(1);
 
         thread::Builder::new().name(service_id.clone()).spawn(move || loop {
             let now = Utc::now();
@@ -48,6 +49,7 @@ impl Solar {
                             .sensor_title("Time Before Sunrise")
                             .optional_room_title(self.room_title.clone())
                             .value(Time::new::<time::millisecond>((sunrise - now).num_milliseconds() as f64))
+                            .expires_in(ttl)
                             .send_and_forget(&tx);
                     }
                     if now < sunset {
@@ -56,6 +58,7 @@ impl Solar {
                             .sensor_title("Time Before Sunset")
                             .optional_room_title(self.room_title.clone())
                             .value(Time::new::<time::millisecond>((sunset - now).num_milliseconds() as f64))
+                            .expires_in(ttl)
                             .send_and_forget(&tx);
                     }
                     if sunrise < now {
@@ -64,6 +67,7 @@ impl Solar {
                             .sensor_title("Time After Sunrise")
                             .optional_room_title(self.room_title.clone())
                             .value(Time::new::<time::millisecond>((now - sunrise).num_milliseconds() as f64))
+                            .expires_in(ttl)
                             .send_and_forget(&tx);
                     }
                     if sunset < now {
@@ -72,6 +76,7 @@ impl Solar {
                             .sensor_title("Time After Sunset")
                             .optional_room_title(self.room_title.clone())
                             .value(Time::new::<time::millisecond>((now - sunset).num_milliseconds() as f64))
+                            .expires_in(ttl)
                             .send_and_forget(&tx);
                     }
                 }
@@ -79,12 +84,14 @@ impl Solar {
                     Message::new(format!("{}::polar_day", service_id))
                         .type_(Type::ReadNonLogged)
                         .optional_room_title(self.room_title.clone())
+                        .expires_in(ttl)
                         .send_and_forget(&tx);
                 }
                 Ok(SunriseAndSet::PolarNight) => {
                     Message::new(format!("{}::polar_night", service_id))
                         .type_(Type::ReadNonLogged)
                         .optional_room_title(self.room_title.clone())
+                        .expires_in(ttl)
                         .send_and_forget(&tx);
                 }
                 Err(error) => error!("Failed to calculate sunrise and sunset: {}", error.to_string()),

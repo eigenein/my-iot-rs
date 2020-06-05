@@ -21,24 +21,28 @@ impl Db {
     }
 
     fn loop_(&self, db: &Arc<Mutex<Connection>>, tx: &Sender) -> Result<()> {
+        let expires_at = Local::now() + chrono::Duration::seconds(120);
         let db = db.lock().unwrap();
         tx.send(
             Message::new("db::size")
                 .value(Value::DataSize(db.select_size()?))
                 .sensor_title("Database Size".to_string())
-                .room_title("System".to_string()),
+                .room_title("System".to_string())
+                .expires_at(expires_at),
         )?;
         tx.send(
             Message::new("db::sensor_count")
                 .value(Value::Counter(db.select_sensor_count()?))
                 .sensor_title("Sensor Count")
-                .room_title("System".to_string()),
+                .room_title("System".to_string())
+                .expires_at(expires_at),
         )?;
         tx.send(
             Message::new("db::reading_count")
                 .value(Value::Counter(db.select_reading_count()?))
                 .sensor_title("Reading Count")
-                .room_title("System".to_string()),
+                .room_title("System".to_string())
+                .expires_at(expires_at),
         )?;
         Ok(())
     }
