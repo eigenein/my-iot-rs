@@ -11,7 +11,7 @@ use uom::si::*;
 pub struct Solar {
     /// Message interval in milliseconds.
     #[serde(default = "default_interval_ms")]
-    pub interval_ms: u64,
+    pub interval_ms: u32,
 
     #[serde(default)]
     pub room_title: Option<String>,
@@ -29,15 +29,15 @@ pub struct Secrets {
 }
 
 /// Defaults to one minute.
-fn default_interval_ms() -> u64 {
+fn default_interval_ms() -> u32 {
     60000
 }
 
 impl Solar {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
-        let interval = Duration::from_millis(self.interval_ms);
-        let ttl = chrono::Duration::days(1);
+        let interval = Duration::from_millis(self.interval_ms as u64);
+        let ttl = chrono::Duration::milliseconds((self.interval_ms * 2) as i64);
 
         thread::Builder::new().name(service_id.clone()).spawn(move || loop {
             let now = Utc::now();

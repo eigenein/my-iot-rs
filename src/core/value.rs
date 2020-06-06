@@ -58,6 +58,10 @@ pub enum Value {
     /// Duration.
     #[serde(rename = "D")]
     Duration(Time),
+
+    /// Generic intensity in percents.
+    #[serde(rename = "RI")]
+    RelativeIntensity(f64),
 }
 
 impl From<ThermodynamicTemperature> for Value {
@@ -125,6 +129,14 @@ impl Value {
                     "is-danger"
                 }
             }
+            Value::RelativeIntensity(value) => match value {
+                _ if value < 15.0 => "is-link",
+                _ if value < 30.0 => "is-info",
+                _ if value < 50.0 => "is-primary",
+                _ if value < 70.0 => "is-success",
+                _ if value < 90.0 => "is-warning",
+                _ => "is-danger",
+            },
             _ => "is-light",
         }
     }
@@ -148,6 +160,7 @@ impl Value {
             }),
             Value::Duration(_) => Ok(r#"<i class="far fa-clock"></i>"#),
             Value::ImageUrl(_) | Value::None => Ok(""),
+            Value::RelativeIntensity(_) => Ok(r#"<i class="far fa-lightbulb"></i>"#),
         }
     }
 }
@@ -176,6 +189,7 @@ impl std::fmt::Display for Value {
                 if *value { "Yes" } else { "No" }
             ),
             Value::Duration(time) => write!(f, "{}", time.into_format_args(time::second, Abbreviation)),
+            Value::RelativeIntensity(percentage) => write!(f, "{}%", percentage),
         }
     }
 }

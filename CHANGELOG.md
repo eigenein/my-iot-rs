@@ -1,8 +1,9 @@
 # `my-iot`
 
-## `master`
+## `0.49.0`
 
 - Introduced an individual sensor time-to-live, closes #86
+- Add the first sensor to Tado° #73
 
 ## `0.48.0`
 

@@ -18,6 +18,8 @@
     {% let column_class = "is-2" -%}
   {% when Value::Duration with (_) -%}
     {% let column_class = "is-2" %}
+  {% when Value::RelativeIntensity with (_) -%}
+    {% let column_class = "is-2" -%}
   {% else -%}
     {% let column_class = "is-3" -%}
 {% endmatch -%}

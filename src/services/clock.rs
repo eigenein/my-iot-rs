@@ -7,16 +7,16 @@ use std::time::Duration;
 pub struct Clock {
     /// Interval in milliseconds.
     #[serde(default = "default_interval_ms")]
-    pub interval_ms: u64,
+    pub interval_ms: u32,
 }
 
-fn default_interval_ms() -> u64 {
+fn default_interval_ms() -> u32 {
     1000
 }
 
 impl Clock {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
-        let interval = Duration::from_millis(self.interval_ms);
+        let interval = Duration::from_millis(self.interval_ms as u64);
         let ttl = chrono::Duration::milliseconds(self.interval_ms as i64);
         let tx = bus.add_tx();
 

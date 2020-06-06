@@ -148,6 +148,19 @@ impl Value {
     }
 }
 
+impl Sensor {
+    pub fn title(&self) -> String {
+        self.title.as_ref().unwrap_or(&self.id).into()
+    }
+
+    pub fn room_title(&self) -> String {
+        match &self.room_title {
+            Some(title) => title.clone(),
+            None => "No Room".into(),
+        }
+    }
+}
+
 fn crate_version() -> &'static str {
     structopt::clap::crate_version!()
 }

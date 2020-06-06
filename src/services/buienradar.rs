@@ -10,7 +10,7 @@ use uom::si::*;
 
 /// Buienradar JSON feed URL.
 const URL: &str = "https://json.buienradar.nl/";
-const REFRESH_PERIOD: Duration = Duration::from_millis(60000);
+const REFRESH_PERIOD: Duration = Duration::from_secs(60);
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Buienradar {
@@ -49,7 +49,7 @@ impl Buienradar {
             .iter()
             .find(|measurement| measurement.station_id == self.station_id)
             .ok_or_else(|| InternalError::new(format!("station {} is not found", self.station_id)))?;
-        let expires_at = Local::now() + chrono::Duration::days(1);
+        let expires_at = Local::now() + chrono::Duration::seconds(60 * 2);
         tx.send(
             Message::new(format!("{}::{}::weather_description", service_id, self.station_id))
                 .type_(MessageType::ReadLogged)
@@ -219,10 +219,8 @@ fn deserialize_temperature<'de, D: Deserializer<'de>>(
 
 #[cfg(test)]
 mod tests {
-    use crate::services::buienradar::BuienradarFeed;
+    use super::*;
     use crate::Result;
-    use uom::si::f64::*;
-    use uom::si::*;
 
     #[test]
     fn parse() -> Result<()> {

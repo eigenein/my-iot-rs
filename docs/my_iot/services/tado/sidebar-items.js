@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["CLIENT_ID",""],["CLIENT_SECRET",""],["REFRESH_PERIOD",""],["SCOPE",""]],"fn":[["deserialize_expires_at",""]],"struct":[["LoginResponse",""],["Secrets",""],["Tado",""]]});
+initSidebarItems({"constant":[["CLIENT_ID",""],["CLIENT_SECRET",""],["REFRESH_PERIOD",""],["SCOPE",""]],"enum":[["SolarIntensity",""],["Zone",""]],"fn":[["deserialize_expires_at",""]],"struct":[["HeatingZone",""],["Home",""],["HotWaterZone",""],["Me",""],["Percentage",""],["Secrets",""],["Tado",""],["Token",""],["Weather",""]]});

@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block title %}{{ sensor.title() }} – {{ sensor.room_title() }} – My IoT{% endblock %}
+
 {% block body %}
   <section class="hero {{ reading.value.class() }}">
     <div class="hero-head">
@@ -11,13 +13,13 @@
           {% if reading.value.is_inline() -%}
             {{ ValuePartialTemplate::new(reading.value)|safe }}
           {% else -%}
-            {{ sensor.title.as_deref().unwrap_or(sensor.id.as_str()) -}}
+            {{ sensor.title() -}}
           {% endif -%}
         </h1>
 
         <h2 class="subtitle is-6">
           {% if reading.value.is_inline() -%}
-            <span title="{{ sensor.id }}">{{ sensor.title.as_deref().unwrap_or(sensor.id.as_str()) }}</span>
+            <span title="{{ sensor.id }}">{{ sensor.title() }}</span>
           {% endif -%}
           <span><i class="far fa-clock"></i></span>
           <span title="{{ reading.timestamp.to_string() }}">
@@ -43,8 +45,13 @@
 
   <section class="section">
     <div class="container">
-      <h3 class="title is-5">Latest reading</h3>
+      <h3 class="title is-5">Raw data</h3>
       <h4 class="subtitle is-7">This is stored in the database. Keep in mind that it may contain sensitive information</h4>
+      <div class="message">
+        <div class="message-body">
+          <pre><code>{{ "{:#?}"|format(sensor) }}</code></pre>
+        </div>
+      </div>
       <div class="message">
         <div class="message-body">
           <pre><code>{{ "{:#?}"|format(reading) }}</code></pre>

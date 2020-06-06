@@ -234,7 +234,7 @@ impl<'lua> ToLua<'lua> for Value {
             Value::ImageUrl(value) | Value::Text(value) => value.to_lua(context),
             Value::Length(value) => value.value.to_lua(context),
             Value::None => Ok(LuaValue::Nil),
-            Value::Rh(value) => value.to_lua(context),
+            Value::Rh(value) | Value::RelativeIntensity(value) => value.to_lua(context),
             Value::Temperature(value) => value.value.to_lua(context),
             Value::WindDirection(value) => value.to_lua(context),
         }
