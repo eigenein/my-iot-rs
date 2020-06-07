@@ -11,10 +11,11 @@ pub use log::{debug, error, info, log, warn, Level as LogLevel};
 pub use rusqlite::Connection;
 pub use serde::{Deserialize, Deserializer, Serialize};
 pub use std::error::Error;
+pub use std::result::Result as StdResult;
 pub use std::sync::{Arc, Mutex};
 pub use std::thread;
 pub use std::thread::sleep;
 
-pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
+pub type Result<T> = StdResult<T, Box<dyn Error>>;
 pub type Receiver = crossbeam::channel::Receiver<Message>;
 pub type Sender = crossbeam::channel::Sender<Message>;

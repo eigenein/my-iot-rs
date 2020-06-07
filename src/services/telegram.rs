@@ -89,10 +89,10 @@ pub fn call_api<P: Serialize + Debug + ?Sized, R: DeserializeOwned>(
         .send()?
         .json::<TelegramResponse<R>>()?;
     if response.ok {
-        Ok(response.result.unwrap())
+        Ok(response.result.expect("empty result"))
     } else {
         error!("Telegram error: {:?}", response.description);
-        Err(response.description.unwrap().into())
+        Err(response.description.expect("empty error description").into())
     }
 }
 
