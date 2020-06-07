@@ -195,39 +195,55 @@ impl std::fmt::Display for Value {
 }
 
 /// [Points of the compass](https://en.wikipedia.org/wiki/Points_of_the_compass).
+/// Provides the common aliases in English and Dutch.
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq)]
 pub enum PointOfTheCompass {
-    /// N
+    #[serde(alias = "N")]
     North,
-    /// NNE
+
+    #[serde(alias = "NNE", alias = "NNO")]
     NorthNortheast,
-    /// NE
+
+    #[serde(alias = "NE", alias = "NO")]
     Northeast,
-    /// ENE
+
+    #[serde(alias = "ENE", alias = "ONO")]
     EastNortheast,
-    /// E
+
+    #[serde(alias = "E", alias = "O")]
     East,
-    /// ESE
+
+    #[serde(alias = "ESE", alias = "OZO")]
     EastSoutheast,
-    /// SE
+
+    #[serde(alias = "SE", alias = "ZO")]
     Southeast,
-    /// SSE
+
+    #[serde(alias = "SSE", alias = "ZZO")]
     SouthSoutheast,
-    /// S
+
+    #[serde(alias = "S", alias = "Z")]
     South,
-    /// SSW
+
+    #[serde(alias = "SSW", alias = "ZZW")]
     SouthSouthwest,
-    /// SW
+
+    #[serde(alias = "SW", alias = "ZW")]
     Southwest,
-    /// WSW
+
+    #[serde(alias = "WSW", alias = "WZW")]
     WestSouthwest,
-    /// W
+
+    #[serde(alias = "W")]
     West,
-    /// WNW
+
+    #[serde(alias = "WNW")]
     WestNorthwest,
-    /// NW
+
+    #[serde(alias = "NW")]
     Northwest,
-    /// NNW
+
+    #[serde(alias = "NNW")]
     NorthNorthwest,
 }
 

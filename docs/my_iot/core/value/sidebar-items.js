@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["PointOfTheCompass","Points of the compass."],["Value","Sensor reading value."]]});
+initSidebarItems({"enum":[["PointOfTheCompass","Points of the compass. Provides the common aliases in English and Dutch."],["Value","Sensor reading value."]]});

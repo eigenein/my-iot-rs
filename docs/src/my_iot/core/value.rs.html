@@ -250,6 +250,22 @@
 <span id="250">250</span>
 <span id="251">251</span>
 <span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implements sensor reading value.</span>
 
@@ -448,39 +464,55 @@
 }
 
 <span class="doccomment">/// [Points of the compass](https://en.wikipedia.org/wiki/Points_of_the_compass).</span>
+<span class="doccomment">/// Provides the common aliases in English and Dutch.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PointOfTheCompass</span> {
-    <span class="doccomment">/// N</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;N&quot;</span>)]</span>
     <span class="ident">North</span>,
-    <span class="doccomment">/// NNE</span>
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;NNE&quot;</span>, <span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;NNO&quot;</span>)]</span>
     <span class="ident">NorthNortheast</span>,
-    <span class="doccomment">/// NE</span>
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;NE&quot;</span>, <span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;NO&quot;</span>)]</span>
     <span class="ident">Northeast</span>,
-    <span class="doccomment">/// ENE</span>
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;ENE&quot;</span>, <span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;ONO&quot;</span>)]</span>
     <span class="ident">EastNortheast</span>,
-    <span class="doccomment">/// E</span>
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;E&quot;</span>, <span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;O&quot;</span>)]</span>
     <span class="ident">East</span>,
-    <span class="doccomment">/// ESE</span>
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;ESE&quot;</span>, <span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;OZO&quot;</span>)]</span>
     <span class="ident">EastSoutheast</span>,
-    <span class="doccomment">/// SE</span>
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;SE&quot;</span>, <span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;ZO&quot;</span>)]</span>
     <span class="ident">Southeast</span>,
-    <span class="doccomment">/// SSE</span>
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;SSE&quot;</span>, <span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;ZZO&quot;</span>)]</span>
     <span class="ident">SouthSoutheast</span>,
-    <span class="doccomment">/// S</span>
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;S&quot;</span>, <span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;Z&quot;</span>)]</span>
     <span class="ident">South</span>,
-    <span class="doccomment">/// SSW</span>
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;SSW&quot;</span>, <span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;ZZW&quot;</span>)]</span>
     <span class="ident">SouthSouthwest</span>,
-    <span class="doccomment">/// SW</span>
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;SW&quot;</span>, <span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;ZW&quot;</span>)]</span>
     <span class="ident">Southwest</span>,
-    <span class="doccomment">/// WSW</span>
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;WSW&quot;</span>, <span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;WZW&quot;</span>)]</span>
     <span class="ident">WestSouthwest</span>,
-    <span class="doccomment">/// W</span>
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;W&quot;</span>)]</span>
     <span class="ident">West</span>,
-    <span class="doccomment">/// WNW</span>
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;WNW&quot;</span>)]</span>
     <span class="ident">WestNorthwest</span>,
-    <span class="doccomment">/// NW</span>
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;NW&quot;</span>)]</span>
     <span class="ident">Northwest</span>,
-    <span class="doccomment">/// NNW</span>
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;NNW&quot;</span>)]</span>
     <span class="ident">NorthNorthwest</span>,
 }
 
