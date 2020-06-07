@@ -75,7 +75,7 @@ impl Connection {
 
     #[allow(dead_code)]
     pub fn select_readings(&self, sensor_id: &str, since: &DateTime<Local>) -> Result<Vec<Reading>> {
-        let sensor_fk = signed_seahash(sensor_id.as_bytes());
+        let sensor_fk = hash_sensor_id(sensor_id);
         self.connection()?
             // language=sql
             .prepare_cached(
@@ -135,6 +135,15 @@ impl Connection {
     }
 }
 
+pub fn hash_sensor_id(sensor_id: &str) -> i64 {
+    signed_seahash(sensor_id.as_bytes())
+}
+
+/// Returns SeaHash of the buffer as a signed integer, because SQLite wants signed integers.
+fn signed_seahash(buffer: &[u8]) -> i64 {
+    seahash::hash(buffer) as i64
+}
+
 fn get_sensor(row: &Row) -> rusqlite::Result<Sensor> {
     Ok(Sensor {
         id: row.get("sensor_id")?,
@@ -175,7 +184,7 @@ impl Value {
 
 impl Message {
     pub fn upsert_into(&self, connection: &Connection) -> Result<()> {
-        let sensor_pk = signed_seahash(self.sensor.id.as_bytes());
+        let sensor_pk = hash_sensor_id(&self.sensor.id);
         let timestamp = self.reading.timestamp.timestamp_millis();
         let value = self.reading.value.serialize_to_vec()?;
         let connection = connection.connection()?;
@@ -226,11 +235,6 @@ impl From<Message> for (Sensor, Reading) {
     fn from(message: Message) -> Self {
         (message.sensor, message.reading)
     }
-}
-
-/// Returns SeaHash of the buffer as a signed integer, because SQLite wants signed integers.
-fn signed_seahash(buffer: &[u8]) -> i64 {
-    seahash::hash(buffer) as i64
 }
 
 #[cfg(test)]
