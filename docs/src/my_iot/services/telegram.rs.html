@@ -240,10 +240,10 @@
         .<span class="ident">send</span>()<span class="question-mark">?</span>
         .<span class="ident">json</span>::<span class="op">&lt;</span><span class="ident">TelegramResponse</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">response</span>.<span class="ident">ok</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">response</span>.<span class="ident">result</span>.<span class="ident">unwrap</span>())
+        <span class="prelude-val">Ok</span>(<span class="ident">response</span>.<span class="ident">result</span>.<span class="ident">expect</span>(<span class="string">&quot;empty result&quot;</span>))
     } <span class="kw">else</span> {
         <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Telegram error: {:?}&quot;</span>, <span class="ident">response</span>.<span class="ident">description</span>);
-        <span class="prelude-val">Err</span>(<span class="ident">response</span>.<span class="ident">description</span>.<span class="ident">unwrap</span>().<span class="ident">into</span>())
+        <span class="prelude-val">Err</span>(<span class="ident">response</span>.<span class="ident">description</span>.<span class="ident">expect</span>(<span class="string">&quot;empty error description&quot;</span>).<span class="ident">into</span>())
     }
 }
 

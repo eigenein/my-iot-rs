@@ -8,7 +8,6 @@ use rocket::http::ContentType;
 use rocket::response::content::{Content, Html};
 use rocket::{get, routes, Config, Rocket, State};
 use rocket_contrib::json::Json;
-use std::collections::HashMap;
 
 mod templates;
 
@@ -23,7 +22,7 @@ fn make_rocket(settings: &Settings, db: Arc<Mutex<Connection>>) -> Result<Rocket
     Ok(rocket::custom(
         Config::build(Environment::Production)
             .port(settings.http_port)
-            .keep_alive(60)
+            .keep_alive(600)
             .finalize()?,
     )
     .manage(db)
@@ -37,7 +36,7 @@ fn make_rocket(settings: &Settings, db: Arc<Mutex<Connection>>) -> Result<Rocket
             get_favicon,
             get_static,
             get_sensor,
-            get_sensor_json
+            get_sensor_json,
         ],
     ))
 }
@@ -133,11 +132,8 @@ lazy_static! {
             ),
         );
         map.insert(
-            "plotly-1.5.0.min.js",
-            (
-                ContentType::JavaScript,
-                include_bytes!("statics/plotly-1.5.0.min.js").to_vec(),
-            ),
+            "chart.js",
+            (ContentType::JavaScript, include_bytes!("statics/chart.js").to_vec()),
         );
         map
     };

@@ -10,6 +10,7 @@ pub use crossbeam::thread::Scope;
 pub use log::{debug, error, info, log, warn, Level as LogLevel};
 pub use rusqlite::Connection;
 pub use serde::{Deserialize, Deserializer, Serialize};
+pub use std::collections::HashMap;
 pub use std::error::Error;
 pub use std::result::Result as StdResult;
 pub use std::sync::{Arc, Mutex};

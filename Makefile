@@ -45,8 +45,8 @@ docker/build/%:
 	@docker build -t "eigenein/my-iot-rs/$*" -f Dockerfile . --target "$*"
 	@docker run --rm -v "$(PWD):/my-iot-rs" "eigenein/my-iot-rs/$*"
 
-.PHONY: statics
-statics:
+.PHONY: src/statics
+src/statics:
 	@curl 'https://cdnjs.cloudflare.com/ajax/libs/bulma/0.8.1/css/bulma.min.css' --output 'src/statics/bulma.min.css'
 	@curl 'https://unpkg.com/bulma-prefers-dark@0.1.0-beta.0/css/bulma-prefers-dark.css' --output 'src/statics/bulma-prefers-dark.css'
-	@curl 'https://cdn.plot.ly/plotly-1.5.0.min.js' --output 'src/statics/plotly-1.5.0.min.js'
+	@curl 'https://cdn.jsdelivr.net/npm/chart.js@2.9.3' --output 'src/statics/chart.js'
