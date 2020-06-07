@@ -70,9 +70,11 @@ fn get_static(key: String) -> Option<Content<&'static [u8]>> {
 
 #[get("/sensors/<sensor_id>")]
 fn get_sensor(db: State<Connection>, sensor_id: String) -> Result<Option<Html<String>>> {
-    Ok(db
-        .get_sensor(&sensor_id)?
-        .map(|(sensor, reading)| Html(templates::SensorTemplate::new(sensor, reading).to_string())))
+    if let Some((sensor, reading)) = db.get_sensor(&sensor_id)? {
+        Ok(Some(Html(templates::SensorTemplate::new(sensor, reading).to_string())))
+    } else {
+        Ok(None)
+    }
 }
 
 #[get("/sensors/<sensor_id>/json")]

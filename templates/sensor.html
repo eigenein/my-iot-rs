@@ -7,6 +7,7 @@
     <div class="hero-head">
       {{ NavbarPartialTemplate::new("sensor")|safe }}
     </div>
+
     <div class="hero-body">
       <div class="container">
         <h1 class="title is-4" title='{{ "{:?}"|format(reading.value) }}'>
@@ -27,6 +28,23 @@
           </span>
         </h2>
       </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <nav class="tabs is-centered">
+        <div class="container">
+          <ul>
+            <li class="is-active"><a>5 mins</a></li>
+            <li><a>1 hour</a></li>
+            <li><a>12 hours</a></li>
+            <li><a>1 day</a></li>
+            <li><a>1 week</a></li>
+            <li><a>1 month</a></li>
+          </ul>
+        </div>
+      </nav>
     </div>
   </section>
 

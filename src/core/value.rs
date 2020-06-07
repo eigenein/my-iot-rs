@@ -142,3 +142,13 @@ pub enum PointOfTheCompass {
     #[serde(alias = "NNW")]
     NorthNorthwest,
 }
+
+impl Value {
+    pub fn as_f64(&self) -> Option<f64> {
+        match self {
+            Value::Rh(value) | Value::RelativeIntensity(value) => Some(*value),
+            Value::Temperature(value) => Some(value.value),
+            _ => None,
+        }
+    }
+}
