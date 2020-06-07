@@ -7,7 +7,6 @@ use rusqlite::{OptionalExtension, NO_PARAMS};
 use std::path::Path;
 
 mod migrations;
-mod primitives;
 pub mod reading;
 pub mod sensor;
 pub mod thread;
