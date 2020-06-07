@@ -1,7 +1,6 @@
 //! Implements sensor reading value.
 
 use serde::{Deserialize, Serialize};
-use std::fmt::{Display, Formatter};
 use uom::si::f64::*;
 use uom::si::*;
 
@@ -142,24 +141,4 @@ pub enum PointOfTheCompass {
 
     #[serde(alias = "NNW")]
     NorthNorthwest,
-}
-
-// TODO: move to templates.
-impl Display for PointOfTheCompass {
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        match self {
-            PointOfTheCompass::North => write!(f, "North"),
-            PointOfTheCompass::NorthNortheast => write!(f, "North-northeast"),
-            PointOfTheCompass::Northeast => write!(f, "Northeast"),
-            PointOfTheCompass::EastNortheast => write!(f, "East-northeast"),
-            PointOfTheCompass::East => write!(f, "East"),
-            PointOfTheCompass::EastSoutheast => write!(f, "East-southeast"),
-            PointOfTheCompass::Southeast => write!(f, "Southeast"),
-            PointOfTheCompass::SouthSoutheast => write!(f, "South-southeast"),
-            PointOfTheCompass::South => write!(f, "South"),
-            PointOfTheCompass::SouthSouthwest => write!(f, "South-southwest"),
-            // TODO
-            _ => write!(f, "{:?}", self),
-        }
-    }
 }
