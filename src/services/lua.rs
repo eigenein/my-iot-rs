@@ -43,21 +43,21 @@ impl Lua {
 
         let lua = rlua::Lua::new();
         lua.context(|context| -> Result<()> {
-            init_logging(context, &service_id)?;
+            init_logging(context)?;
             init_functions(context, tx.clone())?;
             init_services(context, &services)?;
 
-            info!("[{}] Loading and executing the script…", &service_id);
+            info!("Loading and executing the script…");
             context.load(&self.script).set_name(&service_id)?.exec()?;
 
             Ok(())
         })?;
 
-        thread::Builder::new().name(service_id.clone()).spawn(move || {
+        thread::Builder::new().name(service_id).spawn(move || {
             lua.context(|context| {
-                info!("[{}] Listening…", &service_id);
+                info!("Listening…");
                 for message in &rx {
-                    if !(self.is_match(&service_id, &message)) {
+                    if !(self.is_match(&message)) {
                         continue;
                     }
                     if let Err(error) = context
@@ -79,16 +79,16 @@ impl Lua {
     }
 
     /// Checks whether the message matches the filters.
-    fn is_match(&self, service_id: &str, message: &Message) -> bool {
+    fn is_match(&self, message: &Message) -> bool {
         if let Some(ref regex) = self.filter_sensor_ids {
             if !regex.is_match(&message.sensor.id) {
-                debug!("[{}] `{}` does not match the filter", &service_id, &message.sensor.id);
+                debug!("`{}` does not match the filter", &message.sensor.id);
                 return false;
             }
         }
         if let Some(ref regex) = self.skip_sensor_ids {
             if regex.is_match(&message.sensor.id) {
-                debug!("[{}] `{}` is skipped", &service_id, &message.sensor.id);
+                debug!("`{}` is skipped", &message.sensor.id);
                 return false;
             }
         }
@@ -111,19 +111,18 @@ fn create_args_table<'lua>(context: LuaContext<'lua>, message: &Message) -> LuaR
 }
 
 /// Expose logging functions to the context.
-fn init_logging(context: LuaContext, service_id: &str) -> Result<()> {
+fn init_logging(context: LuaContext) -> Result<()> {
     let globals = context.globals();
-    globals.set("debug", create_log_function(context, service_id, LogLevel::Debug)?)?;
-    globals.set("info", create_log_function(context, service_id, LogLevel::Info)?)?;
-    globals.set("warn", create_log_function(context, service_id, LogLevel::Warn)?)?;
-    globals.set("error", create_log_function(context, service_id, LogLevel::Error)?)?;
+    globals.set("debug", create_log_function(context, LogLevel::Debug)?)?;
+    globals.set("info", create_log_function(context, LogLevel::Info)?)?;
+    globals.set("warn", create_log_function(context, LogLevel::Warn)?)?;
+    globals.set("error", create_log_function(context, LogLevel::Error)?)?;
     Ok(())
 }
 
-fn create_log_function<S: Into<String>>(context: LuaContext, service_id: S, level: LogLevel) -> LuaResult<LuaFunction> {
-    let service_id = service_id.into();
+fn create_log_function(context: LuaContext, level: LogLevel) -> LuaResult<LuaFunction> {
     context.create_function(move |_, message: String| {
-        log!(level, "[{}] {}", service_id, message);
+        log!(level, "{}", message);
         Ok(())
     })
 }

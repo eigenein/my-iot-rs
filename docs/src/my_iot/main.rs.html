@@ -65,13 +65,32 @@
 <span id="65">65</span>
 <span id="66">66</span>
 <span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Entry point.</span>
 
 <span class="attribute">#![<span class="ident">feature</span>(<span class="ident">proc_macro_hygiene</span>, <span class="ident">decl_macro</span>)]</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">log</span>::<span class="ident">Level</span>;
+<span class="kw">use</span> <span class="ident">log</span>::<span class="ident">LevelFilter</span>;
+<span class="kw">use</span> <span class="ident">simplelog</span>::{<span class="ident">ConfigBuilder</span>, <span class="ident">TermLogger</span>, <span class="ident">TerminalMode</span>, <span class="ident">ThreadLogMode</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
 <span class="kw">use</span> <span class="ident">structopt</span>::<span class="ident">StructOpt</span>;
@@ -106,13 +125,7 @@
 <span class="doccomment">/// Entry point.</span>
 <span class="kw">fn</span> <span class="ident">main</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">opt</span>: <span class="ident">Opt</span> <span class="op">=</span> <span class="ident">Opt</span>::<span class="ident">from_args</span>();
-    <span class="ident">simple_logger</span>::<span class="ident">init_with_level</span>(<span class="kw">if</span> <span class="ident">opt</span>.<span class="ident">silent</span> {
-        <span class="ident">Level</span>::<span class="ident">Warn</span>
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">opt</span>.<span class="ident">verbose</span> {
-        <span class="ident">Level</span>::<span class="ident">Debug</span>
-    } <span class="kw">else</span> {
-        <span class="ident">Level</span>::<span class="ident">Info</span>
-    })<span class="question-mark">?</span>;
+    <span class="ident">init_logging</span>(<span class="ident">opt</span>.<span class="ident">silent</span>, <span class="ident">opt</span>.<span class="ident">verbose</span>)<span class="question-mark">?</span>;
 
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Reading the settings…&quot;</span>);
     <span class="kw">let</span> <span class="ident">settings</span> <span class="op">=</span> <span class="ident">settings</span>::<span class="ident">read</span>(<span class="ident">opt</span>.<span class="ident">settings</span>)<span class="question-mark">?</span>;
@@ -132,6 +145,29 @@
 
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Starting web server on port {}…&quot;</span>, <span class="ident">settings</span>.<span class="ident">http_port</span>);
     <span class="ident">web</span>::<span class="ident">start_server</span>(<span class="kw-2">&amp;</span><span class="ident">settings</span>, <span class="ident">db</span>)
+}
+
+<span class="kw">fn</span> <span class="ident">init_logging</span>(<span class="ident">silent</span>: <span class="ident">bool</span>, <span class="ident">verbose</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="ident">TermLogger</span>::<span class="ident">init</span>(
+        <span class="kw">if</span> <span class="ident">silent</span> {
+            <span class="ident">LevelFilter</span>::<span class="ident">Warn</span>
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">verbose</span> {
+            <span class="ident">LevelFilter</span>::<span class="ident">Debug</span>
+        } <span class="kw">else</span> {
+            <span class="ident">LevelFilter</span>::<span class="ident">Info</span>
+        },
+        <span class="ident">ConfigBuilder</span>::<span class="ident">new</span>()
+            .<span class="ident">set_thread_level</span>(<span class="ident">LevelFilter</span>::<span class="ident">Error</span>)
+            .<span class="ident">set_target_level</span>(<span class="ident">LevelFilter</span>::<span class="ident">Error</span>)
+            .<span class="ident">set_location_level</span>(<span class="ident">LevelFilter</span>::<span class="ident">Debug</span>)
+            .<span class="ident">set_thread_mode</span>(<span class="ident">ThreadLogMode</span>::<span class="ident">Names</span>)
+            .<span class="ident">set_time_format_str</span>(<span class="string">&quot;%F %T%.3f&quot;</span>)
+            .<span class="ident">set_time_to_local</span>(<span class="bool-val">true</span>)
+            .<span class="ident">add_filter_ignore_str</span>(<span class="string">&quot;launch_&quot;</span>)
+            .<span class="ident">build</span>(),
+        <span class="ident">TerminalMode</span>::<span class="ident">Stderr</span>,
+    )<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(())
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "my_iot";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

@@ -30,7 +30,6 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 toml = "0.5"
 regex = "1"
-simple_logger = "1.0"
 structopt = "0.3"
 rusqlite = { version = "0.20", features = ["bundled"] }
 askama = { git = "https://github.com/djc/askama", rev = "88a69fd6f8606ae0c543e83071a3b797fa64d17b" }
@@ -45,3 +44,4 @@ seahash = "4"
 crossbeam = "0.7"
 rocket = { version = "0.4", default-features = false }
 rocket_contrib = "0.4"
+simplelog = "0.8"

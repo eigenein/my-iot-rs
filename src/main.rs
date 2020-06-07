@@ -3,7 +3,8 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
 use crate::prelude::*;
-use log::Level;
+use log::LevelFilter;
+use simplelog::{ConfigBuilder, TermLogger, TerminalMode, ThreadLogMode};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use structopt::StructOpt;
@@ -38,13 +39,7 @@ struct Opt {
 /// Entry point.
 fn main() -> Result<()> {
     let opt: Opt = Opt::from_args();
-    simple_logger::init_with_level(if opt.silent {
-        Level::Warn
-    } else if opt.verbose {
-        Level::Debug
-    } else {
-        Level::Info
-    })?;
+    init_logging(opt.silent, opt.verbose)?;
 
     info!("Reading the settings…");
     let settings = settings::read(opt.settings)?;
@@ -64,4 +59,27 @@ fn main() -> Result<()> {
 
     info!("Starting web server on port {}…", settings.http_port);
     web::start_server(&settings, db)
+}
+
+fn init_logging(silent: bool, verbose: bool) -> Result<()> {
+    TermLogger::init(
+        if silent {
+            LevelFilter::Warn
+        } else if verbose {
+            LevelFilter::Debug
+        } else {
+            LevelFilter::Info
+        },
+        ConfigBuilder::new()
+            .set_thread_level(LevelFilter::Error)
+            .set_target_level(LevelFilter::Error)
+            .set_location_level(LevelFilter::Debug)
+            .set_thread_mode(ThreadLogMode::Names)
+            .set_time_format_str("%F %T%.3f")
+            .set_time_to_local(true)
+            .add_filter_ignore_str("launch_")
+            .build(),
+        TerminalMode::Stderr,
+    )?;
+    Ok(())
 }
