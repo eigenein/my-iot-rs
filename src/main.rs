@@ -9,7 +9,6 @@ use std::sync::{Arc, Mutex};
 use structopt::StructOpt;
 
 mod core;
-mod errors;
 mod format;
 mod prelude;
 mod services;

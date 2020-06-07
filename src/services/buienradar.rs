@@ -48,7 +48,7 @@ impl Buienradar {
             .station_measurements
             .iter()
             .find(|measurement| measurement.station_id == self.station_id)
-            .ok_or_else(|| InternalError::new(format!("station {} is not found", self.station_id)))?;
+            .ok_or_else(|| format!("station {} is not found", self.station_id))?;
         let expires_at = Local::now() + chrono::Duration::seconds(60 * 2);
         if let Some(temperature) = measurement.temperature {
             tx.send(

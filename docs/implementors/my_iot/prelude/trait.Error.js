@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["my_iot"] = [{"text":"impl <a class=\"trait\" href=\"my_iot/prelude/trait.Error.html\" title=\"trait my_iot::prelude::Error\">Error</a> for <a class=\"struct\" href=\"my_iot/errors/struct.InternalError.html\" title=\"struct my_iot::errors::InternalError\">InternalError</a>","synthetic":false,"types":["my_iot::errors::InternalError"]}];
+implementors["my_iot"] = [];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -5,7 +5,6 @@ pub use crate::core::persistence::reading::Reading;
 pub use crate::core::persistence::sensor::Sensor;
 pub use crate::core::persistence::ConnectionExtensions;
 pub use crate::core::value::{PointOfTheCompass, Value};
-pub use crate::errors::InternalError;
 pub use chrono::prelude::*;
 pub use crossbeam::thread::Scope;
 pub use log::{debug, error, info, log, warn, Level as LogLevel};

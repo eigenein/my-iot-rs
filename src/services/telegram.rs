@@ -92,7 +92,7 @@ pub fn call_api<P: Serialize + Debug + ?Sized, R: DeserializeOwned>(
         Ok(response.result.unwrap())
     } else {
         error!("Telegram error: {:?}", response.description);
-        Err(InternalError::new(response.description.unwrap()).into())
+        Err(response.description.unwrap().into())
     }
 }
 
