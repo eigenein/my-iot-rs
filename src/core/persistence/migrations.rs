@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use chrono::Duration;
 
-pub const MIGRATIONS: &[fn(&Connection) -> Result<()>] = &[
+pub const MIGRATIONS: &[fn(&rusqlite::Connection) -> Result<()>] = &[
     |_| Ok(()),
     create_initial_schema,
     drop_readings_because_of_changed_serialization_format,
@@ -12,7 +12,7 @@ pub const MIGRATIONS: &[fn(&Connection) -> Result<()>] = &[
     add_sensor_expires_at,
 ];
 
-fn create_initial_schema(db: &Connection) -> Result<()> {
+fn create_initial_schema(db: &rusqlite::Connection) -> Result<()> {
     // language=sql
     db.execute_batch(
         r#"
@@ -35,7 +35,7 @@ fn create_initial_schema(db: &Connection) -> Result<()> {
     Ok(())
 }
 
-fn drop_readings_because_of_changed_serialization_format(db: &Connection) -> Result<()> {
+fn drop_readings_because_of_changed_serialization_format(db: &rusqlite::Connection) -> Result<()> {
     // language=sql
     db.execute_batch(
         r#"
@@ -46,7 +46,7 @@ fn drop_readings_because_of_changed_serialization_format(db: &Connection) -> Res
     Ok(())
 }
 
-fn add_sensor_titles(db: &Connection) -> Result<()> {
+fn add_sensor_titles(db: &rusqlite::Connection) -> Result<()> {
     // language=sql
     db.execute_batch(
         r#"
@@ -56,7 +56,7 @@ fn add_sensor_titles(db: &Connection) -> Result<()> {
     Ok(())
 }
 
-fn add_room_titles(db: &Connection) -> Result<()> {
+fn add_room_titles(db: &rusqlite::Connection) -> Result<()> {
     // language=sql
     db.execute_batch(
         r#"
@@ -68,7 +68,7 @@ fn add_room_titles(db: &Connection) -> Result<()> {
 
 /// Denormalize `sensors` to avoid joining the `readings` table while
 /// fetching actual sensor values. `Value::None` is set by default.
-fn denormalize_actual_sensor_values(db: &Connection) -> Result<()> {
+fn denormalize_actual_sensor_values(db: &rusqlite::Connection) -> Result<()> {
     // language=sql
     db.execute_batch(
         r#"
@@ -78,7 +78,7 @@ fn denormalize_actual_sensor_values(db: &Connection) -> Result<()> {
     Ok(())
 }
 
-fn drop_readings_because_of_changed_sensor_pks(db: &Connection) -> Result<()> {
+fn drop_readings_because_of_changed_sensor_pks(db: &rusqlite::Connection) -> Result<()> {
     // language=sql
     db.execute_batch(
         r#"
@@ -92,7 +92,7 @@ fn drop_readings_because_of_changed_sensor_pks(db: &Connection) -> Result<()> {
 }
 
 /// Add expiration timestamp to each sensor, set it to 14 days from the current time.
-fn add_sensor_expires_at(db: &Connection) -> Result<()> {
+fn add_sensor_expires_at(db: &rusqlite::Connection) -> Result<()> {
     db.execute_batch(&format!(
         "ALTER TABLE sensors ADD COLUMN expires_at INTEGER NOT NULL DEFAULT {}",
         (Local::now() + Duration::days(14)).timestamp_millis(),

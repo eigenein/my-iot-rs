@@ -3,17 +3,15 @@ pub use crate::core::client::builder as client_builder;
 pub use crate::core::message::{Message, Type as MessageType};
 pub use crate::core::persistence::reading::Reading;
 pub use crate::core::persistence::sensor::Sensor;
-pub use crate::core::persistence::ConnectionExtensions;
+pub use crate::core::persistence::Connection;
 pub use crate::core::value::{PointOfTheCompass, Value};
 pub use chrono::prelude::*;
 pub use crossbeam::thread::Scope;
 pub use log::{debug, error, info, log, warn, Level as LogLevel};
-pub use rusqlite::Connection;
 pub use serde::{Deserialize, Deserializer, Serialize};
 pub use std::collections::HashMap;
 pub use std::error::Error;
 pub use std::result::Result as StdResult;
-pub use std::sync::{Arc, Mutex};
 pub use std::thread;
 pub use std::thread::sleep;
 

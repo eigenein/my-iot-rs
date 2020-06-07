@@ -6,7 +6,6 @@ use crate::prelude::*;
 use log::LevelFilter;
 use simplelog::{ConfigBuilder, TermLogger, TerminalMode, ThreadLogMode};
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
 use structopt::StructOpt;
 
 mod core;
@@ -46,7 +45,7 @@ fn main() -> Result<()> {
     debug!("Settings: {:?}", &settings);
 
     info!("Opening the database…");
-    let db = Arc::new(Mutex::new(Connection::open_and_initialize(&opt.db)?));
+    let db = Connection::open_and_initialize(&opt.db)?;
 
     info!("Starting services…");
     let mut bus = Bus::new();

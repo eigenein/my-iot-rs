@@ -7,7 +7,7 @@ const INTERVAL: Duration = Duration::from_secs(60);
 pub struct Db;
 
 impl Db {
-    pub fn spawn(self, service_id: String, bus: &mut Bus, db: Arc<Mutex<Connection>>) -> Result<()> {
+    pub fn spawn(self, service_id: String, bus: &mut Bus, db: Connection) -> Result<()> {
         let tx = bus.add_tx();
 
         thread::Builder::new().name(service_id).spawn(move || loop {
@@ -20,9 +20,8 @@ impl Db {
         Ok(())
     }
 
-    fn loop_(&self, db: &Arc<Mutex<Connection>>, tx: &Sender) -> Result<()> {
+    fn loop_(&self, db: &Connection, tx: &Sender) -> Result<()> {
         let expires_at = Local::now() + chrono::Duration::seconds(120);
-        let db = db.lock().unwrap();
         tx.send(
             Message::new("db::size")
                 .value(Value::DataSize(db.select_size()?))

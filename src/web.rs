@@ -14,11 +14,11 @@ mod templates;
 const FAVICON: &[u8] = include_bytes!("statics/favicon.ico");
 
 /// Start the web application.
-pub fn start_server(settings: &Settings, db: Arc<Mutex<Connection>>) -> Result<()> {
+pub fn start_server(settings: &Settings, db: Connection) -> Result<()> {
     Err(Box::new(make_rocket(settings, db)?.launch()))
 }
 
-fn make_rocket(settings: &Settings, db: Arc<Mutex<Connection>>) -> Result<Rocket> {
+fn make_rocket(settings: &Settings, db: Connection) -> Result<Rocket> {
     Ok(rocket::custom(
         Config::build(Environment::Production)
             .port(settings.http_port)
@@ -42,15 +42,13 @@ fn make_rocket(settings: &Settings, db: Arc<Mutex<Connection>>) -> Result<Rocket
 }
 
 #[get("/")]
-fn get_index(db: State<Arc<Mutex<Connection>>>, settings: State<Settings>) -> Result<Html<String>> {
-    Ok(Html(
-        templates::IndexTemplate::new(&db.lock().unwrap(), &settings)?.to_string(),
-    ))
+fn get_index(db: State<Connection>, settings: State<Settings>) -> Result<Html<String>> {
+    Ok(Html(templates::IndexTemplate::new(&db, &settings)?.to_string()))
 }
 
 #[get("/sensors")]
-fn get_sensors(db: State<Arc<Mutex<Connection>>>) -> Result<Html<String>> {
-    Ok(Html(templates::SensorsTemplate::new(&db.lock().unwrap())?.to_string()))
+fn get_sensors(db: State<Connection>) -> Result<Html<String>> {
+    Ok(Html(templates::SensorsTemplate::new(&db)?.to_string()))
 }
 
 #[get("/settings")]
@@ -71,21 +69,15 @@ fn get_static(key: String) -> Option<Content<&'static [u8]>> {
 }
 
 #[get("/sensors/<sensor_id>")]
-fn get_sensor(db: State<Arc<Mutex<Connection>>>, sensor_id: String) -> Result<Option<Html<String>>> {
+fn get_sensor(db: State<Connection>, sensor_id: String) -> Result<Option<Html<String>>> {
     Ok(db
-        .lock()
-        .unwrap()
         .get_sensor(&sensor_id)?
         .map(|(sensor, reading)| Html(templates::SensorTemplate::new(sensor, reading).to_string())))
 }
 
 #[get("/sensors/<sensor_id>/json")]
-fn get_sensor_json(db: State<Arc<Mutex<Connection>>>, sensor_id: String) -> Result<Option<Json<Reading>>> {
-    Ok(db
-        .lock()
-        .unwrap()
-        .get_sensor(&sensor_id)?
-        .map(|(_, reading)| Json(reading)))
+fn get_sensor_json(db: State<Connection>, sensor_id: String) -> Result<Option<Json<Reading>>> {
+    Ok(db.get_sensor(&sensor_id)?.map(|(_, reading)| Json(reading)))
 }
 
 lazy_static! {
@@ -173,7 +165,7 @@ mod tests {
                 services: HashMap::new(),
                 dashboard: DashboardSettings::default(),
             },
-            Arc::new(Mutex::new(Connection::open_and_initialize(":memory:")?)),
+            Connection::open_and_initialize(":memory:")?,
         )?)?)
     }
 }

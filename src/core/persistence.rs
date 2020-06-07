@@ -5,66 +5,49 @@ use chrono::prelude::*;
 use rusqlite::{params, Row};
 use rusqlite::{OptionalExtension, NO_PARAMS};
 use std::path::Path;
+use std::sync::{Arc, Mutex, MutexGuard};
 
 mod migrations;
 pub mod reading;
 pub mod sensor;
 pub mod thread;
 
-impl From<Message> for (Sensor, Reading) {
-    fn from(message: Message) -> Self {
-        (message.sensor, message.reading)
-    }
+/// Wraps `rusqlite::Connection` and provides the high-level database methods.
+#[derive(Clone)]
+pub struct Connection {
+    connection: Arc<Mutex<rusqlite::Connection>>,
 }
 
-pub trait ConnectionExtensions {
-    fn open_and_initialize<P: AsRef<Path>>(path: P) -> Result<Connection>;
-
-    /// Get the database `user_version`.
-    fn get_version(&self) -> Result<i32>;
-
-    fn select_actuals(&self) -> Result<Vec<(Sensor, Reading)>>;
-
-    /// Select database size in bytes.
-    fn select_size(&self) -> Result<u64>;
-
-    /// Select the very last sensor reading.
-    fn get_sensor(&self, sensor_id: &str) -> Result<Option<(Sensor, Reading)>>;
-
-    /// Select the latest sensor readings within the given time interval.
-    fn select_readings(&self, sensor_id: &str, since: &DateTime<Local>) -> Result<Vec<Reading>>;
-
-    fn select_sensor_count(&self) -> Result<u64>;
-
-    fn select_reading_count(&self) -> Result<u64>;
-}
-
-impl ConnectionExtensions for Connection {
-    fn open_and_initialize<P: AsRef<Path>>(path: P) -> Result<Connection> {
-        let mut db = Connection::open(path)?;
+impl Connection {
+    pub fn open_and_initialize<P: AsRef<Path>>(path: P) -> Result<Self> {
+        let connection = Self {
+            connection: Arc::new(Mutex::new(rusqlite::Connection::open(path)?)),
+        };
         // language=sql
-        db.execute_batch("PRAGMA foreign_keys = ON;")?;
-        migrate(&mut db)?;
-        Ok(db)
+        connection.connection()?.execute_batch("PRAGMA foreign_keys = ON;")?;
+        connection.migrate()?;
+        Ok(connection)
     }
 
-    fn get_version(&self) -> Result<i32> {
-        let version: i32 = self.pragma_query_value(None, "user_version", |row| row.get(0))?;
-        Ok(version)
+    /// Acquires lock and returns the underlying `rusqlite::Connection`.
+    pub fn connection(&self) -> Result<MutexGuard<'_, rusqlite::Connection>> {
+        Ok(self.connection.lock().expect("Failed to acquire the database lock"))
     }
 
-    fn select_actuals(&self) -> Result<Vec<(Sensor, Reading)>> {
-        self.prepare_cached(
-            // language=sql
-            r"SELECT * FROM sensors WHERE expires_at > ?1 ORDER BY room_title, sensor_id",
-        )?
-        .query_map(params![Local::now().timestamp_millis()], get_actual)?
-        .map(|r| r.map_err(Into::into))
-        .collect()
+    pub fn select_actuals(&self) -> Result<Vec<(Sensor, Reading)>> {
+        self.connection()?
+            .prepare_cached(
+                // language=sql
+                r"SELECT * FROM sensors WHERE expires_at > ?1 ORDER BY room_title, sensor_id",
+            )?
+            .query_map(params![Local::now().timestamp_millis()], get_actual)?
+            .map(|r| r.map_err(Into::into))
+            .collect()
     }
 
-    fn select_size(&self) -> Result<u64> {
+    pub fn select_size(&self) -> Result<u64> {
         Ok(self
+            .connection()?
             // language=sql
             .prepare_cached(
                 r#"
@@ -76,8 +59,9 @@ impl ConnectionExtensions for Connection {
             .map(|v| v as u64)?)
     }
 
-    fn get_sensor(&self, sensor_id: &str) -> Result<Option<(Sensor, Reading)>> {
+    pub fn get_sensor(&self, sensor_id: &str) -> Result<Option<(Sensor, Reading)>> {
         Ok(self
+            .connection()?
             // language=sql
             .prepare_cached(
                 r#"
@@ -90,9 +74,9 @@ impl ConnectionExtensions for Connection {
     }
 
     #[allow(dead_code)]
-    fn select_readings(&self, sensor_id: &str, since: &DateTime<Local>) -> Result<Vec<Reading>> {
+    pub fn select_readings(&self, sensor_id: &str, since: &DateTime<Local>) -> Result<Vec<Reading>> {
         let sensor_fk = signed_seahash(sensor_id.as_bytes());
-        self
+        self.connection()?
             // language=sql
             .prepare_cached(
                 r#"
@@ -107,35 +91,48 @@ impl ConnectionExtensions for Connection {
             .collect()
     }
 
-    fn select_sensor_count(&self) -> Result<u64> {
+    pub fn select_sensor_count(&self) -> Result<u64> {
         Ok(self
+            .connection()?
             // language=sql
             .prepare("SELECT COUNT(*) FROM sensors")?
             .query_row(NO_PARAMS, get_i64)
             .map(|v| v as u64)?)
     }
 
-    fn select_reading_count(&self) -> Result<u64> {
+    pub fn select_reading_count(&self) -> Result<u64> {
         Ok(self
+            .connection()?
             // language=sql
             .prepare("SELECT COUNT(*) FROM readings")?
             .query_row(NO_PARAMS, get_i64)
             .map(|v| v as u64)?)
     }
-}
 
-fn migrate(db: &mut Connection) -> Result<()> {
-    let version = db.get_version()? as usize;
-    for (i, migrate) in migrations::MIGRATIONS.iter().enumerate() {
-        if version < i {
-            info!("Migrating to version {}…", i);
-            let tx = db.transaction()?;
-            migrate(&tx)?;
-            tx.pragma_update(None, "user_version", &(i as i32))?;
-            tx.commit()?;
-        }
+    pub fn get_version(&self) -> Result<i32> {
+        let version: i32 = self
+            .connection()?
+            .pragma_query_value(None, "user_version", |row| row.get(0))?;
+        Ok(version)
     }
-    Ok(())
+
+    fn migrate(&self) -> Result<()> {
+        let version = self.get_version()? as usize;
+        let mut connection = self.connection()?;
+        migrations::MIGRATIONS
+            .iter()
+            .enumerate()
+            .filter(|(i, _)| version < *i)
+            .map(|(i, migrate)| -> Result<()> {
+                info!("Migrating to version {}…", i);
+                let tx = connection.transaction()?;
+                migrate(&tx)?;
+                tx.pragma_update(None, "user_version", &(i as i32))?;
+                tx.commit()?;
+                Ok(())
+            })
+            .collect()
+    }
 }
 
 fn get_sensor(row: &Row) -> rusqlite::Result<Sensor> {
@@ -177,14 +174,16 @@ impl Value {
 }
 
 impl Message {
-    pub fn upsert_into(&self, db: &Connection) -> Result<()> {
+    pub fn upsert_into(&self, connection: &Connection) -> Result<()> {
         let sensor_pk = signed_seahash(self.sensor.id.as_bytes());
         let timestamp = self.reading.timestamp.timestamp_millis();
         let value = self.reading.value.serialize_to_vec()?;
+        let connection = connection.connection()?;
 
-        db.prepare_cached(
-            // language=sql
-            r#"
+        connection
+            .prepare_cached(
+                // language=sql
+                r#"
             -- noinspection SqlResolve @ any/"excluded"
             -- noinspection SqlInsertValues
             INSERT INTO sensors (pk, sensor_id, title, timestamp, room_title, value, expires_at)
@@ -196,33 +195,40 @@ impl Message {
                 value = excluded.value,
                 expires_at = excluded.expires_at
             "#,
-        )?
-        .execute(params![
-            sensor_pk,
-            self.sensor.id,
-            self.sensor.title,
-            timestamp,
-            self.sensor.room_title,
-            value,
-            self.sensor.expires_at.timestamp_millis(),
-        ])?;
+            )?
+            .execute(params![
+                sensor_pk,
+                self.sensor.id,
+                self.sensor.title,
+                timestamp,
+                self.sensor.room_title,
+                value,
+                self.sensor.expires_at.timestamp_millis(),
+            ])?;
 
-        db.prepare_cached(
-            // language=sql
-            r#"
+        connection
+            .prepare_cached(
+                // language=sql
+                r#"
             -- noinspection SqlResolve @ any/"excluded"
             INSERT INTO readings (sensor_fk, timestamp, value)
             VALUES (?1, ?2, ?3)
             ON CONFLICT (sensor_fk, timestamp) DO UPDATE SET value = excluded.value
             "#,
-        )?
-        .execute(params![sensor_pk, timestamp, value])?;
+            )?
+            .execute(params![sensor_pk, timestamp, value])?;
 
         Ok(())
     }
 }
 
-/// SQLite wants signed integers.
+impl From<Message> for (Sensor, Reading) {
+    fn from(message: Message) -> Self {
+        (message.sensor, message.reading)
+    }
+}
+
+/// Returns SeaHash of the buffer as a signed integer, because SQLite wants signed integers.
 fn signed_seahash(buffer: &[u8]) -> i64 {
     seahash::hash(buffer) as i64
 }

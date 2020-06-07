@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 /// Spawn the persistence thread.
-pub fn spawn(db: Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
+pub fn spawn(db: Connection, bus: &mut Bus) -> Result<()> {
     info!("Spawning readings persistence…");
     let rx = bus.add_rx();
 
@@ -20,7 +20,7 @@ pub fn spawn(db: Arc<Mutex<Connection>>, bus: &mut Bus) -> Result<()> {
 }
 
 /// Process a message.
-fn process_message(message: &Message, db: &Arc<Mutex<Connection>>) -> Result<()> {
+fn process_message(message: &Message, db: &Connection) -> Result<()> {
     info!(
         "[{:?}] {} = {:?}",
         &message.type_, &message.sensor.id, &message.reading.value
@@ -28,7 +28,7 @@ fn process_message(message: &Message, db: &Arc<Mutex<Connection>>) -> Result<()>
     debug!("{:?}", &message);
     // TODO: handle `ReadSnapshot` properly.
     if message.type_ == MessageType::ReadLogged || message.type_ == MessageType::ReadSnapshot {
-        message.upsert_into(&db.lock().unwrap())?;
+        message.upsert_into(&db)?;
     }
     Ok(())
 }
