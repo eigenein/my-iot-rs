@@ -2,7 +2,6 @@
 
 use crate::prelude::*;
 use crate::settings::Settings;
-use crate::templates;
 use lazy_static::lazy_static;
 use rocket::config::Environment;
 use rocket::http::ContentType;
@@ -10,6 +9,8 @@ use rocket::response::content::{Content, Html};
 use rocket::{get, routes, Config, Rocket, State};
 use rocket_contrib::json::Json;
 use std::collections::HashMap;
+
+mod templates;
 
 const FAVICON: &[u8] = include_bytes!("statics/favicon.ico");
 

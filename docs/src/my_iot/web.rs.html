@@ -180,12 +180,12 @@
 <span id="180">180</span>
 <span id="181">181</span>
 <span id="182">182</span>
+<span id="183">183</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implements web server.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">settings</span>::<span class="ident">Settings</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">templates</span>;
 <span class="kw">use</span> <span class="ident">lazy_static</span>::<span class="ident">lazy_static</span>;
 <span class="kw">use</span> <span class="ident">rocket</span>::<span class="ident">config</span>::<span class="ident">Environment</span>;
 <span class="kw">use</span> <span class="ident">rocket</span>::<span class="ident">http</span>::<span class="ident">ContentType</span>;
@@ -193,6 +193,8 @@
 <span class="kw">use</span> <span class="ident">rocket</span>::{<span class="ident">get</span>, <span class="ident">routes</span>, <span class="ident">Config</span>, <span class="ident">Rocket</span>, <span class="ident">State</span>};
 <span class="kw">use</span> <span class="ident">rocket_contrib</span>::<span class="ident">json</span>::<span class="ident">Json</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
+
+<span class="kw">mod</span> <span class="ident">templates</span>;
 
 <span class="kw">const</span> <span class="ident">FAVICON</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="macro">include_bytes</span><span class="macro">!</span>(<span class="string">&quot;statics/favicon.ico&quot;</span>);
 

@@ -14,7 +14,6 @@ mod format;
 mod prelude;
 mod services;
 mod settings;
-mod templates;
 mod web;
 
 #[derive(StructOpt, Debug)]

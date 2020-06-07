@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Bunch of refactorings
+
 ## `0.49.0`
 
 - Introduced an individual sensor time-to-live, closes #86

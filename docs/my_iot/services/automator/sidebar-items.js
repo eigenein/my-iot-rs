@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["Action",""],["Condition",""]],"fn":[["spawn",""]],"struct":[["ReadSensorParameters",""],["RepeatParameters",""],["Scenario","Single automation scenario."],["Settings","Automator settings."]]});

@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["main","Entry point."]],"mod":[["core",""],["errors",""],["format",""],["prelude",""],["services",""],["settings","Settings structs."],["templates","Web interface templates."],["web","Implements web server."]],"struct":[["Opt",""]]});
+initSidebarItems({"fn":[["main","Entry point."]],"mod":[["core",""],["errors",""],["format",""],["prelude",""],["services",""],["settings","Settings structs."],["web","Implements web server."]],"struct":[["Opt",""]]});
