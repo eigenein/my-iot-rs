@@ -47,6 +47,6 @@ docker/build/%:
 
 .PHONY: src/statics
 src/statics:
-	@curl 'https://cdnjs.cloudflare.com/ajax/libs/bulma/0.8.1/css/bulma.min.css' --output 'src/statics/bulma.min.css'
+	@curl 'https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.0/css/bulma.min.css' --output 'src/statics/bulma.min.css'
 	@curl 'https://unpkg.com/bulma-prefers-dark@0.1.0-beta.0/css/bulma-prefers-dark.css' --output 'src/statics/bulma-prefers-dark.css'
 	@curl 'https://cdn.jsdelivr.net/npm/chart.js@2.9.3' --output 'src/statics/chart.js'
