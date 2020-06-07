@@ -1,10 +1,13 @@
 //! Web interface templates.
 
+use crate::format::human_format;
 use crate::prelude::*;
 use crate::settings::Settings;
 use askama::Template;
 use itertools::Itertools;
 use std::collections::HashMap;
+use uom::fmt::DisplayStyle::Abbreviation;
+use uom::si::*;
 
 #[derive(Template)]
 #[template(path = "index.html")]
@@ -148,11 +151,41 @@ impl Value {
     }
 }
 
+impl std::fmt::Display for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Value::None => write!(f, "None"),
+            Value::Counter(count) => write!(f, r"{}", count),
+            Value::DataSize(size) => f.write_str(&human_format(*size as f64, "B")),
+            Value::Text(ref string) => write!(f, r"{}", string),
+            Value::Temperature(temperature) => write!(
+                f,
+                r"{:.1}",
+                temperature.into_format_args(thermodynamic_temperature::degree_celsius, Abbreviation),
+            ),
+            Value::Bft(bft) => write!(f, r"{} BFT", bft),
+            Value::WindDirection(point) => write!(f, r"{}", point),
+            Value::Rh(percent) => write!(f, "{}%", percent),
+            Value::Length(length) => write!(f, "{}", length.into_format_args(length::meter, Abbreviation)),
+            Value::ImageUrl(url) => write!(f, r#"<img src="{}">"#, url),
+            Value::Boolean(value) => write!(
+                f,
+                r#"<span class="is-uppercase">{}</span>"#,
+                if *value { "Yes" } else { "No" }
+            ),
+            Value::Duration(time) => write!(f, "{}", time.into_format_args(time::second, Abbreviation)),
+            Value::RelativeIntensity(percentage) => write!(f, "{}%", percentage),
+        }
+    }
+}
+
 impl Sensor {
+    /// Returns the sensor title or the sensor ID otherwise.
     pub fn title(&self) -> String {
         self.title.as_ref().unwrap_or(&self.id).into()
     }
 
+    /// Returns the room title or the default one otherwise.
     pub fn room_title(&self) -> String {
         match &self.room_title {
             Some(title) => title.clone(),
@@ -161,14 +194,93 @@ impl Sensor {
     }
 }
 
+/// Wraps `crate_version!` in order to include it in a template.
 fn crate_version() -> &'static str {
     structopt::clap::crate_version!()
 }
 
+/// Custom [Askama template filters](https://docs.rs/askama/0.9.0/askama/index.html#filters).
 mod filters {
-    use chrono::{DateTime, Local};
+    use crate::prelude::*;
 
     pub fn format_datetime(datetime: &DateTime<Local>) -> askama::Result<String> {
         Ok(datetime.format("%b %d, %H:%M:%S").to_string())
+    }
+
+    /// Returns a [column size](https://bulma.io/documentation/columns/sizes/) suitable to fit the value.
+    pub fn column_width(value: &Value) -> askama::Result<&'static str> {
+        Ok(match value {
+            Value::ImageUrl(_) => "is-4",
+            _ => "is-2",
+        })
+    }
+
+    /// Returns a [color class](https://bulma.io/documentation/modifiers/color-helpers/) to display the value.
+    pub fn color_class(value: &Value) -> askama::Result<&'static str> {
+        Ok(match *value {
+            Value::Bft(number) => match number {
+                0 => "is-light",
+                1..=3 => "is-success",
+                4..=5 => "is-warning",
+                _ => "is-danger",
+            },
+            Value::Temperature(value) => match value {
+                _ if value.value < -5.0 + 273.15 => "is-link",
+                _ if value.value < 5.0 + 273.15 => "is-info",
+                _ if value.value < 15.0 + 273.15 => "is-primary",
+                _ if value.value < 25.0 + 273.15 => "is-success",
+                _ if value.value < 30.0 + 273.15 => "is-warning",
+                _ => "is-danger",
+            },
+            Value::WindDirection(_) => "is-light",
+            Value::Rh(value) => match value {
+                _ if value < 25.0 => "is-link",
+                _ if value < 30.0 => "is-info",
+                _ if value < 45.0 => "is-primary",
+                _ if value < 55.0 => "is-success",
+                _ if value < 60.0 => "is-warning",
+                _ => "is-danger",
+            },
+            Value::Boolean(value) => {
+                if value {
+                    "is-success"
+                } else {
+                    "is-danger"
+                }
+            }
+            Value::RelativeIntensity(value) => match value {
+                _ if value < 15.0 => "is-link",
+                _ if value < 30.0 => "is-info",
+                _ if value < 50.0 => "is-primary",
+                _ if value < 70.0 => "is-success",
+                _ if value < 90.0 => "is-warning",
+                _ => "is-danger",
+            },
+            _ => "is-light",
+        })
+    }
+
+    /// Returns a [Font Awesome](https://fontawesome.com) icon tag for the value.
+    pub fn icon(value: &Value) -> askama::Result<&'static str> {
+        Ok(match *value {
+            Value::Bft(_) => r#"<i class="fas fa-wind"></i>"#,
+            Value::Counter(_) => r#"<i class="fas fa-sort-numeric-up-alt"></i>"#,
+            Value::DataSize(_) => r#"<i class="far fa-save"></i>"#,
+            Value::Length(_) => r#"<i class="fas fa-ruler"></i>"#,
+            Value::Rh(_) => r#"<i class="fas fa-water"></i>"#,
+            Value::Temperature(_) => r#"<i class="fas fa-thermometer-half"></i>"#,
+            Value::Text(_) => r#"<i class="fas fa-quote-left"></i>"#,
+            Value::WindDirection(_) => r#"<i class="fas fa-wind"></i>"#,
+            Value::Boolean(value) => {
+                if value {
+                    r#"<i class="fas fa-toggle-on"></i>"#
+                } else {
+                    r#"<i class="fas fa-toggle-off"></i>"#
+                }
+            }
+            Value::Duration(_) => r#"<i class="far fa-clock"></i>"#,
+            Value::ImageUrl(_) | Value::None => "",
+            Value::RelativeIntensity(_) => r#"<i class="far fa-lightbulb"></i>"#,
+        })
     }
 }

@@ -1,34 +1,8 @@
-{% let column_class -%}
-{% match reading.value -%}
-  {% when Value::Temperature with (_) -%}
-    {% let column_class = "is-2" -%}
-  {% when Value::Bft with (_) -%}
-    {% let column_class = "is-2" -%}
-  {% when Value::Boolean with (_) -%}
-    {% let column_class = "is-2" -%}
-  {% when Value::WindDirection with (_) -%}
-    {% let column_class = "is-2" -%}
-  {% when Value::DataSize with (_) -%}
-    {% let column_class = "is-2" -%}
-  {% when Value::ImageUrl with (_) -%}
-    {% let column_class = "is-4" -%}
-  {% when Value::Rh with (_) -%}
-    {% let column_class = "is-2" -%}
-  {% when Value::Counter with (_) -%}
-    {% let column_class = "is-2" -%}
-  {% when Value::Duration with (_) -%}
-    {% let column_class = "is-2" %}
-  {% when Value::RelativeIntensity with (_) -%}
-    {% let column_class = "is-2" -%}
-  {% else -%}
-    {% let column_class = "is-3" -%}
-{% endmatch -%}
-
 <style>.reading { height: 100% }</style>
 
-<div class="column {{ column_class }}">
+<div class="column {{ reading.value|column_width }}">
   <a href="/sensors/{{ sensor.id }}">
-    <div class="notification reading {{ reading.value.class() }}">
+    <div class="notification reading {{ reading.value|color_class }}">
       <p class="title is-6" title="{{ sensor.id }}">
         {{ sensor.title.as_deref().unwrap_or(sensor.id.as_str()) }}
       </p>

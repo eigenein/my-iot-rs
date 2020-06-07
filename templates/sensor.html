@@ -3,7 +3,7 @@
 {% block title %}{{ sensor.title() }} – {{ sensor.room_title() }} – My IoT{% endblock %}
 
 {% block body %}
-  <section class="hero {{ reading.value.class() }}">
+  <section class="hero {{ reading.value|color_class }}">
     <div class="hero-head">
       {{ NavbarPartialTemplate::new("sensor")|safe }}
     </div>
