@@ -6,8 +6,6 @@ use crate::settings::Settings;
 use askama::Template;
 use itertools::Itertools;
 use std::collections::HashMap;
-use uom::fmt::DisplayStyle::Abbreviation;
-use uom::si::*;
 
 #[derive(Template)]
 #[template(path = "index.html")]
@@ -155,16 +153,12 @@ impl std::fmt::Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Value::None => write!(f, "None"),
-            Value::Counter(count) => write!(f, r"{}", count),
-            Value::DataSize(size) => f.write_str(&human_format(*size as f64, "B")),
-            Value::Text(ref string) => write!(f, r"{}", string),
-            Value::Temperature(temperature) => write!(
-                f,
-                r"{:.1}",
-                temperature.into_format_args(thermodynamic_temperature::degree_celsius, Abbreviation),
-            ),
-            Value::Bft(bft) => write!(f, r"{} BFT", bft),
-            Value::WindDirection(point) => match point {
+            Value::Counter(value) => write!(f, r"{}", value),
+            Value::DataSize(value) => f.write_str(&human_format(*value as f64, "B")),
+            Value::Text(ref value) => write!(f, r"{}", value),
+            Value::Temperature(value) => f.write_str(&human_format(*value, "℃")),
+            Value::Bft(value) => write!(f, r"{} BFT", value),
+            Value::WindDirection(value) => match value {
                 PointOfTheCompass::East => write!(f, "East"),
                 PointOfTheCompass::EastNortheast => write!(f, "East-northeast"),
                 PointOfTheCompass::EastSoutheast => write!(f, "East-southeast"),
@@ -182,16 +176,16 @@ impl std::fmt::Display for Value {
                 PointOfTheCompass::WestNorthwest => write!(f, "West-northwest"),
                 PointOfTheCompass::WestSouthwest => write!(f, "West-southwest"),
             },
-            Value::Rh(percent) => write!(f, "{}%", percent),
-            Value::Length(length) => write!(f, "{}", length.into_format_args(length::meter, Abbreviation)),
-            Value::ImageUrl(url) => write!(f, r#"<img src="{}">"#, url),
+            Value::Rh(value) => write!(f, "{}%", value),
+            Value::Length(value) => f.write_str(&human_format(*value, "m")),
+            Value::ImageUrl(value) => write!(f, r#"<img src="{}">"#, value),
             Value::Boolean(value) => write!(
                 f,
                 r#"<span class="is-uppercase">{}</span>"#,
                 if *value { "Yes" } else { "No" }
             ),
-            Value::Duration(time) => write!(f, "{}", time.into_format_args(time::second, Abbreviation)),
-            Value::RelativeIntensity(percentage) => write!(f, "{}%", percentage),
+            Value::Duration(value) => f.write_str(&human_format(*value, "s")),
+            Value::RelativeIntensity(value) => write!(f, "{}%", value),
         }
     }
 }
@@ -242,11 +236,11 @@ mod filters {
                 _ => "is-danger",
             },
             Value::Temperature(value) => match value {
-                _ if value.value < -5.0 + 273.15 => "is-link",
-                _ if value.value < 5.0 + 273.15 => "is-info",
-                _ if value.value < 15.0 + 273.15 => "is-primary",
-                _ if value.value < 25.0 + 273.15 => "is-success",
-                _ if value.value < 30.0 + 273.15 => "is-warning",
+                _ if value < -5.0 + 273.15 => "is-link",
+                _ if value < 5.0 + 273.15 => "is-info",
+                _ if value < 15.0 + 273.15 => "is-primary",
+                _ if value < 25.0 + 273.15 => "is-success",
+                _ if value < 30.0 + 273.15 => "is-warning",
                 _ => "is-danger",
             },
             Value::WindDirection(_) => "is-light",

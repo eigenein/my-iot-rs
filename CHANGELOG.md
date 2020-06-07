@@ -2,6 +2,7 @@
 
 ## `master`
 
+- **Dropped sensors and readings because of the removed `uom` dependency**
 - Bunch of refactorings
 
 ## `0.49.0`

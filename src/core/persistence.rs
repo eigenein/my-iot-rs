@@ -129,6 +129,7 @@ impl Connection {
                 migrate(&tx)?;
                 tx.pragma_update(None, "user_version", &(i as i32))?;
                 tx.commit()?;
+                connection.execute("VACUUM", NO_PARAMS)?;
                 Ok(())
             })
             .collect()

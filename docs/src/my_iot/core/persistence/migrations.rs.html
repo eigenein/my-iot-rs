@@ -99,6 +99,20 @@
 <span id="99"> 99</span>
 <span id="100">100</span>
 <span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">chrono</span>::<span class="ident">Duration</span>;
@@ -112,6 +126,7 @@
     <span class="ident">denormalize_actual_sensor_values</span>,
     <span class="ident">drop_readings_because_of_changed_sensor_pks</span>,
     <span class="ident">add_sensor_expires_at</span>,
+    <span class="ident">drop_readings_and_sensors_due_to_uom</span>,
 ];
 
 <span class="kw">fn</span> <span class="ident">create_initial_schema</span>(<span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="ident">rusqlite</span>::<span class="ident">Connection</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
@@ -199,6 +214,19 @@
         <span class="string">&quot;ALTER TABLE sensors ADD COLUMN expires_at INTEGER NOT NULL DEFAULT {}&quot;</span>,
         (<span class="ident">Local</span>::<span class="ident">now</span>() <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">days</span>(<span class="number">14</span>)).<span class="ident">timestamp_millis</span>(),
     ))<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">fn</span> <span class="ident">drop_readings_and_sensors_due_to_uom</span>(<span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="ident">rusqlite</span>::<span class="ident">Connection</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="comment">// language=sql</span>
+    <span class="ident">db</span>.<span class="ident">execute_batch</span>(
+        <span class="string">r#&quot;
+            -- noinspection SqlWithoutWhere
+            DELETE FROM readings;
+            -- noinspection SqlWithoutWhere
+            DELETE FROM sensors;
+        &quot;#</span>,
+    )<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 </pre></div>

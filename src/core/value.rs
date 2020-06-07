@@ -1,8 +1,6 @@
 //! Implements sensor reading value.
 
 use serde::{Deserialize, Serialize};
-use uom::si::f64::*;
-use uom::si::*;
 
 /// Sensor reading value.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -43,39 +41,21 @@ pub enum Value {
     #[serde(rename = "RH")]
     Rh(f64),
 
-    /// [Thermodynamic temperature](https://en.wikipedia.org/wiki/Thermodynamic_temperature).
+    /// [Thermodynamic temperature](https://en.wikipedia.org/wiki/Thermodynamic_temperature) in Celsius.
     #[serde(rename = "T")]
-    Temperature(ThermodynamicTemperature),
+    Temperature(f64),
 
-    /// Length.
+    /// Length in meters.
     #[serde(rename = "L")]
-    Length(Length),
+    Length(f64),
 
-    /// Duration.
+    /// Duration in seconds.
     #[serde(rename = "D")]
-    Duration(Time),
+    Duration(f64),
 
     /// Generic intensity in percents.
     #[serde(rename = "RI")]
     RelativeIntensity(f64),
-}
-
-impl From<ThermodynamicTemperature> for Value {
-    fn from(temperature: ThermodynamicTemperature) -> Self {
-        Self::Temperature(temperature)
-    }
-}
-
-impl From<Length> for Value {
-    fn from(length: Length) -> Self {
-        Self::Length(length)
-    }
-}
-
-impl From<Time> for Value {
-    fn from(time: Time) -> Self {
-        Self::Duration(time)
-    }
 }
 
 impl From<bool> for Value {
@@ -146,8 +126,7 @@ pub enum PointOfTheCompass {
 impl Value {
     pub fn as_f64(&self) -> Option<f64> {
         match self {
-            Value::Rh(value) | Value::RelativeIntensity(value) => Some(*value),
-            Value::Temperature(value) => Some(value.value),
+            Value::Rh(value) | Value::RelativeIntensity(value) | Value::Temperature(value) => Some(*value),
             _ => None,
         }
     }

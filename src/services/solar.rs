@@ -3,8 +3,6 @@ use crate::prelude::*;
 use spa::{calc_sunrise_and_set, SunriseAndSet};
 use std::thread;
 use std::time::Duration;
-use uom::si::f64::*;
-use uom::si::*;
 
 /// Emits durations to and after sunrise and sunset.
 #[derive(Deserialize, Debug, Clone, Serialize)]
@@ -48,7 +46,7 @@ impl Solar {
                             .type_(Type::ReadSnapshot)
                             .sensor_title("Time Before Sunrise")
                             .optional_room_title(self.room_title.clone())
-                            .value(Time::new::<time::millisecond>((sunrise - now).num_milliseconds() as f64))
+                            .value(Value::Duration((sunrise - now).num_seconds() as f64))
                             .expires_in(ttl)
                             .send_and_forget(&tx);
                     }
@@ -57,7 +55,7 @@ impl Solar {
                             .type_(Type::ReadSnapshot)
                             .sensor_title("Time Before Sunset")
                             .optional_room_title(self.room_title.clone())
-                            .value(Time::new::<time::millisecond>((sunset - now).num_milliseconds() as f64))
+                            .value(Value::Duration((sunset - now).num_seconds() as f64))
                             .expires_in(ttl)
                             .send_and_forget(&tx);
                     }
@@ -66,7 +64,7 @@ impl Solar {
                             .type_(Type::ReadSnapshot)
                             .sensor_title("Time After Sunrise")
                             .optional_room_title(self.room_title.clone())
-                            .value(Time::new::<time::millisecond>((now - sunrise).num_milliseconds() as f64))
+                            .value(Value::Duration((now - sunrise).num_seconds() as f64))
                             .expires_in(ttl)
                             .send_and_forget(&tx);
                     }
@@ -75,7 +73,7 @@ impl Solar {
                             .type_(Type::ReadSnapshot)
                             .sensor_title("Time After Sunset")
                             .optional_room_title(self.room_title.clone())
-                            .value(Time::new::<time::millisecond>((now - sunset).num_milliseconds() as f64))
+                            .value(Value::Duration((now - sunset).num_seconds() as f64))
                             .expires_in(ttl)
                             .send_and_forget(&tx);
                     }

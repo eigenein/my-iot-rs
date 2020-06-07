@@ -5,8 +5,6 @@ use crate::services::lua::prelude::*;
 use crate::settings::Service;
 use regex::Regex;
 use std::collections::HashMap;
-use uom::si::f64::*;
-use uom::si::*;
 
 mod prelude;
 mod telegram;
@@ -192,18 +190,10 @@ fn enrich_message<'lua>(message: &mut Message, context: LuaContext<'lua>, args: 
                 message.reading.value = Value::Rh(f64::from_lua(value, context)?);
             }
             "celsius" => {
-                message.reading.value = ThermodynamicTemperature::new::<thermodynamic_temperature::degree_celsius>(
-                    f64::from_lua(value, context)?,
-                )
-                .into();
-            }
-            "kelvin" => {
-                message.reading.value =
-                    ThermodynamicTemperature::new::<thermodynamic_temperature::kelvin>(f64::from_lua(value, context)?)
-                        .into();
+                message.reading.value = Value::Temperature(f64::from_lua(value, context)?);
             }
             "meters" | "metres" => {
-                message.reading.value = Length::new::<length::meter>(f64::from_lua(value, context)?).into();
+                message.reading.value = Value::Length(f64::from_lua(value, context)?);
             }
             _ => warn!("{} = {:?} can't be made into an argument", &key, &value),
         }
@@ -226,15 +216,16 @@ fn init_services(context: LuaContext, services: &HashMap<String, Service>) -> Re
 impl<'lua> ToLua<'lua> for Value {
     fn to_lua(self, context: LuaContext<'lua>) -> LuaResult<LuaValue> {
         match self {
-            Value::Bft(value) => value.to_lua(context),
-            Value::Boolean(value) => value.to_lua(context),
-            Value::Counter(value) | Value::DataSize(value) => value.to_lua(context),
-            Value::Duration(value) => value.value.to_lua(context),
-            Value::ImageUrl(value) | Value::Text(value) => value.to_lua(context),
-            Value::Length(value) => value.value.to_lua(context),
             Value::None => Ok(LuaValue::Nil),
-            Value::Rh(value) | Value::RelativeIntensity(value) => value.to_lua(context),
-            Value::Temperature(value) => value.value.to_lua(context),
+            Value::Boolean(value) => value.to_lua(context),
+            Value::Bft(value) => value.to_lua(context),
+            Value::ImageUrl(value) | Value::Text(value) => value.to_lua(context),
+            Value::Counter(value) | Value::DataSize(value) => value.to_lua(context),
+            Value::Rh(value)
+            | Value::RelativeIntensity(value)
+            | Value::Duration(value)
+            | Value::Length(value)
+            | Value::Temperature(value) => value.to_lua(context),
             Value::WindDirection(value) => value.to_lua(context),
         }
     }

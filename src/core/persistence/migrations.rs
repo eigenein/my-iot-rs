@@ -10,6 +10,7 @@ pub const MIGRATIONS: &[fn(&rusqlite::Connection) -> Result<()>] = &[
     denormalize_actual_sensor_values,
     drop_readings_because_of_changed_sensor_pks,
     add_sensor_expires_at,
+    drop_readings_and_sensors_due_to_uom,
 ];
 
 fn create_initial_schema(db: &rusqlite::Connection) -> Result<()> {
@@ -97,5 +98,18 @@ fn add_sensor_expires_at(db: &rusqlite::Connection) -> Result<()> {
         "ALTER TABLE sensors ADD COLUMN expires_at INTEGER NOT NULL DEFAULT {}",
         (Local::now() + Duration::days(14)).timestamp_millis(),
     ))?;
+    Ok(())
+}
+
+fn drop_readings_and_sensors_due_to_uom(db: &rusqlite::Connection) -> Result<()> {
+    // language=sql
+    db.execute_batch(
+        r#"
+            -- noinspection SqlWithoutWhere
+            DELETE FROM readings;
+            -- noinspection SqlWithoutWhere
+            DELETE FROM sensors;
+        "#,
+    )?;
     Ok(())
 }
