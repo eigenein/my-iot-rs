@@ -34,6 +34,7 @@ impl Telegram {
                     Ok(new_offset) => offset = new_offset,
                     Err(error) => {
                         error!("Failed to refresh the sensors: {}", error.to_string());
+                        sleep(Duration::from_secs(60));
                     }
                 }
             }
@@ -86,12 +87,12 @@ pub fn call_api<P: Serialize + Debug + ?Sized, R: DeserializeOwned>(
     if method == "getUpdates" {
         request = request.timeout(Duration::from_secs(CLIENT_TIMEOUT_SECS + 1));
     }
-    let response = request.send()?.json::<TelegramResponse<R>>()?;
-    if response.ok {
-        Ok(response.result.expect("empty result"))
-    } else {
-        error!("Telegram error: {:?}", response.description);
-        Err(response.description.expect("empty error description").into())
+    match request.send()?.json::<TelegramResponse<R>>()? {
+        TelegramResponse::Result { result } => Ok(result),
+        TelegramResponse::Error { description } => {
+            error!("Telegram error: {:?}", description);
+            Err(description.into())
+        }
     }
 }
 
@@ -112,11 +113,10 @@ fn get_updates(client: &Client, token: &str, offset: Option<i64>) -> Result<Vec<
 
 /// <https://core.telegram.org/bots/api#making-requests>
 #[derive(Deserialize)]
-pub struct TelegramResponse<T> {
-    // TODO: enum instead.
-    pub ok: bool,
-    pub description: Option<String>,
-    pub result: Option<T>,
+#[serde(untagged)]
+pub enum TelegramResponse<T> {
+    Result { result: T },
+    Error { description: String },
 }
 
 #[derive(Deserialize, Debug)]
