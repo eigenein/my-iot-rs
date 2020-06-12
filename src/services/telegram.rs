@@ -9,7 +9,6 @@ use serde_json::json;
 use std::fmt::Debug;
 use std::time::Duration;
 
-// FIXME: set the timeout for `get_updates` individually.
 const CLIENT_TIMEOUT_SECS: u64 = 60;
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
@@ -26,9 +25,7 @@ pub struct Secrets {
 impl Telegram {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
-        let client = client_builder()
-            .timeout(Duration::from_secs(CLIENT_TIMEOUT_SECS + 1))
-            .build()?;
+        let client = client_builder().build()?;
 
         thread::Builder::new().name(service_id.clone()).spawn(move || {
             let mut offset: Option<i64> = None;
@@ -83,11 +80,13 @@ pub fn call_api<P: Serialize + Debug + ?Sized, R: DeserializeOwned>(
 ) -> Result<R> {
     debug!("{}({:?})", &method, parameters);
     // FIXME: https://github.com/eigenein/my-iot-rs/issues/44
-    let response = client
+    let mut request = client
         .get(&format!("https://api.telegram.org/bot{}/{}", token, method))
-        .json(parameters)
-        .send()?
-        .json::<TelegramResponse<R>>()?;
+        .json(parameters);
+    if method == "getUpdates" {
+        request = request.timeout(Duration::from_secs(CLIENT_TIMEOUT_SECS + 1));
+    }
+    let response = request.send()?.json::<TelegramResponse<R>>()?;
     if response.ok {
         Ok(response.result.expect("empty result"))
     } else {
