@@ -33,7 +33,6 @@ regex = "1"
 structopt = "0.3"
 rusqlite = { version = "0.20", features = ["bundled"] }
 askama = { git = "https://github.com/djc/askama", rev = "88a69fd6f8606ae0c543e83071a3b797fa64d17b" }
-rmp-serde = "0.14"
 itertools = "0.9"
 rlua = "0.17"
 lazy_static = "1"

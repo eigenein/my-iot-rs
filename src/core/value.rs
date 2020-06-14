@@ -4,57 +4,45 @@ use serde::{Deserialize, Serialize};
 
 /// Sensor reading value.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "type", content = "value")]
 pub enum Value {
     /// No value.
-    #[serde(rename = "N")]
     None,
 
     /// Generic counter.
-    #[serde(rename = "C")]
     Counter(u64),
 
     /// Image URL.
-    #[serde(rename = "IU")]
     ImageUrl(String),
 
     /// Boolean.
-    #[serde(rename = "B")]
     Boolean(bool),
 
     /// Wind direction.
-    #[serde(rename = "WD")]
     WindDirection(PointOfTheCompass),
 
     /// Size in [bytes](https://en.wikipedia.org/wiki/Byte).
-    #[serde(rename = "DS")]
     DataSize(u64),
 
     /// [Plain text](https://en.wikipedia.org/wiki/Plain_text).
-    #[serde(rename = "TEXT")]
     Text(String),
 
     /// [Beaufort](https://en.wikipedia.org/wiki/Beaufort_scale) wind speed.
-    #[serde(rename = "BFT")]
     Bft(u8),
 
     /// [Relative humidity](https://en.wikipedia.org/wiki/Relative_humidity) in **percents**.
-    #[serde(rename = "RH")]
     Rh(f64),
 
     /// [Thermodynamic temperature](https://en.wikipedia.org/wiki/Thermodynamic_temperature) in Celsius.
-    #[serde(rename = "T")]
     Temperature(f64),
 
     /// Length in meters.
-    #[serde(rename = "L")]
     Length(f64),
 
     /// Duration in seconds.
-    #[serde(rename = "D")]
     Duration(f64),
 
     /// Generic intensity in percents.
-    #[serde(rename = "RI")]
     RelativeIntensity(f64),
 }
 

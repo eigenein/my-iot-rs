@@ -10,7 +10,7 @@ pub const MIGRATIONS: &[fn(&rusqlite::Connection) -> Result<()>] = &[
     denormalize_actual_sensor_values,
     drop_readings_because_of_changed_sensor_pks,
     add_sensor_expires_at,
-    drop_readings_and_sensors_due_to_uom,
+    recreate_tables_for_json_values,
 ];
 
 fn create_initial_schema(db: &rusqlite::Connection) -> Result<()> {
@@ -101,14 +101,30 @@ fn add_sensor_expires_at(db: &rusqlite::Connection) -> Result<()> {
     Ok(())
 }
 
-fn drop_readings_and_sensors_due_to_uom(db: &rusqlite::Connection) -> Result<()> {
+fn recreate_tables_for_json_values(db: &rusqlite::Connection) -> Result<()> {
     // language=sql
     db.execute_batch(
         r#"
-            -- noinspection SqlWithoutWhere
-            DELETE FROM readings;
-            -- noinspection SqlWithoutWhere
-            DELETE FROM sensors;
+            DROP TABLE readings;
+            DROP TABLE sensors;
+
+            CREATE TABLE sensors (
+                pk INTEGER NOT NULL PRIMARY KEY ,
+                sensor_id TEXT NOT NULL UNIQUE,
+                timestamp DATETIME NOT NULL,
+                title TEXT DEFAULT NULL,
+                room_title TEXT DEFAULT NULL,
+                value JSON NOT NULL,
+                expires_at INTEGER NOT NULL
+            );
+
+            CREATE TABLE readings (
+                sensor_fk INTEGER NOT NULL REFERENCES sensors ON UPDATE CASCADE ON DELETE CASCADE,
+                timestamp DATETIME NOT NULL,
+                value JSON NOT NULL
+            );
+
+            CREATE UNIQUE INDEX readings_sensor_fk_timestamp ON readings (sensor_fk ASC, timestamp DESC);
         "#,
     )?;
     Ok(())

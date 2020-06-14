@@ -119,18 +119,6 @@
 <span id="119">119</span>
 <span id="120">120</span>
 <span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
-<span id="127">127</span>
-<span id="128">128</span>
-<span id="129">129</span>
-<span id="130">130</span>
-<span id="131">131</span>
-<span id="132">132</span>
-<span id="133">133</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implements sensor reading value.</span>
 
@@ -138,57 +126,45 @@
 
 <span class="doccomment">/// Sensor reading value.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">tag</span> <span class="op">=</span> <span class="string">&quot;type&quot;</span>, <span class="ident">content</span> <span class="op">=</span> <span class="string">&quot;value&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Value</span> {
     <span class="doccomment">/// No value.</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;N&quot;</span>)]</span>
     <span class="prelude-val">None</span>,
 
     <span class="doccomment">/// Generic counter.</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;C&quot;</span>)]</span>
     <span class="ident">Counter</span>(<span class="ident">u64</span>),
 
     <span class="doccomment">/// Image URL.</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;IU&quot;</span>)]</span>
     <span class="ident">ImageUrl</span>(<span class="ident">String</span>),
 
     <span class="doccomment">/// Boolean.</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;B&quot;</span>)]</span>
     <span class="ident">Boolean</span>(<span class="ident">bool</span>),
 
     <span class="doccomment">/// Wind direction.</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;WD&quot;</span>)]</span>
     <span class="ident">WindDirection</span>(<span class="ident">PointOfTheCompass</span>),
 
     <span class="doccomment">/// Size in [bytes](https://en.wikipedia.org/wiki/Byte).</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;DS&quot;</span>)]</span>
     <span class="ident">DataSize</span>(<span class="ident">u64</span>),
 
     <span class="doccomment">/// [Plain text](https://en.wikipedia.org/wiki/Plain_text).</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;TEXT&quot;</span>)]</span>
     <span class="ident">Text</span>(<span class="ident">String</span>),
 
     <span class="doccomment">/// [Beaufort](https://en.wikipedia.org/wiki/Beaufort_scale) wind speed.</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;BFT&quot;</span>)]</span>
     <span class="ident">Bft</span>(<span class="ident">u8</span>),
 
     <span class="doccomment">/// [Relative humidity](https://en.wikipedia.org/wiki/Relative_humidity) in **percents**.</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;RH&quot;</span>)]</span>
     <span class="ident">Rh</span>(<span class="ident">f64</span>),
 
     <span class="doccomment">/// [Thermodynamic temperature](https://en.wikipedia.org/wiki/Thermodynamic_temperature) in Celsius.</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;T&quot;</span>)]</span>
     <span class="ident">Temperature</span>(<span class="ident">f64</span>),
 
     <span class="doccomment">/// Length in meters.</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;L&quot;</span>)]</span>
     <span class="ident">Length</span>(<span class="ident">f64</span>),
 
     <span class="doccomment">/// Duration in seconds.</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;D&quot;</span>)]</span>
     <span class="ident">Duration</span>(<span class="ident">f64</span>),
 
     <span class="doccomment">/// Generic intensity in percents.</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;RI&quot;</span>)]</span>
     <span class="ident">RelativeIntensity</span>(<span class="ident">f64</span>),
 }
 

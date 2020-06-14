@@ -2,7 +2,7 @@
 
 ## `master`
 
-- **Dropped sensors and readings because of the removed `uom` dependency**
+- **Removed the `uom` and `rmp-serde` dependencies and changed the serialization format, thus dropped sensors and readings**
 - Bunch of refactorings
 
 ## `0.49.0`

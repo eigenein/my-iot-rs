@@ -157,7 +157,7 @@ fn get_sensor(row: &Row) -> rusqlite::Result<Sensor> {
 fn get_reading(row: &Row) -> rusqlite::Result<Reading> {
     Ok(Reading {
         timestamp: Local.timestamp_millis(row.get("timestamp")?),
-        value: rmp_serde::from_read_ref(&row.get::<_, Vec<u8>>("value")?).map_err(|error| {
+        value: serde_json::from_str(&row.get::<_, String>("value")?).map_err(|error| {
             rusqlite::Error::FromSqlConversionFailure(0, rusqlite::types::Type::Blob, Box::new(error))
         })?,
     })
@@ -171,23 +171,11 @@ fn get_i64(row: &Row) -> rusqlite::Result<i64> {
     row.get::<_, i64>(0)
 }
 
-impl Value {
-    fn serialize_to_vec(&self) -> Result<Vec<u8>> {
-        let mut serialized_value = Vec::new();
-        self.serialize(
-            &mut rmp_serde::Serializer::new(&mut serialized_value)
-                .with_string_variants()
-                .with_struct_map(),
-        )?;
-        Ok(serialized_value)
-    }
-}
-
 impl Message {
     pub fn upsert_into(&self, connection: &Connection) -> Result<()> {
         let sensor_pk = hash_sensor_id(&self.sensor.id);
         let timestamp = self.reading.timestamp.timestamp_millis();
-        let value = self.reading.value.serialize_to_vec()?;
+        let value = serde_json::to_string(&self.reading.value)?;
         let connection = connection.connection()?;
 
         connection
