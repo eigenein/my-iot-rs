@@ -124,10 +124,7 @@ pub enum PointOfTheCompass {
 }
 
 impl Value {
-    pub fn as_f64(&self) -> Option<f64> {
-        match self {
-            Value::Rh(value) | Value::RelativeIntensity(value) | Value::Temperature(value) => Some(*value),
-            _ => None,
-        }
+    pub fn from_kwh(kwh: f64) -> Self {
+        Value::Energy(kwh * 3600.0)
     }
 }

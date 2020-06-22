@@ -57,7 +57,7 @@ impl YouLess {
             .pop()
             .ok_or("YouLess response is empty")?;
         Message::new(format!("{}::nett", service_id))
-            .value(Value::Energy(response.nett * 3600.0))
+            .value(Value::from_kwh(response.nett))
             .expires_in(ttl)
             .room_title(&self.room_title)
             .sensor_title("Nett Counter")
@@ -68,6 +68,20 @@ impl YouLess {
             .expires_in(ttl)
             .room_title(&self.room_title)
             .sensor_title("Actual Power")
+            .timestamp(response.timestamp)
+            .send_and_forget(tx);
+        Message::new(format!("{}::consumption_low", service_id))
+            .value(Value::from_kwh(response.consumption_low))
+            .expires_in(ttl)
+            .room_title(&self.room_title)
+            .sensor_title("Low Consumption")
+            .timestamp(response.timestamp)
+            .send_and_forget(tx);
+        Message::new(format!("{}::consumption_high", service_id))
+            .value(Value::from_kwh(response.consumption_high))
+            .expires_in(ttl)
+            .room_title(&self.room_title)
+            .sensor_title("High Consumption")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Ok(())
@@ -90,12 +104,10 @@ struct Response {
     power: f64,
 
     /// P1 consumption counter (low tariff).
-    #[allow(dead_code)]
     #[serde(rename = "p1")]
     consumption_low: f64,
 
     /// P2 consumption counter (high tariff).
-    #[allow(dead_code)]
     #[serde(rename = "p2")]
     consumption_high: f64,
 
@@ -129,7 +141,7 @@ mod tests {
         let response = serde_json::from_str::<Response>(
             r#"{"tm":1592815263,"net": 3602.148,"pwr":-368,"ts0":1584111000,"cs0": 0.000,"ps0": 0,"p1": 3851.282,"p2": 2949.180,"n1": 1000.784,"n2": 2197.530,"gas": 3564.538,"gts":2006221040}"#,
         )?;
-        assert_eq!(response.timestamp, Local.ymd(2020, 6, 22).and_hms(10, 41, 3));
+        assert_eq!(response.timestamp, Utc.ymd(2020, 6, 22).and_hms(8, 41, 3));
         assert_eq!(response.gas, 3564.538);
         Ok(())
     }

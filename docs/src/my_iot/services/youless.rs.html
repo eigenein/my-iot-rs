@@ -127,6 +127,25 @@
 <span id="127">127</span>
 <span id="128">128</span>
 <span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! [YouLess](https://www.youless.nl/home.html) kWh meter to ethernet bridge.</span>
 
@@ -187,16 +206,32 @@
             .<span class="ident">pop</span>()
             .<span class="ident">ok_or</span>(<span class="string">&quot;YouLess response is empty&quot;</span>)<span class="question-mark">?</span>;
         <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::nett&quot;</span>, <span class="ident">service_id</span>))
-            .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Energy</span>(<span class="ident">response</span>.<span class="ident">nett</span> <span class="op">*</span> <span class="number">3600.0</span>))
+            .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from_kwh</span>(<span class="ident">response</span>.<span class="ident">nett</span>))
             .<span class="ident">expires_in</span>(<span class="ident">ttl</span>)
             .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">room_title</span>)
             .<span class="ident">sensor_title</span>(<span class="string">&quot;Nett Counter&quot;</span>)
+            .<span class="ident">timestamp</span>(<span class="ident">response</span>.<span class="ident">timestamp</span>)
             .<span class="ident">send_and_forget</span>(<span class="ident">tx</span>);
         <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::power&quot;</span>, <span class="ident">service_id</span>))
             .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Power</span>(<span class="ident">response</span>.<span class="ident">power</span>))
             .<span class="ident">expires_in</span>(<span class="ident">ttl</span>)
             .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">room_title</span>)
             .<span class="ident">sensor_title</span>(<span class="string">&quot;Actual Power&quot;</span>)
+            .<span class="ident">timestamp</span>(<span class="ident">response</span>.<span class="ident">timestamp</span>)
+            .<span class="ident">send_and_forget</span>(<span class="ident">tx</span>);
+        <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::consumption_low&quot;</span>, <span class="ident">service_id</span>))
+            .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from_kwh</span>(<span class="ident">response</span>.<span class="ident">consumption_low</span>))
+            .<span class="ident">expires_in</span>(<span class="ident">ttl</span>)
+            .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">room_title</span>)
+            .<span class="ident">sensor_title</span>(<span class="string">&quot;Low Consumption&quot;</span>)
+            .<span class="ident">timestamp</span>(<span class="ident">response</span>.<span class="ident">timestamp</span>)
+            .<span class="ident">send_and_forget</span>(<span class="ident">tx</span>);
+        <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::consumption_high&quot;</span>, <span class="ident">service_id</span>))
+            .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from_kwh</span>(<span class="ident">response</span>.<span class="ident">consumption_high</span>))
+            .<span class="ident">expires_in</span>(<span class="ident">ttl</span>)
+            .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">room_title</span>)
+            .<span class="ident">sensor_title</span>(<span class="string">&quot;High Consumption&quot;</span>)
+            .<span class="ident">timestamp</span>(<span class="ident">response</span>.<span class="ident">timestamp</span>)
             .<span class="ident">send_and_forget</span>(<span class="ident">tx</span>);
         <span class="prelude-val">Ok</span>(())
     }
@@ -226,15 +261,18 @@
     <span class="ident">consumption_high</span>: <span class="ident">f64</span>,
 
     <span class="doccomment">/// N1 production counter (low tariff).</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;n1&quot;</span>)]</span>
     <span class="ident">production_low</span>: <span class="ident">f64</span>,
 
     <span class="doccomment">/// N2 production counter (high tariff).</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;n2&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
     <span class="ident">production_high</span>: <span class="ident">f64</span>,
 
     <span class="doccomment">/// Counter gas-meter (in m^3).</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;gas&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
     <span class="ident">gas</span>: <span class="ident">f64</span>,
 }
 
@@ -252,7 +290,7 @@
         <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">from_str</span>::<span class="op">&lt;</span><span class="ident">Response</span><span class="op">&gt;</span>(
             <span class="string">r#&quot;{&quot;tm&quot;:1592815263,&quot;net&quot;: 3602.148,&quot;pwr&quot;:-368,&quot;ts0&quot;:1584111000,&quot;cs0&quot;: 0.000,&quot;ps0&quot;: 0,&quot;p1&quot;: 3851.282,&quot;p2&quot;: 2949.180,&quot;n1&quot;: 1000.784,&quot;n2&quot;: 2197.530,&quot;gas&quot;: 3564.538,&quot;gts&quot;:2006221040}&quot;#</span>,
         )<span class="question-mark">?</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">response</span>.<span class="ident">timestamp</span>, <span class="ident">Local</span>.<span class="ident">ymd</span>(<span class="number">2020</span>, <span class="number">6</span>, <span class="number">22</span>).<span class="ident">and_hms</span>(<span class="number">10</span>, <span class="number">41</span>, <span class="number">3</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">response</span>.<span class="ident">timestamp</span>, <span class="ident">Utc</span>.<span class="ident">ymd</span>(<span class="number">2020</span>, <span class="number">6</span>, <span class="number">22</span>).<span class="ident">and_hms</span>(<span class="number">8</span>, <span class="number">41</span>, <span class="number">3</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">response</span>.<span class="ident">gas</span>, <span class="number">3564.538</span>);
         <span class="prelude-val">Ok</span>(())
     }
