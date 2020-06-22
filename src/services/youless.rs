@@ -67,21 +67,42 @@ impl YouLess {
             .value(Value::Power(response.power))
             .expires_in(ttl)
             .room_title(&self.room_title)
-            .sensor_title("Actual Power")
+            .sensor_title("Actual Consumption")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::consumption_low", service_id))
             .value(Value::from_kwh(response.consumption_low))
             .expires_in(ttl)
             .room_title(&self.room_title)
-            .sensor_title("Low Consumption")
+            .sensor_title("Total Consumption Low")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::consumption_high", service_id))
             .value(Value::from_kwh(response.consumption_high))
             .expires_in(ttl)
             .room_title(&self.room_title)
-            .sensor_title("High Consumption")
+            .sensor_title("Total Consumption High")
+            .timestamp(response.timestamp)
+            .send_and_forget(tx);
+        Message::new(format!("{}::production_low", service_id))
+            .value(Value::from_kwh(response.production_low))
+            .expires_in(ttl)
+            .room_title(&self.room_title)
+            .sensor_title("Total Production Low")
+            .timestamp(response.timestamp)
+            .send_and_forget(tx);
+        Message::new(format!("{}::production_high", service_id))
+            .value(Value::from_kwh(response.production_high))
+            .expires_in(ttl)
+            .room_title(&self.room_title)
+            .sensor_title("Total Production High")
+            .timestamp(response.timestamp)
+            .send_and_forget(tx);
+        Message::new(format!("{}::gas", service_id))
+            .value(Value::Volume(response.gas))
+            .expires_in(ttl)
+            .room_title(&self.room_title)
+            .sensor_title("Total Gas Consumption")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Ok(())
@@ -112,18 +133,15 @@ struct Response {
     consumption_high: f64,
 
     /// N1 production counter (low tariff).
-    #[allow(dead_code)]
     #[serde(rename = "n1")]
     production_low: f64,
 
     /// N2 production counter (high tariff).
     #[serde(rename = "n2")]
-    #[allow(dead_code)]
     production_high: f64,
 
     /// Counter gas-meter (in m^3).
     #[serde(rename = "gas")]
-    #[allow(dead_code)]
     gas: f64,
 }
 

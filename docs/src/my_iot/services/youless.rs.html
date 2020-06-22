@@ -146,6 +146,24 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! [YouLess](https://www.youless.nl/home.html) kWh meter to ethernet bridge.</span>
 
@@ -216,21 +234,42 @@
             .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Power</span>(<span class="ident">response</span>.<span class="ident">power</span>))
             .<span class="ident">expires_in</span>(<span class="ident">ttl</span>)
             .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">room_title</span>)
-            .<span class="ident">sensor_title</span>(<span class="string">&quot;Actual Power&quot;</span>)
+            .<span class="ident">sensor_title</span>(<span class="string">&quot;Actual Consumption&quot;</span>)
             .<span class="ident">timestamp</span>(<span class="ident">response</span>.<span class="ident">timestamp</span>)
             .<span class="ident">send_and_forget</span>(<span class="ident">tx</span>);
         <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::consumption_low&quot;</span>, <span class="ident">service_id</span>))
             .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from_kwh</span>(<span class="ident">response</span>.<span class="ident">consumption_low</span>))
             .<span class="ident">expires_in</span>(<span class="ident">ttl</span>)
             .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">room_title</span>)
-            .<span class="ident">sensor_title</span>(<span class="string">&quot;Low Consumption&quot;</span>)
+            .<span class="ident">sensor_title</span>(<span class="string">&quot;Total Consumption Low&quot;</span>)
             .<span class="ident">timestamp</span>(<span class="ident">response</span>.<span class="ident">timestamp</span>)
             .<span class="ident">send_and_forget</span>(<span class="ident">tx</span>);
         <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::consumption_high&quot;</span>, <span class="ident">service_id</span>))
             .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from_kwh</span>(<span class="ident">response</span>.<span class="ident">consumption_high</span>))
             .<span class="ident">expires_in</span>(<span class="ident">ttl</span>)
             .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">room_title</span>)
-            .<span class="ident">sensor_title</span>(<span class="string">&quot;High Consumption&quot;</span>)
+            .<span class="ident">sensor_title</span>(<span class="string">&quot;Total Consumption High&quot;</span>)
+            .<span class="ident">timestamp</span>(<span class="ident">response</span>.<span class="ident">timestamp</span>)
+            .<span class="ident">send_and_forget</span>(<span class="ident">tx</span>);
+        <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::production_low&quot;</span>, <span class="ident">service_id</span>))
+            .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from_kwh</span>(<span class="ident">response</span>.<span class="ident">production_low</span>))
+            .<span class="ident">expires_in</span>(<span class="ident">ttl</span>)
+            .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">room_title</span>)
+            .<span class="ident">sensor_title</span>(<span class="string">&quot;Total Production Low&quot;</span>)
+            .<span class="ident">timestamp</span>(<span class="ident">response</span>.<span class="ident">timestamp</span>)
+            .<span class="ident">send_and_forget</span>(<span class="ident">tx</span>);
+        <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::production_high&quot;</span>, <span class="ident">service_id</span>))
+            .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">from_kwh</span>(<span class="ident">response</span>.<span class="ident">production_high</span>))
+            .<span class="ident">expires_in</span>(<span class="ident">ttl</span>)
+            .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">room_title</span>)
+            .<span class="ident">sensor_title</span>(<span class="string">&quot;Total Production High&quot;</span>)
+            .<span class="ident">timestamp</span>(<span class="ident">response</span>.<span class="ident">timestamp</span>)
+            .<span class="ident">send_and_forget</span>(<span class="ident">tx</span>);
+        <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::gas&quot;</span>, <span class="ident">service_id</span>))
+            .<span class="ident">value</span>(<span class="ident">Value</span>::<span class="ident">Volume</span>(<span class="ident">response</span>.<span class="ident">gas</span>))
+            .<span class="ident">expires_in</span>(<span class="ident">ttl</span>)
+            .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">room_title</span>)
+            .<span class="ident">sensor_title</span>(<span class="string">&quot;Total Gas Consumption&quot;</span>)
             .<span class="ident">timestamp</span>(<span class="ident">response</span>.<span class="ident">timestamp</span>)
             .<span class="ident">send_and_forget</span>(<span class="ident">tx</span>);
         <span class="prelude-val">Ok</span>(())
@@ -261,18 +300,15 @@
     <span class="ident">consumption_high</span>: <span class="ident">f64</span>,
 
     <span class="doccomment">/// N1 production counter (low tariff).</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;n1&quot;</span>)]</span>
     <span class="ident">production_low</span>: <span class="ident">f64</span>,
 
     <span class="doccomment">/// N2 production counter (high tariff).</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;n2&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
     <span class="ident">production_high</span>: <span class="ident">f64</span>,
 
     <span class="doccomment">/// Counter gas-meter (in m^3).</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;gas&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
     <span class="ident">gas</span>: <span class="ident">f64</span>,
 }
 
