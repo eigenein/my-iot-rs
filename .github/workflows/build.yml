@@ -20,6 +20,4 @@ jobs:
           components: rustfmt, clippy
       - uses: actions/checkout@v2
       - name: Check
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
+        run: make check
