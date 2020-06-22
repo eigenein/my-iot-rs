@@ -1,7 +1,7 @@
 //! [tado°](https://www.tado.com/) API.
 
 use crate::prelude::*;
-use reqwest::blocking::Client;
+use crate::services::prelude::*;
 use reqwest::Url;
 use std::thread;
 use std::time::{Duration, SystemTime};
@@ -13,13 +13,13 @@ const REFRESH_PERIOD: Duration = Duration::from_secs(60);
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Tado {
-    pub secrets: Secrets,
+    secrets: Secrets,
 }
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Secrets {
-    pub email: String,
-    pub password: String,
+    email: String,
+    password: String,
 }
 
 impl Tado {

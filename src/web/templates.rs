@@ -186,6 +186,9 @@ impl std::fmt::Display for Value {
             ),
             Value::Duration(value) => f.write_str(&human_format(*value, "s")),
             Value::RelativeIntensity(value) => write!(f, "{}%", value),
+            Value::Energy(value) => f.write_str(&human_format(*value, "J")),
+            Value::Power(value) => f.write_str(&human_format(*value, "W")),
+            Value::Volume(value) => f.write_str(&human_format(*value, "㎥")),
         }
     }
 }
@@ -292,6 +295,9 @@ mod filters {
             Value::Duration(_) => r#"<i class="far fa-clock"></i>"#,
             Value::ImageUrl(_) | Value::None => "",
             Value::RelativeIntensity(_) => r#"<i class="far fa-lightbulb"></i>"#,
+            Value::Energy(_) => r#"<!-- TODO -->"#,
+            Value::Power(_) => r#"<!-- TODO -->"#,
+            Value::Volume(_) => r#"<!-- TODO -->"#,
         })
     }
 }

@@ -225,7 +225,10 @@ impl<'lua> ToLua<'lua> for Value {
             | Value::RelativeIntensity(value)
             | Value::Duration(value)
             | Value::Length(value)
-            | Value::Temperature(value) => value.to_lua(context),
+            | Value::Temperature(value)
+            | Value::Energy(value)
+            | Value::Power(value)
+            | Value::Volume(value) => value.to_lua(context),
             Value::WindDirection(value) => value.to_lua(context),
         }
     }

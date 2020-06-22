@@ -76,6 +76,9 @@ pub enum Service {
 
     /// [Telegram bot](https://core.telegram.org/bots/api) service.
     Telegram(services::telegram::Telegram),
+
+    /// [YouLess](https://www.youless.nl/home.html) kWh meter to ethernet bridge.
+    YouLess(services::youless::YouLess),
 }
 
 pub fn default_http_port() -> u16 {

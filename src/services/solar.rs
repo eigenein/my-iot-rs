@@ -8,34 +8,34 @@ use std::time::Duration;
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Solar {
     /// Message interval in milliseconds.
-    #[serde(default = "default_interval_ms")]
-    pub interval_ms: u32,
+    #[serde(default = "default_interval_millis")]
+    interval_millis: u32,
 
     #[serde(default)]
-    pub room_title: Option<String>,
+    room_title: Option<String>,
 
-    pub secrets: Secrets,
+    secrets: Secrets,
 }
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Secrets {
     /// Latitude in [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System) system, ranging from `-90.0` to `90.0`.
-    pub latitude: f64,
+    latitude: f64,
 
     /// Longitude in [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System) system, ranging from `-180.0` to `180.0`
-    pub longitude: f64,
+    longitude: f64,
 }
 
 /// Defaults to one minute.
-fn default_interval_ms() -> u32 {
+const fn default_interval_millis() -> u32 {
     60000
 }
 
 impl Solar {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
-        let interval = Duration::from_millis(self.interval_ms as u64);
-        let ttl = chrono::Duration::milliseconds((self.interval_ms * 2) as i64);
+        let interval = Duration::from_millis(self.interval_millis as u64);
+        let ttl = chrono::Duration::milliseconds((self.interval_millis as i64) * 2);
 
         thread::Builder::new().name(service_id.clone()).spawn(move || loop {
             let now = Utc::now();

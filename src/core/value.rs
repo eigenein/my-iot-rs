@@ -33,7 +33,8 @@ pub enum Value {
     /// [Relative humidity](https://en.wikipedia.org/wiki/Relative_humidity) in **percents**.
     Rh(f64),
 
-    /// [Thermodynamic temperature](https://en.wikipedia.org/wiki/Thermodynamic_temperature) in Celsius.
+    /// [Thermodynamic temperature](https://en.wikipedia.org/wiki/Thermodynamic_temperature)
+    /// in [Celsius](https://en.wikipedia.org/wiki/Celsius).
     Temperature(f64),
 
     /// Length in meters.
@@ -42,8 +43,19 @@ pub enum Value {
     /// Duration in seconds.
     Duration(f64),
 
-    /// Generic intensity in percents.
+    /// Relative intensity in percents.
     RelativeIntensity(f64),
+
+    /// [Power](https://en.wikipedia.org/wiki/Power_(physics))
+    /// in [Watt](https://en.wikipedia.org/wiki/Watt)s.
+    Power(f64),
+
+    /// [Volume](https://en.wikipedia.org/wiki/Volume) in cubic meters.
+    Volume(f64),
+
+    /// [Energy](https://en.wikipedia.org/wiki/Energy)
+    /// in [joules](https://en.wikipedia.org/wiki/Joule).
+    Energy(f64),
 }
 
 impl From<bool> for Value {

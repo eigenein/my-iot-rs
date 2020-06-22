@@ -102,7 +102,7 @@ http_port = 8080
 # `heartbeat` is a user-defined service ID.
 [services.heartbeat]
 type = "Clock"
-interval_ms = 2000
+interval_millis = 2000
 
 [services.weather]
 type = "Buienradar"

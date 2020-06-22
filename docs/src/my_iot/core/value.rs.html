@@ -119,6 +119,18 @@
 <span id="119">119</span>
 <span id="120">120</span>
 <span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implements sensor reading value.</span>
 
@@ -155,7 +167,8 @@
     <span class="doccomment">/// [Relative humidity](https://en.wikipedia.org/wiki/Relative_humidity) in **percents**.</span>
     <span class="ident">Rh</span>(<span class="ident">f64</span>),
 
-    <span class="doccomment">/// [Thermodynamic temperature](https://en.wikipedia.org/wiki/Thermodynamic_temperature) in Celsius.</span>
+    <span class="doccomment">/// [Thermodynamic temperature](https://en.wikipedia.org/wiki/Thermodynamic_temperature)</span>
+    <span class="doccomment">/// in [Celsius](https://en.wikipedia.org/wiki/Celsius).</span>
     <span class="ident">Temperature</span>(<span class="ident">f64</span>),
 
     <span class="doccomment">/// Length in meters.</span>
@@ -164,8 +177,19 @@
     <span class="doccomment">/// Duration in seconds.</span>
     <span class="ident">Duration</span>(<span class="ident">f64</span>),
 
-    <span class="doccomment">/// Generic intensity in percents.</span>
+    <span class="doccomment">/// Relative intensity in percents.</span>
     <span class="ident">RelativeIntensity</span>(<span class="ident">f64</span>),
+
+    <span class="doccomment">/// [Power](https://en.wikipedia.org/wiki/Power_(physics))</span>
+    <span class="doccomment">/// in [Watt](https://en.wikipedia.org/wiki/Watt)s.</span>
+    <span class="ident">Power</span>(<span class="ident">f64</span>),
+
+    <span class="doccomment">/// [Volume](https://en.wikipedia.org/wiki/Volume) in cubic meters.</span>
+    <span class="ident">Volume</span>(<span class="ident">f64</span>),
+
+    <span class="doccomment">/// [Energy](https://en.wikipedia.org/wiki/Energy)</span>
+    <span class="doccomment">/// in [joules](https://en.wikipedia.org/wiki/Joule).</span>
+    <span class="ident">Energy</span>(<span class="ident">f64</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Value</span> {
@@ -242,4 +266,4 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "my_iot";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "my_iot";</script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

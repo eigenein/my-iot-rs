@@ -1,7 +1,7 @@
 use crate::prelude::*;
+use crate::services::prelude::*;
 use chrono::offset::TimeZone;
 use chrono_tz::Europe::Amsterdam;
-use reqwest::blocking::Client;
 use serde::{de, Deserialize, Deserializer};
 use std::thread;
 use std::time::Duration;
@@ -157,7 +157,7 @@ struct BuienradarStationMeasurement {
 }
 
 /// Implements [custom date/time format](https://serde.rs/custom-date-format.html) with Amsterdam timezone.
-fn deserialize_datetime<'de, D: Deserializer<'de>>(deserializer: D) -> std::result::Result<DateTime<Local>, D::Error> {
+fn deserialize_datetime<'de, D: Deserializer<'de>>(deserializer: D) -> StdResult<DateTime<Local>, D::Error> {
     Ok(Amsterdam
         .datetime_from_str(&String::deserialize(deserializer)?, "%Y-%m-%dT%H:%M:%S")
         .map_err(de::Error::custom)?

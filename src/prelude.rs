@@ -1,5 +1,4 @@
 pub use crate::core::bus::Bus;
-pub use crate::core::client::builder as client_builder;
 pub use crate::core::message::{Message, Type as MessageType};
 pub use crate::core::persistence::reading::Reading;
 pub use crate::core::persistence::sensor::Sensor;

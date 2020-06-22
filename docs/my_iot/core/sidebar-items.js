@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["bus","Message bus"],["client",""],["message","Describes a sensor reading and related structures."],["persistence","Database interface."],["services","Implements generic `Service` trait."],["value","Implements sensor reading value."]]});
+initSidebarItems({"mod":[["bus","Message bus"],["message","Describes a sensor reading and related structures."],["persistence","Database interface."],["services","Implements generic `Service` trait."],["value","Implements sensor reading value."]]});

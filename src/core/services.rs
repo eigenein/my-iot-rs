@@ -16,6 +16,7 @@ pub fn spawn_all(settings: &Settings, bus: &mut Bus) -> Result<()> {
             Service::Solar(solar) => solar.spawn(service_id, bus),
             Service::Tado(tado) => tado.spawn(service_id, bus),
             Service::Telegram(telegram) => telegram.spawn(service_id, bus),
+            Service::YouLess(youless) => youless.spawn(service_id, bus),
         }?;
     }
     Ok(())

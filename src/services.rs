@@ -2,6 +2,8 @@ pub mod buienradar;
 pub mod clock;
 pub mod db;
 pub mod lua;
+pub mod prelude;
 pub mod solar;
 pub mod tado;
 pub mod telegram;
+pub mod youless;

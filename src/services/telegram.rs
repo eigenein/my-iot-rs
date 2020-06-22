@@ -1,8 +1,8 @@
 //! [Telegram bot](https://core.telegram.org/bots/api) service able to receive and send messages.
 
 use crate::prelude::*;
+use crate::services::prelude::*;
 use log::debug;
-use reqwest::blocking::Client;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
