@@ -61,12 +61,14 @@ impl YouLess {
             .expires_in(ttl)
             .room_title(&self.room_title)
             .sensor_title("Nett Counter")
+            .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::power", service_id))
             .value(Value::Power(response.power))
             .expires_in(ttl)
             .room_title(&self.room_title)
             .sensor_title("Actual Power")
+            .timestamp(response.timestamp)
             .send_and_forget(tx);
         Ok(())
     }
@@ -88,23 +90,28 @@ struct Response {
     power: f64,
 
     /// P1 consumption counter (low tariff).
+    #[allow(dead_code)]
     #[serde(rename = "p1")]
     consumption_low: f64,
 
     /// P2 consumption counter (high tariff).
+    #[allow(dead_code)]
     #[serde(rename = "p2")]
     consumption_high: f64,
 
     /// N1 production counter (low tariff).
+    #[allow(dead_code)]
     #[serde(rename = "n1")]
     production_low: f64,
 
     /// N2 production counter (high tariff).
     #[serde(rename = "n2")]
+    #[allow(dead_code)]
     production_high: f64,
 
     /// Counter gas-meter (in m^3).
     #[serde(rename = "gas")]
+    #[allow(dead_code)]
     gas: f64,
 }
 

@@ -2,7 +2,8 @@
 
 ## `master`
 
-- **Removed the `uom` and `rmp-serde` dependencies and changed the serialization format, thus dropped sensors and readings**
+- **Removed the `uom` and `rmp-serde` dependencies and changed the serialization format, thus dropped sensors, readings and migrations (requires to re-create the database)**
+- Added YouLess service #53
 - Bunch of refactorings
 
 ## `0.49.0`
