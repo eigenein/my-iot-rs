@@ -8,6 +8,7 @@ use rocket::http::ContentType;
 use rocket::response::content::{Content, Html};
 use rocket::{get, routes, Config, Rocket, State};
 use rocket_contrib::json::Json;
+use std::path::PathBuf;
 
 mod templates;
 
@@ -35,6 +36,7 @@ fn make_rocket(settings: &Settings, db: Connection) -> Result<Rocket> {
             get_settings,
             get_favicon,
             get_static,
+            get_webfonts,
             get_sensor,
             get_sensor_json,
         ],
@@ -61,10 +63,19 @@ fn get_favicon() -> Content<&'static [u8]> {
     Content(ContentType::Icon, FAVICON)
 }
 
-#[get("/static/<key>")]
-fn get_static(key: String) -> Option<Content<&'static [u8]>> {
+#[get("/static/<key..>")]
+fn get_static(key: PathBuf) -> Option<Content<&'static [u8]>> {
+    get_bundled_static(key)
+}
+
+#[get("/webfonts/<key..>")]
+fn get_webfonts(key: PathBuf) -> Option<Content<&'static [u8]>> {
+    get_bundled_static(key)
+}
+
+fn get_bundled_static(key: PathBuf) -> Option<Content<&'static [u8]>> {
     STATICS
-        .get(key.as_str())
+        .get(&key)
         .map(|(content_type, content)| Content(content_type.clone(), &content[..]))
 }
 
@@ -83,51 +94,79 @@ fn get_sensor_json(db: State<Connection>, sensor_id: String) -> Result<Option<Js
 }
 
 lazy_static! {
-    static ref STATICS: HashMap<&'static str, (ContentType, Vec<u8>)> = {
+    static ref STATICS: HashMap<PathBuf, (ContentType, Vec<u8>)> = {
         let mut map = HashMap::new();
         map.insert(
-            "favicon-16x16.png",
+            "favicon-16x16.png".into(),
             (ContentType::PNG, include_bytes!("statics/favicon-16x16.png").to_vec()),
         );
         map.insert(
-            "favicon-32x32.png",
+            "favicon-32x32.png".into(),
             (ContentType::PNG, include_bytes!("statics/favicon-32x32.png").to_vec()),
         );
         map.insert(
-            "apple-touch-icon.png",
+            "apple-touch-icon.png".into(),
             (
                 ContentType::PNG,
                 include_bytes!("statics/apple-touch-icon.png").to_vec(),
             ),
         );
         map.insert(
-            "android-chrome-192x192.png",
+            "android-chrome-192x192.png".into(),
             (
                 ContentType::PNG,
                 include_bytes!("statics/android-chrome-192x192.png").to_vec(),
             ),
         );
         map.insert(
-            "android-chrome-512x512.png",
+            "android-chrome-512x512.png".into(),
             (
                 ContentType::PNG,
                 include_bytes!("statics/android-chrome-512x512.png").to_vec(),
             ),
         );
         map.insert(
-            "bulma.min.css",
+            "bulma.min.css".into(),
             (ContentType::CSS, include_bytes!("statics/bulma.min.css").to_vec()),
         );
         map.insert(
-            "bulma-prefers-dark.css",
+            "bulma-prefers-dark.css".into(),
             (
                 ContentType::CSS,
                 include_bytes!("statics/bulma-prefers-dark.css").to_vec(),
             ),
         );
         map.insert(
-            "chart.js",
+            "chart.js".into(),
             (ContentType::JavaScript, include_bytes!("statics/chart.js").to_vec()),
+        );
+        map.insert(
+            "fontawesome.css".into(),
+            (
+                ContentType::CSS,
+                include_bytes!("statics/fontawesome-free-5.13.1-web/css/all.css").to_vec(),
+            ),
+        );
+        map.insert(
+            "fa-solid-900.woff2".into(),
+            (
+                ContentType::WOFF2,
+                include_bytes!("statics/fontawesome-free-5.13.1-web/webfonts/fa-solid-900.woff2").to_vec(),
+            ),
+        );
+        map.insert(
+            "fa-regular-400.woff2".into(),
+            (
+                ContentType::WOFF2,
+                include_bytes!("statics/fontawesome-free-5.13.1-web/webfonts/fa-regular-400.woff2").to_vec(),
+            ),
+        );
+        map.insert(
+            "fa-brands-400.woff2".into(),
+            (
+                ContentType::WOFF2,
+                include_bytes!("statics/fontawesome-free-5.13.1-web/webfonts/fa-brands-400.woff2").to_vec(),
+            ),
         );
         map
     };

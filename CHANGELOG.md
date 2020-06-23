@@ -6,6 +6,7 @@
 - Added YouLess service #53
 - Added more Tado° sensors
 - Bunch of refactorings
+- Bundled Font Awesome, closes #95
 
 ## `0.49.0`
 

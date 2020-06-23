@@ -1,6 +1,7 @@
 *.sqlite3*
 *.backup
 *.toml
+src/fontawesome.zip
 !Cargo.toml
 
 # Created by https://www.gitignore.io/api/git,rust,linux,clion,macos,windows,jetbrains,visualstudiocode
