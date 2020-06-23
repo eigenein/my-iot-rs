@@ -7,6 +7,7 @@ pub use crate::core::value::{PointOfTheCompass, Value};
 pub use chrono::prelude::*;
 pub use crossbeam::thread::Scope;
 pub use log::{debug, error, info, log, warn, Level as LogLevel};
+pub use serde::de::DeserializeOwned;
 pub use serde::{Deserialize, Deserializer, Serialize};
 pub use std::collections::HashMap;
 pub use std::error::Error;

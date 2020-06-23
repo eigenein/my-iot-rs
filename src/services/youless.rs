@@ -98,7 +98,7 @@ impl YouLess {
             .sensor_title("Total Production High")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
-        Message::new(format!("{}::gas", service_id))
+        Message::new(format!("{}::consumption_gas", service_id))
             .value(Value::Volume(response.gas))
             .expires_in(ttl)
             .room_title(&self.room_title)
