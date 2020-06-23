@@ -295,9 +295,9 @@ mod filters {
             Value::Duration(_) => r#"<i class="far fa-clock"></i>"#,
             Value::ImageUrl(_) | Value::None => "",
             Value::RelativeIntensity(_) => r#"<i class="far fa-lightbulb"></i>"#,
-            Value::Energy(_) => r#"<!-- TODO -->"#,
-            Value::Power(_) => r#"<!-- TODO -->"#,
-            Value::Volume(_) => r#"<!-- TODO -->"#,
+            Value::Energy(_) => r#"<i class="fas fa-burn"></i>"#,
+            Value::Power(_) => r#"<i class="fas fa-plug"></i>"#,
+            Value::Volume(_) => r#"<i class="fas fa-oil-can"></i>"#,
         })
     }
 }
