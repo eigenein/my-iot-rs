@@ -1,6 +1,6 @@
 # `my-iot`
 
-## `master`
+## `0.52.0`
 
 - Added more Tado° sensors
 
