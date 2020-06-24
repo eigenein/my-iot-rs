@@ -291,6 +291,9 @@
 <span id="291">291</span>
 <span id="292">292</span>
 <span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Web interface templates.</span>
 
@@ -414,12 +417,15 @@
                 <span class="string">&quot;display&quot;</span>: <span class="bool-val">true</span>,
                 <span class="string">&quot;scaleLabel&quot;</span>: {<span class="string">&quot;display&quot;</span>: <span class="bool-val">true</span>, <span class="string">&quot;labelString&quot;</span>: <span class="string">&quot;Timestamp&quot;</span>},
                 <span class="string">&quot;time&quot;</span>: <span class="ident">chart_time_format</span>(),
+                <span class="string">&quot;ticks&quot;</span>: {<span class="string">&quot;autoSkipPadding&quot;</span>: <span class="number">10</span>},
             }],
             <span class="string">&quot;yAxes&quot;</span>: [{
                 <span class="string">&quot;display&quot;</span>: <span class="bool-val">true</span>,
                 <span class="string">&quot;scaleLabel&quot;</span>: {<span class="string">&quot;display&quot;</span>: <span class="bool-val">true</span>, <span class="string">&quot;labelString&quot;</span>: <span class="ident">sensor_title</span>},
             }],
         },
+        <span class="string">&quot;tooltips&quot;</span>: {<span class="string">&quot;intersect&quot;</span>: <span class="bool-val">false</span>},
+        <span class="string">&quot;elements&quot;</span>: {<span class="string">&quot;point&quot;</span>: {<span class="string">&quot;radius&quot;</span>: <span class="number">0</span>}},
     })
 }
 

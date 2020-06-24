@@ -120,12 +120,15 @@ fn chart_options(sensor_title: &str) -> serde_json::Value {
                 "display": true,
                 "scaleLabel": {"display": true, "labelString": "Timestamp"},
                 "time": chart_time_format(),
+                "ticks": {"autoSkipPadding": 10},
             }],
             "yAxes": [{
                 "display": true,
                 "scaleLabel": {"display": true, "labelString": sensor_title},
             }],
         },
+        "tooltips": {"intersect": false},
+        "elements": {"point": {"radius": 0}},
     })
 }
 

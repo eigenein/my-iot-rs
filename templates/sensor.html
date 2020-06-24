@@ -22,6 +22,10 @@
           {% if reading.value.is_inline() -%}
             <span title="{{ sensor.id }}">{{ sensor.title() }}</span>
           {% endif -%}
+
+          <i class="fas fa-couch"></i>
+          <span>{{ sensor.room_title() }}</span>
+
           <span><i class="far fa-clock"></i></span>
           <span title="{{ reading.timestamp.to_string() }}">
             {{ reading.timestamp|format_datetime }}
@@ -38,12 +42,12 @@
         <nav class="tabs is-centered">
           <div class="container">
             <ul>
-              <li class="is-active"><a>5 mins</a></li>
-              <li><a>1 hour</a></li>
-              <li><a>12 hours</a></li>
-              <li><a>1 day</a></li>
-              <li><a>1 week</a></li>
-              <li><a>1 month</a></li>
+              <li><a href="?minutes=5">5 mins</a></li>
+              <li><a href="?minutes=60">1 hour</a></li>
+              <li><a href="?minutes=720">12 hours</a></li>
+              <li><a href="?minutes=1440">1 day</a></li>
+              <li><a href="?minutes=10080">1 week</a></li>
+              <li><a href="?minutes=43200">1 month</a></li>
             </ul>
           </div>
         </nav>

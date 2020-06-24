@@ -72,14 +72,21 @@ fn get_settings(settings: State<Settings>) -> Result<Html<String>> {
     ))
 }
 
-#[get("/sensors/<sensor_id>")]
-fn get_sensor(db: State<Connection>, sensor_id: String) -> Result<Option<Html<String>>> {
+#[get("/sensors/<sensor_id>?<minutes>")]
+fn get_sensor(db: State<Connection>, sensor_id: String, minutes: Option<i64>) -> Result<Option<Html<String>>> {
+    let period = Duration::minutes(minutes.unwrap_or(5));
     if let Some((sensor, reading)) = db.get_sensor(&sensor_id)? {
         let chart = match reading.value {
-            Value::Temperature(_) => templates::F64ChartPartialTemplate::new(
+            Value::Temperature(_)
+            | Value::Duration(_)
+            | Value::Energy(_)
+            | Value::Length(_)
+            | Value::Power(_)
+            | Value::RelativeIntensity(_)
+            | Value::Rh(_)
+            | Value::Volume(_) => templates::F64ChartPartialTemplate::new(
                 &sensor.title(),
-                // TODO: time span.
-                db.select_values(&sensor_id, &(Local::now() - Duration::hours(1)))?,
+                db.select_values(&sensor_id, &(Local::now() - period))?,
             )
             .to_string(),
             _ => "".into(),

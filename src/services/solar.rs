@@ -35,7 +35,7 @@ impl Solar {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
         let interval = Duration::from_millis(self.interval_millis as u64);
-        let ttl = chrono::Duration::milliseconds((self.interval_millis as i64) * 2);
+        let ttl = chrono::Duration::from_std(interval)? * 2;
 
         thread::Builder::new().name(service_id.clone()).spawn(move || loop {
             let now = Utc::now();
