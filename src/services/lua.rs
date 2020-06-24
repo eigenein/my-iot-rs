@@ -94,6 +94,7 @@ impl Lua {
     }
 }
 
+/// Prepares arguments for `onMessage` call.
 fn create_args_table<'lua>(context: LuaContext<'lua>, message: &Message) -> LuaResult<LuaTable<'lua>> {
     let args = context.create_table()?;
     args.set("sensor_id", message.sensor.id.clone())?;
