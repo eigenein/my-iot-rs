@@ -35,7 +35,6 @@ rusqlite = { version = "0.20", features = ["bundled"] }
 askama = { git = "https://github.com/djc/askama", rev = "88a69fd6f8606ae0c543e83071a3b797fa64d17b", features = ["serde-json"] }
 itertools = "0.9"
 rlua = "0.17"
-lazy_static = "1"
 spa = "0.2"
 serde_regex = "0.4"
 seahash = "4"

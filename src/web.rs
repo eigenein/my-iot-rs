@@ -4,13 +4,11 @@ use crate::prelude::*;
 use crate::settings::Settings;
 use chrono::Duration;
 use itertools::Itertools;
-use lazy_static::lazy_static;
 use rocket::config::Environment;
 use rocket::http::ContentType;
 use rocket::response::content::{Content, Html};
 use rocket::{get, routes, Config, Rocket, State};
 use rocket_contrib::json::Json;
-use std::path::PathBuf;
 
 mod templates;
 
@@ -33,11 +31,21 @@ fn make_rocket(settings: &Settings, db: Connection) -> Result<Rocket> {
         routes![
             get_index,
             get_settings,
-            get_favicon,
-            get_static,
-            get_webfonts,
             get_sensor,
             get_sensor_json,
+            get_favicon,
+            get_favicon_16,
+            get_favicon_32,
+            get_apple_touch_icon,
+            get_android_chrome_192,
+            get_android_chrome_512,
+            get_bulma_css,
+            get_bulma_prefers_dark,
+            get_chart_js,
+            get_font_awesome,
+            get_webfonts_fa_solid_900,
+            get_webfonts_fa_regular_400,
+            get_webfonts_fa_brands_400,
         ],
     ))
 }
@@ -62,27 +70,6 @@ fn get_settings(settings: State<Settings>) -> Result<Html<String>> {
         }
         .to_string(),
     ))
-}
-
-#[get("/favicon.ico")]
-fn get_favicon() -> Content<&'static [u8]> {
-    Content(ContentType::Icon, include_bytes!("statics/favicon.ico"))
-}
-
-#[get("/static/<key..>")]
-fn get_static(key: PathBuf) -> Option<Content<&'static [u8]>> {
-    get_bundled_static(key)
-}
-
-#[get("/webfonts/<key..>")]
-fn get_webfonts(key: PathBuf) -> Option<Content<&'static [u8]>> {
-    get_bundled_static(key)
-}
-
-fn get_bundled_static(key: PathBuf) -> Option<Content<&'static [u8]>> {
-    STATICS
-        .get(&key)
-        .map(|(content_type, content)| Content(content_type.clone(), &content[..]))
 }
 
 #[get("/sensors/<sensor_id>")]
@@ -111,85 +98,81 @@ fn get_sensor_json(db: State<Connection>, sensor_id: String) -> Result<Option<Js
     Ok(db.get_sensor(&sensor_id)?.map(|(_, reading)| Json(reading)))
 }
 
-// TODO: maybe just create a separate handler per file.
-lazy_static! {
-    /// Contains bundled static files.
-    static ref STATICS: HashMap<PathBuf, (ContentType, Vec<u8>)> = {
-        let mut map = HashMap::new();
-        map.insert(
-            "favicon-16x16.png".into(),
-            (ContentType::PNG, include_bytes!("statics/favicon-16x16.png").to_vec()),
-        );
-        map.insert(
-            "favicon-32x32.png".into(),
-            (ContentType::PNG, include_bytes!("statics/favicon-32x32.png").to_vec()),
-        );
-        map.insert(
-            "apple-touch-icon.png".into(),
-            (
-                ContentType::PNG,
-                include_bytes!("statics/apple-touch-icon.png").to_vec(),
-            ),
-        );
-        map.insert(
-            "android-chrome-192x192.png".into(),
-            (
-                ContentType::PNG,
-                include_bytes!("statics/android-chrome-192x192.png").to_vec(),
-            ),
-        );
-        map.insert(
-            "android-chrome-512x512.png".into(),
-            (
-                ContentType::PNG,
-                include_bytes!("statics/android-chrome-512x512.png").to_vec(),
-            ),
-        );
-        map.insert(
-            "bulma.min.css".into(),
-            (ContentType::CSS, include_bytes!("statics/bulma.min.css").to_vec()),
-        );
-        map.insert(
-            "bulma-prefers-dark.css".into(),
-            (
-                ContentType::CSS,
-                include_bytes!("statics/bulma-prefers-dark.css").to_vec(),
-            ),
-        );
-        map.insert(
-            "Chart.bundle.min.js".into(),
-            (ContentType::JavaScript, include_bytes!("statics/Chart.bundle.min.js").to_vec()),
-        );
-        map.insert(
-            "fontawesome.css".into(),
-            (
-                ContentType::CSS,
-                include_bytes!("statics/fontawesome-free-5.13.1-web/css/all.css").to_vec(),
-            ),
-        );
-        map.insert(
-            "fa-solid-900.woff2".into(),
-            (
-                ContentType::WOFF2,
-                include_bytes!("statics/fontawesome-free-5.13.1-web/webfonts/fa-solid-900.woff2").to_vec(),
-            ),
-        );
-        map.insert(
-            "fa-regular-400.woff2".into(),
-            (
-                ContentType::WOFF2,
-                include_bytes!("statics/fontawesome-free-5.13.1-web/webfonts/fa-regular-400.woff2").to_vec(),
-            ),
-        );
-        map.insert(
-            "fa-brands-400.woff2".into(),
-            (
-                ContentType::WOFF2,
-                include_bytes!("statics/fontawesome-free-5.13.1-web/webfonts/fa-brands-400.woff2").to_vec(),
-            ),
-        );
-        map
-    };
+#[get("/favicon.ico")]
+fn get_favicon() -> Content<&'static [u8]> {
+    Content(ContentType::Icon, include_bytes!("statics/favicon.ico"))
+}
+
+#[get("/static/favicon-16x16.png")]
+fn get_favicon_16() -> Content<&'static [u8]> {
+    Content(ContentType::PNG, include_bytes!("statics/favicon-16x16.png"))
+}
+
+#[get("/static/favicon-32x32.png")]
+fn get_favicon_32() -> Content<&'static [u8]> {
+    Content(ContentType::PNG, include_bytes!("statics/favicon-32x32.png"))
+}
+
+#[get("/static/apple-touch-icon.png")]
+fn get_apple_touch_icon() -> Content<&'static [u8]> {
+    Content(ContentType::PNG, include_bytes!("statics/apple-touch-icon.png"))
+}
+
+#[get("/static/android-chrome-192x192.png")]
+fn get_android_chrome_192() -> Content<&'static [u8]> {
+    Content(ContentType::PNG, include_bytes!("statics/android-chrome-192x192.png"))
+}
+
+#[get("/static/android-chrome-512x512.png")]
+fn get_android_chrome_512() -> Content<&'static [u8]> {
+    Content(ContentType::PNG, include_bytes!("statics/android-chrome-512x512.png"))
+}
+
+#[get("/static/bulma.min.css")]
+fn get_bulma_css() -> Content<&'static [u8]> {
+    Content(ContentType::CSS, include_bytes!("statics/bulma.min.css"))
+}
+
+#[get("/static/bulma-prefers-dark.css")]
+fn get_bulma_prefers_dark() -> Content<&'static [u8]> {
+    Content(ContentType::CSS, include_bytes!("statics/bulma-prefers-dark.css"))
+}
+
+#[get("/static/Chart.bundle.min.js")]
+fn get_chart_js() -> Content<&'static [u8]> {
+    Content(ContentType::JavaScript, include_bytes!("statics/Chart.bundle.min.js"))
+}
+
+#[get("/static/fontawesome.css")]
+fn get_font_awesome() -> Content<&'static [u8]> {
+    Content(
+        ContentType::CSS,
+        include_bytes!("statics/fontawesome-free-5.13.1-web/css/all.css"),
+    )
+}
+
+#[get("/webfonts/fa-solid-900.woff2")]
+fn get_webfonts_fa_solid_900() -> Content<&'static [u8]> {
+    Content(
+        ContentType::WOFF2,
+        include_bytes!("statics/fontawesome-free-5.13.1-web/webfonts/fa-solid-900.woff2"),
+    )
+}
+
+#[get("/webfonts/fa-regular-400.woff2")]
+fn get_webfonts_fa_regular_400() -> Content<&'static [u8]> {
+    Content(
+        ContentType::WOFF2,
+        include_bytes!("statics/fontawesome-free-5.13.1-web/webfonts/fa-regular-400.woff2"),
+    )
+}
+
+#[get("/webfonts/fa-brands-400.woff2")]
+fn get_webfonts_fa_brands_400() -> Content<&'static [u8]> {
+    Content(
+        ContentType::WOFF2,
+        include_bytes!("statics/fontawesome-free-5.13.1-web/webfonts/fa-brands-400.woff2"),
+    )
 }
 
 #[cfg(test)]
