@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.53.0`
+
+- Increase YouLess `default_interval_millis`
+
 ## `0.52.0`
 
 - Added more Tado° sensors
