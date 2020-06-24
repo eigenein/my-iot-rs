@@ -2,6 +2,7 @@
 
 use crate::prelude::*;
 use crate::settings::Settings;
+use chrono::Duration;
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use rocket::config::Environment;
@@ -12,8 +13,6 @@ use rocket_contrib::json::Json;
 use std::path::PathBuf;
 
 mod templates;
-
-const FAVICON: &[u8] = include_bytes!("statics/favicon.ico");
 
 /// Start the web application.
 pub fn start_server(settings: &Settings, db: Connection) -> Result<()> {
@@ -57,12 +56,17 @@ fn get_index(db: State<Connection>) -> Result<Html<String>> {
 
 #[get("/settings")]
 fn get_settings(settings: State<Settings>) -> Result<Html<String>> {
-    Ok(Html(templates::SettingsTemplate::new(&settings)?.to_string()))
+    Ok(Html(
+        templates::SettingsTemplate {
+            settings: toml::to_string_pretty(settings.inner())?,
+        }
+        .to_string(),
+    ))
 }
 
 #[get("/favicon.ico")]
 fn get_favicon() -> Content<&'static [u8]> {
-    Content(ContentType::Icon, FAVICON)
+    Content(ContentType::Icon, include_bytes!("statics/favicon.ico"))
 }
 
 #[get("/static/<key..>")]
@@ -84,8 +88,19 @@ fn get_bundled_static(key: PathBuf) -> Option<Content<&'static [u8]>> {
 #[get("/sensors/<sensor_id>")]
 fn get_sensor(db: State<Connection>, sensor_id: String) -> Result<Option<Html<String>>> {
     if let Some((sensor, reading)) = db.get_sensor(&sensor_id)? {
-        // let _history = db.select_readings(&sensor_id, &(Local::now() - Duration::minutes(5)))?;
-        Ok(Some(Html(templates::SensorTemplate { sensor, reading }.to_string())))
+        let chart = match reading.value {
+            Value::Temperature(_) => templates::F64ChartPartialTemplate::new(
+                &sensor.title(),
+                // TODO: time span.
+                db.select_values(&sensor_id, &(Local::now() - Duration::hours(1)))?,
+            )
+            .to_string(),
+            _ => "".into(),
+        };
+
+        Ok(Some(Html(
+            templates::SensorTemplate { sensor, reading, chart }.to_string(),
+        )))
     } else {
         Ok(None)
     }
@@ -96,6 +111,7 @@ fn get_sensor_json(db: State<Connection>, sensor_id: String) -> Result<Option<Js
     Ok(db.get_sensor(&sensor_id)?.map(|(_, reading)| Json(reading)))
 }
 
+// TODO: maybe just create a separate handler per file.
 lazy_static! {
     /// Contains bundled static files.
     static ref STATICS: HashMap<PathBuf, (ContentType, Vec<u8>)> = {
@@ -141,8 +157,8 @@ lazy_static! {
             ),
         );
         map.insert(
-            "chart.js".into(),
-            (ContentType::JavaScript, include_bytes!("statics/chart.js").to_vec()),
+            "Chart.bundle.min.js".into(),
+            (ContentType::JavaScript, include_bytes!("statics/Chart.bundle.min.js").to_vec()),
         );
         map.insert(
             "fontawesome.css".into(),
@@ -189,6 +205,15 @@ mod tests {
     fn index_ok() -> Result {
         let client = client()?;
         let response = client.get("/").dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.content_type(), Some(ContentType::HTML));
+        Ok(())
+    }
+
+    #[test]
+    fn settings_ok() -> Result {
+        let client = client()?;
+        let response = client.get("/settings").dispatch();
         assert_eq!(response.status(), Status::Ok);
         assert_eq!(response.content_type(), Some(ContentType::HTML));
         Ok(())

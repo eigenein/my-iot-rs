@@ -9,7 +9,7 @@ use std::time::{Duration, SystemTime};
 const CLIENT_ID: &str = "public-api-preview";
 const CLIENT_SECRET: &str = "4HJGRffVR8xb3XdEUQpjgZ1VplJi6Xgw";
 const SCOPE: &str = "home.user";
-const REFRESH_PERIOD: Duration = Duration::from_secs(60);
+const REFRESH_PERIOD: Duration = Duration::from_secs(300);
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Tado {
@@ -44,7 +44,7 @@ impl Tado {
 
     fn loop_(&self, service_id: &str, token: &mut Option<Token>, tx: &Sender) -> Result<()> {
         let access_token = self.check_login(token)?;
-        let ttl = chrono::Duration::seconds(120);
+        let ttl = chrono::Duration::seconds(600);
 
         let me = self.get_me(&access_token)?;
         let home = self.get_home(&access_token, me.home_id)?;

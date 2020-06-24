@@ -2,8 +2,8 @@
 
 use crate::format::human_format;
 use crate::prelude::*;
-use crate::settings::Settings;
 use askama::Template;
+use serde_json::json;
 
 #[derive(Template)]
 #[template(path = "index.html")]
@@ -15,15 +15,7 @@ pub struct IndexTemplate {
 #[derive(Template)]
 #[template(path = "settings.html")]
 pub struct SettingsTemplate {
-    settings: String,
-}
-
-impl SettingsTemplate {
-    pub fn new(settings: &Settings) -> Result<Self> {
-        Ok(Self {
-            settings: toml::to_string_pretty(&settings)?,
-        })
-    }
+    pub settings: String,
 }
 
 #[derive(Template)]
@@ -31,6 +23,9 @@ impl SettingsTemplate {
 pub struct SensorTemplate {
     pub sensor: Sensor,
     pub reading: Reading,
+
+    /// Stringified sensor chart, may be empty.
+    pub chart: String,
 }
 
 /// Navigation bar.
@@ -76,14 +71,62 @@ impl<'a> SensorTilePartialTemplate<'a> {
 }
 
 #[derive(Template)]
-#[template(path = "partials/f64_chart.html")]
-pub struct F64ChartPartialTemplate {}
+#[template(path = "partials/chart.html")]
+pub struct F64ChartPartialTemplate {
+    chart: serde_json::Value,
+}
 
 impl F64ChartPartialTemplate {
-    #[allow(dead_code)]
-    pub fn new(_readings: Vec<Reading>) -> Option<Self> {
-        unimplemented!()
+    pub fn new(sensor_title: &str, values: Vec<(DateTime<Local>, f64)>) -> Self {
+        F64ChartPartialTemplate {
+            chart: json!({
+                "type": "line",
+                "options": chart_options(sensor_title),
+                "data": {
+                    "datasets": [{
+                        "label": sensor_title,
+                        "borderColor": "#209CEE",
+                        "fill": false,
+                        "data": values.iter().map(|(timestamp, value)| json!({
+                            "x": timestamp.timestamp_millis(),
+                            "y": value,
+                        })).collect::<serde_json::Value>(),
+                    }],
+                },
+            }),
+        }
     }
+}
+
+fn chart_time_format() -> serde_json::Value {
+    json!({
+        "tooltipFormat": "MMM DD HH:mm:ss.SSS",
+        "displayFormats": {
+            "millisecond": "HH:mm:ss.SSS",
+            "second": "HH:mm:ss",
+            "minute": "HH:mm",
+            "hour": "HH",
+        },
+    })
+}
+
+fn chart_options(sensor_title: &str) -> serde_json::Value {
+    json!({
+        "animation": {"duration": 0},
+        "maintainAspectRatio": false,
+        "scales": {
+            "xAxes": [{
+                "type": "time",
+                "display": true,
+                "scaleLabel": {"display": true, "labelString": "Timestamp"},
+                "time": chart_time_format(),
+            }],
+            "yAxes": [{
+                "display": true,
+                "scaleLabel": {"display": true, "labelString": sensor_title},
+            }],
+        },
+    })
 }
 
 impl Value {

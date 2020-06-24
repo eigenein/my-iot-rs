@@ -7,6 +7,7 @@
 - Added more Tado° sensors
 - Bunch of refactorings
 - Bundled Font Awesome, closes #95
+- Initial charts #88
 
 ## `0.49.0`
 

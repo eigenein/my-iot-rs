@@ -49,7 +49,7 @@ docker/build/%:
 src/statics:
 	@curl 'https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.0/css/bulma.min.css' --output 'src/statics/bulma.min.css'
 	@curl 'https://unpkg.com/bulma-prefers-dark@0.1.0-beta.0/css/bulma-prefers-dark.css' --output 'src/statics/bulma-prefers-dark.css'
-	@curl 'https://cdn.jsdelivr.net/npm/chart.js@2.9.3' --output 'src/statics/chart.js'
+	@curl --location 'https://github.com/chartjs/Chart.js/releases/download/v2.9.3/Chart.bundle.min.js' --output 'src/statics/Chart.bundle.min.js'
 	@curl 'https://use.fontawesome.com/releases/v5.13.1/fontawesome-free-5.13.1-web.zip' --output src/statics/fontawesome.zip
-	@unzip src/statics/fontawesome.zip -d src/statics/
+	@unzip -u src/statics/fontawesome.zip -d src/statics/
 	@rm src/statics/fontawesome.zip

@@ -1,0 +1,4 @@
+<canvas id="chart" height="300"></canvas>
+<script>
+new Chart(document.getElementById('chart').getContext('2d'), {{ chart|json }});
+</script>
