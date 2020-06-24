@@ -2,6 +2,7 @@
 
 use crate::prelude::*;
 use crate::settings::Settings;
+use itertools::Itertools;
 use lazy_static::lazy_static;
 use rocket::config::Environment;
 use rocket::http::ContentType;
@@ -32,7 +33,6 @@ fn make_rocket(settings: &Settings, db: Connection) -> Result<Rocket> {
         "/",
         routes![
             get_index,
-            get_sensors,
             get_settings,
             get_favicon,
             get_static,
@@ -44,13 +44,15 @@ fn make_rocket(settings: &Settings, db: Connection) -> Result<Rocket> {
 }
 
 #[get("/")]
-fn get_index(db: State<Connection>, settings: State<Settings>) -> Result<Html<String>> {
-    Ok(Html(templates::IndexTemplate::new(&db, &settings)?.to_string()))
-}
-
-#[get("/sensors")]
-fn get_sensors(db: State<Connection>) -> Result<Html<String>> {
-    Ok(Html(templates::SensorsTemplate::new(&db)?.to_string()))
+fn get_index(db: State<Connection>) -> Result<Html<String>> {
+    let actuals = db
+        .select_actuals()?
+        .into_iter()
+        .group_by(|(sensor, _)| sensor.room_title.clone())
+        .into_iter()
+        .map(|(room_title, group)| (room_title, group.collect_vec()))
+        .collect_vec();
+    Ok(Html(templates::IndexTemplate { actuals }.to_string()))
 }
 
 #[get("/settings")]
@@ -82,7 +84,8 @@ fn get_bundled_static(key: PathBuf) -> Option<Content<&'static [u8]>> {
 #[get("/sensors/<sensor_id>")]
 fn get_sensor(db: State<Connection>, sensor_id: String) -> Result<Option<Html<String>>> {
     if let Some((sensor, reading)) = db.get_sensor(&sensor_id)? {
-        Ok(Some(Html(templates::SensorTemplate::new(sensor, reading).to_string())))
+        // let _history = db.select_readings(&sensor_id, &(Local::now() - Duration::minutes(5)))?;
+        Ok(Some(Html(templates::SensorTemplate { sensor, reading }.to_string())))
     } else {
         Ok(None)
     }
@@ -94,6 +97,7 @@ fn get_sensor_json(db: State<Connection>, sensor_id: String) -> Result<Option<Js
 }
 
 lazy_static! {
+    /// Contains bundled static files.
     static ref STATICS: HashMap<PathBuf, (ContentType, Vec<u8>)> = {
         let mut map = HashMap::new();
         map.insert(

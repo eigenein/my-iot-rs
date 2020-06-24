@@ -248,59 +248,6 @@
 <span id="248">248</span>
 <span id="249">249</span>
 <span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Web interface templates.</span>
 
@@ -308,76 +255,18 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">settings</span>::<span class="ident">Settings</span>;
 <span class="kw">use</span> <span class="ident">askama</span>::<span class="ident">Template</span>;
-<span class="kw">use</span> <span class="ident">itertools</span>::<span class="ident">Itertools</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Template</span>)]</span>
 <span class="attribute">#[<span class="ident">template</span>(<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;index.html&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IndexTemplate</span> {
-    <span class="kw">pub</span> <span class="ident">temperature</span>: <span class="ident">Value</span>,
-    <span class="kw">pub</span> <span class="ident">feel_temperature</span>: <span class="ident">Value</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">IndexTemplate</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">temperature</span>: <span class="ident">Value</span>::<span class="prelude-val">None</span>,
-            <span class="ident">feel_temperature</span>: <span class="ident">Value</span>::<span class="prelude-val">None</span>,
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">IndexTemplate</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="ident">Connection</span>, <span class="ident">settings</span>: <span class="kw-2">&amp;</span><span class="ident">Settings</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">template</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">default</span>();
-
-        <span class="kw">let</span> <span class="ident">actuals</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Reading</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">db</span>
-            .<span class="ident">select_actuals</span>()<span class="question-mark">?</span>
-            .<span class="ident">into_iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">sensor</span>, <span class="ident">reading</span>)<span class="op">|</span> (<span class="ident">sensor</span>.<span class="ident">id</span>, <span class="ident">reading</span>))
-            .<span class="ident">collect</span>();
-
-        <span class="kw">let</span> <span class="ident">dashboard</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">settings</span>.<span class="ident">dashboard</span>;
-        <span class="ident">template</span>.<span class="ident">temperature</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">get_dashboard_value</span>(<span class="kw-2">&amp;</span><span class="ident">actuals</span>, <span class="kw-2">&amp;</span><span class="ident">dashboard</span>.<span class="ident">temperature_sensor</span>);
-        <span class="ident">template</span>.<span class="ident">feel_temperature</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">get_dashboard_value</span>(<span class="kw-2">&amp;</span><span class="ident">actuals</span>, <span class="kw-2">&amp;</span><span class="ident">dashboard</span>.<span class="ident">feel_temperature_sensor</span>);
-
-        <span class="prelude-val">Ok</span>(<span class="ident">template</span>)
-    }
-
-    <span class="doccomment">/// Returns actual sensor value or `Value::None` otherwise.</span>
-    <span class="kw">fn</span> <span class="ident">get_dashboard_value</span>(<span class="ident">actuals</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Reading</span><span class="op">&gt;</span>, <span class="ident">sensor_id</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-        <span class="ident">sensor_id</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">sensor_id</span><span class="op">|</span> <span class="ident">actuals</span>.<span class="ident">get</span>(<span class="ident">sensor_id</span>))
-            .<span class="ident">map_or</span>(<span class="ident">Value</span>::<span class="prelude-val">None</span>, <span class="op">|</span><span class="ident">reading</span><span class="op">|</span> <span class="ident">reading</span>.<span class="ident">value</span>.<span class="ident">clone</span>())
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Template</span>)]</span>
-<span class="attribute">#[<span class="ident">template</span>(<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;sensors.html&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SensorsTemplate</span> {
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">type_complexity</span>)]</span>
     <span class="kw">pub</span> <span class="ident">actuals</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Sensor</span>, <span class="ident">Reading</span>)<span class="op">&gt;</span>)<span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">SensorsTemplate</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="ident">Connection</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
-            <span class="ident">actuals</span>: <span class="ident">db</span>
-                .<span class="ident">select_actuals</span>()<span class="question-mark">?</span>
-                .<span class="ident">into_iter</span>()
-                .<span class="ident">group_by</span>(<span class="op">|</span>(<span class="ident">sensor</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">sensor</span>.<span class="ident">room_title</span>.<span class="ident">clone</span>())
-                .<span class="ident">into_iter</span>()
-                .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">room_title</span>, <span class="ident">group</span>)<span class="op">|</span> (<span class="ident">room_title</span>, <span class="ident">group</span>.<span class="ident">collect_vec</span>()))
-                .<span class="ident">collect_vec</span>(),
-        })
-    }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Template</span>)]</span>
 <span class="attribute">#[<span class="ident">template</span>(<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;settings.html&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SettingsTemplate</span> {
-    <span class="kw">pub</span> <span class="ident">settings</span>: <span class="ident">String</span>,
+    <span class="ident">settings</span>: <span class="ident">String</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">SettingsTemplate</span> {
@@ -395,21 +284,15 @@
     <span class="kw">pub</span> <span class="ident">reading</span>: <span class="ident">Reading</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">SensorTemplate</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">sensor</span>: <span class="ident">Sensor</span>, <span class="ident">reading</span>: <span class="ident">Reading</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">sensor</span>, <span class="ident">reading</span> }
-    }
-}
-
 <span class="doccomment">/// Navigation bar.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Template</span>)]</span>
 <span class="attribute">#[<span class="ident">template</span>(<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;partials/navbar.html&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NavbarPartialTemplate</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">selected_item</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
+<span class="kw">struct</span> <span class="ident">NavbarPartialTemplate</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">selected_item</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">NavbarPartialTemplate</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">selected_item</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">selected_item</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">NavbarPartialTemplate</span> { <span class="ident">selected_item</span> }
     }
 }
@@ -417,12 +300,12 @@
 <span class="doccomment">/// `Value` renderer.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Template</span>)]</span>
 <span class="attribute">#[<span class="ident">template</span>(<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;partials/value.html&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ValuePartialTemplate</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span>,
+<span class="kw">struct</span> <span class="ident">ValuePartialTemplate</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ValuePartialTemplate</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ValuePartialTemplate</span> { <span class="ident">value</span> }
     }
 }
@@ -430,16 +313,27 @@
 <span class="doccomment">/// Dashboard tile.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Template</span>)]</span>
 <span class="attribute">#[<span class="ident">template</span>(<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;partials/sensor_tile.html&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SensorTilePartialTemplate</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">sensor</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Sensor</span>,
+<span class="kw">struct</span> <span class="ident">SensorTilePartialTemplate</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">sensor</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Sensor</span>,
 
-    <span class="doccomment">/// The actual reading.</span>
-    <span class="kw">pub</span> <span class="ident">reading</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Reading</span>,
+    <span class="doccomment">/// The latest reading.</span>
+    <span class="ident">reading</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Reading</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">SensorTilePartialTemplate</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">sensor</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Sensor</span>, <span class="ident">reading</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Reading</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">sensor</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Sensor</span>, <span class="ident">reading</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Reading</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">SensorTilePartialTemplate</span> { <span class="ident">sensor</span>, <span class="ident">reading</span> }
+    }
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Template</span>)]</span>
+<span class="attribute">#[<span class="ident">template</span>(<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;partials/f64_chart.html&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">F64ChartPartialTemplate</span> {}
+
+<span class="kw">impl</span> <span class="ident">F64ChartPartialTemplate</span> {
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">_readings</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Reading</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="macro">unimplemented</span><span class="macro">!</span>()
     }
 }
 
@@ -599,9 +493,9 @@
             <span class="ident">Value</span>::<span class="ident">Duration</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">r#&quot;&lt;i class=&quot;far fa-clock&quot;&gt;&lt;/i&gt;&quot;#</span>,
             <span class="ident">Value</span>::<span class="ident">ImageUrl</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Value</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&quot;</span>,
             <span class="ident">Value</span>::<span class="ident">RelativeIntensity</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">r#&quot;&lt;i class=&quot;far fa-lightbulb&quot;&gt;&lt;/i&gt;&quot;#</span>,
-            <span class="ident">Value</span>::<span class="ident">Energy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">r#&quot;&lt;!-- TODO --&gt;&quot;#</span>,
-            <span class="ident">Value</span>::<span class="ident">Power</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">r#&quot;&lt;!-- TODO --&gt;&quot;#</span>,
-            <span class="ident">Value</span>::<span class="ident">Volume</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">r#&quot;&lt;!-- TODO --&gt;&quot;#</span>,
+            <span class="ident">Value</span>::<span class="ident">Energy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">r#&quot;&lt;i class=&quot;fas fa-burn&quot;&gt;&lt;/i&gt;&quot;#</span>,
+            <span class="ident">Value</span>::<span class="ident">Power</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">r#&quot;&lt;i class=&quot;fas fa-plug&quot;&gt;&lt;/i&gt;&quot;#</span>,
+            <span class="ident">Value</span>::<span class="ident">Volume</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">r#&quot;&lt;i class=&quot;fas fa-oil-can&quot;&gt;&lt;/i&gt;&quot;#</span>,
         })
     }
 }

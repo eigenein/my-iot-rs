@@ -2,6 +2,7 @@
 
 use crate::prelude::*;
 use chrono::prelude::*;
+use rusqlite::types::FromSql;
 use rusqlite::{params, Row};
 use rusqlite::{OptionalExtension, NO_PARAMS};
 use std::path::Path;
@@ -63,30 +64,34 @@ impl Connection {
         Ok(self
             .connection()?
             // language=sql
-            .prepare_cached(
-                r#"
-                SELECT * FROM sensors
-                WHERE sensor_id = ?1 AND expires_at > ?2
-                "#,
-            )?
+            .prepare_cached(r"SELECT * FROM sensors WHERE sensor_id = ?1 AND expires_at > ?2")?
             .query_row(params![sensor_id, Local::now().timestamp_millis()], get_actual)
             .optional()?)
     }
 
     #[allow(dead_code)]
-    pub fn select_readings(&self, sensor_id: &str, since: &DateTime<Local>) -> Result<Vec<Reading>> {
-        let sensor_fk = hash_sensor_id(sensor_id);
+    pub fn select_values<T: FromSql>(
+        &self,
+        sensor_id: &str,
+        since: &DateTime<Local>,
+    ) -> Result<Vec<(DateTime<Local>, T)>> {
         self.connection()?
             // language=sql
             .prepare_cached(
                 r#"
-                SELECT timestamp, value
+                -- noinspection SqlResolve @ routine/"json_extract"
+                SELECT timestamp, json_extract(value, '$.value') as value
                 FROM readings
                 WHERE sensor_fk = ?1 AND timestamp >= ?2
                 ORDER BY timestamp
                 "#,
             )?
-            .query_map(params![sensor_fk, since.timestamp_millis()], get_reading)?
+            .query_map(
+                params![hash_sensor_id(sensor_id), since.timestamp_millis()],
+                |row| -> rusqlite::Result<(DateTime<Local>, T)> {
+                    Ok((Local.timestamp_millis(row.get("timestamp")?), row.get::<_, T>("value")?))
+                },
+            )?
             .map(|r| r.map_err(Into::into))
             .collect()
     }
@@ -325,8 +330,8 @@ mod tests {
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .expires_at(Local.ymd(9999, 1, 1).and_hms(0, 0, 0));
         message.upsert_into(&db)?;
-        let readings = db.select_readings("test", &Local.timestamp_millis(0))?;
-        assert_eq!(readings.get(0).unwrap(), &message.reading);
+        let readings: Vec<(_, i64)> = db.select_values("test", &Local.timestamp_millis(0))?;
+        assert_eq!(readings.get(0).unwrap(), &(message.reading.timestamp, 42));
         Ok(())
     }
 
