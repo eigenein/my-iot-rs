@@ -6,6 +6,6 @@ pub struct Reading {
     /// This may be earlier than a moment of sending the message.
     pub timestamp: DateTime<Local>,
 
-    /// Attached value.
+    /// Read sensor value.
     pub value: Value,
 }

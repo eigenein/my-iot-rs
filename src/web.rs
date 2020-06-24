@@ -1,4 +1,4 @@
-//! Implements web server.
+//! Implements the web server.
 
 use crate::prelude::*;
 use crate::settings::Settings;
@@ -17,6 +17,7 @@ pub fn start_server(settings: &Settings, db: Connection) -> Result<()> {
     Err(Box::new(make_rocket(settings, db)?.launch()))
 }
 
+/// Builds the [Rocket](https://rocket.rs/) application.
 fn make_rocket(settings: &Settings, db: Connection) -> Result<Rocket> {
     Ok(rocket::custom(
         Config::build(Environment::Production)
@@ -75,7 +76,7 @@ fn get_settings(settings: State<Settings>) -> Result<Html<String>> {
 #[get("/sensors/<sensor_id>?<minutes>")]
 fn get_sensor(db: State<Connection>, sensor_id: String, minutes: Option<i64>) -> Result<Option<Html<String>>> {
     let period = Duration::minutes(minutes.unwrap_or(5));
-    if let Some((sensor, reading)) = db.get_sensor(&sensor_id)? {
+    if let Some((sensor, reading)) = db.select_sensor(&sensor_id)? {
         let chart = match reading.value {
             Value::Temperature(_)
             | Value::Duration(_)
@@ -102,7 +103,7 @@ fn get_sensor(db: State<Connection>, sensor_id: String, minutes: Option<i64>) ->
 
 #[get("/sensors/<sensor_id>/json")]
 fn get_sensor_json(db: State<Connection>, sensor_id: String) -> Result<Option<Json<Reading>>> {
-    Ok(db.get_sensor(&sensor_id)?.map(|(_, reading)| Json(reading)))
+    Ok(db.select_sensor(&sensor_id)?.map(|(_, reading)| Json(reading)))
 }
 
 #[get("/favicon.ico")]
@@ -223,7 +224,6 @@ mod tests {
             &Settings {
                 http_port: default_http_port(),
                 services: HashMap::new(),
-                dashboard: DashboardSettings::default(),
             },
             Connection::open_and_initialize(":memory:")?,
         )?)?)

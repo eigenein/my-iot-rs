@@ -124,6 +124,7 @@ pub enum PointOfTheCompass {
 }
 
 impl Value {
+    /// Builds a `Value` instance from [kilowatt-hours](https://en.wikipedia.org/wiki/Kilowatt-hour).
     pub fn from_kwh(kwh: f64) -> Self {
         Value::Energy(kwh * 3600.0)
     }

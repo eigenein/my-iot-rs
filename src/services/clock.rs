@@ -1,3 +1,5 @@
+//! Periodically emits messages.
+
 use crate::prelude::*;
 use serde::Deserialize;
 use std::convert::TryInto;

@@ -1,3 +1,5 @@
+//! [Buienradar](https://www.buienradar.nl/) weather service.
+
 use crate::prelude::*;
 use crate::services::prelude::*;
 use chrono::offset::TimeZone;

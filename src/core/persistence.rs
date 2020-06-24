@@ -35,6 +35,7 @@ impl Connection {
         Ok(self.connection.lock().expect("Failed to acquire the database lock"))
     }
 
+    /// Selects the latest readings for all sensors.
     pub fn select_actuals(&self) -> Result<Vec<(Sensor, Reading)>> {
         self.connection()?
             .prepare_cached(
@@ -46,6 +47,7 @@ impl Connection {
             .collect()
     }
 
+    /// Selects the database size.
     pub fn select_size(&self) -> Result<u64> {
         Ok(self
             .connection()?
@@ -60,7 +62,8 @@ impl Connection {
             .map(|v| v as u64)?)
     }
 
-    pub fn get_sensor(&self, sensor_id: &str) -> Result<Option<(Sensor, Reading)>> {
+    /// Selects the specified sensor.
+    pub fn select_sensor(&self, sensor_id: &str) -> Result<Option<(Sensor, Reading)>> {
         Ok(self
             .connection()?
             // language=sql
@@ -69,7 +72,7 @@ impl Connection {
             .optional()?)
     }
 
-    #[allow(dead_code)]
+    /// Selects the specified sensor readings within the specified period.
     pub fn select_values<T: FromSql>(
         &self,
         sensor_id: &str,
@@ -114,7 +117,8 @@ impl Connection {
             .map(|v| v as u64)?)
     }
 
-    pub fn get_version(&self) -> Result<i32> {
+    /// Select the database version.
+    pub fn select_version(&self) -> Result<i32> {
         let version: i32 = self
             .connection()?
             .pragma_query_value(None, "user_version", |row| row.get(0))?;
@@ -122,7 +126,7 @@ impl Connection {
     }
 
     fn migrate(&self) -> Result<()> {
-        let version = self.get_version()? as usize;
+        let version = self.select_version()? as usize;
         let mut connection = self.connection()?;
         migrations::MIGRATIONS
             .iter()
@@ -141,6 +145,7 @@ impl Connection {
     }
 }
 
+/// Hashes the sensor ID, hash is then used for a sensor primary key.
 pub fn hash_sensor_id(sensor_id: &str) -> i64 {
     signed_seahash(sensor_id.as_bytes())
 }
@@ -150,6 +155,7 @@ fn signed_seahash(buffer: &[u8]) -> i64 {
     seahash::hash(buffer) as i64
 }
 
+/// Builds a `Sensor` instance based on the database row.
 fn get_sensor(row: &Row) -> rusqlite::Result<Sensor> {
     Ok(Sensor {
         id: row.get("sensor_id")?,
@@ -159,6 +165,7 @@ fn get_sensor(row: &Row) -> rusqlite::Result<Sensor> {
     })
 }
 
+/// Builds a `Reading` instance based on the database row.
 fn get_reading(row: &Row) -> rusqlite::Result<Reading> {
     Ok(Reading {
         timestamp: Local.timestamp_millis(row.get("timestamp")?),
@@ -172,11 +179,13 @@ fn get_actual(row: &Row) -> rusqlite::Result<(Sensor, Reading)> {
     Ok((get_sensor(row)?, get_reading(row)?))
 }
 
+/// Selects a single `i64` value, used with single-integer `SELECT`s.
 fn get_i64(row: &Row) -> rusqlite::Result<i64> {
     row.get::<_, i64>(0)
 }
 
 impl Message {
+    /// Upsert the message into the database.
     pub fn upsert_into(&self, connection: &Connection) -> Result<()> {
         let sensor_pk = hash_sensor_id(&self.sensor.id);
         let timestamp = self.reading.timestamp.timestamp_millis();
@@ -255,7 +264,7 @@ mod tests {
     #[test]
     fn select_last_reading_returns_none_on_empty_database() -> Result {
         let db = Connection::open_and_initialize(":memory:")?;
-        assert_eq!(db.get_sensor("test")?, None);
+        assert_eq!(db.select_sensor("test")?, None);
         Ok(())
     }
 
@@ -267,7 +276,7 @@ mod tests {
             .expires_at(Local.ymd(9999, 1, 1).and_hms(0, 0, 0));
         let db = Connection::open_and_initialize(":memory:")?;
         message.upsert_into(&db)?;
-        assert_eq!(db.get_sensor("test")?, Some(message.into()));
+        assert_eq!(db.select_sensor("test")?, Some(message.into()));
         Ok(())
     }
 
@@ -281,7 +290,7 @@ mod tests {
         message.upsert_into(&db)?;
         message = message.timestamp(Local.timestamp_millis(1_566_424_128_000));
         message.upsert_into(&db)?;
-        assert_eq!(db.get_sensor("test")?, Some(message.into()));
+        assert_eq!(db.select_sensor("test")?, Some(message.into()));
         Ok(())
     }
 
@@ -317,7 +326,7 @@ mod tests {
     #[test]
     fn migrates_to_the_latest_version() -> Result {
         let db = Connection::open_and_initialize(":memory:")?;
-        let version = db.get_version()? as usize;
+        let version = db.select_version()? as usize;
         assert_eq!(version, migrations::MIGRATIONS.len() - 1);
         Ok(())
     }
@@ -355,7 +364,7 @@ mod tests {
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .expires_at(Local::now())
             .upsert_into(&db)?;
-        assert_eq!(db.get_sensor("test")?, None);
+        assert_eq!(db.select_sensor("test")?, None);
         Ok(())
     }
 }

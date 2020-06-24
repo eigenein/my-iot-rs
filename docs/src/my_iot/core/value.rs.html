@@ -128,6 +128,7 @@
 <span id="128">128</span>
 <span id="129">129</span>
 <span id="130">130</span>
+<span id="131">131</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Implements sensor reading value.</span>
 
@@ -255,6 +256,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Value</span> {
+    <span class="doccomment">/// Builds a `Value` instance from [kilowatt-hours](https://en.wikipedia.org/wiki/Kilowatt-hour).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_kwh</span>(<span class="ident">kwh</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Value</span>::<span class="ident">Energy</span>(<span class="ident">kwh</span> <span class="op">*</span> <span class="number">3600.0</span>)
     }

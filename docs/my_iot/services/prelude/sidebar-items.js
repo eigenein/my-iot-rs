@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["USER_AGENT",""]],"fn":[["client_builder",""],["default_client",""]],"struct":[["Client","A `Client` to make Requests with."]]});
+initSidebarItems({"constant":[["USER_AGENT","`User-Agent` header used for all outcoming HTTP requests."]],"fn":[["client_builder",""],["default_client",""]],"struct":[["Client","A `Client` to make Requests with."]]});

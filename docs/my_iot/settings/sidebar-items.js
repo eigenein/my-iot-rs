@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Service","Service settings section."]],"fn":[["default_http_port",""],["read","Read the settings file."]],"struct":[["DashboardSettings",""],["Settings","Settings root."]]});
+initSidebarItems({"enum":[["Service","Service settings section."]],"fn":[["default_http_port",""],["read","Read the settings file."]],"struct":[["Settings","Settings root."]]});

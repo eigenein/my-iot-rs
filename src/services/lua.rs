@@ -1,4 +1,4 @@
-//! Executes a Lua script for each message allowing to implement any automation scenarios.
+//! Executes a [Lua](https://www.lua.org/) script for each message allowing to implement any automation scenarios.
 
 use crate::prelude::*;
 use crate::services::lua::prelude::*;

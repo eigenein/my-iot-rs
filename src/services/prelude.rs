@@ -4,6 +4,7 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use std::time::Duration;
 use structopt::clap::crate_version;
 
+/// `User-Agent` header used for all outcoming HTTP requests.
 pub const USER_AGENT: &str = concat!(
     "My IoT / ",
     crate_version!(),
