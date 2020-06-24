@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Fix sensor titles
+
 ## `0.54.0`
 
 - Wrap `upsert_into` into a single transaction #97

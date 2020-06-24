@@ -70,24 +70,22 @@ impl Tado {
         for zone in self.get_zones(&access_token, me.home_id)?.iter() {
             let sensor_prefix = format!("{}::{}::{}", service_id, me.home_id, zone.id);
             let zone_state = self.get_zone_state(&access_token, me.home_id, zone.id)?;
+            let zone_title = match zone.type_ {
+                ZoneType::Heating => "Heating",
+                ZoneType::HotWater => "Hot Water",
+            };
 
             Message::new(format!("{}::is_online", sensor_prefix))
                 .value(zone_state.link.state == LinkState::Online)
                 .expires_in(ttl)
                 .room_title(&zone.name)
-                .sensor_title("Online")
+                .sensor_title(format!("{} Online", zone_title))
                 .send_and_forget(tx);
             Message::new(format!("{}::is_on", sensor_prefix))
                 .expires_in(ttl)
                 .value(zone_state.setting.power == PowerState::On)
                 .room_title(&zone.name)
-                .sensor_title(format!(
-                    "{} On",
-                    match zone.type_ {
-                        ZoneType::Heating => "Heating",
-                        ZoneType::HotWater => "Hot Water",
-                    }
-                ))
+                .sensor_title(format!("{} On", zone_title,))
                 .send_and_forget(tx);
 
             if zone.open_window_detection.supported && zone.open_window_detection.enabled == Some(true) {
@@ -123,7 +121,7 @@ impl Tado {
                     .timestamp(temperature.timestamp)
                     .expires_in(ttl)
                     .room_title(&zone.name)
-                    .sensor_title("Temperature")
+                    .sensor_title("Ambient Temperature")
                     .value(Value::Temperature(temperature.celsius))
                     .send_and_forget(tx);
             }
