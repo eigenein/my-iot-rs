@@ -206,7 +206,7 @@ fn init_services(context: LuaContext, services: &HashMap<String, Service>) -> Re
     for (service_id, service) in services.iter() {
         let service_id = service_id.to_string();
         match service {
-            Service::Telegram(telegram) => globals.set(service_id, telegram::Telegram::new(&telegram.secrets.token)?),
+            Service::Telegram(telegram) => globals.set(service_id, telegram.clone()),
             _ => Ok(()),
         }?;
     }

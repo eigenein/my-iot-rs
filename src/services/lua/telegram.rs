@@ -1,26 +1,8 @@
 //! Telegram service for Lua.
 
-use crate::prelude::*;
 use crate::services::lua::prelude::*;
-use crate::services::prelude::*;
-use crate::services::telegram::{call_api, TelegramChatId, TelegramMessage};
-use reqwest::blocking::Client;
+use crate::services::telegram::{SendMessageRequest, Telegram, TelegramChatId, TelegramMessage};
 use rlua::prelude::*;
-use serde_json::{json, Value as JsonValue};
-
-pub struct Telegram {
-    token: String,
-    client: Client,
-}
-
-impl Telegram {
-    pub fn new<T: Into<String>>(token: T) -> Result<Self> {
-        Ok(Self {
-            token: token.into(),
-            client: client_builder().build()?,
-        })
-    }
-}
 
 impl<'lua> FromLua<'lua> for TelegramChatId {
     fn from_lua(lua_value: LuaValue<'lua>, _: LuaContext<'lua>) -> LuaResult<Self> {
@@ -35,28 +17,12 @@ impl<'lua> FromLua<'lua> for TelegramChatId {
     }
 }
 
-impl From<TelegramChatId> for JsonValue {
-    fn from(chat_id: TelegramChatId) -> Self {
-        match chat_id {
-            TelegramChatId::UniqueId(unique_id) => JsonValue::Number(unique_id.into()),
-            TelegramChatId::Username(username) => JsonValue::String(username),
-        }
-    }
-}
-
 impl UserData for Telegram {
     fn add_methods<'lua, M: UserDataMethods<'lua, Self>>(methods: &mut M) {
         methods.add_method("sendMessage", |_, self_, (chat_id, text): (TelegramChatId, String)| {
-            call_api::<_, TelegramMessage>(
-                &self_.client,
-                &self_.token,
-                "sendMessage",
-                &json!({
-                    "chat_id": Into::<JsonValue>::into(chat_id),
-                    "text": &text,
-                }),
-            )
-            .map_err(|err| LuaError::RuntimeError(err.to_string()))?;
+            self_
+                .call_api::<_, TelegramMessage>("sendMessage", &SendMessageRequest { chat_id, text })
+                .map_err(|err| LuaError::RuntimeError(err.to_string()))?;
             Ok(())
         });
     }

@@ -520,7 +520,7 @@
     <span class="kw">for</span> (<span class="ident">service_id</span>, <span class="ident">service</span>) <span class="kw">in</span> <span class="ident">services</span>.<span class="ident">iter</span>() {
         <span class="kw">let</span> <span class="ident">service_id</span> <span class="op">=</span> <span class="ident">service_id</span>.<span class="ident">to_string</span>();
         <span class="kw">match</span> <span class="ident">service</span> {
-            <span class="ident">Service</span>::<span class="ident">Telegram</span>(<span class="ident">telegram</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">globals</span>.<span class="ident">set</span>(<span class="ident">service_id</span>, <span class="ident">telegram</span>::<span class="ident">Telegram</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">telegram</span>.<span class="ident">secrets</span>.<span class="ident">token</span>)<span class="question-mark">?</span>),
+            <span class="ident">Service</span>::<span class="ident">Telegram</span>(<span class="ident">telegram</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">globals</span>.<span class="ident">set</span>(<span class="ident">service_id</span>, <span class="ident">telegram</span>.<span class="ident">clone</span>()),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
         }<span class="question-mark">?</span>;
     }
