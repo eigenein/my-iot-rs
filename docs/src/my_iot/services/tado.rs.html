@@ -460,6 +460,35 @@
 <span id="460">460</span>
 <span id="461">461</span>
 <span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! [tado°](https://www.tado.com/) API.</span>
 
@@ -527,7 +556,7 @@
             .<span class="ident">expires_in</span>(<span class="ident">ttl</span>)
             .<span class="ident">value</span>(<span class="ident">home_state</span>.<span class="ident">presence</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Presence</span>::<span class="ident">Home</span>)
             .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="ident">home</span>.<span class="ident">name</span>)
-            .<span class="ident">sensor_title</span>(<span class="string">&quot;Is Home&quot;</span>)
+            .<span class="ident">sensor_title</span>(<span class="string">&quot;Home&quot;</span>)
             .<span class="ident">send_and_forget</span>(<span class="ident">tx</span>);
 
         <span class="kw">for</span> <span class="ident">zone</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">get_zones</span>(<span class="kw-2">&amp;</span><span class="ident">access_token</span>, <span class="ident">me</span>.<span class="ident">home_id</span>)<span class="question-mark">?</span>.<span class="ident">iter</span>() {
@@ -538,20 +567,29 @@
                 .<span class="ident">value</span>(<span class="ident">zone_state</span>.<span class="ident">link</span>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">LinkState</span>::<span class="ident">Online</span>)
                 .<span class="ident">expires_in</span>(<span class="ident">ttl</span>)
                 .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="ident">zone</span>.<span class="ident">name</span>)
-                .<span class="ident">sensor_title</span>(<span class="string">&quot;Is Online&quot;</span>)
+                .<span class="ident">sensor_title</span>(<span class="string">&quot;Online&quot;</span>)
                 .<span class="ident">send_and_forget</span>(<span class="ident">tx</span>);
             <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::is_on&quot;</span>, <span class="ident">sensor_prefix</span>))
                 .<span class="ident">expires_in</span>(<span class="ident">ttl</span>)
                 .<span class="ident">value</span>(<span class="ident">zone_state</span>.<span class="ident">setting</span>.<span class="ident">power</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PowerState</span>::<span class="ident">On</span>)
                 .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="ident">zone</span>.<span class="ident">name</span>)
                 .<span class="ident">sensor_title</span>(<span class="macro">format</span><span class="macro">!</span>(
-                    <span class="string">&quot;Is {} On&quot;</span>,
+                    <span class="string">&quot;{} On&quot;</span>,
                     <span class="kw">match</span> <span class="ident">zone</span>.<span class="ident">type_</span> {
                         <span class="ident">ZoneType</span>::<span class="ident">Heating</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Heating&quot;</span>,
                         <span class="ident">ZoneType</span>::<span class="ident">HotWater</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Hot Water&quot;</span>,
                     }
                 ))
                 .<span class="ident">send_and_forget</span>(<span class="ident">tx</span>);
+
+            <span class="kw">if</span> <span class="ident">zone</span>.<span class="ident">open_window_detection</span>.<span class="ident">supported</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="ident">zone</span>.<span class="ident">open_window_detection</span>.<span class="ident">enabled</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+                <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::is_window_closed&quot;</span>, <span class="ident">sensor_prefix</span>))
+                    .<span class="ident">expires_in</span>(<span class="ident">ttl</span>)
+                    .<span class="ident">value</span>(<span class="op">!</span><span class="ident">zone_state</span>.<span class="ident">open_window_detected</span>)
+                    .<span class="ident">room_title</span>(<span class="kw-2">&amp;</span><span class="ident">zone</span>.<span class="ident">name</span>)
+                    .<span class="ident">sensor_title</span>(<span class="string">&quot;Window Closed&quot;</span>)
+                    .<span class="ident">send_and_forget</span>(<span class="ident">tx</span>);
+            }
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ZoneSettingAttributes</span>::<span class="ident">Heating</span> { <span class="ident">temperature</span> } <span class="op">=</span> <span class="ident">zone_state</span>.<span class="ident">setting</span>.<span class="ident">attributes</span> {
                 <span class="ident">Message</span>::<span class="ident">new</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}::set_temperature&quot;</span>, <span class="ident">sensor_prefix</span>))
@@ -734,6 +772,17 @@
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;type&quot;</span>)]</span>
     <span class="ident">type_</span>: <span class="ident">ZoneType</span>,
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;openWindowDetection&quot;</span>)]</span>
+    <span class="ident">open_window_detection</span>: <span class="ident">OpenWindowDetection</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>)]</span>
+<span class="kw">struct</span> <span class="ident">OpenWindowDetection</span> {
+    <span class="ident">supported</span>: <span class="ident">bool</span>,
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
+    <span class="ident">enabled</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>)]</span>
@@ -780,6 +829,9 @@
 
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;sensorDataPoints&quot;</span>)]</span>
     <span class="ident">sensor_data_points</span>: <span class="ident">SensorDataPoints</span>,
+
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;openWindowDetected&quot;</span>, <span class="ident">default</span>)]</span>
+    <span class="ident">open_window_detected</span>: <span class="ident">bool</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>)]</span>
@@ -833,9 +885,10 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>)]</span>
 <span class="kw">struct</span> <span class="ident">SensorDataPoints</span> {
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;insideTemperature&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;insideTemperature&quot;</span>, <span class="ident">default</span>)]</span>
     <span class="ident">inside_temperature</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InsideTemperature</span><span class="op">&gt;</span>,
 
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="ident">humidity</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Percentage</span><span class="op">&gt;</span>,
 }
 
@@ -911,6 +964,11 @@
         <span class="ident">serde_json</span>::<span class="ident">from_str</span>::<span class="op">&lt;</span><span class="ident">ZoneState</span><span class="op">&gt;</span>(
             <span class="string">r#&quot;{&quot;tadoMode&quot;: &quot;HOME&quot;,&quot;geolocationOverride&quot;: false,&quot;geolocationOverrideDisableTime&quot;: null,&quot;preparation&quot;: null,&quot;setting&quot;: {&quot;type&quot;: &quot;HEATING&quot;,&quot;power&quot;: &quot;ON&quot;,&quot;temperature&quot;: {&quot;celsius&quot;: 15.00,&quot;fahrenheit&quot;: 59.00}},&quot;overlayType&quot;: null,&quot;overlay&quot;: null,&quot;openWindow&quot;: null,&quot;nextScheduleChange&quot;: {&quot;start&quot;: &quot;2019-02-13T17:30:00Z&quot;,&quot;setting&quot;: {&quot;type&quot;: &quot;HEATING&quot;,&quot;power&quot;: &quot;ON&quot;,&quot;temperature&quot;: {&quot;celsius&quot;: 18.00,&quot;fahrenheit&quot;: 64.40}}},&quot;link&quot;: {&quot;state&quot;: &quot;ONLINE&quot;},&quot;activityDataPoints&quot;: {&quot;heatingPower&quot;: {&quot;type&quot;: &quot;PERCENTAGE&quot;,&quot;percentage&quot;: 0.00,&quot;timestamp&quot;: &quot;2019-02-13T10:19:37.135Z&quot;}},&quot;sensorDataPoints&quot;: {&quot;insideTemperature&quot;: {&quot;celsius&quot;: 16.59,&quot;fahrenheit&quot;: 61.86,&quot;timestamp&quot;: &quot;2019-02-13T10:30:52.733Z&quot;,&quot;type&quot;: &quot;TEMPERATURE&quot;,&quot;precision&quot;: {&quot;celsius&quot;: 0.1,&quot;fahrenheit&quot;: 0.1}},&quot;humidity&quot;: {&quot;type&quot;: &quot;PERCENTAGE&quot;,&quot;percentage&quot;: 57.20,&quot;timestamp&quot;: &quot;2019-02-13T10:30:52.733Z&quot;}}}&quot;#</span>,
         )<span class="question-mark">?</span>;
+        <span class="comment">// language=json</span>
+        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">from_str</span>::<span class="op">&lt;</span><span class="ident">ZoneState</span><span class="op">&gt;</span>(
+            <span class="string">r#&quot;{&quot;activityDataPoints&quot;: {&quot;heatingPower&quot;: {&quot;percentage&quot;: 0.0,&quot;timestamp&quot;: &quot;2020-06-24T15:17:26.812Z&quot;,&quot;type&quot;: &quot;PERCENTAGE&quot;}},&quot;geolocationOverride&quot;: false,&quot;geolocationOverrideDisableTime&quot;: null,&quot;link&quot;: {&quot;state&quot;: &quot;ONLINE&quot;},&quot;nextScheduleChange&quot;: null,&quot;nextTimeBlock&quot;: null,&quot;openWindow&quot;: null,&quot;openWindowDetected&quot;: true,&quot;overlay&quot;: {&quot;setting&quot;: {&quot;power&quot;: &quot;ON&quot;,&quot;temperature&quot;: {&quot;celsius&quot;: 22.0,&quot;fahrenheit&quot;: 71.6},&quot;type&quot;: &quot;HEATING&quot;},&quot;termination&quot;: {&quot;projectedExpiry&quot;: null,&quot;type&quot;: &quot;MANUAL&quot;,&quot;typeSkillBasedApp&quot;: &quot;MANUAL&quot;},&quot;type&quot;: &quot;MANUAL&quot;},&quot;overlayType&quot;: &quot;MANUAL&quot;,&quot;preparation&quot;: null,&quot;sensorDataPoints&quot;: {&quot;humidity&quot;: {&quot;percentage&quot;: 40.1,&quot;timestamp&quot;: &quot;2020-06-24T15:17:09.941Z&quot;,&quot;type&quot;: &quot;PERCENTAGE&quot;},&quot;insideTemperature&quot;: {&quot;celsius&quot;: 28.73,&quot;fahrenheit&quot;: 83.71,&quot;precision&quot;: {&quot;celsius&quot;: 0.1,&quot;fahrenheit&quot;: 0.1},&quot;timestamp&quot;: &quot;2020-06-24T15:17:09.941Z&quot;,&quot;type&quot;: &quot;TEMPERATURE&quot;}},&quot;setting&quot;: {&quot;power&quot;: &quot;ON&quot;,&quot;temperature&quot;: {&quot;celsius&quot;: 22.0,&quot;fahrenheit&quot;: 71.6},&quot;type&quot;: &quot;HEATING&quot;},&quot;tadoMode&quot;: &quot;HOME&quot;}&quot;#</span>,
+        )<span class="question-mark">?</span>;
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">state</span>.<span class="ident">open_window_detected</span>, <span class="bool-val">true</span>);
         <span class="prelude-val">Ok</span>(())
     }
 

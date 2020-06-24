@@ -64,7 +64,7 @@ impl Tado {
             .expires_in(ttl)
             .value(home_state.presence == Presence::Home)
             .room_title(&home.name)
-            .sensor_title("Is Home")
+            .sensor_title("Home")
             .send_and_forget(tx);
 
         for zone in self.get_zones(&access_token, me.home_id)?.iter() {
@@ -75,20 +75,29 @@ impl Tado {
                 .value(zone_state.link.state == LinkState::Online)
                 .expires_in(ttl)
                 .room_title(&zone.name)
-                .sensor_title("Is Online")
+                .sensor_title("Online")
                 .send_and_forget(tx);
             Message::new(format!("{}::is_on", sensor_prefix))
                 .expires_in(ttl)
                 .value(zone_state.setting.power == PowerState::On)
                 .room_title(&zone.name)
                 .sensor_title(format!(
-                    "Is {} On",
+                    "{} On",
                     match zone.type_ {
                         ZoneType::Heating => "Heating",
                         ZoneType::HotWater => "Hot Water",
                     }
                 ))
                 .send_and_forget(tx);
+
+            if zone.open_window_detection.supported && zone.open_window_detection.enabled == Some(true) {
+                Message::new(format!("{}::is_window_closed", sensor_prefix))
+                    .expires_in(ttl)
+                    .value(!zone_state.open_window_detected)
+                    .room_title(&zone.name)
+                    .sensor_title("Window Closed")
+                    .send_and_forget(tx);
+            }
 
             if let ZoneSettingAttributes::Heating { temperature } = zone_state.setting.attributes {
                 Message::new(format!("{}::set_temperature", sensor_prefix))
@@ -271,6 +280,17 @@ struct Zone {
 
     #[serde(rename = "type")]
     type_: ZoneType,
+
+    #[serde(rename = "openWindowDetection")]
+    open_window_detection: OpenWindowDetection,
+}
+
+#[derive(Deserialize)]
+struct OpenWindowDetection {
+    supported: bool,
+
+    #[serde(default)]
+    enabled: Option<bool>,
 }
 
 #[derive(Deserialize, PartialEq)]
@@ -317,6 +337,9 @@ struct ZoneState {
 
     #[serde(rename = "sensorDataPoints")]
     sensor_data_points: SensorDataPoints,
+
+    #[serde(rename = "openWindowDetected", default)]
+    open_window_detected: bool,
 }
 
 #[derive(Deserialize)]
@@ -370,9 +393,10 @@ struct ZoneTemperature {
 
 #[derive(Deserialize)]
 struct SensorDataPoints {
-    #[serde(rename = "insideTemperature")]
+    #[serde(rename = "insideTemperature", default)]
     inside_temperature: Option<InsideTemperature>,
 
+    #[serde(default)]
     humidity: Option<Percentage>,
 }
 
@@ -448,6 +472,11 @@ mod tests {
         serde_json::from_str::<ZoneState>(
             r#"{"tadoMode": "HOME","geolocationOverride": false,"geolocationOverrideDisableTime": null,"preparation": null,"setting": {"type": "HEATING","power": "ON","temperature": {"celsius": 15.00,"fahrenheit": 59.00}},"overlayType": null,"overlay": null,"openWindow": null,"nextScheduleChange": {"start": "2019-02-13T17:30:00Z","setting": {"type": "HEATING","power": "ON","temperature": {"celsius": 18.00,"fahrenheit": 64.40}}},"link": {"state": "ONLINE"},"activityDataPoints": {"heatingPower": {"type": "PERCENTAGE","percentage": 0.00,"timestamp": "2019-02-13T10:19:37.135Z"}},"sensorDataPoints": {"insideTemperature": {"celsius": 16.59,"fahrenheit": 61.86,"timestamp": "2019-02-13T10:30:52.733Z","type": "TEMPERATURE","precision": {"celsius": 0.1,"fahrenheit": 0.1}},"humidity": {"type": "PERCENTAGE","percentage": 57.20,"timestamp": "2019-02-13T10:30:52.733Z"}}}"#,
         )?;
+        // language=json
+        let state = serde_json::from_str::<ZoneState>(
+            r#"{"activityDataPoints": {"heatingPower": {"percentage": 0.0,"timestamp": "2020-06-24T15:17:26.812Z","type": "PERCENTAGE"}},"geolocationOverride": false,"geolocationOverrideDisableTime": null,"link": {"state": "ONLINE"},"nextScheduleChange": null,"nextTimeBlock": null,"openWindow": null,"openWindowDetected": true,"overlay": {"setting": {"power": "ON","temperature": {"celsius": 22.0,"fahrenheit": 71.6},"type": "HEATING"},"termination": {"projectedExpiry": null,"type": "MANUAL","typeSkillBasedApp": "MANUAL"},"type": "MANUAL"},"overlayType": "MANUAL","preparation": null,"sensorDataPoints": {"humidity": {"percentage": 40.1,"timestamp": "2020-06-24T15:17:09.941Z","type": "PERCENTAGE"},"insideTemperature": {"celsius": 28.73,"fahrenheit": 83.71,"precision": {"celsius": 0.1,"fahrenheit": 0.1},"timestamp": "2020-06-24T15:17:09.941Z","type": "TEMPERATURE"}},"setting": {"power": "ON","temperature": {"celsius": 22.0,"fahrenheit": 71.6},"type": "HEATING"},"tadoMode": "HOME"}"#,
+        )?;
+        assert_eq!(state.open_window_detected, true);
         Ok(())
     }
 

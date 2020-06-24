@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Added more Tado° sensors
+
 ## `0.51.0`
 
 - Added the sensor TTL options
