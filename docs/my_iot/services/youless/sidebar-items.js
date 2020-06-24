@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["default_interval_millis","Defaults to one minute."],["default_room_title",""],["default_url",""],["deserialize_timestamp",""]],"struct":[["Response","http://wiki.td-er.nl/index.php?title=YouLess#Enelogic_.28default.29_firmware"],["YouLess",""]]});
+initSidebarItems({"fn":[["default_interval_millis","Defaults to one minute."],["default_room_title",""],["default_ttl_millis",""],["default_url",""],["deserialize_timestamp",""]],"struct":[["Response","http://wiki.td-er.nl/index.php?title=YouLess#Enelogic_.28default.29_firmware"],["YouLess",""]]});

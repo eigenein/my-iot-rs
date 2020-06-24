@@ -35,9 +35,11 @@
 <span id="35">35</span>
 <span id="36">36</span>
 <span id="37">37</span>
+<span id="38">38</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Deserialize</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">TryInto</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 
@@ -45,17 +47,17 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Clock</span> {
     <span class="doccomment">/// Interval in milliseconds.</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_interval_millis&quot;</span>)]</span>
-    <span class="ident">interval_millis</span>: <span class="ident">u32</span>,
+    <span class="ident">interval_millis</span>: <span class="ident">u64</span>,
 }
 
-<span class="kw">const</span> <span class="kw">fn</span> <span class="ident">default_interval_millis</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">const</span> <span class="kw">fn</span> <span class="ident">default_interval_millis</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
     <span class="number">1000</span>
 }
 
 <span class="kw">impl</span> <span class="ident">Clock</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn</span>(<span class="self">self</span>, <span class="ident">service_id</span>: <span class="ident">String</span>, <span class="ident">bus</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Bus</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">interval</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="self">self</span>.<span class="ident">interval_millis</span> <span class="kw">as</span> <span class="ident">u64</span>);
-        <span class="kw">let</span> <span class="ident">ttl</span> <span class="op">=</span> <span class="ident">chrono</span>::<span class="ident">Duration</span>::<span class="ident">milliseconds</span>(<span class="self">self</span>.<span class="ident">interval_millis</span> <span class="kw">as</span> <span class="ident">i64</span>);
+        <span class="kw">let</span> <span class="ident">interval</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="self">self</span>.<span class="ident">interval_millis</span>);
+        <span class="kw">let</span> <span class="ident">ttl</span> <span class="op">=</span> <span class="ident">chrono</span>::<span class="ident">Duration</span>::<span class="ident">milliseconds</span>(<span class="self">self</span>.<span class="ident">interval_millis</span>.<span class="ident">try_into</span>()<span class="question-mark">?</span>);
         <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <span class="ident">bus</span>.<span class="ident">add_tx</span>();
 
         <span class="ident">thread</span>::<span class="ident">Builder</span>::<span class="ident">new</span>().<span class="ident">name</span>(<span class="ident">service_id</span>.<span class="ident">clone</span>()).<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {

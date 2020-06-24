@@ -1,5 +1,6 @@
 use crate::prelude::*;
 use serde::Deserialize;
+use std::convert::TryInto;
 use std::thread;
 use std::time::Duration;
 
@@ -7,17 +8,17 @@ use std::time::Duration;
 pub struct Clock {
     /// Interval in milliseconds.
     #[serde(default = "default_interval_millis")]
-    interval_millis: u32,
+    interval_millis: u64,
 }
 
-const fn default_interval_millis() -> u32 {
+const fn default_interval_millis() -> u64 {
     1000
 }
 
 impl Clock {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
-        let interval = Duration::from_millis(self.interval_millis as u64);
-        let ttl = chrono::Duration::milliseconds(self.interval_millis as i64);
+        let interval = Duration::from_millis(self.interval_millis);
+        let ttl = chrono::Duration::milliseconds(self.interval_millis.try_into()?);
         let tx = bus.add_tx();
 
         thread::Builder::new().name(service_id.clone()).spawn(move || {

@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.51.0`
+
+- Added the sensor TTL options
+
 ## `0.50.0`
 
 - **Removed the `uom` and `rmp-serde` dependencies and changed the serialization format, thus dropped sensors, readings and migrations (requires to re-create the database)**

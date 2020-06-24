@@ -2,12 +2,16 @@
 
 use crate::prelude::*;
 use crate::services::prelude::*;
+use std::convert::TryInto;
 use std::time::Duration;
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct YouLess {
     #[serde(default = "default_interval_millis")]
-    interval_millis: u32,
+    interval_millis: u64,
+
+    #[serde(default = "default_ttl_millis")]
+    ttl_millis: u64,
 
     #[serde(default = "default_url")]
     url: String,
@@ -20,8 +24,12 @@ pub struct YouLess {
 }
 
 /// Defaults to one minute.
-const fn default_interval_millis() -> u32 {
+const fn default_interval_millis() -> u64 {
     1000
+}
+
+const fn default_ttl_millis() -> u64 {
+    10000
 }
 
 fn default_url() -> String {
@@ -35,7 +43,7 @@ fn default_room_title() -> String {
 impl YouLess {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
         let interval = Duration::from_millis(self.interval_millis as u64);
-        let ttl = chrono::Duration::milliseconds((self.interval_millis as i64) * 2);
+        let ttl = chrono::Duration::milliseconds(self.ttl_millis.try_into()?);
         let tx = bus.add_tx();
 
         thread::Builder::new().name(service_id.clone()).spawn(move || loop {

@@ -1,6 +1,7 @@
 use crate::core::message::Type;
 use crate::prelude::*;
 use spa::{calc_sunrise_and_set, SunriseAndSet};
+use std::convert::TryInto;
 use std::thread;
 use std::time::Duration;
 
@@ -9,7 +10,10 @@ use std::time::Duration;
 pub struct Solar {
     /// Message interval in milliseconds.
     #[serde(default = "default_interval_millis")]
-    interval_millis: u32,
+    interval_millis: u64,
+
+    #[serde(default = "default_ttl_millis")]
+    ttl_millis: u64,
 
     #[serde(default)]
     room_title: Option<String>,
@@ -27,15 +31,19 @@ pub struct Secrets {
 }
 
 /// Defaults to one minute.
-const fn default_interval_millis() -> u32 {
+const fn default_interval_millis() -> u64 {
     60000
+}
+
+const fn default_ttl_millis() -> u64 {
+    120000
 }
 
 impl Solar {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
-        let interval = Duration::from_millis(self.interval_millis as u64);
-        let ttl = chrono::Duration::from_std(interval)? * 2;
+        let interval = Duration::from_millis(self.interval_millis);
+        let ttl = chrono::Duration::milliseconds(self.ttl_millis.try_into()?);
 
         thread::Builder::new().name(service_id.clone()).spawn(move || loop {
             let now = Utc::now();
