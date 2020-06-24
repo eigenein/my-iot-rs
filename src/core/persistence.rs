@@ -190,9 +190,10 @@ impl Message {
         let sensor_pk = hash_sensor_id(&self.sensor.id);
         let timestamp = self.reading.timestamp.timestamp_millis();
         let value = serde_json::to_string(&self.reading.value)?;
-        let connection = connection.connection()?;
+        let mut connection = connection.connection()?;
+        let transaction = connection.transaction()?;
 
-        connection
+        transaction
             .prepare_cached(
                 // language=sql
                 r#"
@@ -218,7 +219,7 @@ impl Message {
                 self.sensor.expires_at.timestamp_millis(),
             ])?;
 
-        connection
+        transaction
             .prepare_cached(
                 // language=sql
                 r#"
@@ -229,6 +230,8 @@ impl Message {
             "#,
             )?
             .execute(params![sensor_pk, timestamp, value])?;
+
+        transaction.commit()?;
 
         Ok(())
     }

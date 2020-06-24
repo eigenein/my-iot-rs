@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.54.0`
+
+- Wrap `upsert_into` into a single transaction #97
+
 ## `0.53.0`
 
 - Increase YouLess `default_interval_millis`

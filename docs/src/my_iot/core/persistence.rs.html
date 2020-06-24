@@ -368,6 +368,9 @@
 <span id="368">368</span>
 <span id="369">369</span>
 <span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Database interface.</span>
 
@@ -561,9 +564,10 @@
         <span class="kw">let</span> <span class="ident">sensor_pk</span> <span class="op">=</span> <span class="ident">hash_sensor_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">sensor</span>.<span class="ident">id</span>);
         <span class="kw">let</span> <span class="ident">timestamp</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">reading</span>.<span class="ident">timestamp</span>.<span class="ident">timestamp_millis</span>();
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">reading</span>.<span class="ident">value</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">connection</span> <span class="op">=</span> <span class="ident">connection</span>.<span class="ident">connection</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">connection</span> <span class="op">=</span> <span class="ident">connection</span>.<span class="ident">connection</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">transaction</span> <span class="op">=</span> <span class="ident">connection</span>.<span class="ident">transaction</span>()<span class="question-mark">?</span>;
 
-        <span class="ident">connection</span>
+        <span class="ident">transaction</span>
             .<span class="ident">prepare_cached</span>(
                 <span class="comment">// language=sql</span>
                 <span class="string">r#&quot;
@@ -589,7 +593,7 @@
                 <span class="self">self</span>.<span class="ident">sensor</span>.<span class="ident">expires_at</span>.<span class="ident">timestamp_millis</span>(),
             ])<span class="question-mark">?</span>;
 
-        <span class="ident">connection</span>
+        <span class="ident">transaction</span>
             .<span class="ident">prepare_cached</span>(
                 <span class="comment">// language=sql</span>
                 <span class="string">r#&quot;
@@ -600,6 +604,8 @@
             &quot;#</span>,
             )<span class="question-mark">?</span>
             .<span class="ident">execute</span>(<span class="macro">params</span><span class="macro">!</span>[<span class="ident">sensor_pk</span>, <span class="ident">timestamp</span>, <span class="ident">value</span>])<span class="question-mark">?</span>;
+
+        <span class="ident">transaction</span>.<span class="ident">commit</span>()<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
     }
