@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Remove extra calls in Tado° service #73
+
 ## `0.55.0`
 
 - Fix sensor titles

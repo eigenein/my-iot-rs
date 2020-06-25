@@ -25,6 +25,7 @@ pub struct Tado {
 
     /// Enable the [Open Window Detection Skill](https://support.tado.com/en/articles/3387308-how-does-the-open-window-detection-skill-work)
     /// skill emulation.
+    #[serde(default)]
     enable_open_window_detection_skill: bool,
 }
 
@@ -42,9 +43,11 @@ fn default_token() -> Arc<Mutex<Option<Token>>> {
 impl Tado {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
+        let me = self.get_me()?;
+        let home = self.get_home(me.home_id)?;
 
         thread::Builder::new().name(service_id.clone()).spawn(move || loop {
-            if let Err(error) = self.loop_(&service_id, &tx) {
+            if let Err(error) = self.loop_(&service_id, &me, &home, &tx) {
                 error!("Failed to refresh the sensors: {}", error.to_string());
             }
             thread::sleep(REFRESH_PERIOD);
@@ -53,11 +56,9 @@ impl Tado {
         Ok(())
     }
 
-    fn loop_(&self, service_id: &str, tx: &Sender) -> Result<()> {
+    fn loop_(&self, service_id: &str, me: &Me, home: &Home, tx: &Sender) -> Result<()> {
         let ttl = chrono::Duration::seconds(600);
 
-        let me = self.get_me()?;
-        let home = self.get_home(me.home_id)?;
         let weather = self.get_weather(me.home_id)?;
 
         Message::new(format!("{}::{}::solar_intensity", service_id, me.home_id))
