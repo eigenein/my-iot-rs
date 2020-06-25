@@ -12,14 +12,26 @@ jobs:
     steps:
       - name: APT
         run: sudo apt-get update && sudo apt-get install -y libsqlite3-dev
+
       - name: Rustup
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
           override: true
           components: rustfmt, clippy
+
       - name: Install
         run: cargo install mdbook mdbook-linkcheck
+
       - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Check
         run: make check
