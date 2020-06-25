@@ -1,8 +1,9 @@
 # `my-iot`
 
-## `master`
+## `0.56.0`
 
-- Fix 500
+- Fix 500 on the Settings page
+- Print message count in the footer, closes #52
 
 ## `0.55.1`
 

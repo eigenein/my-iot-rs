@@ -9,16 +9,18 @@ use rocket::http::ContentType;
 use rocket::response::content::{Content, Html};
 use rocket::{get, routes, Config, Rocket, State};
 use rocket_contrib::json::Json;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Arc;
 
 mod templates;
 
 /// Start the web application.
-pub fn start_server(settings: &Settings, db: Connection) -> Result<()> {
-    Err(Box::new(make_rocket(settings, db)?.launch()))
+pub fn start_server(settings: &Settings, db: Connection, message_counter: Arc<AtomicU64>) -> Result<()> {
+    Err(Box::new(make_rocket(settings, db, message_counter)?.launch()))
 }
 
 /// Builds the [Rocket](https://rocket.rs/) application.
-fn make_rocket(settings: &Settings, db: Connection) -> Result<Rocket> {
+fn make_rocket(settings: &Settings, db: Connection, message_counter: Arc<AtomicU64>) -> Result<Rocket> {
     Ok(rocket::custom(
         Config::build(Environment::Production)
             .port(settings.http_port)
@@ -27,6 +29,7 @@ fn make_rocket(settings: &Settings, db: Connection) -> Result<Rocket> {
     )
     .manage(db)
     .manage(settings.clone())
+    .manage(MessageCounter(message_counter))
     .mount(
         "/",
         routes![
@@ -52,7 +55,7 @@ fn make_rocket(settings: &Settings, db: Connection) -> Result<Rocket> {
 }
 
 #[get("/")]
-fn get_index(db: State<Connection>) -> Result<Html<String>> {
+fn get_index(db: State<Connection>, message_counter: State<MessageCounter>) -> Result<Html<String>> {
     let actuals = db
         .select_actuals()?
         .into_iter()
@@ -60,21 +63,33 @@ fn get_index(db: State<Connection>) -> Result<Html<String>> {
         .into_iter()
         .map(|(room_title, group)| (room_title, group.collect_vec()))
         .collect_vec();
-    Ok(Html(templates::IndexTemplate { actuals }.to_string()))
+    Ok(Html(
+        templates::IndexTemplate {
+            actuals,
+            message_count: message_counter.inner().value(),
+        }
+        .to_string(),
+    ))
 }
 
 #[get("/settings")]
-fn get_settings(settings: State<Settings>) -> Result<Html<String>> {
+fn get_settings(settings: State<Settings>, message_counter: State<MessageCounter>) -> Result<Html<String>> {
     Ok(Html(
         templates::SettingsTemplate {
             settings: toml::to_string_pretty(&toml::Value::try_from(settings.inner())?)?,
+            message_count: message_counter.inner().value(),
         }
         .to_string(),
     ))
 }
 
 #[get("/sensors/<sensor_id>?<minutes>")]
-fn get_sensor(db: State<Connection>, sensor_id: String, minutes: Option<i64>) -> Result<Option<Html<String>>> {
+fn get_sensor(
+    db: State<Connection>,
+    sensor_id: String,
+    minutes: Option<i64>,
+    message_counter: State<MessageCounter>,
+) -> Result<Option<Html<String>>> {
     let period = Duration::minutes(minutes.unwrap_or(5));
     if let Some((sensor, reading)) = db.select_sensor(&sensor_id)? {
         let chart = match reading.value {
@@ -94,7 +109,13 @@ fn get_sensor(db: State<Connection>, sensor_id: String, minutes: Option<i64>) ->
         };
 
         Ok(Some(Html(
-            templates::SensorTemplate { sensor, reading, chart }.to_string(),
+            templates::SensorTemplate {
+                sensor,
+                reading,
+                chart,
+                message_count: message_counter.inner().value(),
+            }
+            .to_string(),
         )))
     } else {
         Ok(None)
@@ -183,6 +204,14 @@ fn get_webfonts_fa_brands_400() -> Content<&'static [u8]> {
     )
 }
 
+struct MessageCounter(Arc<AtomicU64>);
+
+impl MessageCounter {
+    pub fn value(&self) -> u64 {
+        self.0.load(Ordering::Relaxed)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -226,6 +255,7 @@ mod tests {
                 services: HashMap::new(),
             },
             Connection::open_and_initialize(":memory:")?,
+            Arc::new(AtomicU64::new(0)),
         )?)?)
     }
 }

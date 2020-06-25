@@ -10,12 +10,15 @@ use serde_json::json;
 pub struct IndexTemplate {
     #[allow(clippy::type_complexity)]
     pub actuals: Vec<(Option<String>, Vec<(Sensor, Reading)>)>,
+
+    pub message_count: u64,
 }
 
 #[derive(Template)]
 #[template(path = "settings.html")]
 pub struct SettingsTemplate {
     pub settings: String,
+    pub message_count: u64,
 }
 
 #[derive(Template)]
@@ -26,6 +29,8 @@ pub struct SensorTemplate {
 
     /// Stringified sensor chart, may be empty.
     pub chart: String,
+
+    pub message_count: u64,
 }
 
 /// Navigation bar.

@@ -6,6 +6,8 @@ use crate::prelude::*;
 use log::LevelFilter;
 use simplelog::{ConfigBuilder, TermLogger, TerminalMode, ThreadLogMode};
 use std::path::PathBuf;
+use std::sync::atomic::AtomicU64;
+use std::sync::Arc;
 use structopt::StructOpt;
 
 mod core;
@@ -52,7 +54,8 @@ fn main() -> Result<()> {
     let db = Connection::open_and_initialize(&opt.db)?;
 
     info!("Starting services…");
-    let mut bus = Bus::new();
+    let message_counter = Arc::new(AtomicU64::new(0));
+    let mut bus = Bus::new(message_counter.clone());
     bus.add_tx()
         .send(Message::new("my-iot::start").type_(MessageType::ReadNonLogged))?;
     core::persistence::thread::spawn(db.clone(), &mut bus)?;
@@ -61,7 +64,7 @@ fn main() -> Result<()> {
     bus.spawn()?;
 
     info!("Starting web server on port {}…", settings.http_port);
-    web::start_server(&settings, db)
+    web::start_server(&settings, db, message_counter)
 }
 
 fn init_logging(silent: bool, verbose: bool) -> Result<()> {

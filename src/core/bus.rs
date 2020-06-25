@@ -4,6 +4,8 @@
 //! to listen to each other service.
 
 use crate::prelude::*;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Arc;
 
 pub struct Bus {
     /// Service message inbox senders.
@@ -14,14 +16,17 @@ pub struct Bus {
 
     /// The bus message inbox receiver.
     rx: Receiver,
+
+    message_counter: Arc<AtomicU64>,
 }
 
 impl Bus {
-    pub fn new() -> Self {
+    pub fn new(message_counter: Arc<AtomicU64>) -> Self {
         let (tx, rx) = crossbeam::channel::unbounded::<Message>();
         Self {
             tx,
             rx,
+            message_counter,
             service_txs: Vec::new(),
         }
     }
@@ -47,7 +52,8 @@ impl Bus {
                 for tx in self.service_txs.iter() {
                     message.clone().send_and_forget(&tx);
                 }
-                debug!("Dispatched {}", &message.sensor.id);
+                let number = self.message_counter.fetch_add(1, Ordering::Relaxed);
+                debug!("Dispatched (#{}) {}", number, &message.sensor.id);
             }
             unreachable!();
         })?;
