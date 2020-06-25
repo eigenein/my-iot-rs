@@ -1,6 +1,31 @@
 # Solar
 
-```text
-2020-04-29 17:32:17,804 INFO  [my_iot::core::persistence::thread] sun_vijfhuizen::before::sunset: ReadSnapshot Duration(12667.827000000001 s^1)
-2020-04-29 17:32:17,806 INFO  [my_iot::core::persistence::thread] sun_vijfhuizen::after::sunrise: ReadSnapshot Duration(40832.16 s^1)
+Provides sensors with durations to and after sunrise and sunset:
+- `{service_id}::before::sunrise`
+- `{service_id}::after::sunrise`
+- `{service_id}::before::sunset`
+- `{service_id}::after::sunset`
+
+For polar night and day the following non-logged messages get emitted:
+- `{service_id}::polar_day`
+- `{service_id}::polar_night`
+
+## Settings
+
+```toml
+[services.my_solar]
+type = "Solar"
+
+# Room title used for the sensors.
+room_title = "Home"
+
+# Refresh interval.
+interval_millis = 60000
+
+# Sensor reading expiration time.
+ttl_millis = 120000
+
+[services.my_solar.secrets]
+latitude = 12.345678
+longitude = 12.345678
 ```

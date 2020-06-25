@@ -10,6 +10,6 @@
   - [Clock]()
   - [Lua](services/lua.md)
   - [Solar](services/solar.md)
-  - [Tado]()
+  - [Tado](services/tado.md)
   - [Telegram]()
   - [YouLess]()

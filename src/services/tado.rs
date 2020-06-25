@@ -2,7 +2,7 @@
 
 use crate::prelude::*;
 use crate::services::prelude::*;
-use reqwest::Url;
+use reqwest::{Method, Url};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::thread;
 use std::time::{Duration, SystemTime};
@@ -22,6 +22,10 @@ pub struct Tado {
     /// Last known log-in credentials.
     #[serde(skip, default = "default_token")]
     token: Arc<Mutex<Option<Token>>>,
+
+    /// Enable the [Open Window Detection Skill](https://support.tado.com/en/articles/3387308-how-does-the-open-window-detection-skill-work)
+    /// skill emulation.
+    enable_open_window_detection_skill: bool,
 }
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
@@ -70,7 +74,7 @@ impl Tado {
             .expires_in(ttl)
             .value(home_state.presence == Presence::Home)
             .room_title(&home.name)
-            .sensor_title("Home")
+            .sensor_title("At Home")
             .send_and_forget(tx);
 
         for zone in self.get_zones(me.home_id)?.iter() {
@@ -99,7 +103,7 @@ impl Tado {
                     .expires_in(ttl)
                     .value(!zone_state.open_window_detected)
                     .room_title(&zone.name)
-                    .sensor_title("Window Closed")
+                    .sensor_title("Is Window Closed")
                     .send_and_forget(tx);
             }
 
@@ -130,6 +134,14 @@ impl Tado {
                     .sensor_title("Ambient Temperature")
                     .value(Value::Temperature(temperature.celsius))
                     .send_and_forget(tx);
+            }
+
+            if self.enable_open_window_detection_skill && zone_state.open_window_detected {
+                Message::new(format!("{}::open_window_activated", sensor_prefix))
+                    .room_title(&zone.name)
+                    .sensor_title("Open Window Activated")
+                    .send_and_forget(tx);
+                self.activate_open_window(me.home_id, zone.id)?;
             }
         }
 
@@ -191,10 +203,7 @@ impl Tado {
                     ("client_secret", CLIENT_SECRET),
                     ("grant_type", "refresh_token"),
                     ("scope", SCOPE),
-                    (
-                        "refresh_token",
-                        &self.token.lock().unwrap().as_ref().unwrap().refresh_token,
-                    ),
+                    ("refresh_token", &token_guard.as_ref().unwrap().refresh_token),
                 ],
             )?)
             .send()?
@@ -205,7 +214,7 @@ impl Tado {
         Ok(access_token)
     }
 
-    fn call<U, R>(&self, url: U) -> Result<R>
+    fn call<U, R>(&self, method: Method, url: U) -> Result<R>
     where
         U: AsRef<str> + std::fmt::Display,
         R: DeserializeOwned,
@@ -214,37 +223,57 @@ impl Tado {
         let access_token = self.get_access_token()?;
         Ok(self
             .client
-            .get(url.as_ref())
+            .request(method, url.as_ref())
             .header("Authorization", format!("Bearer {}", access_token))
             .send()?
             .json()?)
     }
 
     fn get_me(&self) -> Result<Me> {
-        self.call("https://my.tado.com/api/v1/me")
+        self.call(Method::GET, "https://my.tado.com/api/v1/me")
     }
 
     fn get_home(&self, home_id: u32) -> Result<Home> {
-        self.call(format!("https://my.tado.com/api/v2/homes/{}", home_id))
+        self.call(Method::GET, format!("https://my.tado.com/api/v2/homes/{}", home_id))
     }
 
     fn get_zones(&self, home_id: u32) -> Result<Zones> {
-        self.call(format!("https://my.tado.com/api/v2/homes/{}/zones", home_id))
+        self.call(
+            Method::GET,
+            format!("https://my.tado.com/api/v2/homes/{}/zones", home_id),
+        )
     }
 
     fn get_weather(&self, home_id: u32) -> Result<Weather> {
-        self.call(format!("https://my.tado.com/api/v2/homes/{}/weather", home_id))
+        self.call(
+            Method::GET,
+            format!("https://my.tado.com/api/v2/homes/{}/weather", home_id),
+        )
     }
 
     fn get_home_state(&self, home_id: u32) -> Result<HomeState> {
-        self.call(format!("https://my.tado.com/api/v2/homes/{}/state", home_id))
+        self.call(
+            Method::GET,
+            format!("https://my.tado.com/api/v2/homes/{}/state", home_id),
+        )
     }
 
     fn get_zone_state(&self, home_id: u32, zone_id: u32) -> Result<ZoneState> {
-        self.call(format!(
-            "https://my.tado.com/api/v2/homes/{}/zones/{}/state",
-            home_id, zone_id,
-        ))
+        self.call(
+            Method::GET,
+            format!("https://my.tado.com/api/v2/homes/{}/zones/{}/state", home_id, zone_id,),
+        )
+    }
+
+    /// Activates the [Open Window](https://support.tado.com/en/articles/3387308-how-does-the-open-window-detection-skill-work) mode.
+    fn activate_open_window(&self, home_id: u32, zone_id: u32) -> Result<()> {
+        self.call(
+            Method::POST,
+            format!(
+                "https://my.tado.com/api/v2/homes/{}/zones/{}/state/openWindow/activate",
+                home_id, zone_id,
+            ),
+        )
     }
 }
 

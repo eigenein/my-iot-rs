@@ -23,8 +23,12 @@ check/fmt:
 check/test:
 	@cargo test --workspace
 
+.PHONY: check/docs
+check/docs:
+	@mdbook test
+
 .PHONY: check
-check: check/clippy check/fmt check/test
+check: check/clippy check/fmt check/test check/docs
 
 .PHONY: install
 install:
@@ -35,9 +39,9 @@ install:
 uninstall:
 	@rm -f $(EXECUTABLE_PATH)
 
-.PHONY: html docs
-html docs:
+html docs: book book.toml
 	@mdbook build
+	@touch docs
 
 docker/build/%:
 	@docker build -t "eigenein/my-iot-rs/$*" -f Dockerfile . --target "$*"

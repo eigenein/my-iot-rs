@@ -91,7 +91,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="introduction/installation.html"><strong aria-hidden="true">1.1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="introduction/settings.html"><strong aria-hidden="true">1.2.</strong> Settings</a></li><li class="chapter-item expanded "><a href="introduction/run-at-system-startup.html"><strong aria-hidden="true">1.3.</strong> Run at System Startup</a></li><li class="chapter-item expanded "><a href="introduction/publish-on-the-internet.html"><strong aria-hidden="true">1.4.</strong> Publish on the Internet</a></li></ol></li><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">2.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><strong aria-hidden="true">2.1.</strong> Buienradar</li><li class="chapter-item expanded "><strong aria-hidden="true">2.2.</strong> Clock</li><li class="chapter-item expanded "><a href="services/lua.html"><strong aria-hidden="true">2.3.</strong> Lua</a></li><li class="chapter-item expanded "><a href="services/solar.html"><strong aria-hidden="true">2.4.</strong> Solar</a></li><li class="chapter-item expanded "><strong aria-hidden="true">2.5.</strong> Tado</li><li class="chapter-item expanded "><strong aria-hidden="true">2.6.</strong> Telegram</li><li class="chapter-item expanded "><strong aria-hidden="true">2.7.</strong> YouLess</li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="introduction/installation.html"><strong aria-hidden="true">1.1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="introduction/settings.html"><strong aria-hidden="true">1.2.</strong> Settings</a></li><li class="chapter-item expanded "><a href="introduction/run-at-system-startup.html"><strong aria-hidden="true">1.3.</strong> Run at System Startup</a></li><li class="chapter-item expanded "><a href="introduction/publish-on-the-internet.html"><strong aria-hidden="true">1.4.</strong> Publish on the Internet</a></li></ol></li><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">2.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><strong aria-hidden="true">2.1.</strong> Buienradar</li><li class="chapter-item expanded "><strong aria-hidden="true">2.2.</strong> Clock</li><li class="chapter-item expanded "><a href="services/lua.html"><strong aria-hidden="true">2.3.</strong> Lua</a></li><li class="chapter-item expanded "><a href="services/solar.html"><strong aria-hidden="true">2.4.</strong> Solar</a></li><li class="chapter-item expanded "><a href="services/tado.html"><strong aria-hidden="true">2.5.</strong> Tado</a></li><li class="chapter-item expanded "><strong aria-hidden="true">2.6.</strong> Telegram</li><li class="chapter-item expanded "><strong aria-hidden="true">2.7.</strong> YouLess</li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -424,8 +424,54 @@ function onMessage(message)
 end
 </code></pre>
 <h1><a class="header" href="#solar" id="solar">Solar</a></h1>
-<pre><code class="language-text">2020-04-29 17:32:17,804 INFO  [my_iot::core::persistence::thread] sun_vijfhuizen::before::sunset: ReadSnapshot Duration(12667.827000000001 s^1)
-2020-04-29 17:32:17,806 INFO  [my_iot::core::persistence::thread] sun_vijfhuizen::after::sunrise: ReadSnapshot Duration(40832.16 s^1)
+<p>Provides sensors with durations to and after sunrise and sunset:</p>
+<ul>
+<li><code>{service_id}::before::sunrise</code></li>
+<li><code>{service_id}::after::sunrise</code></li>
+<li><code>{service_id}::before::sunset</code></li>
+<li><code>{service_id}::after::sunset</code></li>
+</ul>
+<p>For polar night and day the following non-logged messages get emitted:</p>
+<ul>
+<li><code>{service_id}::polar_day</code></li>
+<li><code>{service_id}::polar_night</code></li>
+</ul>
+<h2><a class="header" href="#settings-1" id="settings-1">Settings</a></h2>
+<pre><code class="language-toml">[services.my_solar]
+type = &quot;Solar&quot;
+
+# Room title used for the sensors.
+room_title = &quot;Home&quot;
+
+# Refresh interval.
+interval_millis = 60000
+
+# Sensor reading expiration time.
+ttl_millis = 120000
+
+[services.my_solar.secrets]
+latitude = 12.345678
+longitude = 12.345678
+</code></pre>
+<h1><a class="header" href="#tado" id="tado">tado°</a></h1>
+<p><a href="https://www.tado.com/">tado°</a> Smart Thermostat service, polls the API every 5 minutes.</p>
+<h2><a class="header" href="#a-hrefhttpssupporttadocomenarticles3387308-how-does-the-open-window-detection-skill-workopen-window-detection-skilla" id="a-hrefhttpssupporttadocomenarticles3387308-how-does-the-open-window-detection-skill-workopen-window-detection-skilla"><a href="https://support.tado.com/en/articles/3387308-how-does-the-open-window-detection-skill-work">Open Window Detection Skill</a></a></h2>
+<p>This service can emulate the <a href="https://support.tado.com/en/articles/3387308-how-does-the-open-window-detection-skill-work">Open Window Detection Skill</a> with the <code>enable_open_window_detection_skill = true</code> setting.</p>
+<p>As soon as open window is detected, the service automatically activates the open window mode and emits <code>{service_id}::{home_id}::{zone_id}::open_window_activated</code> message.</p>
+<h2><a class="header" href="#settings-2" id="settings-2">Settings</a></h2>
+<pre><code class="language-toml">[services.my_tado]
+type = &quot;Tado&quot;
+
+# Enables the Open Window Detection Skill emulation.
+enable_open_window_detection_skill = true
+
+[services.my_tado.secrets]
+
+# Account email.
+email = &quot;user@example.com&quot;
+
+# Account password.
+password = &quot;example&quot;
 </code></pre>
 
                     </main>

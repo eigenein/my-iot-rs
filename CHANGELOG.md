@@ -1,11 +1,12 @@
 # `my-iot`
 
-## `master`
+## `0.55.0`
 
 - Fix sensor titles
 - Refactor Tado° service #73
 - Add `--service-id` CLI option to run only specified services
 - Replace rustdoc with mdBook
+- Emulate Tado° Open Window Detection Skill #73
 
 ## `0.54.0`
 
