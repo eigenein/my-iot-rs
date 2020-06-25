@@ -20,9 +20,6 @@ jobs:
           override: true
           components: rustfmt, clippy
 
-      - name: Install
-        run: cargo install mdbook mdbook-linkcheck
-
       - uses: actions/checkout@v2
 
       - uses: actions/cache@v2
@@ -32,6 +29,9 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install
+        run: cargo install mdbook mdbook-linkcheck
 
       - name: Check
         run: make check
