@@ -1,1 +1,0 @@
-initSidebarItems({"constant":[["REFRESH_PERIOD",""],["URL","Buienradar JSON feed URL."]],"fn":[["deserialize_datetime","Implements custom date/time format with Amsterdam timezone."]],"struct":[["Buienradar",""],["BuienradarFeed",""],["BuienradarFeedActual",""],["BuienradarStationMeasurement",""]]});

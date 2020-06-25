@@ -1,1 +1,0 @@
-initSidebarItems({"constant":[["MIGRATIONS",""]],"fn":[["create_initial_schema",""]]});

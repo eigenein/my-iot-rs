@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["human_format","Format value to keep only 3 digits before the decimal point."]]});

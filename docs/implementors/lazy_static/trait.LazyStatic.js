@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["my_iot"] = [{"text":"impl <a class=\"trait\" href=\"https://docs.rs/lazy_static/1.4.0/lazy_static/trait.LazyStatic.html\" title=\"trait lazy_static::LazyStatic\">LazyStatic</a> for <a class=\"struct\" href=\"my_iot/web/struct.STATICS.html\" title=\"struct my_iot::web::STATICS\">STATICS</a>","synthetic":false,"types":["my_iot::web::STATICS"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

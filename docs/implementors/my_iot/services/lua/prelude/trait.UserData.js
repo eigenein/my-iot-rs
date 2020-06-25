@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["my_iot"] = [{"text":"impl <a class=\"trait\" href=\"my_iot/services/lua/prelude/trait.UserData.html\" title=\"trait my_iot::services::lua::prelude::UserData\">UserData</a> for <a class=\"struct\" href=\"my_iot/services/telegram/struct.Telegram.html\" title=\"struct my_iot::services::telegram::Telegram\">Telegram</a>","synthetic":false,"types":["my_iot::services::telegram::Telegram"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

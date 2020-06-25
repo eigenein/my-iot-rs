@@ -1,0 +1,507 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>My IoT</title>
+        
+        <meta name="robots" content="noindex" />
+        
+        
+
+
+        <!-- Custom HTML head -->
+        
+
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        
+        <link rel="stylesheet" href="fonts/fonts.css">
+        
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="introduction/installation.html"><strong aria-hidden="true">1.1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="introduction/settings.html"><strong aria-hidden="true">1.2.</strong> Settings</a></li><li class="chapter-item expanded "><a href="introduction/run-at-system-startup.html"><strong aria-hidden="true">1.3.</strong> Run at System Startup</a></li><li class="chapter-item expanded "><a href="introduction/publish-on-the-internet.html"><strong aria-hidden="true">1.4.</strong> Publish on the Internet</a></li></ol></li><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">2.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><strong aria-hidden="true">2.1.</strong> Buienradar</li><li class="chapter-item expanded "><strong aria-hidden="true">2.2.</strong> Clock</li><li class="chapter-item expanded "><a href="services/lua.html"><strong aria-hidden="true">2.3.</strong> Lua</a></li><li class="chapter-item expanded "><a href="services/solar.html"><strong aria-hidden="true">2.4.</strong> Solar</a></li><li class="chapter-item expanded "><strong aria-hidden="true">2.5.</strong> Tado</li><li class="chapter-item expanded "><strong aria-hidden="true">2.6.</strong> Telegram</li><li class="chapter-item expanded "><strong aria-hidden="true">2.7.</strong> YouLess</li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">My IoT</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                        <a href="https://github.com/eigenein/my-iot-rs" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#introduction" id="introduction">Introduction</a></h1>
+<h2><a class="header" href="#what-is-it" id="what-is-it">What Is It?</a></h2>
+<p>I’m writing something similar to <a href="https://www.home-assistant.io/">Home Assistant</a> from ground up for my tiny set of Wi-Fi enabled devices.</p>
+<p>And no, I didn’t think about the project name long enough.</p>
+<h3><a class="header" href="#why" id="why">Why?</a></h3>
+<ul>
+<li>I want to learn <a href="https://www.rust-lang.org/">Rust</a></li>
+<li>I want it to be as less configurable as possible</li>
+<li>I want it to run fast on my <a href="https://www.raspberrypi.org/products/raspberry-pi-zero-w/">Raspberry Pi Zero W</a></li>
+</ul>
+<h3><a class="header" href="#stack" id="stack">Stack</a></h3>
+<ul>
+<li><a href="https://www.rust-lang.org/">Rust</a></li>
+<li><a href="https://rocket.rs/">Rocket</a></li>
+<li><a href="https://github.com/djc/askama">Askama</a></li>
+<li><a href="https://bulma.io/">Bulma</a></li>
+<li><a href="https://www.lua.org/">Lua</a></li>
+</ul>
+<h1><a class="header" href="#installation" id="installation">Installation</a></h1>
+<p>There’re few different ways to install My IoT. Either way, you get a single executable <code>my-iot</code>.</p>
+<hr />
+<p><strong>File Capabilities</strong></p>
+<p>You may need to manually set capabilities on the produced binary:</p>
+<pre><code class="language-bash">setcap cap_net_raw+ep /home/pi/.cargo/bin/my-iot
+</code></pre>
+<p>This is needed to use some low-level protocols (for instance, <a href="https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol">ICMP</a>) as a non-root user.</p>
+<hr />
+<h2><a class="header" href="#pre-compiled-binaries-for-raspberry-pi-zero-w" id="pre-compiled-binaries-for-raspberry-pi-zero-w">Pre-compiled binaries for Raspberry Pi Zero W</a></h2>
+<pre><code class="language-bash">curl -fsSL https://raw.githubusercontent.com/eigenein/my-iot-rs/master/install.sh | bash
+</code></pre>
+<h2><a class="header" href="#install-from-cratesio" id="install-from-cratesio">Install from crates.io</a></h2>
+<p><strong>Note</strong>: the crate is outdated, I’m waiting for an Askama release.</p>
+<pre><code class="language-bash">cargo install my-iot
+</code></pre>
+<h2><a class="header" href="#compile-from-sources" id="compile-from-sources">Compile from sources</a></h2>
+<pre><code class="language-bash">git clone https://github.com/eigenein/my-iot-rs.git
+cd my-iot-rs
+make
+sudo make install
+</code></pre>
+<h2><a class="header" href="#cross-compile-for-raspberry-pi-zero-w" id="cross-compile-for-raspberry-pi-zero-w">Cross-compile for Raspberry Pi Zero W</a></h2>
+<pre><code class="language-bash">make docker/build/arm-unknown-linux-gnueabihf
+</code></pre>
+<h1><a class="header" href="#settings" id="settings">Settings</a></h1>
+<p>My IoT is configured using <a href="https://github.com/toml-lang/toml">TOML</a> files specified as command-line arguments:</p>
+<pre><code class="language-bash">my-iot my-iot.toml
+</code></pre>
+<h2><a class="header" href="#example" id="example">Example</a></h2>
+<pre><code class="language-toml"># my-iot.toml
+
+http_port = 8080
+
+# `heartbeat` is a user-defined service ID.
+[services.heartbeat]
+type = &quot;Clock&quot;
+interval_millis = 2000
+
+[services.weather]
+type = &quot;Buienradar&quot;
+station_id = 6240
+</code></pre>
+<h2><a class="header" href="#securing-secrets" id="securing-secrets">Securing Secrets</a></h2>
+<p>It’s a common pattern to split configuration into non-secret and secret parts, where non-secret part is stored under a version control.</p>
+<p><code>my-iot</code> allows specifying multiple settings files, it means that you can put your secrets in a separate file excluded by <code>.gitignore</code>. Services provide separate configuration section to allow moving it out of public part.</p>
+<p>For example:</p>
+<pre><code class="language-toml"># my-iot.toml:
+[services.telegram]
+type = &quot;Telegram&quot;
+
+[services.sun_amsterdam]
+type = &quot;Solar&quot;
+room_title = &quot;Amsterdam&quot;
+
+# secrets.toml:
+[services.telegram.secrets]
+token = &quot;...&quot;
+
+[services.sun_amsterdam.secrets]
+latitude = 52.3667
+longitude = 4.8945
+</code></pre>
+<p>Then you run My IoT as <code>my-iot my-iot.toml secrets.toml</code>.</p>
+<h1><a class="header" href="#run-at-system-startup" id="run-at-system-startup">Run at System Startup</a></h1>
+<p>For now please refer to <a href="https://www.raspberrypi.org/documentation/linux/usage/systemd.md">Raspberry Pi <code>systemd</code> page</a>.</p>
+<h2><a class="header" href="#example-1" id="example-1">Example</a></h2>
+<pre><code class="language-bash">cat /lib/systemd/system/my-iot.service
+</code></pre>
+<pre><code class="language-ini">[Unit]
+Description = my-iot
+BindsTo = network-online.target
+After = network.target network-online.target
+
+[Service]
+ExecStart = /home/pi/bin/my-iot --silent my-iot/my-iot.toml my-iot/secrets.toml
+WorkingDirectory = /home/pi
+StandardOutput = journal
+StandardError = journal
+Restart = always
+User = pi
+
+[Install]
+WantedBy = multi-user.target
+</code></pre>
+<pre><code class="language-bash">sudo systemctl enable my-iot
+sudo systemctl status my-iot
+sudo systemctl start my-iot
+sudo systemctl stop my-iot
+sudo systemctl restart my-iot
+</code></pre>
+<h2><a class="header" href="#logs" id="logs">Logs</a></h2>
+<pre><code class="language-bash">journalctl -u my-iot -f
+</code></pre>
+<p>See also: <a href="https://www.digitalocean.com/community/tutorials/how-to-use-journalctl-to-view-and-manipulate-systemd-logs">How To Use Journalctl to View and Manipulate Systemd Logs</a>.</p>
+<h1><a class="header" href="#a-hrefhttpsdocsnginxcomnginxadmin-guideweb-serverreverse-proxypublish-on-the-interneta" id="a-hrefhttpsdocsnginxcomnginxadmin-guideweb-serverreverse-proxypublish-on-the-interneta"><a href="https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/">Publish on the Internet</a></a></h1>
+<h2><a class="header" href="#checklist" id="checklist">Checklist</a></h2>
+<ul>
+<li>Configure <a href="https://letsencrypt.org/">Let’s Encrypt</a> or another certificate provider</li>
+<li>Set right certificate and private key paths</li>
+<li>Generate <code>.htpasswd</code> or configure another way of authentication</li>
+</ul>
+<h2><a class="header" href="#example-2" id="example-2">Example</a></h2>
+<pre><code class="language-nginx">events { }
+
+http {
+    upstream backend {
+        server 127.0.0.1:8081;
+        keepalive 32;
+    }
+
+    server {
+        listen 443 ssl default_server;
+        listen [::]:443 default_server;
+        charset utf-8;
+
+        add_header Strict-Transport-Security max-age=2592000;
+
+        ssl_session_cache shared:SSL:10m;
+        ssl_session_timeout 10m;
+        ssl_protocols  TLSv1 TLSv1.1 TLSv1.2;
+        ssl_certificate /etc/letsencrypt/live/example.com/cert.pem;
+        ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+        ssl_ciphers 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA';
+        ssl_prefer_server_ciphers on;
+
+        gzip on;
+        gzip_buffers 16 8k;
+        gzip_comp_level 6;
+        gzip_http_version 1.1;
+        gzip_min_length 256;
+        gzip_proxied any;
+        gzip_vary on;
+        gzip_types
+            text/xml application/xml application/atom+xml application/rss+xml application/xhtml+xml image/svg+xml
+            text/javascript application/javascript application/x-javascript
+            text/x-json application/json application/x-web-app-manifest+json
+            text/css text/plain text/x-component
+            font/opentype application/x-font-ttf application/vnd.ms-fontobject
+            image/x-icon;
+        gzip_disable &quot;msie6&quot;;
+
+        auth_basic &quot;My IoT&quot;;
+        auth_basic_user_file /etc/.htpasswd;
+
+        location / {
+            proxy_pass http://backend;
+            proxy_http_version 1.1;
+            proxy_set_header Connection &quot;&quot;;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+    }
+}
+</code></pre>
+<h1><a class="header" href="#services" id="services">Services</a></h1>
+<p><strong>Service</strong> is a kind of interface between My IoT and the real world. You can set up as many services as you want, even multiple services of a same type. A service is typically capable of:</p>
+<ul>
+<li>Producing messages about something is happening</li>
+<li>Listening to other services messages and reacting on them</li>
+</ul>
+<h1><a class="header" href="#a-hrefhttpswwwluaorgluaa" id="a-hrefhttpswwwluaorgluaa"><a href="https://www.lua.org/">Lua</a></a></h1>
+<p><strong>Lua</strong> service allows to react on incoming messages via a Lua script, so you can implement virtually anything.</p>
+<h2><a class="header" href="#example-3" id="example-3">Example</a></h2>
+<pre><code class="language-toml">[services.example]
+type = &quot;Lua&quot;
+# language=lua
+script = '''
+    sendMessage(&quot;hello::wind&quot;, &quot;READ_NON_LOGGED&quot;, {bft = 5})
+
+    function onMessage(message)
+      info(string.format(&quot;%s: %s&quot;, message.sensor_id, message.value))
+    end
+'''
+</code></pre>
+<h2><a class="header" href="#onmessage" id="onmessage"><code>onMessage</code></a></h2>
+<p>User function with the name of <code>onMessage</code> gets called on each message and receives one argument <code>message</code> which is a table that contains the following indices:</p>
+<ul>
+<li><code>sensor_id</code></li>
+<li><code>type</code></li>
+<li><code>room_title</code></li>
+<li><code>sensor_title</code></li>
+<li><code>value</code></li>
+<li><code>timestamp_millis</code></li>
+</ul>
+<h2><a class="header" href="#builtins" id="builtins">Builtins</a></h2>
+<p>My IoT adds some extra globals to execution context:</p>
+<h3><a class="header" href="#debug-info-warn-and-error" id="debug-info-warn-and-error"><code>debug</code>, <code>info</code>, <code>warn</code> and <code>error</code></a></h3>
+<p>These functions are similar to the Rust’s ones, but they only accept a single string literal as the only parameter. Whatever you pass there will go through My IoT logging and so is manageable by e.g. <code>journalctl</code> or whatever logging system you use.</p>
+<h3><a class="header" href="#function-sendmessagesensor_id-type-args" id="function-sendmessagesensor_id-type-args"><code>function sendMessage(sensor_id, type, {args})</code></a></h3>
+<p>Sends out a message with the given <code>sensor_id</code> (string), <code>type</code> (see below) and arguments <code>args</code> (see below). You use this to control other services as well as provide custom sensors.</p>
+<p>Possible message <code>type</code>-s are:</p>
+<table><thead><tr><th>Constant</th><th></th></tr></thead><tbody>
+<tr><td><code>&quot;READ_LOGGED&quot;</code></td><td>TODO</td></tr>
+<tr><td><code>&quot;READ_NON_LOGGED&quot;</code></td><td>TODO</td></tr>
+<tr><td><code>&quot;READ_SNAPSHOT&quot;</code></td><td>TODO</td></tr>
+<tr><td><code>&quot;WRITE&quot;</code></td><td>TODO</td></tr>
+</tbody></table>
+<p>Optional parameter <code>args</code> is a table, which may provide additional message details:</p>
+<table><thead><tr><th>Index</th><th>Type</th><th></th></tr></thead><tbody>
+<tr><td><code>room_title</code></td><td>string</td><td>TODO</td></tr>
+<tr><td><code>sensor_title</code></td><td>string</td><td>TODO</td></tr>
+<tr><td><code>timestamp_millis</code></td><td>number</td><td>TODO</td></tr>
+</tbody></table>
+<p>All indices are optional. Also, a value is provided via either of the following indices in <code>args</code>:</p>
+<table><thead><tr><th>Index</th><th>Type</th><th></th></tr></thead><tbody>
+<tr><td><code>bft</code></td><td>integer</td><td>Beaufort wind force</td></tr>
+<tr><td><code>counter</code></td><td>integer</td><td>Unsigned unit-less counter</td></tr>
+<tr><td><code>image_url</code></td><td>string</td><td>Image URL</td></tr>
+<tr><td><code>bool</code></td><td>boolean</td><td><code>true</code> and <code>false</code></td></tr>
+<tr><td><code>wind_direction</code></td><td>string</td><td>Point of the compass that represents a wind direction</td></tr>
+<tr><td><code>data_size</code></td><td>integer</td><td>Data size in bytes</td></tr>
+<tr><td><code>text</code></td><td>string</td><td>Plain text</td></tr>
+<tr><td><code>rh</code></td><td>number</td><td>Relative humidity in percents</td></tr>
+<tr><td><code>celsius</code></td><td>number</td><td>Temperature in degrees Celsius</td></tr>
+<tr><td><code>kelvin</code></td><td>number</td><td>Temperature in Kelvins</td></tr>
+<tr><td><code>meters</code></td><td>number</td><td>Length in meters</td></tr>
+</tbody></table>
+<h4><a class="header" href="#a-hrefhttpsenwikipediaorgwikipoints_of_the_compasspoints-of-the-compassa" id="a-hrefhttpsenwikipediaorgwikipoints_of_the_compasspoints-of-the-compassa"><a href="https://en.wikipedia.org/wiki/Points_of_the_compass">Points of the Compass</a></a></h4>
+<p>TODO</p>
+<h2><a class="header" href="#recipes" id="recipes">Recipes</a></h2>
+<p>I store my settings on <a href="https://gist.github.com/eigenein/f4af6ca1d8db0cd36de981429aa3e6e2">GitHub Gist</a> as an extra example.</p>
+<h3><a class="header" href="#rise-and-shine-ikea-trådfri-lights-starting-one-hour-before-sunset" id="rise-and-shine-ikea-trådfri-lights-starting-one-hour-before-sunset">«Rise and shine» IKEA Trådfri lights starting one hour before sunset</a></h3>
+<p>At the moment of writing the recipe there is no native <code>Tradfri</code> service. I’m following <a href="https://github.com/glenndehaan/ikea-tradfri-coap-docs/blob/master/README.md">the <code>coap-client</code> tutorial</a> to control bulbs.</p>
+<pre><code class="language-toml">[services.sun_vijfhuizen]
+type = &quot;Solar&quot;
+latitude = 52.000000
+longitude = 4.000000
+room_title = &quot;Vijfhuizen&quot;
+
+[services.rise_and_shine]
+type = &quot;Lua&quot;
+filter_sensor_ids = &quot;^sun_vijfhuizen::before::sunset$&quot;
+script = '''
+function onMessage(message)
+  if message.value &lt; 3600 then
+    os.execute(string.format(
+      &quot;coap-client -m put -u user -k shared_key -e '{\&quot;5851\&quot;: %d}' coaps://GW-XXXXXXXXXXXX.home:5684/15004/131080&quot;,
+      math.floor(255 * ((3600 - message.value) / 3600))
+    ))
+  end
+end
+</code></pre>
+<h1><a class="header" href="#solar" id="solar">Solar</a></h1>
+<pre><code class="language-text">2020-04-29 17:32:17,804 INFO  [my_iot::core::persistence::thread] sun_vijfhuizen::before::sunset: ReadSnapshot Duration(12667.827000000001 s^1)
+2020-04-29 17:32:17,806 INFO  [my_iot::core::persistence::thread] sun_vijfhuizen::after::sunrise: ReadSnapshot Duration(40832.16 s^1)
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+        <!-- Google Analytics Tag -->
+        <script type="text/javascript">
+            var localAddrs = ["localhost", "127.0.0.1", ""];
+
+            // make sure we don't activate google analytics if the developer is
+            // inspecting the book locally...
+            if (localAddrs.indexOf(document.location.hostname) === -1) {
+                (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+                ga('create', 'UA-65034198-8', 'auto');
+                ga('send', 'pageview');
+            }
+        </script>
+        
+
+        
+
+        
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+        
+        <script type="text/javascript">
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+        
+        
+
+    </body>
+</html>

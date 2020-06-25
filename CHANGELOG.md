@@ -5,6 +5,7 @@
 - Fix sensor titles
 - Refactor Tado° service #73
 - Add `--service-id` CLI option to run only specified services
+- Replace rustdoc with mdBook
 
 ## `0.54.0`
 

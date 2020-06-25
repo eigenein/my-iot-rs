@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["Type","Message type."]],"struct":[["Message","Services use messages to exchange sensor readings between each other. Message contains a single sensor reading alongside with some metadata."]]});

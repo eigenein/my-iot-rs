@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["my_iot"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html\" title=\"trait core::ops::deref::Deref\">Deref</a> for <a class=\"struct\" href=\"my_iot/web/struct.STATICS.html\" title=\"struct my_iot::web::STATICS\">STATICS</a>","synthetic":false,"types":["my_iot::web::STATICS"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

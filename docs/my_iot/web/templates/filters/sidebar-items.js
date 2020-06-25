@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["color_class","Returns a color class to display the value."],["column_width","Returns a column size suitable to fit the value."],["format_datetime",""],["icon","Returns a Font Awesome icon tag for the value."]]});
