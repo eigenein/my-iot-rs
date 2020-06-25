@@ -3,6 +3,7 @@
 ## `master`
 
 - Fix `::open_window_activated` message type
+- Some rotated icons for a wind direction #7
 
 ## `0.56.0`
 
