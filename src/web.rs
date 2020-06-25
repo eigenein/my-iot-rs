@@ -67,7 +67,7 @@ fn get_index(db: State<Connection>) -> Result<Html<String>> {
 fn get_settings(settings: State<Settings>) -> Result<Html<String>> {
     Ok(Html(
         templates::SettingsTemplate {
-            settings: toml::to_string_pretty(settings.inner())?,
+            settings: toml::to_string_pretty(&toml::Value::try_from(settings.inner())?)?,
         }
         .to_string(),
     ))

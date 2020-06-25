@@ -2,6 +2,8 @@
 
 ## `master`
 
+- Fix 500
+
 ## `0.55.1`
 
 - Remove extra calls in Tado° service #73
