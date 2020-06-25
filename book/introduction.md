@@ -2,7 +2,7 @@
 
 ## What Is It?
 
-I'm writing something similar to [Home Assistant](https://www.home-assistant.io/) from ground up for my tiny set of Wi-Fi enabled devices.
+I'm writing something similar to [Home Assistant](https://www.home-assistant.io/) from ground up for my tiny set of "smart" devices.
 
 And no, I didn't think about the project name long enough.
 

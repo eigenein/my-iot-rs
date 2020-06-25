@@ -1,4 +1,4 @@
-//! [Telegram bot](https://core.telegram.org/bots/api) service that is able to receive and send messages.
+//! [Telegram bot](https://core.telegram.org/bots/api) service which is able to receive and send messages.
 
 use crate::prelude::*;
 use crate::services::prelude::*;
