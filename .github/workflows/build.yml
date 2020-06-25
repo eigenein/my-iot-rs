@@ -18,6 +18,8 @@ jobs:
           toolchain: nightly
           override: true
           components: rustfmt, clippy
+      - name: Install
+        run: cargo install mdbook mdbook-linkcheck
       - uses: actions/checkout@v2
       - name: Check
         run: make check
