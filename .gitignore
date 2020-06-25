@@ -2,6 +2,7 @@
 *.backup
 *.toml
 src/fontawesome.zip
+docs/linkcheck
 !Cargo.toml
 !book.toml
 

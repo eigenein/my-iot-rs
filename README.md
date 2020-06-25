@@ -2,7 +2,7 @@
 
 Yet another [home automation](https://en.wikipedia.org/wiki/Home_automation). Written in [Rust](https://www.rust-lang.org/).
 
-[![Documentation](https://img.shields.io/badge/-documentation-gray.svg?logo=rust&style=for-the-badge)](https://eigenein.github.io/my-iot-rs/)
+[![Documentation](https://img.shields.io/badge/-documentation-gray.svg?logo=rust&style=for-the-badge)](https://eigenein.github.io/my-iot-rs/html)
 
 [![Crates.io](https://img.shields.io/crates/v/my-iot?logo=rust)](https://crates.io/crates/my-iot)
 [![Crates.io](https://img.shields.io/crates/l/my-iot)](https://crates.io/crates/my-iot)
