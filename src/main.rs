@@ -30,7 +30,11 @@ struct Opt {
     #[structopt(long, env = "MYIOT_DB", default_value = "my-iot.sqlite3")]
     db: String,
 
-    /// Settings files
+    /// Run only the specified service IDs.
+    #[structopt(long = "service-id")]
+    service_ids: Option<Vec<String>>,
+
+    /// Setting files
     #[structopt(parse(from_os_str), env = "MYIOT_SETTINGS", default_value = "my-iot.toml")]
     settings: Vec<PathBuf>,
 }
@@ -53,7 +57,7 @@ fn main() -> Result<()> {
         .send(Message::new("my-iot::start").type_(MessageType::ReadNonLogged))?;
     core::persistence::thread::spawn(db.clone(), &mut bus)?;
     services::db::Db.spawn("system::db".into(), &mut bus, db.clone())?;
-    core::services::spawn_all(&settings, &mut bus)?;
+    core::services::spawn_all(&settings, &opt.service_ids, &mut bus)?;
     bus.spawn()?;
 
     info!("Starting web server on port {}…", settings.http_port);
@@ -77,6 +81,10 @@ fn init_logging(silent: bool, verbose: bool) -> Result<()> {
             .set_time_format_str("%F %T%.3f")
             .set_time_to_local(true)
             .add_filter_ignore_str("launch_")
+            .add_filter_ignore_str("rustls")
+            .add_filter_ignore_str("reqwest")
+            .add_filter_ignore_str("h2")
+            .add_filter_ignore_str("hyper")
             .build(),
         TerminalMode::Stderr,
     )?;

@@ -4,8 +4,15 @@ use crate::prelude::*;
 use crate::settings::{Service, Settings};
 
 /// Spawn all the configured services.
-pub fn spawn_all(settings: &Settings, bus: &mut Bus) -> Result<()> {
+pub fn spawn_all(settings: &Settings, service_ids: &Option<Vec<String>>, bus: &mut Bus) -> Result<()> {
     for (service_id, service) in settings.services.iter() {
+        if let Some(service_ids) = service_ids {
+            if !service_ids.contains(service_id) {
+                warn!("`{}` is not included in the `--service-id` option", service_id);
+                continue;
+            }
+        }
+
         info!("Spawning service `{}`…", service_id);
         debug!("Settings `{}`: {:?}", service_id, service);
         let service_id = service_id.clone();

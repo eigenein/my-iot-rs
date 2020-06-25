@@ -3,6 +3,7 @@
 use crate::prelude::*;
 use crate::services::prelude::*;
 use reqwest::Url;
+use std::sync::{Arc, Mutex, MutexGuard};
 use std::thread;
 use std::time::{Duration, SystemTime};
 
@@ -17,6 +18,10 @@ pub struct Tado {
 
     #[serde(skip, default = "default_client")]
     client: Client,
+
+    /// Last known log-in credentials.
+    #[serde(skip, default = "default_token")]
+    token: Arc<Mutex<Option<Token>>>,
 }
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
@@ -25,30 +30,31 @@ pub struct Secrets {
     password: String,
 }
 
+/// Creates an empty token by default.
+fn default_token() -> Arc<Mutex<Option<Token>>> {
+    Arc::new(Mutex::new(None))
+}
+
 impl Tado {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
 
-        thread::Builder::new().name(service_id.clone()).spawn(move || {
-            let mut token: Option<Token> = None;
-            loop {
-                if let Err(error) = self.loop_(&service_id, &mut token, &tx) {
-                    error!("Failed to refresh the sensors: {}", error.to_string());
-                }
-                thread::sleep(REFRESH_PERIOD);
+        thread::Builder::new().name(service_id.clone()).spawn(move || loop {
+            if let Err(error) = self.loop_(&service_id, &tx) {
+                error!("Failed to refresh the sensors: {}", error.to_string());
             }
+            thread::sleep(REFRESH_PERIOD);
         })?;
 
         Ok(())
     }
 
-    fn loop_(&self, service_id: &str, token: &mut Option<Token>, tx: &Sender) -> Result<()> {
-        let access_token = self.check_login(token)?;
+    fn loop_(&self, service_id: &str, tx: &Sender) -> Result<()> {
         let ttl = chrono::Duration::seconds(600);
 
-        let me = self.get_me(&access_token)?;
-        let home = self.get_home(&access_token, me.home_id)?;
-        let weather = self.get_weather(&access_token, me.home_id)?;
+        let me = self.get_me()?;
+        let home = self.get_home(me.home_id)?;
+        let weather = self.get_weather(me.home_id)?;
 
         Message::new(format!("{}::{}::solar_intensity", service_id, me.home_id))
             .timestamp(weather.solar_intensity.timestamp)
@@ -58,7 +64,7 @@ impl Tado {
             .sensor_title("Solar Intensity")
             .send_and_forget(tx);
 
-        let home_state = self.get_home_state(&access_token, me.home_id)?;
+        let home_state = self.get_home_state(me.home_id)?;
 
         Message::new(format!("{}::{}::is_home", service_id, me.home_id))
             .expires_in(ttl)
@@ -67,9 +73,9 @@ impl Tado {
             .sensor_title("Home")
             .send_and_forget(tx);
 
-        for zone in self.get_zones(&access_token, me.home_id)?.iter() {
+        for zone in self.get_zones(me.home_id)?.iter() {
             let sensor_prefix = format!("{}::{}::{}", service_id, me.home_id, zone.id);
-            let zone_state = self.get_zone_state(&access_token, me.home_id, zone.id)?;
+            let zone_state = self.get_zone_state(me.home_id, zone.id)?;
             let zone_title = match zone.type_ {
                 ZoneType::Heating => "Heating",
                 ZoneType::HotWater => "Hot Water",
@@ -130,30 +136,28 @@ impl Tado {
         Ok(())
     }
 
-    /// Checks if the service is logged in. Logs in or refreshes access token when needed.
+    /// Ensures that the service is logged in. Logs in or refreshes the access token when needed.
     /// Returns an active access token.
-    fn check_login(&self, current_token: &mut Option<Token>) -> Result<String> {
-        Ok(match current_token {
+    fn get_access_token(&self) -> Result<String> {
+        let token_guard = self.token.lock().unwrap();
+        Ok(match *token_guard {
             None => {
-                let response = self.log_in()?;
-                let access_token = response.access_token.clone();
-                *current_token = Some(response);
-                access_token
+                debug!("No active token yet");
+                self.log_in(token_guard)?
             }
-            Some(token) => {
-                if !token.is_unexpired() {
-                    let new_token = self.refresh_token(&token.refresh_token)?;
-                    let access_token = new_token.access_token.clone();
-                    *current_token = Some(new_token);
-                    access_token
+            Some(ref token) => {
+                if token.is_expired() {
+                    debug!("The token has expired");
+                    self.refresh_token(token_guard)?
                 } else {
+                    debug!("There is an active token");
                     token.access_token.clone()
                 }
             }
         })
     }
 
-    fn log_in(&self) -> Result<Token> {
+    fn log_in(&self, mut token_guard: MutexGuard<Option<Token>>) -> Result<String> {
         debug!("Logging in…");
         let response = self
             .client
@@ -171,10 +175,12 @@ impl Tado {
             .send()?
             .json::<Token>()?;
         debug!("Logged in, token expires at: {:?}", response.expires_at);
-        Ok(response)
+        let access_token = response.access_token.clone();
+        *token_guard = Some(response);
+        Ok(access_token)
     }
 
-    fn refresh_token(&self, refresh_token: &str) -> Result<Token> {
+    fn refresh_token(&self, mut token_guard: MutexGuard<Option<Token>>) -> Result<String> {
         debug!("Refreshing token…");
         let response = self
             .client
@@ -185,20 +191,27 @@ impl Tado {
                     ("client_secret", CLIENT_SECRET),
                     ("grant_type", "refresh_token"),
                     ("scope", SCOPE),
-                    ("refresh_token", refresh_token),
+                    (
+                        "refresh_token",
+                        &self.token.lock().unwrap().as_ref().unwrap().refresh_token,
+                    ),
                 ],
             )?)
             .send()?
             .json::<Token>()?;
         debug!("Logged in, token expires at: {:?}", response.expires_at);
-        Ok(response)
+        let access_token = response.access_token.clone();
+        *token_guard = Some(response);
+        Ok(access_token)
     }
 
-    fn call<U, R>(&self, url: U, access_token: &str) -> Result<R>
+    fn call<U, R>(&self, url: U) -> Result<R>
     where
-        U: AsRef<str>,
+        U: AsRef<str> + std::fmt::Display,
         R: DeserializeOwned,
     {
+        debug!("Calling {}…", url);
+        let access_token = self.get_access_token()?;
         Ok(self
             .client
             .get(url.as_ref())
@@ -207,44 +220,35 @@ impl Tado {
             .json()?)
     }
 
-    fn get_me(&self, access_token: &str) -> Result<Me> {
-        self.call("https://my.tado.com/api/v1/me", access_token)
+    fn get_me(&self) -> Result<Me> {
+        self.call("https://my.tado.com/api/v1/me")
     }
 
-    fn get_home(&self, access_token: &str, home_id: u32) -> Result<Home> {
-        self.call(format!("https://my.tado.com/api/v2/homes/{}", home_id), access_token)
+    fn get_home(&self, home_id: u32) -> Result<Home> {
+        self.call(format!("https://my.tado.com/api/v2/homes/{}", home_id))
     }
 
-    fn get_zones(&self, access_token: &str, home_id: u32) -> Result<Zones> {
-        self.call(
-            format!("https://my.tado.com/api/v2/homes/{}/zones", home_id),
-            access_token,
-        )
+    fn get_zones(&self, home_id: u32) -> Result<Zones> {
+        self.call(format!("https://my.tado.com/api/v2/homes/{}/zones", home_id))
     }
 
-    fn get_weather(&self, access_token: &str, home_id: u32) -> Result<Weather> {
-        self.call(
-            format!("https://my.tado.com/api/v2/homes/{}/weather", home_id),
-            access_token,
-        )
+    fn get_weather(&self, home_id: u32) -> Result<Weather> {
+        self.call(format!("https://my.tado.com/api/v2/homes/{}/weather", home_id))
     }
 
-    fn get_home_state(&self, access_token: &str, home_id: u32) -> Result<HomeState> {
-        self.call(
-            format!("https://my.tado.com/api/v2/homes/{}/state", home_id),
-            access_token,
-        )
+    fn get_home_state(&self, home_id: u32) -> Result<HomeState> {
+        self.call(format!("https://my.tado.com/api/v2/homes/{}/state", home_id))
     }
 
-    fn get_zone_state(&self, access_token: &str, home_id: u32, zone_id: u32) -> Result<ZoneState> {
-        self.call(
-            format!("https://my.tado.com/api/v2/homes/{}/zones/{}/state", home_id, zone_id),
-            access_token,
-        )
+    fn get_zone_state(&self, home_id: u32, zone_id: u32) -> Result<ZoneState> {
+        self.call(format!(
+            "https://my.tado.com/api/v2/homes/{}/zones/{}/state",
+            home_id, zone_id,
+        ))
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct Token {
     access_token: String,
 
@@ -255,8 +259,8 @@ struct Token {
 }
 
 impl Token {
-    pub fn is_unexpired(&self) -> bool {
-        self.expires_at > SystemTime::now()
+    pub fn is_expired(&self) -> bool {
+        SystemTime::now() >= self.expires_at
     }
 }
 
