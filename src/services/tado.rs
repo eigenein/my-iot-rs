@@ -139,6 +139,7 @@ impl Tado {
 
             if self.enable_open_window_detection_skill && zone_state.open_window_detected {
                 Message::new(format!("{}::open_window_activated", sensor_prefix))
+                    .type_(MessageType::ReadNonLogged)
                     .room_title(&zone.name)
                     .sensor_title("Open Window Activated")
                     .send_and_forget(tx);

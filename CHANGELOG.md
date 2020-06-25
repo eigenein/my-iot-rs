@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Fix `::open_window_activated` message type
+
 ## `0.56.0`
 
 - Fix 500 on the Settings page
