@@ -1,8 +1,9 @@
 # `my-iot`
 
-## `master`
+## `0.59.3`
 
 - Remove `make install` and `make uninstall` targets
+- Decrease tado° refresh period to 3 minutes
 
 ## `0.59.2`
 

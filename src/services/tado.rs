@@ -10,7 +10,7 @@ use std::time::{Duration, SystemTime};
 const CLIENT_ID: &str = "public-api-preview";
 const CLIENT_SECRET: &str = "4HJGRffVR8xb3XdEUQpjgZ1VplJi6Xgw";
 const SCOPE: &str = "home.user";
-const REFRESH_PERIOD: Duration = Duration::from_secs(300);
+const REFRESH_PERIOD: Duration = Duration::from_secs(180);
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Tado {
