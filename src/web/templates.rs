@@ -274,6 +274,8 @@ mod filters {
                 _ if value < 90.0 => "is-warning",
                 _ => "is-danger",
             },
+            Value::Power(value) if value <= 0.0 => "is-success",
+            Value::Power(value) if value > 0.0 => "is-danger",
             _ => "is-light",
         })
     }

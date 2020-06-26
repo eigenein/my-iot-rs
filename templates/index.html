@@ -18,16 +18,16 @@
   <section class="columns">
     <div class="column is-2 is-hidden-touch">
       <section class="section">
-      <div class="container">
-        <aside class="menu">
-          <p class="menu-label">Rooms</p>
-          <ul class="menu-list">
-            {% for (room_title, _) in actuals %}
-              <li><a href="#{{ room_title|slug }}">{{ room_title }}</a></li>
-            {% endfor %}
-          </ul>
-        </aside>
-      </div>
+        <div class="container">
+          <aside class="menu">
+            <p class="menu-label">Rooms</p>
+            <ul class="menu-list">
+              {% for (room_title, _) in actuals %}
+                <li><a href="#{{ room_title|slug }}">{{ room_title }}</a></li>
+              {% endfor %}
+            </ul>
+          </aside>
+        </div>
       </section>
     </div>
 

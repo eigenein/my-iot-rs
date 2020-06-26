@@ -1,7 +1,8 @@
 # `my-iot`
 
-## `master`
+## `0.59.0`
 
+- Sensor side panel
 - Fix `None` icon
 
 ## `0.58.0`
