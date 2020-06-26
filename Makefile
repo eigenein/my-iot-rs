@@ -1,8 +1,6 @@
 # Please, follow the target naming conventions:
 # https://www.gnu.org/prep/standards/html_node/Standard-Targets.html
 
-EXECUTABLE_PATH := /usr/local/bin/my-iot
-
 .PHONY: all
 all:
 	@RUSTFLAGS="-D warnings" cargo build --release
@@ -30,16 +28,8 @@ check/docs:
 .PHONY: check
 check: check/clippy check/fmt check/test check/docs
 
-.PHONY: install
-install:
-	@cp target/release/my-iot $(EXECUTABLE_PATH)
-	@setcap cap_net_raw+ep $(EXECUTABLE_PATH) || echo "Warning: install setcap to enable non-root ICMP"
-
-.PHONY: uninstall
-uninstall:
-	@rm -f $(EXECUTABLE_PATH)
-
-html docs: book book.toml
+.PHONY: html docs
+html docs:
 	@mdbook build
 	@touch docs
 

@@ -30,15 +30,6 @@ curl -fsSL https://raw.githubusercontent.com/eigenein/my-iot-rs/master/install.s
 cargo install my-iot
 ```
 
-## Compile from sources
-
-```bash
-git clone https://github.com/eigenein/my-iot-rs.git
-cd my-iot-rs
-make
-sudo make install
-```
-
 ## Cross-compile for Raspberry Pi Zero W
 
 ```bash

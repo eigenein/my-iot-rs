@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Remove `make install` and `make uninstall` targets
+
 ## `0.59.2`
 
 - Add `make tag` and `make tag/publish` targets
