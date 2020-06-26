@@ -11,7 +11,7 @@ use serde_json::json;
 #[template(path = "index.html")]
 pub struct IndexTemplate {
     #[allow(clippy::type_complexity)]
-    pub actuals: Vec<(Option<String>, Vec<(Sensor, Reading)>)>,
+    pub actuals: Vec<(String, Vec<(Sensor, Reading)>)>,
 
     pub message_count: u64,
 }
@@ -217,6 +217,10 @@ fn crate_version() -> &'static str {
 mod filters {
     use crate::prelude::*;
 
+    pub fn slug<S: AsRef<str>>(string: S) -> askama::Result<String> {
+        Ok(slug::slugify(string))
+    }
+
     pub fn format_datetime(datetime: &DateTime<Local>) -> askama::Result<String> {
         Ok(datetime.format("%b %d, %H:%M:%S").to_string())
     }
@@ -225,7 +229,7 @@ mod filters {
     pub fn column_width(value: &Value) -> askama::Result<&'static str> {
         Ok(match value {
             Value::ImageUrl(_) => "is-4",
-            _ => "is-2",
+            _ => "is-3",
         })
     }
 

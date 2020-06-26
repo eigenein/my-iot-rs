@@ -15,23 +15,35 @@
     </div>
   </section>
 
-  {% for (room_title, group) in actuals %}
-    <section class="section">
+  <section class="columns">
+    <div class="column is-2 is-hidden-touch">
+      <section class="section">
       <div class="container">
-        <h2 class="title is-5">
-          {% match room_title -%}
-            {% when Some with (room_title) -%}
-              {{ room_title -}}
-            {% else -%}
-              No room
-          {% endmatch -%}
-        </h2>
-        <div class="columns is-multiline">
-          {% for (sensor, reading) in group %}
-            {{ SensorTilePartialTemplate::new(sensor, reading)|safe }}
-          {% endfor %}
-        </div>
+        <aside class="menu">
+          <p class="menu-label">Rooms</p>
+          <ul class="menu-list">
+            {% for (room_title, _) in actuals %}
+              <li><a href="#{{ room_title|slug }}">{{ room_title }}</a></li>
+            {% endfor %}
+          </ul>
+        </aside>
       </div>
-    </section>
-  {% endfor %}
+      </section>
+    </div>
+
+    <div class="column">
+      {% for (room_title, group) in actuals %}
+        <section class="section" id="{{ room_title|slug }}">
+          <div class="container">
+            <h2 class="title is-5">{{ room_title }}</h2>
+            <div class="columns is-multiline">
+              {% for (sensor, reading) in group %}
+                {{ SensorTilePartialTemplate::new(sensor, reading)|safe }}
+              {% endfor %}
+            </div>
+          </div>
+        </section>
+      {% endfor %}
+    </div>
+  </section>
 {% endblock %}

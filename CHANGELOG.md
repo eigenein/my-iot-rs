@@ -1,10 +1,11 @@
 # `my-iot`
 
-## `master`
+## `0.57.0`
 
 - Fix `::open_window_activated` message type
 - Some rotated icons for a wind direction #7
 - Add sensor JSON link to the sensor page, closes #94
+- Add side navigation panel, closes #96
 
 ## `0.56.0`
 
