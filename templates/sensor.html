@@ -23,16 +23,20 @@
             <span title="{{ sensor.id }}">{{ sensor.title() }}</span>
           {% endif -%}
 
-          <i class="fas fa-couch"></i>
+          <span class="icon"><i class="fas fa-couch"></i></span>
           <span>{{ sensor.room_title() }}</span>
 
-          <span><i class="far fa-clock"></i></span>
+          <span class="icon"><i class="far fa-clock"></i></span>
           <span title="{{ reading.timestamp.to_string() }}">
             {{ reading.timestamp|format_datetime }}
           </span>
 
-          <i class="fas fa-link"></i>
-          <span><a href="{{ uri!(get_sensor_json: &self.sensor.id) }}">JSON</a></span>
+          <span>
+            <a href="{{ uri!(get_sensor_json: &self.sensor.id) }}">
+              <span class="icon"><i class="fas fa-link"></i></span>
+              JSON
+            </a>
+          </span>
         </div>
       </div>
     </div>

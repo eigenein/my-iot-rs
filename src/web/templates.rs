@@ -288,21 +288,7 @@ mod filters {
             Value::Rh(_) => r#"<i class="fas fa-water"></i>"#,
             Value::Temperature(_) => r#"<i class="fas fa-thermometer-half"></i>"#,
             Value::Text(_) => r#"<i class="fas fa-quote-left"></i>"#,
-            Value::WindDirection(point) => match point {
-                PointOfTheCompass::North => r#"<i class="fas fa-arrow-up"></i>"#,
-                PointOfTheCompass::Northeast => r#"<i class="fas fa-arrow-up data-fa-transform="rotate-45""></i>"#,
-                PointOfTheCompass::Northwest => r#"<i class="fas fa-arrow-left data-fa-transform="rotate-45""></i>"#,
-                PointOfTheCompass::NorthNorthwest => {
-                    r#"<i class="fas fa-arrow-left data-fa-transform="rotate-67.5""></i>"#
-                }
-                PointOfTheCompass::NorthNortheast => {
-                    r#"<i class="fas fa-arrow-up data-fa-transform="rotate-22.5""></i>"#
-                }
-                PointOfTheCompass::East => r#"<i class="fas fa-arrow-right"></i>"#,
-                PointOfTheCompass::South => r#"<i class="fas fa-arrow-down"></i>"#,
-                PointOfTheCompass::West => r#"<i class="fas fa-arrow-left"></i>"#,
-                _ => r#"<i class="fas fa-wind"></i>"#, // TODO
-            },
+            Value::WindDirection(_) => r#"<i class="fas fa-wind"></i>"#,
             Value::Boolean(value) => {
                 if value {
                     r#"<i class="fas fa-toggle-on"></i>"#
