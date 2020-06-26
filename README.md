@@ -8,3 +8,17 @@ Yet another [home automation](https://en.wikipedia.org/wiki/Home_automation). Wr
 [![Crates.io](https://img.shields.io/crates/l/my-iot)](https://crates.io/crates/my-iot)
 [![Build Status](https://github.com/eigenein/my-iot-rs/workflows/build/badge.svg)](https://github.com/eigenein/my-iot-rs/actions)
 [![GitHub last commit](https://img.shields.io/github/last-commit/eigenein/my-iot-rs?logo=github)](https://github.com/eigenein/my-iot-rs/commits/master)
+
+## Screenshots
+
+### Home
+
+![Home](screenshots/index.png)
+
+### Sensor View
+
+![Sensor view](screenshots/sensor.png)
+
+### Settings View
+
+![Settings view](screenshots/settings.png)
