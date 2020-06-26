@@ -25,7 +25,7 @@ pub struct YouLess {
 
 /// Defaults to one minute.
 const fn default_interval_millis() -> u64 {
-    5000
+    1000
 }
 
 const fn default_ttl_millis() -> u64 {

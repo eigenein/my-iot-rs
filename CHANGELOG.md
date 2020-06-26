@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.58.0`
+
+- Upsert messages in bulks #97
+
 ## `0.57.0`
 
 - Fix `::open_window_activated` message type

@@ -48,7 +48,10 @@ impl Bus {
         info!("Spawning message bus…");
         thread::Builder::new().name("system::bus".into()).spawn(move || {
             for message in &self.rx {
-                debug!("Dispatching {}", &message.sensor.id);
+                info!(
+                    "[{:?}] {} = {:?}",
+                    &message.type_, &message.sensor.id, &message.reading.value
+                );
                 for tx in self.service_txs.iter() {
                     message.clone().send_and_forget(&tx);
                 }

@@ -186,14 +186,12 @@ fn get_i64(row: &Row) -> rusqlite::Result<i64> {
 
 impl Message {
     /// Upsert the message into the database.
-    pub fn upsert_into(&self, connection: &Connection) -> Result<()> {
+    pub fn upsert_into(&self, connection: &rusqlite::Connection) -> Result<()> {
         let sensor_pk = hash_sensor_id(&self.sensor.id);
         let timestamp = self.reading.timestamp.timestamp_millis();
         let value = serde_json::to_string(&self.reading.value)?;
-        let mut connection = connection.connection()?;
-        let transaction = connection.transaction()?;
 
-        transaction
+        connection
             .prepare_cached(
                 // language=sql
                 r#"
@@ -219,7 +217,7 @@ impl Message {
                 self.sensor.expires_at.timestamp_millis(),
             ])?;
 
-        transaction
+        connection
             .prepare_cached(
                 // language=sql
                 r#"
@@ -230,8 +228,6 @@ impl Message {
             "#,
             )?
             .execute(params![sensor_pk, timestamp, value])?;
-
-        transaction.commit()?;
 
         Ok(())
     }
@@ -256,8 +252,12 @@ mod tests {
             .timestamp(Local.timestamp_millis(1_566_424_128_000));
 
         let db = Connection::open_and_initialize(":memory:")?;
-        message.upsert_into(&db)?;
-        message.upsert_into(&db)?;
+        {
+            // It acquires a lock on the database.
+            let connection = db.connection()?;
+            message.upsert_into(&connection)?;
+            message.upsert_into(&connection)?;
+        }
 
         assert_eq!(db.select_reading_count()?, 1);
 
@@ -278,7 +278,7 @@ mod tests {
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .expires_at(Local.ymd(9999, 1, 1).and_hms(0, 0, 0));
         let db = Connection::open_and_initialize(":memory:")?;
-        message.upsert_into(&db)?;
+        message.upsert_into(&*db.connection()?)?;
         assert_eq!(db.select_sensor("test")?, Some(message.into()));
         Ok(())
     }
@@ -290,9 +290,9 @@ mod tests {
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_127_000))
             .expires_at(Local.ymd(9999, 1, 1).and_hms(0, 0, 0));
-        message.upsert_into(&db)?;
+        message.upsert_into(&*db.connection()?)?;
         message = message.timestamp(Local.timestamp_millis(1_566_424_128_000));
-        message.upsert_into(&db)?;
+        message.upsert_into(&*db.connection()?)?;
         assert_eq!(db.select_sensor("test")?, Some(message.into()));
         Ok(())
     }
@@ -304,7 +304,7 @@ mod tests {
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .expires_at(Local.ymd(9999, 1, 1).and_hms(0, 0, 0));
         let db = Connection::open_and_initialize(":memory:")?;
-        message.upsert_into(&db)?;
+        message.upsert_into(&*db.connection()?)?;
         assert_eq!(db.select_actuals()?, vec![(message.sensor, message.reading)]);
         Ok(())
     }
@@ -315,11 +315,11 @@ mod tests {
         let old = Message::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000));
-        old.upsert_into(&db)?;
+        old.upsert_into(&*db.connection()?)?;
         let new = Message::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_129_000));
-        new.upsert_into(&db)?;
+        new.upsert_into(&*db.connection()?)?;
 
         assert_eq!(db.select_sensor_count()?, 1);
 
@@ -341,7 +341,7 @@ mod tests {
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .expires_at(Local.ymd(9999, 1, 1).and_hms(0, 0, 0));
-        message.upsert_into(&db)?;
+        message.upsert_into(&*db.connection()?)?;
         let readings: Vec<(_, i64)> = db.select_values("test", &Local.timestamp_millis(0))?;
         assert_eq!(readings.get(0).unwrap(), &(message.reading.timestamp, 42));
         Ok(())
@@ -354,7 +354,7 @@ mod tests {
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .expires_at(Local::now())
-            .upsert_into(&db)?;
+            .upsert_into(&*db.connection()?)?;
         assert_eq!(db.select_actuals()?.len(), 0);
         Ok(())
     }
@@ -366,7 +366,7 @@ mod tests {
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000))
             .expires_at(Local::now())
-            .upsert_into(&db)?;
+            .upsert_into(&*db.connection()?)?;
         assert_eq!(db.select_sensor("test")?, None);
         Ok(())
     }
