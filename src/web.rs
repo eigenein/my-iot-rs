@@ -90,7 +90,8 @@ fn get_sensor(
     minutes: Option<i64>,
     message_counter: State<MessageCounter>,
 ) -> Result<Option<Html<String>>> {
-    let period = Duration::minutes(minutes.unwrap_or(60));
+    let minutes = minutes.unwrap_or(60);
+    let period = Duration::minutes(minutes);
     if let Some((sensor, reading)) = db.select_sensor(&sensor_id)? {
         let chart = match reading.value {
             Value::Temperature(_)
@@ -113,6 +114,7 @@ fn get_sensor(
                 sensor,
                 reading,
                 chart,
+                minutes,
                 message_count: message_counter.inner().value(),
             }
             .to_string(),

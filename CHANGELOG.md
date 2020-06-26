@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.59.4`
+
+- Improve the chart title
+
 ## `0.59.3`
 
 - Remove `make install` and `make uninstall` targets

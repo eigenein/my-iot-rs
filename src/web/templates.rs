@@ -33,6 +33,9 @@ pub struct SensorTemplate {
     pub chart: String,
 
     pub message_count: u64,
+
+    /// Chart period.
+    pub minutes: i64,
 }
 
 /// Navigation bar.
