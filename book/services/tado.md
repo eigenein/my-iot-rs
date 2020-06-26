@@ -1,6 +1,6 @@
 # tado°
 
-[tado°](https://www.tado.com/) Smart Thermostat service, polls the API every 5 minutes.
+[tado°](https://www.tado.com/) Smart Thermostat service, periodically polls the API.
 
 ## [Open Window Detection Skill](https://support.tado.com/en/articles/3387308-how-does-the-open-window-detection-skill-work)
 
