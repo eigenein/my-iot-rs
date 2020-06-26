@@ -18,7 +18,7 @@
           {% endif -%}
         </h1>
 
-        <h2 class="subtitle is-6">
+        <div class="subtitle is-6">
           {% if reading.value.is_inline() -%}
             <span title="{{ sensor.id }}">{{ sensor.title() }}</span>
           {% endif -%}
@@ -30,7 +30,10 @@
           <span title="{{ reading.timestamp.to_string() }}">
             {{ reading.timestamp|format_datetime }}
           </span>
-        </h2>
+
+          <i class="fas fa-link"></i>
+          <span><a href="{{ uri!(get_sensor_json: &self.sensor.id) }}">JSON</a></span>
+        </div>
       </div>
     </div>
   </section>
@@ -43,6 +46,7 @@
           <div class="container">
             <ul>
               <li><a href="?minutes=5">5 mins</a></li>
+              <li><a href="?minutes=30">30 mins</a></li>
               <li><a href="?minutes=60">1 hour</a></li>
               <li><a href="?minutes=720">12 hours</a></li>
               <li><a href="?minutes=1440">1 day</a></li>

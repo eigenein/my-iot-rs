@@ -4,6 +4,7 @@
 
 - Fix `::open_window_activated` message type
 - Some rotated icons for a wind direction #7
+- Add sensor JSON link to the sensor page, closes #94
 
 ## `0.56.0`
 
