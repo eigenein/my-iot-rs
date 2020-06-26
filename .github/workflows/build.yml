@@ -32,6 +32,8 @@ jobs:
 
       - name: Install
         run: cargo install mdbook mdbook-linkcheck
+        env:
+          CARGO_TARGET_DIR=target
 
       - name: Check
         run: make check
