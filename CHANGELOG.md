@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.59.1`
+
+- Improve `Power` colors and fix `Temperature` colors
+
 ## `0.59.0`
 
 - Sensor side panel

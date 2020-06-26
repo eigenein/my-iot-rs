@@ -242,21 +242,21 @@ mod filters {
                 4..=5 => "is-warning",
                 _ => "is-danger",
             },
-            Value::Temperature(value) => match value {
-                _ if value < -5.0 + 273.15 => "is-link",
-                _ if value < 5.0 + 273.15 => "is-info",
-                _ if value < 15.0 + 273.15 => "is-primary",
-                _ if value < 25.0 + 273.15 => "is-success",
-                _ if value < 30.0 + 273.15 => "is-warning",
+            Value::Temperature(celsius) => match celsius {
+                _ if celsius < -5.0 => "is-link",
+                _ if celsius < 5.0 => "is-info",
+                _ if celsius < 15.0 => "is-primary",
+                _ if celsius < 25.0 => "is-success",
+                _ if celsius < 30.0 => "is-warning",
                 _ => "is-danger",
             },
             Value::WindDirection(_) => "is-light",
-            Value::Rh(value) => match value {
-                _ if value < 25.0 => "is-link",
-                _ if value < 30.0 => "is-info",
-                _ if value < 45.0 => "is-primary",
-                _ if value < 55.0 => "is-success",
-                _ if value < 60.0 => "is-warning",
+            Value::Rh(percentage) => match percentage {
+                _ if percentage < 25.0 => "is-link",
+                _ if percentage < 30.0 => "is-info",
+                _ if percentage < 45.0 => "is-primary",
+                _ if percentage < 55.0 => "is-success",
+                _ if percentage < 60.0 => "is-warning",
                 _ => "is-danger",
             },
             Value::Boolean(value) => {
@@ -266,16 +266,19 @@ mod filters {
                     "is-danger"
                 }
             }
-            Value::RelativeIntensity(value) => match value {
-                _ if value < 15.0 => "is-link",
-                _ if value < 30.0 => "is-info",
-                _ if value < 50.0 => "is-primary",
-                _ if value < 70.0 => "is-success",
-                _ if value < 90.0 => "is-warning",
+            Value::RelativeIntensity(percentage) => match percentage {
+                _ if percentage < 15.0 => "is-link",
+                _ if percentage < 30.0 => "is-info",
+                _ if percentage < 50.0 => "is-primary",
+                _ if percentage < 70.0 => "is-success",
+                _ if percentage < 90.0 => "is-warning",
                 _ => "is-danger",
             },
-            Value::Power(value) if value <= 0.0 => "is-success",
-            Value::Power(value) if value > 0.0 => "is-danger",
+            Value::Power(watts) => match watts {
+                _ if watts <= 0.0 => "is-success",
+                _ if watts <= 4000.0 => "is-warning",
+                _ => "is-danger",
+            },
             _ => "is-light",
         })
     }
