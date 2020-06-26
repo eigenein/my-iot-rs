@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Fix `None` icon
+
 ## `0.58.0`
 
 - Upsert messages in bulks #97
