@@ -55,3 +55,12 @@ src/statics:
 	@curl 'https://use.fontawesome.com/releases/v5.13.1/fontawesome-free-5.13.1-web.zip' --output src/statics/fontawesome.zip
 	@unzip -u src/statics/fontawesome.zip -d src/statics/
 	@rm src/statics/fontawesome.zip
+
+.PHONY: tag
+tag:
+	@$(eval VERSION := $(shell cargo run -- --version))
+	@git tag -a $(VERSION) -m $(VERSION)
+
+.PHONY: tag/publish
+tag/publish: tag
+	@git push origin $(shell cargo run -- --version)

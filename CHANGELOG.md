@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.59.2`
+
+- Add `make tag` and `make tag/publish` targets
+
 ## `0.59.1`
 
 - Improve `Power` colors and fix `Temperature` colors

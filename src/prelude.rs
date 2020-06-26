@@ -13,6 +13,7 @@ pub use std::collections::HashMap;
 pub use std::error::Error;
 pub use std::thread;
 pub use std::thread::sleep;
+pub use structopt::clap::crate_version;
 
 pub type Result<T, E = Box<dyn Error>> = std::result::Result<T, E>;
 pub type Receiver = crossbeam::channel::Receiver<Message>;

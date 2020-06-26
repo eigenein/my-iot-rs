@@ -39,11 +39,21 @@ struct Opt {
     /// Setting files
     #[structopt(parse(from_os_str), env = "MYIOT_SETTINGS", default_value = "my-iot.toml")]
     settings: Vec<PathBuf>,
+
+    /// Prints version information
+    #[structopt(short = "V", long = "version")]
+    pub version: bool,
 }
 
 /// Entry point.
 fn main() -> Result<()> {
     let opt: Opt = Opt::from_args();
+    if opt.version {
+        // I want to print only the version, without the application name.
+        println!("{}", crate_version!());
+        return Ok(());
+    }
+
     init_logging(opt.silent, opt.verbose)?;
 
     info!("Reading the settings…");
