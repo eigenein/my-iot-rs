@@ -74,7 +74,7 @@ pub struct F64ChartPartialTemplate {
 }
 
 impl F64ChartPartialTemplate {
-    pub fn new(sensor_title: &str, values: Vec<(DateTime<Local>, f64)>) -> Self {
+    pub fn new(sensor_title: &str, values: Vec<(DateTime<Local>, f64)>, multiplier: f64) -> Self {
         F64ChartPartialTemplate {
             chart: json!({
                 "type": "line",
@@ -86,7 +86,7 @@ impl F64ChartPartialTemplate {
                         "fill": false,
                         "data": values.iter().map(|(timestamp, value)| json!({
                             "x": timestamp.timestamp_millis(),
-                            "y": value,
+                            "y": value * multiplier,
                         })).collect::<serde_json::Value>(),
                     }],
                 },
@@ -221,7 +221,11 @@ impl std::fmt::Display for Value {
             Value::RelativeIntensity(percentage) => write!(f, r#"<i class="far fa-lightbulb"></i> {}%"#, percentage),
 
             // language=HTML
-            Value::Energy(joules) => write!(f, r#"<i class="fas fa-burn"></i> {}"#, human_format(*joules, "J")),
+            Value::Energy(joules) => write!(
+                f,
+                r#"<i class="fas fa-burn"></i> {}"#,
+                human_format(*joules / JOULES_IN_WH, "Wh")
+            ),
 
             // language=HTML
             Value::Power(watts) => write!(f, r#"<i class="fas fa-plug"></i> {}"#, human_format(*watts, "W")),

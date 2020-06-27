@@ -1,5 +1,6 @@
 //! Implements sensor reading value.
 
+use crate::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// Sensor reading value.
@@ -126,6 +127,6 @@ pub enum PointOfTheCompass {
 impl Value {
     /// Builds a `Value` instance from [kilowatt-hours](https://en.wikipedia.org/wiki/Kilowatt-hour).
     pub fn from_kwh(kwh: f64) -> Self {
-        Value::Energy(kwh * 3600.0)
+        Value::Energy(kwh * JOULES_IN_KWH)
     }
 }

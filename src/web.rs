@@ -104,6 +104,11 @@ fn get_sensor(
             | Value::Volume(_) => templates::F64ChartPartialTemplate::new(
                 &sensor.title(),
                 db.select_values(&sensor_id, &(Local::now() - period))?,
+                if let Value::Energy(_) = reading.value {
+                    WH_IN_JOULE
+                } else {
+                    1.0
+                },
             )
             .to_string(),
             _ => "".into(),

@@ -1,8 +1,9 @@
 # `my-iot`
 
-## `master`
+## `0.59.5`
 
 - Refactor `Value` rendering
+- Fix kWh-to-joules conversion and display energy in Wh
 
 ## `0.59.4`
 
