@@ -12,7 +12,7 @@
       <div class="container">
         <h1 class="title is-4" title='{{ "{:?}"|format(reading.value) }}'>
           {% if reading.value.is_inline() -%}
-            {{ ValuePartialTemplate::new(reading.value)|safe }}
+            {{ reading.value|safe }}
           {% else -%}
             {{ sensor.title() -}}
           {% endif -%}
@@ -68,7 +68,7 @@
           <div class="container">
             <div class="message">
               <div class="message-body">
-                {{ ValuePartialTemplate::new(reading.value)|safe }}
+                {{ reading.value|safe }}
               </div>
             </div>
           </div>

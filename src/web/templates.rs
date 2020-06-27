@@ -51,19 +51,6 @@ impl<'a> NavbarPartialTemplate<'a> {
     }
 }
 
-/// `Value` renderer.
-#[derive(Template)]
-#[template(path = "partials/value.html")]
-struct ValuePartialTemplate<'a> {
-    value: &'a Value,
-}
-
-impl<'a> ValuePartialTemplate<'a> {
-    fn new(value: &'a Value) -> Self {
-        ValuePartialTemplate { value }
-    }
-}
-
 /// Dashboard tile.
 #[derive(Template)]
 #[template(path = "partials/sensor_tile.html")]
@@ -153,45 +140,94 @@ impl Value {
 }
 
 impl std::fmt::Display for Value {
+    /// Renders the value.
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Value::None => write!(f, "None"),
-            Value::Counter(value) => write!(f, r"{}", value),
-            Value::DataSize(value) => f.write_str(&human_format(*value as f64, "B")),
-            Value::Text(ref value) => write!(f, r"{}", value),
-            Value::Temperature(value) => f.write_str(&human_format(*value, "℃")),
-            Value::Bft(value) => write!(f, r"{} BFT", value),
-            Value::WindDirection(value) => match value {
-                PointOfTheCompass::East => write!(f, "East"),
-                PointOfTheCompass::EastNortheast => write!(f, "East-northeast"),
-                PointOfTheCompass::EastSoutheast => write!(f, "East-southeast"),
-                PointOfTheCompass::North => write!(f, "North"),
-                PointOfTheCompass::NorthNortheast => write!(f, "North-northeast"),
-                PointOfTheCompass::NorthNorthwest => write!(f, "North-northwest"),
-                PointOfTheCompass::Northeast => write!(f, "Northeast"),
-                PointOfTheCompass::Northwest => write!(f, "Northwest"),
-                PointOfTheCompass::South => write!(f, "South"),
-                PointOfTheCompass::SouthSoutheast => write!(f, "South-southeast"),
-                PointOfTheCompass::SouthSouthwest => write!(f, "South-southwest"),
-                PointOfTheCompass::Southeast => write!(f, "Southeast"),
-                PointOfTheCompass::Southwest => write!(f, "Southwest"),
-                PointOfTheCompass::West => write!(f, "West"),
-                PointOfTheCompass::WestNorthwest => write!(f, "West-northwest"),
-                PointOfTheCompass::WestSouthwest => write!(f, "West-southwest"),
-            },
-            Value::Rh(value) => write!(f, "{}%", value),
-            Value::Length(value) => f.write_str(&human_format(*value, "m")),
-            Value::ImageUrl(value) => write!(f, r#"<img src="{}">"#, value),
-            Value::Boolean(value) => write!(
+            // language=HTML
+            Value::None => write!(f, r#"<i class="fas fa-question"></i> None"#),
+
+            // language=HTML
+            Value::Counter(count) => write!(f, r#"<i class="fas fa-sort-numeric-up-alt"></i> {}"#, count),
+
+            // language=HTML
+            Value::DataSize(byte_number) => write!(
                 f,
-                r#"<span class="is-uppercase">{}</span>"#,
-                if *value { "Yes" } else { "No" }
+                r#"<i class="far fa-save"></i> {}"#,
+                human_format(*byte_number as f64, "B")
             ),
-            Value::Duration(value) => f.write_str(&human_format(*value, "s")),
-            Value::RelativeIntensity(value) => write!(f, "{}%", value),
-            Value::Energy(value) => f.write_str(&human_format(*value, "J")),
-            Value::Power(value) => f.write_str(&human_format(*value, "W")),
-            Value::Volume(value) => f.write_str(&human_format(*value, "㎥")),
+
+            // language=HTML
+            Value::Text(ref text) => write!(f, r#"<i class="fas fa-quote-left"></i> {}"#, text),
+
+            // language=HTML
+            Value::Temperature(celsius) => write!(
+                f,
+                r#"<i class="fas fa-thermometer-half"></i> {}"#,
+                human_format(*celsius, "℃")
+            ),
+
+            // language=HTML
+            Value::Bft(force) => write!(f, r#"<i class="fas fa-wind"></i> {} BFT"#, force),
+
+            // language=HTML
+            Value::WindDirection(point) => write!(
+                f,
+                r#"<i class="fas fa-wind"></i> {}"#,
+                match point {
+                    PointOfTheCompass::East => "East",
+                    PointOfTheCompass::EastNortheast => "East-northeast",
+                    PointOfTheCompass::EastSoutheast => "East-southeast",
+                    PointOfTheCompass::North => "North",
+                    PointOfTheCompass::NorthNortheast => "North-northeast",
+                    PointOfTheCompass::NorthNorthwest => "North-northwest",
+                    PointOfTheCompass::Northeast => "Northeast",
+                    PointOfTheCompass::Northwest => "Northwest",
+                    PointOfTheCompass::South => "South",
+                    PointOfTheCompass::SouthSoutheast => "South-southeast",
+                    PointOfTheCompass::SouthSouthwest => "South-southwest",
+                    PointOfTheCompass::Southeast => "Southeast",
+                    PointOfTheCompass::Southwest => "Southwest",
+                    PointOfTheCompass::West => "West",
+                    PointOfTheCompass::WestNorthwest => "West-northwest",
+                    PointOfTheCompass::WestSouthwest => "West-southwest",
+                }
+            ),
+
+            // language=HTML
+            Value::Rh(percentage) => write!(f, r#"<i class="fas fa-water"></i> {}%"#, percentage),
+
+            // language=HTML
+            Value::Length(meters) => write!(f, r#"<i class="fas fa-ruler"></i> {}"#, human_format(*meters, "m")),
+
+            // language=HTML
+            Value::ImageUrl(url) => write!(f, r#"<img src="{}" alt="">"#, url),
+
+            // language=HTML
+            Value::Boolean(flag) => write!(
+                f,
+                r#"{} <span class="is-uppercase">{}</span>"#,
+                if *flag {
+                    r#"<i class="fas fa-toggle-on"></i>"#
+                } else {
+                    r#"<i class="fas fa-toggle-off"></i>"#
+                },
+                if *flag { "Yes" } else { "No" }
+            ),
+
+            // language=HTML
+            Value::Duration(seconds) => write!(f, r#"<i class="far fa-clock"></i> {}"#, human_format(*seconds, "s")),
+
+            // language=HTML
+            Value::RelativeIntensity(percentage) => write!(f, r#"<i class="far fa-lightbulb"></i> {}%"#, percentage),
+
+            // language=HTML
+            Value::Energy(joules) => write!(f, r#"<i class="fas fa-burn"></i> {}"#, human_format(*joules, "J")),
+
+            // language=HTML
+            Value::Power(watts) => write!(f, r#"<i class="fas fa-plug"></i> {}"#, human_format(*watts, "W")),
+
+            // language=HTML
+            Value::Volume(m3) => write!(f, r#"<i class="fas fa-oil-can"></i> {}"#, human_format(*m3, "㎥")),
         }
     }
 }
@@ -283,33 +319,6 @@ mod filters {
                 _ => "is-danger",
             },
             _ => "is-light",
-        })
-    }
-
-    /// Returns a [Font Awesome](https://fontawesome.com) icon tag for the value.
-    pub fn icon(value: &Value) -> askama::Result<&'static str> {
-        Ok(match *value {
-            Value::Bft(_) => r#"<i class="fas fa-wind"></i>"#,
-            Value::Counter(_) => r#"<i class="fas fa-sort-numeric-up-alt"></i>"#,
-            Value::DataSize(_) => r#"<i class="far fa-save"></i>"#,
-            Value::Length(_) => r#"<i class="fas fa-ruler"></i>"#,
-            Value::Rh(_) => r#"<i class="fas fa-water"></i>"#,
-            Value::Temperature(_) => r#"<i class="fas fa-thermometer-half"></i>"#,
-            Value::Text(_) => r#"<i class="fas fa-quote-left"></i>"#,
-            Value::WindDirection(_) => r#"<i class="fas fa-wind"></i>"#,
-            Value::Boolean(value) => {
-                if value {
-                    r#"<i class="fas fa-toggle-on"></i>"#
-                } else {
-                    r#"<i class="fas fa-toggle-off"></i>"#
-                }
-            }
-            Value::Duration(_) => r#"<i class="far fa-clock"></i>"#,
-            Value::ImageUrl(_) | Value::None => r#"<i class="fas fa-question"></i>"#,
-            Value::RelativeIntensity(_) => r#"<i class="far fa-lightbulb"></i>"#,
-            Value::Energy(_) => r#"<i class="fas fa-burn"></i>"#,
-            Value::Power(_) => r#"<i class="fas fa-plug"></i>"#,
-            Value::Volume(_) => r#"<i class="fas fa-oil-can"></i>"#,
         })
     }
 }

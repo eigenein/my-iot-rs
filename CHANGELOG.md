@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Refactor `Value` rendering
+
 ## `0.59.4`
 
 - Improve the chart title

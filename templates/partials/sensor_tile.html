@@ -10,7 +10,7 @@
         {{ reading.timestamp|format_datetime }}
       </p>
       <p class="has-text-centered has-text-weight-bold" title='{{ "{:?}"|format(reading.value) }}'>
-        {{ ValuePartialTemplate::new(reading.value)|safe }}
+        {{ reading.value|safe }}
       </p>
     </div>
   </a>
