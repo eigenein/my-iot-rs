@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <title>{% block title %}My IoT{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="60">
+  <meta http-equiv="refresh" content="30">
   <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
   <link rel="stylesheet" href="/static/bulma.min.css">
   <link rel="stylesheet" type="text/css" href="/static/bulma-prefers-dark.css">
   <link rel="stylesheet" type="text/css" href="/static/fontawesome.css">
+  <link rel="manifest" href="/my-iot.webmanifest">
   <script src="/static/Chart.bundle.min.js"></script>
 </head>
 <body>
@@ -59,6 +60,10 @@
         });
       }
     });
+
+    if('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
   </script>
 </body>
 </html>

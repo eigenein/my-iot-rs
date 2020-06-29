@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.60.0`
+
+- PWA, closes #51
+
 ## `0.59.5`
 
 - Refactor `Value` rendering

@@ -50,6 +50,8 @@ fn make_rocket(settings: &Settings, db: Connection, message_counter: Arc<AtomicU
             get_webfonts_fa_solid_900,
             get_webfonts_fa_regular_400,
             get_webfonts_fa_brands_400,
+            get_sw_js,
+            get_webmanifest,
         ],
     ))
 }
@@ -209,6 +211,16 @@ fn get_webfonts_fa_brands_400() -> Content<&'static [u8]> {
         ContentType::WOFF2,
         include_bytes!("statics/fontawesome-free-5.13.1-web/webfonts/fa-brands-400.woff2"),
     )
+}
+
+#[get("/sw.js")]
+fn get_sw_js() -> Content<&'static [u8]> {
+    Content(ContentType::JavaScript, include_bytes!("statics/sw.js"))
+}
+
+#[get("/my-iot.webmanifest")]
+fn get_webmanifest() -> Content<&'static [u8]> {
+    Content(ContentType::JSON, include_bytes!("statics/my-iot.webmanifest"))
 }
 
 struct MessageCounter(Arc<AtomicU64>);
