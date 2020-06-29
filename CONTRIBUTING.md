@@ -1,11 +1,11 @@
 ## How to help?
 
-For now the architecture is highly unstable. I change the core quite often. So the main help would be:
-- Code review
-- Performance and technical debt items
-- Cross-compilation for different boards
+I consider the service and message passing interface more-or-less stable and don't expect breaking changes. I'd be happy to get help in:
 
-You may implement services but then try to not depend on the current service interface as much as possible.
+- Code review
+- Performance improvements
+- Cross-compilation for different boards
+- New service implementation or API documentation
 
 ## Workflow
 
@@ -27,4 +27,4 @@ You may implement services but then try to not depend on the current service int
 - No plugins, [«batteries included»](https://en.wikipedia.org/wiki/Batteries_Included)
 - Little configuration, good defaults, automatically discover peripherals and network devices
 - Unit tests where applicable, don't be obsessed with them though
-- [Don't repeat yourself](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself)
+- [Don't repeat yourself](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) more than a few times
