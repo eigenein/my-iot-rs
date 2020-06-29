@@ -5,6 +5,7 @@ use crate::settings::Settings;
 use chrono::Duration;
 use itertools::Itertools;
 use rocket::config::Environment;
+use rocket::http::hyper::header::{ETag, EntityTag};
 use rocket::http::ContentType;
 use rocket::http::Status;
 use rocket::request::{FromRequest, Outcome};
@@ -123,7 +124,7 @@ fn get_sensor<'r>(
 
         Response::build()
             .header(ContentType::HTML)
-            .raw_header("ETag", reading.etag())
+            .header(ETag(EntityTag::new(true, reading.etag())))
             .sized_body(Cursor::new(
                 templates::SensorTemplate {
                     sensor,

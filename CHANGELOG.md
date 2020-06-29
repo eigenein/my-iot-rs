@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.70.1`
+
+- Fix `ETag` for NGINX #2
+
 ## `0.70.0`
 
 - Implement `ETag` for the sensor view #2
