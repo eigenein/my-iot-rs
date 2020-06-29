@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.70.2`
+
+- Fix `ETag` comparison #2
+
 ## `0.70.1`
 
 - Fix `ETag` for NGINX #2

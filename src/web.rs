@@ -99,8 +99,8 @@ fn get_sensor<'r>(
     minutes: Option<i64>,
 ) -> Result<Response<'r>> {
     if let Some((sensor, reading)) = db.select_sensor(&sensor_id)? {
-        if let Some(IfNoneMatch(etag)) = if_none_match {
-            if reading.etag() == etag {
+        if let Some(IfNoneMatch(entity_tag)) = if_none_match {
+            if reading.entity_tag().weak_eq(&entity_tag) {
                 // If there's a match, we can avoid spending CPU on generation of the chart.
                 return Response::build().status(Status::NotModified).ok();
             }
@@ -124,7 +124,7 @@ fn get_sensor<'r>(
 
         Response::build()
             .header(ContentType::HTML)
-            .header(ETag(EntityTag::new(true, reading.etag())))
+            .header(ETag(reading.entity_tag()))
             .sized_body(Cursor::new(
                 templates::SensorTemplate {
                     sensor,
@@ -235,23 +235,26 @@ fn get_webmanifest() -> Content<&'static [u8]> {
 
 /// Extracts a [`If-None-Match`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag) header
 /// from a request.
-struct IfNoneMatch(String);
+struct IfNoneMatch(EntityTag);
 
 impl<'a, 'r> FromRequest<'a, 'r> for IfNoneMatch {
     type Error = ();
 
     fn from_request(request: &'a Request<'r>) -> Outcome<Self, Self::Error> {
-        match request.headers().get_one("If-None-Match") {
-            Some(value) => Outcome::Success(IfNoneMatch(value.into())),
+        match request
+            .headers()
+            .get_one("If-None-Match")
+            .and_then(|value| value.parse::<EntityTag>().ok())
+        {
+            Some(entity_tag) => Outcome::Success(IfNoneMatch(entity_tag)),
             None => Outcome::Forward(()),
         }
     }
 }
 
 impl Reading {
-    /// Generates and returns an `ETag` header value for the reading.
-    pub fn etag(&self) -> String {
-        format!("{:x}", self.timestamp.timestamp_millis())
+    pub fn entity_tag(&self) -> EntityTag {
+        EntityTag::new(true, format!("{:x}", self.timestamp.timestamp_millis()))
     }
 }
 
