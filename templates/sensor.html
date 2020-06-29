@@ -3,7 +3,7 @@
 {% block title %}{{ sensor.title() }} – {{ sensor.room_title() }} – My IoT{% endblock %}
 
 {% block body %}
-  <section class="hero {{ reading.value|color_class }}">
+  <div class="hero {{ reading.value|color_class }}">
     <div class="hero-head">
       {{ NavbarPartialTemplate::new("sensor")|safe }}
     </div>
@@ -33,13 +33,13 @@
         </div>
       </div>
     </div>
-  </section>
+  </div>
 
-  <section class="columns">
+  <div class="columns">
     <div class="column is-9">
       {% if chart.is_empty() %}
       {% else %}
-        <section class="section">
+        <div class="section">
           <div class="container">
             <h3 class="title is-5">Last {{ minutes }} minutes</h3>
 
@@ -59,12 +59,12 @@
           </div>
 
           <div class="container">{{ chart|safe }}</div>
-        </section>
+        </div>
       {% endif %}
 
       {% if reading.value.is_inline() %}
       {% else %}
-        <section class="section">
+        <div class="section">
           <div class="container">
             <div class="message">
               <div class="message-body">
@@ -72,10 +72,10 @@
               </div>
             </div>
           </div>
-        </section>
+        </div>
       {% endif %}
 
-      <section class="section">
+      <div class="section">
         <div class="container">
           <h3 class="title is-5">Raw data</h3>
 
@@ -91,11 +91,11 @@
             </div>
           </div>
         </div>
-      </section>
+      </div>
     </div>
 
-    <div class="column">
-      <section class="section">
+    <div class="column is-3">
+      <div class="section">
         <div class="container">
           <h3 class="title is-5">Details</h3>
 
@@ -108,11 +108,11 @@
             <a href="{{ uri!(get_sensor_json: &self.sensor.id) }}">JSON</a>
           </p>
         </div>
-      </section>
+      </div>
 
-      <section class="section">
+      <div class="section">
         <div class="container">
-          <h3 class="title is-6">Danger Zone (Unimplemented)</h3>
+          <h3 class="title is-5">Danger Zone (Unimplemented)</h3>
           <form>
             <div class="field">
               <div class="field has-addons">
@@ -127,7 +127,7 @@
             </div>
           </form>
         </div>
-      </section>
+      </div>
     </div>
-  </section>
+  </div>
 {% endblock %}

@@ -3,7 +3,7 @@
 {% block title %}Settings – My IoT{% endblock %}
 
 {% block body %}
-  <section class="hero is-info">
+  <div class="hero is-info">
     <div class="hero-head">
       {{ NavbarPartialTemplate::new("settings")|safe }}
     </div>
@@ -12,11 +12,11 @@
         <h1 class="title is-4">Settings</h1>
       </div>
     </div>
-  </section>
+  </div>
 
-  <section class="section">
+  <div class="section">
     <div class="container">
-      <div class="notification">
+      <div class="notification content">
         <p>
           This section displays the currently running configuration.
           To change a setting, edit the configuration file and restart My IoT.
@@ -29,5 +29,5 @@
         </div>
       </div>
     </div>
-  </section>
+  </div>
 {% endblock %}

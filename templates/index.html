@@ -3,7 +3,7 @@
 {% block title %}My IoT{% endblock %}
 
 {% block body %}
-  <section class="hero is-info">
+  <div class="hero is-info">
     <div class="hero-head">
       {{ NavbarPartialTemplate::new("index")|safe }}
     </div>
@@ -13,11 +13,11 @@
         <h2 class="subtitle is-6">{{ actuals.len() }} rooms</h2>
       </div>
     </div>
-  </section>
+  </div>
 
-  <section class="columns">
+  <div class="columns">
     <div class="column is-2 is-hidden-touch">
-      <section class="section">
+      <div class="section">
         <div class="container">
           <aside class="menu">
             <p class="menu-label">Rooms</p>
@@ -28,12 +28,12 @@
             </ul>
           </aside>
         </div>
-      </section>
+      </div>
     </div>
 
-    <div class="column">
+    <div class="column is-10">
       {% for (room_title, group) in actuals %}
-        <section class="section" id="{{ room_title|slug }}">
+        <div class="section" id="{{ room_title|slug }}">
           <div class="container">
             <h2 class="title is-5">{{ room_title }}</h2>
             <div class="columns is-multiline">
@@ -42,8 +42,8 @@
               {% endfor %}
             </div>
           </div>
-        </section>
+        </div>
       {% endfor %}
     </div>
-  </section>
+  </div>
 {% endblock %}

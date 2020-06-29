@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.70.3`
+
+- Fix [overflow on mobile](https://github.com/jgthms/bulma/issues/2769) #51
+
 ## `0.70.2`
 
 - Fix `ETag` comparison #2
