@@ -2,7 +2,7 @@
     "lang": "en",
     "name": "My IoT",
     "start_url": "/",
-    "display": "fullscreen",
+    "display": "standalone",
     "theme_color": "#3298dc",
     "icons": [{
         "src": "/static/android-chrome-192x192.png",

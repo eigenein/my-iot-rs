@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.60.2`
+
+- Fix PWA display style
+
 ## `0.60.1`
 
 - Fix `crossOrigin` on the PWA manifest
