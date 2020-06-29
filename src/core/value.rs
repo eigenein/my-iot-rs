@@ -129,4 +129,18 @@ impl Value {
     pub fn from_kwh(kwh: f64) -> Self {
         Value::Energy(kwh * JOULES_IN_KWH)
     }
+
+    pub fn is_f64(&self) -> bool {
+        match self {
+            Value::Duration(_)
+            | Value::Energy(_)
+            | Value::Length(_)
+            | Value::Power(_)
+            | Value::RelativeIntensity(_)
+            | Value::Rh(_)
+            | Value::Temperature(_)
+            | Value::Volume(_) => true,
+            _ => false,
+        }
+    }
 }

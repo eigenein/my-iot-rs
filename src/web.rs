@@ -6,9 +6,12 @@ use chrono::Duration;
 use itertools::Itertools;
 use rocket::config::Environment;
 use rocket::http::ContentType;
+use rocket::http::Status;
+use rocket::request::{FromRequest, Outcome};
 use rocket::response::content::{Content, Html};
-use rocket::{get, routes, Config, Rocket, State};
+use rocket::{get, routes, Config, Request, Response, Rocket, State};
 use rocket_contrib::json::Json;
+use std::io::Cursor;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
@@ -58,6 +61,7 @@ fn make_rocket(settings: &Settings, db: Connection, message_counter: Arc<AtomicU
 
 #[get("/")]
 fn get_index(db: State<Connection>, message_counter: State<MessageCounter>) -> Result<Html<String>> {
+    // TODO: `ETag`.
     let actuals = db
         .select_actuals()?
         .into_iter()
@@ -86,48 +90,53 @@ fn get_settings(settings: State<Settings>, message_counter: State<MessageCounter
 }
 
 #[get("/sensors/<sensor_id>?<minutes>")]
-fn get_sensor(
+fn get_sensor<'r>(
     db: State<Connection>,
+    message_counter: State<MessageCounter>,
+    if_none_match: Option<IfNoneMatch>,
     sensor_id: String,
     minutes: Option<i64>,
-    message_counter: State<MessageCounter>,
-) -> Result<Option<Html<String>>> {
-    let minutes = minutes.unwrap_or(60);
-    let period = Duration::minutes(minutes);
+) -> Result<Response<'r>> {
     if let Some((sensor, reading)) = db.select_sensor(&sensor_id)? {
-        let chart = match reading.value {
-            Value::Temperature(_)
-            | Value::Duration(_)
-            | Value::Energy(_)
-            | Value::Length(_)
-            | Value::Power(_)
-            | Value::RelativeIntensity(_)
-            | Value::Rh(_)
-            | Value::Volume(_) => templates::F64ChartPartialTemplate::new(
+        if let Some(IfNoneMatch(etag)) = if_none_match {
+            if reading.etag() == etag {
+                // If there's a match, we can avoid spending CPU on generation of the chart.
+                return Response::build().status(Status::NotModified).ok();
+            }
+        }
+
+        let minutes = minutes.unwrap_or(60);
+        let chart = if reading.value.is_f64() {
+            templates::F64ChartPartialTemplate::new(
                 &sensor.title(),
-                db.select_values(&sensor_id, &(Local::now() - period))?,
+                db.select_values(&sensor_id, &(Local::now() - Duration::minutes(minutes)))?,
                 if let Value::Energy(_) = reading.value {
                     WH_IN_JOULE
                 } else {
                     1.0
                 },
             )
-            .to_string(),
-            _ => "".into(),
+            .to_string()
+        } else {
+            "".into()
         };
 
-        Ok(Some(Html(
-            templates::SensorTemplate {
-                sensor,
-                reading,
-                chart,
-                minutes,
-                message_count: message_counter.inner().value(),
-            }
-            .to_string(),
-        )))
+        Response::build()
+            .header(ContentType::HTML)
+            .raw_header("ETag", reading.etag())
+            .sized_body(Cursor::new(
+                templates::SensorTemplate {
+                    sensor,
+                    reading,
+                    chart,
+                    minutes,
+                    message_count: message_counter.inner().value(),
+                }
+                .to_string(),
+            ))
+            .ok()
     } else {
-        Ok(None)
+        Response::build().status(Status::NotFound).ok()
     }
 }
 
@@ -223,9 +232,33 @@ fn get_webmanifest() -> Content<&'static [u8]> {
     Content(ContentType::JSON, include_bytes!("statics/my-iot.webmanifest"))
 }
 
+/// Extracts a [`If-None-Match`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag) header
+/// from a request.
+struct IfNoneMatch(String);
+
+impl<'a, 'r> FromRequest<'a, 'r> for IfNoneMatch {
+    type Error = ();
+
+    fn from_request(request: &'a Request<'r>) -> Outcome<Self, Self::Error> {
+        match request.headers().get_one("If-None-Match") {
+            Some(value) => Outcome::Success(IfNoneMatch(value.into())),
+            None => Outcome::Forward(()),
+        }
+    }
+}
+
+impl Reading {
+    /// Generates and returns an `ETag` header value for the reading.
+    pub fn etag(&self) -> String {
+        format!("{:x}", self.timestamp.timestamp_millis())
+    }
+}
+
+/// Holds a number of handled `Message`s.
 struct MessageCounter(Arc<AtomicU64>);
 
 impl MessageCounter {
+    /// Extracts the inner value.
     pub fn value(&self) -> u64 {
         self.0.load(Ordering::Relaxed)
     }

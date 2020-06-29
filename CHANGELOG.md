@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.70.0`
+
+- Implement `ETag` for the sensor view #2
+
 ## `0.60.2`
 
 - Fix PWA display style

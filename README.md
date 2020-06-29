@@ -11,7 +11,7 @@ Yet another [home automation](https://en.wikipedia.org/wiki/Home_automation). Wr
 
 ## Screenshots
 
-### Home
+### Home View
 
 ![Home](screenshots/index.png)
 
