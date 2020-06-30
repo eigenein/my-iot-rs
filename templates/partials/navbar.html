@@ -13,7 +13,8 @@
         <a class="navbar-item {% if selected_item == "index" %}is-active{% endif %}" href="/">
           <span class="icon"><i class="fas fa-home"></i></span> <span>Home</span>
         </a>
-        <a class="navbar-item {% if selected_item == "settings" %}is-active{% endif %}" href="/settings">
+
+        <a class="navbar-item {% if selected_item == "settings" %}is-active{% endif %}" href="{{ uri!(get_settings) }}">
           <span class="icon"><i class="fas fa-cog"></i></span> <span>Settings</span>
         </a>
       </div>

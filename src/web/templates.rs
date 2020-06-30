@@ -2,7 +2,7 @@
 
 use crate::format::human_format;
 use crate::prelude::*;
-use crate::web::rocket_uri_macro_get_sensor_json;
+use crate::web::{rocket_uri_macro_get_sensor_json, rocket_uri_macro_get_settings};
 use askama::Template;
 use rocket::uri;
 use serde_json::json;
