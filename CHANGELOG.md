@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.71.1`
+
+- Room title is now obligatory and defaults to `"Home"`
+
 ## `0.71.0`
 
 - Cache only 2xx responses, closes #104

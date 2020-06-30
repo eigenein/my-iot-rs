@@ -78,7 +78,7 @@ fn get_index(db: State<Connection>, message_counter: State<MessageCounter>) -> R
         .into_iter()
         .group_by(|(sensor, _)| sensor.room_title.clone())
         .into_iter()
-        .map(|(room_title, group)| (room_title.unwrap_or_else(|| "No room".to_string()), group.collect_vec()))
+        .map(|(room_title, group)| (room_title, group.collect_vec()))
         .collect_vec();
     Ok(Html(
         templates::IndexTemplate {

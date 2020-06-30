@@ -2,6 +2,8 @@
 
 use crate::prelude::*;
 
+const DEFAULT_ROOM_TITLE: &str = "Home";
+
 /// Services use messages to exchange sensor readings between each other.
 /// Message contains a single sensor reading alongside with some metadata.
 #[derive(Debug, Clone)]
@@ -41,7 +43,7 @@ impl Message {
             sensor: Sensor {
                 id: sensor_id.into(),
                 title: None,
-                room_title: None,
+                room_title: DEFAULT_ROOM_TITLE.into(),
             },
             reading: Reading {
                 timestamp: Local::now(),
@@ -66,12 +68,12 @@ impl Message {
     }
 
     pub fn room_title<S: Into<String>>(mut self, room_title: S) -> Self {
-        self.sensor.room_title = Some(room_title.into());
+        self.sensor.room_title = room_title.into();
         self
     }
 
     pub fn optional_room_title<S: Into<Option<String>>>(mut self, room_title: S) -> Self {
-        self.sensor.room_title = room_title.into();
+        self.sensor.room_title = room_title.into().unwrap_or_else(|| DEFAULT_ROOM_TITLE.into());
         self
     }
 

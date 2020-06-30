@@ -9,14 +9,11 @@ pub struct YouLess {
     #[serde(default = "default_interval_millis")]
     interval_millis: u64,
 
-    #[serde(default = "default_ttl_millis")]
-    ttl_millis: u64,
-
     #[serde(default = "default_url")]
     url: String,
 
-    #[serde(default = "default_room_title")]
-    room_title: String,
+    #[serde(default)]
+    room_title: Option<String>,
 
     #[serde(skip, default = "default_client")]
     client: Client,
@@ -27,16 +24,8 @@ const fn default_interval_millis() -> u64 {
     1000
 }
 
-const fn default_ttl_millis() -> u64 {
-    10000
-}
-
 fn default_url() -> String {
     "http://youless/e?f=j".into()
-}
-
-fn default_room_title() -> String {
-    "Home".into()
 }
 
 impl YouLess {
@@ -64,43 +53,43 @@ impl YouLess {
             .ok_or("YouLess response is empty")?;
         Message::new(format!("{}::nett", service_id))
             .value(Value::from_kwh(response.nett))
-            .room_title(&self.room_title)
+            .optional_room_title(self.room_title.clone())
             .sensor_title("Nett Counter")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::power", service_id))
             .value(Value::Power(response.power))
-            .room_title(&self.room_title)
+            .optional_room_title(self.room_title.clone())
             .sensor_title("Actual Consumption")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::consumption_low", service_id))
             .value(Value::from_kwh(response.consumption_low))
-            .room_title(&self.room_title)
+            .optional_room_title(self.room_title.clone())
             .sensor_title("Total Consumption Low")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::consumption_high", service_id))
             .value(Value::from_kwh(response.consumption_high))
-            .room_title(&self.room_title)
+            .optional_room_title(self.room_title.clone())
             .sensor_title("Total Consumption High")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::production_low", service_id))
             .value(Value::from_kwh(response.production_low))
-            .room_title(&self.room_title)
+            .optional_room_title(self.room_title.clone())
             .sensor_title("Total Production Low")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::production_high", service_id))
             .value(Value::from_kwh(response.production_high))
-            .room_title(&self.room_title)
+            .optional_room_title(self.room_title.clone())
             .sensor_title("Total Production High")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::consumption_gas", service_id))
             .value(Value::Volume(response.gas))
-            .room_title(&self.room_title)
+            .optional_room_title(self.room_title.clone())
             .sensor_title("Total Gas Consumption")
             .timestamp(response.timestamp)
             .send_and_forget(tx);

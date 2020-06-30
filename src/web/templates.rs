@@ -246,14 +246,6 @@ impl Sensor {
     pub fn title(&self) -> String {
         self.title.as_ref().unwrap_or(&self.id).into()
     }
-
-    /// Returns the room title or the default one otherwise.
-    pub fn room_title(&self) -> String {
-        match &self.room_title {
-            Some(title) => title.clone(),
-            None => "No Room".into(),
-        }
-    }
 }
 
 /// Wraps `crate_version!` in order to include it in a template.

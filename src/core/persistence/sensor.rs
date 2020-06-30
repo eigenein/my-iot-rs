@@ -7,5 +7,5 @@ pub struct Sensor {
     pub title: Option<String>,
 
     /// Optional room title.
-    pub room_title: Option<String>,
+    pub room_title: String,
 }

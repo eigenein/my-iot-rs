@@ -11,9 +11,6 @@ pub struct Solar {
     #[serde(default = "default_interval_millis")]
     interval_millis: u64,
 
-    #[serde(default = "default_ttl_millis")]
-    ttl_millis: u64,
-
     #[serde(default)]
     room_title: Option<String>,
 
@@ -32,10 +29,6 @@ pub struct Secrets {
 /// Defaults to one minute.
 const fn default_interval_millis() -> u64 {
     60000
-}
-
-const fn default_ttl_millis() -> u64 {
-    120000
 }
 
 impl Solar {

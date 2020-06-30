@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ sensor.title() }} – {{ sensor.room_title() }} – My IoT{% endblock %}
+{% block title %}{{ sensor.title() }} – {{ sensor.room_title }} – My IoT{% endblock %}
 
 {% block body %}
   <div class="hero {{ reading.value|color_class }}">
@@ -24,7 +24,7 @@
           {% endif -%}
 
           <span class="icon"><i class="fas fa-couch"></i></span>
-          <span>{{ sensor.room_title() }}</span>
+          <span>{{ sensor.room_title }}</span>
 
           <span class="icon"><i class="far fa-clock"></i></span>
           <span title="{{ reading.timestamp.to_string() }}">
