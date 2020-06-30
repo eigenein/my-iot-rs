@@ -117,6 +117,15 @@ impl Connection {
             .map(|v| v as u64)?)
     }
 
+    pub fn select_sensor_reading_count(&self, sensor_id: &str) -> Result<u64> {
+        Ok(self
+            .connection()?
+            // language=sql
+            .prepare("SELECT COUNT(*) FROM readings WHERE sensor_fk = ?1")?
+            .query_row(params![hash_sensor_id(sensor_id)], get_i64)
+            .map(|v| v as u64)?)
+    }
+
     /// Select the database version.
     pub fn select_version(&self) -> Result<i32> {
         let version: i32 = self
@@ -179,6 +188,7 @@ fn get_actual(row: &Row) -> rusqlite::Result<(Sensor, Reading)> {
 }
 
 /// Selects a single `i64` value, used with single-integer `SELECT`s.
+#[inline(always)]
 fn get_i64(row: &Row) -> rusqlite::Result<i64> {
     row.get::<_, i64>(0)
 }

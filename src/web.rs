@@ -139,6 +139,7 @@ fn get_sensor<'r>(
                     reading,
                     chart,
                     minutes,
+                    reading_count: db.select_sensor_reading_count(&sensor_id)?,
                     message_count: message_counter.inner().value(),
                 }
                 .to_string(),

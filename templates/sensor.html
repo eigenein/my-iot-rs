@@ -101,15 +101,12 @@
 
           <p class="content is-size-7-desktop">
             <strong>Value</strong>: <code>{{ "{:?}"|format(reading.value) }}</code><br>
-
+            <strong>Readings</strong>: {{ reading_count }}<br>
             <strong>API</strong>: <a href="{{ uri!(get_sensor_json: &self.sensor.id) }}">JSON</a>
           </p>
-        </div>
-      </div>
 
-      <div class="section">
-        <div class="container">
           <h3 class="title is-5">Danger Zone (Unimplemented)</h3>
+
           <form>
             <div class="field">
               <div class="field has-addons">

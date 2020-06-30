@@ -20,6 +20,8 @@ pub struct IndexTemplate {
 #[template(path = "settings.html")]
 pub struct SettingsTemplate {
     pub settings: String,
+
+    /// Statistics in the footer.
     pub message_count: u64,
 }
 
@@ -32,10 +34,13 @@ pub struct SensorTemplate {
     /// Stringified sensor chart, may be empty.
     pub chart: String,
 
-    pub message_count: u64,
-
     /// Chart period.
     pub minutes: i64,
+
+    pub reading_count: u64,
+
+    /// Statistics in the footer.
+    pub message_count: u64,
 }
 
 /// Navigation bar.
