@@ -2,21 +2,29 @@
 
 use crate::prelude::*;
 use crate::settings::Settings;
+use crate::web::cached_content::Cached;
+use crate::web::if_none_match::IfNoneMatch;
+use crate::web::message_counter::MessageCounter;
 use chrono::Duration;
 use itertools::Itertools;
 use rocket::config::Environment;
-use rocket::http::hyper::header::{ETag, EntityTag};
+use rocket::http::hyper::header::ETag;
 use rocket::http::ContentType;
 use rocket::http::Status;
-use rocket::request::{FromRequest, Outcome};
 use rocket::response::content::{Content, Html};
-use rocket::{get, routes, Config, Request, Response, Rocket, State};
+use rocket::{get, routes, Config, Response, Rocket, State};
 use rocket_contrib::json::Json;
 use std::io::Cursor;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::AtomicU64;
 use std::sync::Arc;
 
+mod cached_content;
+mod entity_tag;
+mod if_none_match;
+mod message_counter;
 mod templates;
+
+const STATIC_MAX_AGE_SECS: u32 = 3600;
 
 /// Start the web application.
 pub fn start_server(settings: &Settings, db: Connection, message_counter: Arc<AtomicU64>) -> Result<()> {
@@ -147,125 +155,135 @@ fn get_sensor_json(db: State<Connection>, sensor_id: String) -> Result<Option<Js
 }
 
 #[get("/favicon.ico")]
-fn get_favicon() -> Content<&'static [u8]> {
-    Content(ContentType::Icon, include_bytes!("statics/favicon.ico"))
+fn get_favicon() -> Cached {
+    Cached(
+        STATIC_MAX_AGE_SECS,
+        Content(ContentType::Icon, include_bytes!("statics/favicon.ico")),
+    )
 }
 
 #[get("/static/favicon-16x16.png")]
-fn get_favicon_16() -> Content<&'static [u8]> {
-    Content(ContentType::PNG, include_bytes!("statics/favicon-16x16.png"))
+fn get_favicon_16() -> Cached {
+    Cached(
+        STATIC_MAX_AGE_SECS,
+        Content(ContentType::PNG, include_bytes!("statics/favicon-16x16.png")),
+    )
 }
 
 #[get("/static/favicon-32x32.png")]
-fn get_favicon_32() -> Content<&'static [u8]> {
-    Content(ContentType::PNG, include_bytes!("statics/favicon-32x32.png"))
+fn get_favicon_32() -> Cached {
+    Cached(
+        STATIC_MAX_AGE_SECS,
+        Content(ContentType::PNG, include_bytes!("statics/favicon-32x32.png")),
+    )
 }
 
 #[get("/static/apple-touch-icon.png")]
-fn get_apple_touch_icon() -> Content<&'static [u8]> {
-    Content(ContentType::PNG, include_bytes!("statics/apple-touch-icon.png"))
+fn get_apple_touch_icon() -> Cached {
+    Cached(
+        STATIC_MAX_AGE_SECS,
+        Content(ContentType::PNG, include_bytes!("statics/apple-touch-icon.png")),
+    )
 }
 
 #[get("/static/android-chrome-192x192.png")]
-fn get_android_chrome_192() -> Content<&'static [u8]> {
-    Content(ContentType::PNG, include_bytes!("statics/android-chrome-192x192.png"))
+fn get_android_chrome_192() -> Cached {
+    Cached(
+        STATIC_MAX_AGE_SECS,
+        Content(ContentType::PNG, include_bytes!("statics/android-chrome-192x192.png")),
+    )
 }
 
 #[get("/static/android-chrome-512x512.png")]
-fn get_android_chrome_512() -> Content<&'static [u8]> {
-    Content(ContentType::PNG, include_bytes!("statics/android-chrome-512x512.png"))
+fn get_android_chrome_512() -> Cached {
+    Cached(
+        STATIC_MAX_AGE_SECS,
+        Content(ContentType::PNG, include_bytes!("statics/android-chrome-512x512.png")),
+    )
 }
 
 #[get("/static/bulma.min.css")]
-fn get_bulma_css() -> Content<&'static [u8]> {
-    Content(ContentType::CSS, include_bytes!("statics/bulma.min.css"))
+fn get_bulma_css() -> Cached {
+    Cached(
+        STATIC_MAX_AGE_SECS,
+        Content(ContentType::CSS, include_bytes!("statics/bulma.min.css")),
+    )
 }
 
 #[get("/static/bulma-prefers-dark.css")]
-fn get_bulma_prefers_dark() -> Content<&'static [u8]> {
-    Content(ContentType::CSS, include_bytes!("statics/bulma-prefers-dark.css"))
+fn get_bulma_prefers_dark() -> Cached {
+    Cached(
+        STATIC_MAX_AGE_SECS,
+        Content(ContentType::CSS, include_bytes!("statics/bulma-prefers-dark.css")),
+    )
 }
 
 #[get("/static/Chart.bundle.min.js")]
-fn get_chart_js() -> Content<&'static [u8]> {
-    Content(ContentType::JavaScript, include_bytes!("statics/Chart.bundle.min.js"))
+fn get_chart_js() -> Cached {
+    Cached(
+        STATIC_MAX_AGE_SECS,
+        Content(ContentType::JavaScript, include_bytes!("statics/Chart.bundle.min.js")),
+    )
 }
 
 #[get("/static/fontawesome.css")]
-fn get_font_awesome() -> Content<&'static [u8]> {
-    Content(
-        ContentType::CSS,
-        include_bytes!("statics/fontawesome-free-5.13.1-web/css/all.css"),
+fn get_font_awesome() -> Cached {
+    Cached(
+        STATIC_MAX_AGE_SECS,
+        Content(
+            ContentType::CSS,
+            include_bytes!("statics/fontawesome-free-5.13.1-web/css/all.css"),
+        ),
     )
 }
 
 #[get("/webfonts/fa-solid-900.woff2")]
-fn get_webfonts_fa_solid_900() -> Content<&'static [u8]> {
-    Content(
-        ContentType::WOFF2,
-        include_bytes!("statics/fontawesome-free-5.13.1-web/webfonts/fa-solid-900.woff2"),
+fn get_webfonts_fa_solid_900() -> Cached {
+    Cached(
+        STATIC_MAX_AGE_SECS,
+        Content(
+            ContentType::WOFF2,
+            include_bytes!("statics/fontawesome-free-5.13.1-web/webfonts/fa-solid-900.woff2"),
+        ),
     )
 }
 
 #[get("/webfonts/fa-regular-400.woff2")]
-fn get_webfonts_fa_regular_400() -> Content<&'static [u8]> {
-    Content(
-        ContentType::WOFF2,
-        include_bytes!("statics/fontawesome-free-5.13.1-web/webfonts/fa-regular-400.woff2"),
+fn get_webfonts_fa_regular_400() -> Cached {
+    Cached(
+        STATIC_MAX_AGE_SECS,
+        Content(
+            ContentType::WOFF2,
+            include_bytes!("statics/fontawesome-free-5.13.1-web/webfonts/fa-regular-400.woff2"),
+        ),
     )
 }
 
 #[get("/webfonts/fa-brands-400.woff2")]
-fn get_webfonts_fa_brands_400() -> Content<&'static [u8]> {
-    Content(
-        ContentType::WOFF2,
-        include_bytes!("statics/fontawesome-free-5.13.1-web/webfonts/fa-brands-400.woff2"),
+fn get_webfonts_fa_brands_400() -> Cached {
+    Cached(
+        STATIC_MAX_AGE_SECS,
+        Content(
+            ContentType::WOFF2,
+            include_bytes!("statics/fontawesome-free-5.13.1-web/webfonts/fa-brands-400.woff2"),
+        ),
     )
 }
 
 #[get("/sw.js")]
-fn get_sw_js() -> Content<&'static [u8]> {
-    Content(ContentType::JavaScript, include_bytes!("statics/sw.js"))
+fn get_sw_js() -> Cached {
+    Cached(
+        STATIC_MAX_AGE_SECS,
+        Content(ContentType::JavaScript, include_bytes!("statics/sw.js")),
+    )
 }
 
 #[get("/my-iot.webmanifest")]
-fn get_webmanifest() -> Content<&'static [u8]> {
-    Content(ContentType::JSON, include_bytes!("statics/my-iot.webmanifest"))
-}
-
-/// Extracts a [`If-None-Match`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag) header
-/// from a request.
-struct IfNoneMatch(EntityTag);
-
-impl<'a, 'r> FromRequest<'a, 'r> for IfNoneMatch {
-    type Error = ();
-
-    fn from_request(request: &'a Request<'r>) -> Outcome<Self, Self::Error> {
-        match request
-            .headers()
-            .get_one("If-None-Match")
-            .and_then(|value| value.parse::<EntityTag>().ok())
-        {
-            Some(entity_tag) => Outcome::Success(IfNoneMatch(entity_tag)),
-            None => Outcome::Forward(()),
-        }
-    }
-}
-
-impl Reading {
-    pub fn entity_tag(&self) -> EntityTag {
-        EntityTag::new(true, format!("{:x}", self.timestamp.timestamp_millis()))
-    }
-}
-
-/// Holds a number of handled `Message`s.
-struct MessageCounter(Arc<AtomicU64>);
-
-impl MessageCounter {
-    /// Extracts the inner value.
-    pub fn value(&self) -> u64 {
-        self.0.load(Ordering::Relaxed)
-    }
+fn get_webmanifest() -> Cached {
+    Cached(
+        STATIC_MAX_AGE_SECS,
+        Content(ContentType::JSON, include_bytes!("statics/my-iot.webmanifest")),
+    )
 }
 
 #[cfg(test)]
