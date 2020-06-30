@@ -22,3 +22,9 @@ Yet another [home automation](https://en.wikipedia.org/wiki/Home_automation). Wr
 ### Settings View
 
 ![Settings view](screenshots/settings.png)
+
+### [Progressive Web App](https://en.wikipedia.org/wiki/Progressive_web_application)
+
+| Desktop                         | Mobile                                |
+|---------------------------------|---------------------------------------|
+| ![Desktop](screenshots/pwa.png) | ![Mobile](screenshots/pwa-mobile.png) |
