@@ -12,7 +12,8 @@ use rocket::http::hyper::header::ETag;
 use rocket::http::ContentType;
 use rocket::http::Status;
 use rocket::response::content::{Content, Html};
-use rocket::{get, routes, Config, Response, Rocket, State};
+use rocket::response::Redirect;
+use rocket::{delete, get, routes, uri, Config, Response, Rocket, State};
 use rocket_contrib::json::Json;
 use std::io::Cursor;
 use std::sync::atomic::AtomicU64;
@@ -48,6 +49,7 @@ fn make_rocket(settings: &Settings, db: Connection, message_counter: Arc<AtomicU
             get_index,
             get_settings,
             get_sensor,
+            delete_sensor,
             get_sensor_json,
             get_favicon,
             get_favicon_16,
@@ -148,6 +150,12 @@ fn get_sensor<'r>(
     } else {
         Response::build().status(Status::NotFound).ok()
     }
+}
+
+#[delete("/sensors/<sensor_id>")]
+fn delete_sensor(db: State<Connection>, sensor_id: String) -> Result<Redirect> {
+    db.delete_sensor(&sensor_id)?;
+    Ok(Redirect::to(uri!(get_index)))
 }
 
 #[get("/sensors/<sensor_id>/json")]

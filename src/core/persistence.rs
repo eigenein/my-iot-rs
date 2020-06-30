@@ -72,6 +72,13 @@ impl Connection {
             .optional()?)
     }
 
+    pub fn delete_sensor(&self, sensor_id: &str) -> Result<()> {
+        self.connection()?
+            .prepare_cached(r"DELETE FROM sensors WHERE sensor_id = ?1")?
+            .execute(params![sensor_id])?;
+        Ok(())
+    }
+
     /// Selects the specified sensor readings within the specified period.
     pub fn select_values<T: FromSql>(
         &self,

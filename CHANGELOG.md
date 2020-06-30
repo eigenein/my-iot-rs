@@ -6,6 +6,7 @@
 - Set caching headers on statics, closes #103
 - Drop sensor TTLs, closes #102
 - Display sensor reading count
+- Delete sensors from the UI, closes #9
 
 ## `0.70.3`
 

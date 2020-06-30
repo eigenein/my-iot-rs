@@ -105,9 +105,9 @@
             <strong>API</strong>: <a href="{{ uri!(get_sensor_json: &self.sensor.id) }}">JSON</a>
           </p>
 
-          <h3 class="title is-5">Danger Zone (Unimplemented)</h3>
+          <h3 class="title is-5">Danger Zone</h3>
 
-          <form>
+          <form method="POST" action="{{ uri!(delete_sensor: &self.sensor.id) }}">
             <div class="field">
               <div class="field has-addons">
                 <div class="control is-expanded">
@@ -119,6 +119,7 @@
               </div>
               <p class="help">Sensor deletion will lead to deleting all the associated sensor readings</p>
             </div>
+            <input type="hidden" name="_method" value="delete">
           </form>
         </div>
       </div>
