@@ -2,7 +2,6 @@
 
 use crate::prelude::*;
 use crate::services::prelude::*;
-use std::convert::TryInto;
 use std::time::Duration;
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
@@ -43,11 +42,10 @@ fn default_room_title() -> String {
 impl YouLess {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
         let interval = Duration::from_millis(self.interval_millis as u64);
-        let ttl = chrono::Duration::milliseconds(self.ttl_millis.try_into()?);
         let tx = bus.add_tx();
 
         thread::Builder::new().name(service_id.clone()).spawn(move || loop {
-            if let Err(error) = self.loop_(&service_id, &tx, ttl) {
+            if let Err(error) = self.loop_(&service_id, &tx) {
                 error!("Failed to refresh the sensors: {}", error.to_string());
             }
             thread::sleep(interval);
@@ -56,7 +54,7 @@ impl YouLess {
         Ok(())
     }
 
-    fn loop_(&self, service_id: &str, tx: &Sender, ttl: chrono::Duration) -> Result<()> {
+    fn loop_(&self, service_id: &str, tx: &Sender) -> Result<()> {
         let response = self
             .client
             .get(&self.url)
@@ -66,49 +64,42 @@ impl YouLess {
             .ok_or("YouLess response is empty")?;
         Message::new(format!("{}::nett", service_id))
             .value(Value::from_kwh(response.nett))
-            .expires_in(ttl)
             .room_title(&self.room_title)
             .sensor_title("Nett Counter")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::power", service_id))
             .value(Value::Power(response.power))
-            .expires_in(ttl)
             .room_title(&self.room_title)
             .sensor_title("Actual Consumption")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::consumption_low", service_id))
             .value(Value::from_kwh(response.consumption_low))
-            .expires_in(ttl)
             .room_title(&self.room_title)
             .sensor_title("Total Consumption Low")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::consumption_high", service_id))
             .value(Value::from_kwh(response.consumption_high))
-            .expires_in(ttl)
             .room_title(&self.room_title)
             .sensor_title("Total Consumption High")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::production_low", service_id))
             .value(Value::from_kwh(response.production_low))
-            .expires_in(ttl)
             .room_title(&self.room_title)
             .sensor_title("Total Production Low")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::production_high", service_id))
             .value(Value::from_kwh(response.production_high))
-            .expires_in(ttl)
             .room_title(&self.room_title)
             .sensor_title("Total Production High")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::consumption_gas", service_id))
             .value(Value::Volume(response.gas))
-            .expires_in(ttl)
             .room_title(&self.room_title)
             .sensor_title("Total Gas Consumption")
             .timestamp(response.timestamp)

@@ -57,13 +57,10 @@ impl Tado {
     }
 
     fn loop_(&self, service_id: &str, me: &Me, home: &Home, tx: &Sender) -> Result<()> {
-        let ttl = chrono::Duration::seconds(600);
-
         let weather = self.get_weather(me.home_id)?;
 
         Message::new(format!("{}::{}::solar_intensity", service_id, me.home_id))
             .timestamp(weather.solar_intensity.timestamp)
-            .expires_in(ttl)
             .value(Value::RelativeIntensity(weather.solar_intensity.percentage))
             .room_title(&home.name)
             .sensor_title("Solar Intensity")
@@ -72,7 +69,6 @@ impl Tado {
         let home_state = self.get_home_state(me.home_id)?;
 
         Message::new(format!("{}::{}::is_home", service_id, me.home_id))
-            .expires_in(ttl)
             .value(home_state.presence == Presence::Home)
             .room_title(&home.name)
             .sensor_title("At Home")
@@ -88,12 +84,10 @@ impl Tado {
 
             Message::new(format!("{}::is_online", sensor_prefix))
                 .value(zone_state.link.state == LinkState::Online)
-                .expires_in(ttl)
                 .room_title(&zone.name)
                 .sensor_title(format!("{} Online", zone_title))
                 .send_and_forget(tx);
             Message::new(format!("{}::is_on", sensor_prefix))
-                .expires_in(ttl)
                 .value(zone_state.setting.power == PowerState::On)
                 .room_title(&zone.name)
                 .sensor_title(format!("{} On", zone_title,))
@@ -101,7 +95,6 @@ impl Tado {
 
             if zone.open_window_detection.supported && zone.open_window_detection.enabled == Some(true) {
                 Message::new(format!("{}::is_window_closed", sensor_prefix))
-                    .expires_in(ttl)
                     .value(!zone_state.open_window_detected)
                     .room_title(&zone.name)
                     .sensor_title("Is Window Closed")
@@ -110,7 +103,6 @@ impl Tado {
 
             if let ZoneSettingAttributes::Heating { temperature } = zone_state.setting.attributes {
                 Message::new(format!("{}::set_temperature", sensor_prefix))
-                    .expires_in(ttl)
                     .value(Value::Temperature(temperature.celsius))
                     .room_title(&zone.name)
                     .sensor_title("Set Temperature")
@@ -120,7 +112,6 @@ impl Tado {
             if let Some(humidity) = zone_state.sensor_data_points.humidity {
                 Message::new(format!("{}::humidity", sensor_prefix))
                     .timestamp(humidity.timestamp)
-                    .expires_in(ttl)
                     .room_title(&zone.name)
                     .sensor_title("Humidity")
                     .value(Value::Rh(humidity.percentage))
@@ -130,7 +121,6 @@ impl Tado {
             if let Some(temperature) = zone_state.sensor_data_points.inside_temperature {
                 Message::new(format!("{}::temperature", sensor_prefix))
                     .timestamp(temperature.timestamp)
-                    .expires_in(ttl)
                     .room_title(&zone.name)
                     .sensor_title("Ambient Temperature")
                     .value(Value::Temperature(temperature.celsius))
@@ -188,7 +178,7 @@ impl Tado {
             )?)
             .send()?
             .json::<Token>()?;
-        debug!("Logged in, token expires at: {:?}", response.expires_at);
+        debug!("Logged in, the token expires at: {:?}", response.expires_at);
         let access_token = response.access_token.clone();
         *token_guard = Some(response);
         Ok(access_token)
@@ -210,7 +200,7 @@ impl Tado {
             )?)
             .send()?
             .json::<Token>()?;
-        debug!("Logged in, token expires at: {:?}", response.expires_at);
+        debug!("Refreshed the token, expires at: {:?}", response.expires_at);
         let access_token = response.access_token.clone();
         *token_guard = Some(response);
         Ok(access_token)

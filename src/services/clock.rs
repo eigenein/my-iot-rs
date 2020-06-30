@@ -2,7 +2,6 @@
 
 use crate::prelude::*;
 use serde::Deserialize;
-use std::convert::TryInto;
 use std::thread;
 use std::time::Duration;
 
@@ -20,7 +19,6 @@ const fn default_interval_millis() -> u64 {
 impl Clock {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
         let interval = Duration::from_millis(self.interval_millis);
-        let ttl = chrono::Duration::milliseconds(self.interval_millis.try_into()?);
         let tx = bus.add_tx();
 
         thread::Builder::new().name(service_id.clone()).spawn(move || {
@@ -28,7 +26,6 @@ impl Clock {
             loop {
                 Message::new(&service_id)
                     .value(Value::Counter(counter))
-                    .expires_in(ttl)
                     .send_and_forget(&tx);
                 counter += 1;
                 thread::sleep(interval);

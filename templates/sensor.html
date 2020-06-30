@@ -102,10 +102,7 @@
           <p class="content is-size-7-desktop">
             <strong>Value</strong>: <code>{{ "{:?}"|format(reading.value) }}</code><br>
 
-            <strong>Expires</strong>: <span title="{{ sensor.expires_at }}">{{ sensor.expires_at|format_datetime }}</span><br>
-
-            <strong>API</strong>:
-            <a href="{{ uri!(get_sensor_json: &self.sensor.id) }}">JSON</a>
+            <strong>API</strong>: <a href="{{ uri!(get_sensor_json: &self.sensor.id) }}">JSON</a>
           </p>
         </div>
       </div>

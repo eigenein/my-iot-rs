@@ -4,6 +4,7 @@
 
 - Cache only 2xx responses, closes #104
 - Set caching headers on statics, closes #103
+- Drop sensor TTLs, closes #102
 
 ## `0.70.3`
 

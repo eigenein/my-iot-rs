@@ -40,9 +40,9 @@ impl Connection {
         self.connection()?
             .prepare_cached(
                 // language=sql
-                r"SELECT * FROM sensors WHERE expires_at > ?1 ORDER BY room_title, sensor_id",
+                r"SELECT * FROM sensors ORDER BY room_title, sensor_id",
             )?
-            .query_map(params![Local::now().timestamp_millis()], get_actual)?
+            .query_map(NO_PARAMS, get_actual)?
             .map(|r| r.map_err(Into::into))
             .collect()
     }
@@ -67,8 +67,8 @@ impl Connection {
         Ok(self
             .connection()?
             // language=sql
-            .prepare_cached(r"SELECT * FROM sensors WHERE sensor_id = ?1 AND expires_at > ?2")?
-            .query_row(params![sensor_id, Local::now().timestamp_millis()], get_actual)
+            .prepare_cached(r"SELECT * FROM sensors WHERE sensor_id = ?1")?
+            .query_row(params![sensor_id], get_actual)
             .optional()?)
     }
 
@@ -161,7 +161,6 @@ fn get_sensor(row: &Row) -> rusqlite::Result<Sensor> {
         id: row.get("sensor_id")?,
         title: row.get("title")?,
         room_title: row.get("room_title")?,
-        expires_at: Local.timestamp_millis(row.get("expires_at")?),
     })
 }
 
@@ -198,13 +197,12 @@ impl Message {
             -- noinspection SqlResolve @ any/"excluded"
             -- noinspection SqlInsertValues
             INSERT INTO sensors (pk, sensor_id, title, timestamp, room_title, value, expires_at)
-            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0)
             ON CONFLICT (pk) DO UPDATE SET
                 timestamp = excluded.timestamp,
                 title = excluded.title,
                 room_title = excluded.room_title,
-                value = excluded.value,
-                expires_at = excluded.expires_at
+                value = excluded.value
             "#,
             )?
             .execute(params![
@@ -214,7 +212,6 @@ impl Message {
                 timestamp,
                 self.sensor.room_title,
                 value,
-                self.sensor.expires_at.timestamp_millis(),
             ])?;
 
         connection
@@ -275,8 +272,7 @@ mod tests {
     fn select_last_reading_ok() -> Result {
         let message = Message::new("test")
             .value(Value::Counter(42))
-            .timestamp(Local.timestamp_millis(1_566_424_128_000))
-            .expires_at(Local.ymd(9999, 1, 1).and_hms(0, 0, 0));
+            .timestamp(Local.timestamp_millis(1_566_424_128_000));
         let db = Connection::open_and_initialize(":memory:")?;
         message.upsert_into(&*db.connection()?)?;
         assert_eq!(db.select_sensor("test")?, Some(message.into()));
@@ -288,8 +284,7 @@ mod tests {
         let db = Connection::open_and_initialize(":memory:")?;
         let mut message = Message::new("test")
             .value(Value::Counter(42))
-            .timestamp(Local.timestamp_millis(1_566_424_127_000))
-            .expires_at(Local.ymd(9999, 1, 1).and_hms(0, 0, 0));
+            .timestamp(Local.timestamp_millis(1_566_424_127_000));
         message.upsert_into(&*db.connection()?)?;
         message = message.timestamp(Local.timestamp_millis(1_566_424_128_000));
         message.upsert_into(&*db.connection()?)?;
@@ -301,8 +296,7 @@ mod tests {
     fn select_actuals_ok() -> Result {
         let message = Message::new("test")
             .value(Value::Counter(42))
-            .timestamp(Local.timestamp_millis(1_566_424_128_000))
-            .expires_at(Local.ymd(9999, 1, 1).and_hms(0, 0, 0));
+            .timestamp(Local.timestamp_millis(1_566_424_128_000));
         let db = Connection::open_and_initialize(":memory:")?;
         message.upsert_into(&*db.connection()?)?;
         assert_eq!(db.select_actuals()?, vec![(message.sensor, message.reading)]);
@@ -339,35 +333,10 @@ mod tests {
         let db = Connection::open_and_initialize(":memory:")?;
         let message = Message::new("test")
             .value(Value::Counter(42))
-            .timestamp(Local.timestamp_millis(1_566_424_128_000))
-            .expires_at(Local.ymd(9999, 1, 1).and_hms(0, 0, 0));
+            .timestamp(Local.timestamp_millis(1_566_424_128_000));
         message.upsert_into(&*db.connection()?)?;
         let readings: Vec<(_, i64)> = db.select_values("test", &Local.timestamp_millis(0))?;
         assert_eq!(readings.get(0).unwrap(), &(message.reading.timestamp, 42));
-        Ok(())
-    }
-
-    #[test]
-    fn select_actuals_does_not_return_expired_sensor() -> Result {
-        let db = Connection::open_and_initialize(":memory:")?;
-        Message::new("test")
-            .value(Value::Counter(42))
-            .timestamp(Local.timestamp_millis(1_566_424_128_000))
-            .expires_at(Local::now())
-            .upsert_into(&*db.connection()?)?;
-        assert_eq!(db.select_actuals()?.len(), 0);
-        Ok(())
-    }
-
-    #[test]
-    fn get_sensor_does_not_return_expired_sensor() -> Result {
-        let db = Connection::open_and_initialize(":memory:")?;
-        Message::new("test")
-            .value(Value::Counter(42))
-            .timestamp(Local.timestamp_millis(1_566_424_128_000))
-            .expires_at(Local::now())
-            .upsert_into(&*db.connection()?)?;
-        assert_eq!(db.select_sensor("test")?, None);
         Ok(())
     }
 }
