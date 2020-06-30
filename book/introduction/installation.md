@@ -24,8 +24,6 @@ curl -fsSL https://raw.githubusercontent.com/eigenein/my-iot-rs/master/install.s
 
 ## Install from crates.io
 
-**Note**: the crate is outdated, I'm waiting for an Askama release.
-
 ```bash
 cargo install my-iot
 ```

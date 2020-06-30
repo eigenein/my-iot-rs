@@ -1,12 +1,13 @@
 # `my-iot`
 
-## `master`
+## `0.71.0`
 
 - Cache only 2xx responses, closes #104
 - Set caching headers on statics, closes #103
 - Drop sensor TTLs, closes #102
 - Display sensor reading count
 - Delete sensors from the UI, closes #9
+- Update `askama`
 
 ## `0.70.3`
 

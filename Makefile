@@ -54,3 +54,7 @@ tag:
 .PHONY: tag/publish
 tag/publish: tag
 	@git push origin $(shell cargo run -- --version)
+
+.PHONY: publish
+publish: tag/publish
+	@cargo publish
