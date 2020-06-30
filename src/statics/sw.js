@@ -7,8 +7,10 @@ self.addEventListener('fetch', function(event) {
   event.respondWith(
     caches.open(cacheName).then(function(cache) {
       return fetch(event.request).then(function (response) {
-        console.log('📦 ' + event.request.url);
-        cache.put(event.request, response.clone());
+        if (response.ok) {
+          console.log('📦 ' + event.request.url);
+          cache.put(event.request, response.clone());
+        }
         return response;
       }).catch(function() {
         console.log('🎯 ' + event.request.url);

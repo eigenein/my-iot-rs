@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Cache only 2xx responses, closes #104
+
 ## `0.70.3`
 
 - Fix [overflow on mobile](https://github.com/jgthms/bulma/issues/2769) #51
