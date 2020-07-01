@@ -1,5 +1,10 @@
 # `my-iot`
 
+## `0.72.0`
+
+- Sensor auto-refresh period to depend on a selected chart period #105
+- Remove the Raw data section
+
 ## `0.71.1`
 
 - Room title is now obligatory and defaults to `"Home"`

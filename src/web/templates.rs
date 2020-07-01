@@ -43,6 +43,11 @@ pub struct SensorTemplate {
     pub message_count: u64,
 }
 
+impl SensorTemplate {
+    /// Refresh a sensor view this many times per minute.
+    const AUTO_REFRESH_PER_MINUTE: i64 = 12;
+}
+
 /// Navigation bar.
 #[derive(Template)]
 #[template(path = "partials/navbar.html")]

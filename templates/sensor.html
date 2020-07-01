@@ -2,6 +2,10 @@
 
 {% block title %}{{ sensor.title() }} – {{ sensor.room_title }} – My IoT{% endblock %}
 
+{% block head %}
+  <meta http-equiv="refresh" content="{{ minutes * 60 / Self::AUTO_REFRESH_PER_MINUTE }}">
+{% endblock %}
+
 {% block body %}
   <div class="hero {{ reading.value|color_class }}">
     <div class="hero-head">
@@ -47,8 +51,10 @@
               <div class="container">
                 <ul>
                   <li><a href="?minutes=5">5 mins</a></li>
+                  <li><a href="?minutes=10">10 mins</a></li>
                   <li><a href="?minutes=30">30 mins</a></li>
                   <li><a href="?">1 hour</a></li>
+                  <li><a href="?minutes=360">6 hours</a></li>
                   <li><a href="?minutes=720">12 hours</a></li>
                   <li><a href="?minutes=1440">1 day</a></li>
                   <li><a href="?minutes=10080">1 week</a></li>
@@ -74,24 +80,6 @@
           </div>
         </div>
       {% endif %}
-
-      <div class="section">
-        <div class="container">
-          <h3 class="title is-5">Raw data</h3>
-
-          <div class="message">
-            <div class="message-body">
-              <pre><code>{{ "{:#?}"|format(sensor) }}</code></pre>
-            </div>
-          </div>
-
-          <div class="message">
-            <div class="message-body">
-              <pre><code>{{ "{:#?}"|format(reading) }}</code></pre>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div class="column is-3">
