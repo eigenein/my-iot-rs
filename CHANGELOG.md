@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.73.2`
+
+- Fix `human_format` for the strict zeroes
+
 ## `0.73.1`
 
 - Fix rain sensors for OpenWeather, rename sensors

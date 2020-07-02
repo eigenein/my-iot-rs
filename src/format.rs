@@ -1,5 +1,8 @@
 /// Format value to keep only 3 digits before the decimal point.
 pub fn human_format(value: f64, unit: &str) -> String {
+    if value.is_zero() {
+        return format!("{:.1} {}", value, unit);
+    }
     let abs_value = value.abs();
     match abs_value {
         _ if abs_value < 1e-21 => format!("{:.1} y{}", value * 1e24, unit),
