@@ -9,6 +9,7 @@
   - [Buienradar]()
   - [Clock]()
   - [Lua](services/lua.md)
+  - [OpenWeather]()
   - [Solar](services/solar.md)
   - [Tado](services/tado.md)
   - [Telegram]()

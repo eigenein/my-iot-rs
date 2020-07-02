@@ -7,6 +7,7 @@ pub use crate::core::value::{PointOfTheCompass, Value};
 pub use chrono::prelude::*;
 pub use crossbeam::thread::Scope;
 pub use log::{debug, error, info, log, warn, Level as LogLevel};
+pub use reqwest::blocking::Client;
 pub use serde::de::DeserializeOwned;
 pub use serde::{Deserialize, Deserializer, Serialize};
 pub use std::collections::HashMap;
@@ -22,7 +23,5 @@ pub type Sender = crossbeam::channel::Sender<Message>;
 /// Amount of [Joule](https://en.wikipedia.org/wiki/Joule)s
 /// in 1 [watt-hour](https://en.wikipedia.org/wiki/Kilowatt-hour).
 pub const JOULES_IN_WH: f64 = 3600.0;
-
-pub const JOULES_IN_KWH: f64 = 1000.0 * JOULES_IN_WH;
 
 pub const WH_IN_JOULE: f64 = 1.0 / JOULES_IN_WH;

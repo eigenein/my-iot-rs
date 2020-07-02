@@ -176,7 +176,7 @@ fn get_sensor(row: &Row) -> rusqlite::Result<Sensor> {
     Ok(Sensor {
         id: row.get("sensor_id")?,
         title: row.get("title")?,
-        room_title: row.get("room_title")?,
+        location: row.get("room_title")?,
     })
 }
 
@@ -227,7 +227,7 @@ impl Message {
                 self.sensor.id,
                 self.sensor.title,
                 timestamp,
-                self.sensor.room_title,
+                self.sensor.location,
                 value,
             ])?;
 

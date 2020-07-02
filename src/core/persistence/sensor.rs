@@ -6,6 +6,6 @@ pub struct Sensor {
     /// Optional sensor title.
     pub title: Option<String>,
 
-    /// Optional room title.
-    pub room_title: String,
+    /// Human-readable location title.
+    pub location: String,
 }

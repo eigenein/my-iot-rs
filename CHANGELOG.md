@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.73.0`
+
+- OpenWeather API service, closes #16 #110
+
 ## `0.72.0`
 
 - Sensor auto-refresh period to depend on a selected chart period #105

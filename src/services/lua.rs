@@ -10,7 +10,7 @@ mod prelude;
 mod telegram;
 
 const MESSAGE_ARG_TYPE: &str = "type";
-const MESSAGE_ARG_ROOM_TITLE: &str = "room_title";
+const MESSAGE_ARG_LOCATION: &str = "room_title";
 const MESSAGE_ARG_SENSOR_TITLE: &str = "sensor_title";
 const MESSAGE_ARG_VALUE: &str = "value";
 const MESSAGE_ARG_TIMESTAMP_MILLIS: &str = "timestamp_millis";
@@ -97,7 +97,7 @@ fn create_args_table<'lua>(context: LuaContext<'lua>, message: &Message) -> LuaR
     let args = context.create_table()?;
     args.set("sensor_id", message.sensor.id.clone())?;
     args.set(MESSAGE_ARG_TYPE, message.type_)?;
-    args.set(MESSAGE_ARG_ROOM_TITLE, message.sensor.room_title.clone())?;
+    args.set(MESSAGE_ARG_LOCATION, message.sensor.location.clone())?;
     args.set(MESSAGE_ARG_SENSOR_TITLE, message.sensor.title.clone())?;
     args.set(MESSAGE_ARG_VALUE, message.reading.value.clone())?;
     args.set(
@@ -148,8 +148,8 @@ fn enrich_message<'lua>(message: &mut Message, context: LuaContext<'lua>, args: 
     for item in args.pairs::<String, LuaValue>() {
         let (key, value) = item?;
         match key.as_ref() {
-            MESSAGE_ARG_ROOM_TITLE => {
-                message.sensor.room_title = FromLua::from_lua(value, context)?;
+            MESSAGE_ARG_LOCATION => {
+                message.sensor.location = FromLua::from_lua(value, context)?;
             }
             MESSAGE_ARG_SENSOR_TITLE => {
                 message.sensor.title = FromLua::from_lua(value, context)?;
@@ -214,13 +214,15 @@ impl<'lua> ToLua<'lua> for Value {
             Value::ImageUrl(value) | Value::Text(value) => value.to_lua(context),
             Value::Counter(value) | Value::DataSize(value) => value.to_lua(context),
             Value::Rh(value)
-            | Value::RelativeIntensity(value)
             | Value::Duration(value)
-            | Value::Length(value)
-            | Value::Temperature(value)
             | Value::Energy(value)
+            | Value::Length(value)
             | Value::Power(value)
-            | Value::Volume(value) => value.to_lua(context),
+            | Value::RelativeIntensity(value)
+            | Value::Speed(value)
+            | Value::Temperature(value)
+            | Value::Volume(value)
+            | Value::Cloudiness(value) => value.to_lua(context),
             Value::WindDirection(value) => value.to_lua(context),
         }
     }

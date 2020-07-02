@@ -1,7 +1,7 @@
 //! [Buienradar](https://www.buienradar.nl/) weather service.
 
 use crate::prelude::*;
-use crate::services::prelude::*;
+use crate::services::CLIENT;
 use chrono::offset::TimeZone;
 use chrono_tz::Europe::Amsterdam;
 use serde::{de, Deserialize, Deserializer};
@@ -21,10 +21,9 @@ pub struct Buienradar {
 impl Buienradar {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
         let tx = bus.add_tx();
-        let client = client_builder().build()?;
 
         thread::Builder::new().name(service_id.clone()).spawn(move || loop {
-            if let Err(error) = self.loop_(&client, &service_id, &tx) {
+            if let Err(error) = self.loop_(&service_id, &tx) {
                 error!("Failed to refresh the sensors: {}", error.to_string());
             }
             thread::sleep(REFRESH_PERIOD);
@@ -33,13 +32,18 @@ impl Buienradar {
         Ok(())
     }
 
-    fn loop_(&self, client: &Client, service_id: &str, tx: &Sender) -> Result<()> {
-        self.send_readings(self.fetch(&client)?, &service_id, &tx)
+    fn loop_(&self, service_id: &str, tx: &Sender) -> Result<()> {
+        self.send_readings(self.fetch()?, &service_id, &tx)
     }
 
     /// Fetch measurement for the configured station.
-    fn fetch(&self, client: &Client) -> Result<BuienradarFeedActual> {
-        Ok(client.get(URL).send()?.json::<BuienradarFeed>()?.actual)
+    fn fetch(&self) -> Result<BuienradarFeedActual> {
+        Ok(CLIENT
+            .get(URL)
+            .send()?
+            .error_for_status()?
+            .json::<BuienradarFeed>()?
+            .actual)
     }
 
     /// Sends out readings based on Buienradar station measurement.
@@ -49,107 +53,142 @@ impl Buienradar {
             .iter()
             .find(|measurement| measurement.station_id == self.station_id)
             .ok_or_else(|| format!("station {} is not found", self.station_id))?;
+        let sensor_prefix = format!("{}::{}", service_id, self.station_id);
         if let Some(temperature) = measurement.temperature {
             tx.send(
-                Message::new(format!("{}::{}::temperature", service_id, self.station_id))
+                Message::new(format!("{}::temperature", sensor_prefix))
                     .type_(MessageType::ReadLogged)
                     .value(Value::Temperature(temperature))
                     .timestamp(measurement.timestamp)
                     .sensor_title("Temperature")
-                    .room_title(&measurement.name),
+                    .location(&measurement.name),
             )?;
         }
         if let Some(temperature) = measurement.ground_temperature {
             tx.send(
-                Message::new(format!("{}::{}::ground_temperature", service_id, self.station_id))
+                Message::new(format!("{}::ground_temperature", sensor_prefix))
                     .type_(MessageType::ReadLogged)
                     .value(Value::Temperature(temperature))
                     .timestamp(measurement.timestamp)
                     .sensor_title("Ground Temperature")
-                    .room_title(&measurement.name),
+                    .location(&measurement.name),
             )?;
         }
         if let Some(temperature) = measurement.feel_temperature {
             tx.send(
-                Message::new(format!("{}::{}::feel_temperature", service_id, self.station_id))
+                Message::new(format!("{}::feel_temperature", sensor_prefix))
                     .type_(MessageType::ReadLogged)
                     .value(Value::Temperature(temperature))
                     .timestamp(measurement.timestamp)
                     .sensor_title("Feel Temperature")
-                    .room_title(&measurement.name),
+                    .location(&measurement.name),
             )?;
         }
         if let Some(bft) = measurement.wind_speed_bft {
             tx.send(
-                Message::new(format!("{}::{}::wind_force", service_id, self.station_id))
+                Message::new(format!("{}::wind_force", sensor_prefix))
                     .type_(MessageType::ReadLogged)
                     .value(Value::Bft(bft))
                     .timestamp(measurement.timestamp)
                     .sensor_title("Wind Force")
-                    .room_title(&measurement.name),
+                    .location(&measurement.name),
             )?;
         }
         if let Some(point) = measurement.wind_direction {
             tx.send(
-                Message::new(format!("{}::{}::wind_direction", service_id, self.station_id))
+                Message::new(format!("{}::wind_direction", sensor_prefix))
                     .type_(MessageType::ReadLogged)
                     .value(Value::WindDirection(point))
                     .timestamp(measurement.timestamp)
                     .sensor_title("Wind Direction")
-                    .room_title(&measurement.name),
+                    .location(&measurement.name),
             )?;
         }
+        if let Some(watts) = measurement.sun_power {
+            Message::new(format!("{}::sun_power", sensor_prefix))
+                .value(Value::Power(watts))
+                .timestamp(measurement.timestamp)
+                .sensor_title("Sun Power per ㎡")
+                .location(&measurement.name)
+                .send_and_forget(tx);
+        }
+        if let Some(speed) = measurement.wind_speed {
+            Message::new(format!("{}::wind_speed", sensor_prefix))
+                .value(Value::Speed(speed))
+                .timestamp(measurement.timestamp)
+                .sensor_title("Wind Speed")
+                .location(&measurement.name)
+                .send_and_forget(tx);
+        }
+        if let Some(speed) = measurement.wind_gusts {
+            Message::new(format!("{}::wind_gusts", sensor_prefix))
+                .value(Value::Speed(speed))
+                .timestamp(measurement.timestamp)
+                .sensor_title("Wind Gusts")
+                .location(&measurement.name)
+                .send_and_forget(tx);
+        }
+
         Ok(())
     }
 }
 
 #[derive(Deserialize)]
 struct BuienradarFeed {
-    pub actual: BuienradarFeedActual,
+    actual: BuienradarFeedActual,
 }
 
 #[derive(Deserialize)]
 struct BuienradarFeedActual {
     #[allow(dead_code)]
     #[serde(deserialize_with = "deserialize_datetime")]
-    pub sunrise: DateTime<Local>,
+    sunrise: DateTime<Local>,
 
     #[allow(dead_code)]
     #[serde(deserialize_with = "deserialize_datetime")]
-    pub sunset: DateTime<Local>,
+    sunset: DateTime<Local>,
 
     #[serde(rename = "stationmeasurements")]
-    pub station_measurements: Vec<BuienradarStationMeasurement>,
+    station_measurements: Vec<BuienradarStationMeasurement>,
 }
 
 #[derive(Deserialize, Clone)]
 struct BuienradarStationMeasurement {
     #[serde(rename = "stationid")]
-    pub station_id: u32,
+    station_id: u32,
 
     #[serde(rename = "stationname")]
-    pub name: String,
+    name: String,
 
     #[serde(default)]
-    pub temperature: Option<f64>,
+    temperature: Option<f64>,
 
     #[serde(default, rename = "groundtemperature")]
-    pub ground_temperature: Option<f64>,
+    ground_temperature: Option<f64>,
 
     #[serde(default, rename = "feeltemperature")]
-    pub feel_temperature: Option<f64>,
+    feel_temperature: Option<f64>,
 
     #[serde(default, rename = "windspeedBft")]
-    pub wind_speed_bft: Option<u8>,
+    wind_speed_bft: Option<u8>,
 
     #[serde(deserialize_with = "deserialize_datetime")]
-    pub timestamp: DateTime<Local>,
+    timestamp: DateTime<Local>,
 
     #[serde(default, rename = "winddirection")]
-    pub wind_direction: Option<PointOfTheCompass>,
+    wind_direction: Option<PointOfTheCompass>,
 
     #[serde(rename = "weatherdescription")]
-    pub weather_description: String,
+    weather_description: String,
+
+    #[serde(rename = "sunpower")]
+    sun_power: Option<f64>,
+
+    #[serde(rename = "windspeed")]
+    wind_speed: Option<f64>,
+
+    #[serde(rename = "windgusts")]
+    wind_gusts: Option<f64>,
 }
 
 /// Implements [custom date/time format](https://serde.rs/custom-date-format.html) with Amsterdam timezone.

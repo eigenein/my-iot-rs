@@ -76,9 +76,9 @@ fn get_index(db: State<Connection>, message_counter: State<MessageCounter>) -> R
     let actuals = db
         .select_actuals()?
         .into_iter()
-        .group_by(|(sensor, _)| sensor.room_title.clone())
+        .group_by(|(sensor, _)| sensor.location.clone())
         .into_iter()
-        .map(|(room_title, group)| (room_title, group.collect_vec()))
+        .map(|(location, group)| (location, group.collect_vec()))
         .collect_vec();
     Ok(Html(
         templates::IndexTemplate {

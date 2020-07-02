@@ -242,6 +242,16 @@ impl std::fmt::Display for Value {
 
             // language=HTML
             Value::Volume(m3) => write!(f, r#"<i class="fas fa-oil-can"></i> {}"#, human_format(*m3, "㎥")),
+
+            // language=HTML
+            Value::Speed(speed) => write!(
+                f,
+                r#"<i class="fas fa-tachometer-alt"></i> {}"#,
+                human_format(*speed, "m/s")
+            ),
+
+            // language=HTML
+            Value::Cloudiness(percentage) => write!(f, r#"<i class="fas fa-cloud"></i> {}%"#, percentage),
         }
     }
 }

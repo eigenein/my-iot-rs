@@ -1,7 +1,7 @@
 //! [tado°](https://www.tado.com/) API.
 
 use crate::prelude::*;
-use crate::services::prelude::*;
+use crate::services::CLIENT;
 use reqwest::{Method, Url};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::thread;
@@ -15,9 +15,6 @@ const REFRESH_PERIOD: Duration = Duration::from_secs(180);
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Tado {
     secrets: Secrets,
-
-    #[serde(skip, default = "default_client")]
-    client: Client,
 
     /// Last known log-in credentials.
     #[serde(skip, default = "default_token")]
@@ -62,7 +59,7 @@ impl Tado {
         Message::new(format!("{}::{}::solar_intensity", service_id, me.home_id))
             .timestamp(weather.solar_intensity.timestamp)
             .value(Value::RelativeIntensity(weather.solar_intensity.percentage))
-            .room_title(&home.name)
+            .location(&home.name)
             .sensor_title("Solar Intensity")
             .send_and_forget(tx);
 
@@ -70,7 +67,7 @@ impl Tado {
 
         Message::new(format!("{}::{}::is_home", service_id, me.home_id))
             .value(home_state.presence == Presence::Home)
-            .room_title(&home.name)
+            .location(&home.name)
             .sensor_title("At Home")
             .send_and_forget(tx);
 
@@ -84,19 +81,19 @@ impl Tado {
 
             Message::new(format!("{}::is_online", sensor_prefix))
                 .value(zone_state.link.state == LinkState::Online)
-                .room_title(&zone.name)
+                .location(&zone.name)
                 .sensor_title(format!("{} Online", zone_title))
                 .send_and_forget(tx);
             Message::new(format!("{}::is_on", sensor_prefix))
                 .value(zone_state.setting.power == PowerState::On)
-                .room_title(&zone.name)
+                .location(&zone.name)
                 .sensor_title(format!("{} On", zone_title,))
                 .send_and_forget(tx);
 
             if zone.open_window_detection.supported && zone.open_window_detection.enabled == Some(true) {
                 Message::new(format!("{}::is_window_closed", sensor_prefix))
                     .value(!zone_state.open_window_detected)
-                    .room_title(&zone.name)
+                    .location(&zone.name)
                     .sensor_title("Is Window Closed")
                     .send_and_forget(tx);
             }
@@ -104,7 +101,7 @@ impl Tado {
             if let ZoneSettingAttributes::Heating { temperature } = zone_state.setting.attributes {
                 Message::new(format!("{}::set_temperature", sensor_prefix))
                     .value(Value::Temperature(temperature.celsius))
-                    .room_title(&zone.name)
+                    .location(&zone.name)
                     .sensor_title("Set Temperature")
                     .send_and_forget(tx);
             }
@@ -112,7 +109,7 @@ impl Tado {
             if let Some(humidity) = zone_state.sensor_data_points.humidity {
                 Message::new(format!("{}::humidity", sensor_prefix))
                     .timestamp(humidity.timestamp)
-                    .room_title(&zone.name)
+                    .location(&zone.name)
                     .sensor_title("Humidity")
                     .value(Value::Rh(humidity.percentage))
                     .send_and_forget(tx);
@@ -121,7 +118,7 @@ impl Tado {
             if let Some(temperature) = zone_state.sensor_data_points.inside_temperature {
                 Message::new(format!("{}::temperature", sensor_prefix))
                     .timestamp(temperature.timestamp)
-                    .room_title(&zone.name)
+                    .location(&zone.name)
                     .sensor_title("Ambient Temperature")
                     .value(Value::Temperature(temperature.celsius))
                     .send_and_forget(tx);
@@ -130,7 +127,7 @@ impl Tado {
             if self.enable_open_window_detection_skill && zone_state.open_window_detected {
                 Message::new(format!("{}::open_window_activated", sensor_prefix))
                     .type_(MessageType::ReadNonLogged)
-                    .room_title(&zone.name)
+                    .location(&zone.name)
                     .sensor_title("Open Window Activated")
                     .send_and_forget(tx);
                 self.activate_open_window(me.home_id, zone.id)?;
@@ -163,8 +160,7 @@ impl Tado {
 
     fn log_in(&self, mut token_guard: MutexGuard<Option<Token>>) -> Result<String> {
         debug!("Logging in…");
-        let response = self
-            .client
+        let response = CLIENT
             .post(Url::parse_with_params(
                 "https://auth.tado.com/oauth/token",
                 &[
@@ -177,6 +173,7 @@ impl Tado {
                 ],
             )?)
             .send()?
+            .error_for_status()?
             .json::<Token>()?;
         debug!("Logged in, the token expires at: {:?}", response.expires_at);
         let access_token = response.access_token.clone();
@@ -186,8 +183,7 @@ impl Tado {
 
     fn refresh_token(&self, mut token_guard: MutexGuard<Option<Token>>) -> Result<String> {
         debug!("Refreshing token…");
-        let response = self
-            .client
+        let response = CLIENT
             .post(Url::parse_with_params(
                 "https://auth.tado.com/oauth/token",
                 &[
@@ -213,8 +209,7 @@ impl Tado {
     {
         debug!("Calling {}…", url);
         let access_token = self.get_access_token()?;
-        Ok(self
-            .client
+        Ok(CLIENT
             .request(method, url.as_ref())
             .header("Authorization", format!("Bearer {}", access_token))
             .send()?

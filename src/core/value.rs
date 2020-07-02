@@ -38,7 +38,7 @@ pub enum Value {
     /// in [Celsius](https://en.wikipedia.org/wiki/Celsius).
     Temperature(f64),
 
-    /// Length in meters.
+    /// [Length](https://en.wikipedia.org/wiki/Length) in meters.
     Length(f64),
 
     /// Duration in seconds.
@@ -57,6 +57,12 @@ pub enum Value {
     /// [Energy](https://en.wikipedia.org/wiki/Energy)
     /// in [joules](https://en.wikipedia.org/wiki/Joule).
     Energy(f64),
+
+    /// [Speed](https://en.wikipedia.org/wiki/Speed) in [m/s](https://en.wikipedia.org/wiki/Metre_per_second).
+    Speed(f64),
+
+    /// [Cloudiness](https://en.wikipedia.org/wiki/Cloud_cover), percentage.
+    Cloudiness(f64),
 }
 
 impl From<bool> for Value {
@@ -126,8 +132,14 @@ pub enum PointOfTheCompass {
 
 impl Value {
     /// Builds a `Value` instance from [kilowatt-hours](https://en.wikipedia.org/wiki/Kilowatt-hour).
+    #[inline(always)]
     pub fn from_kwh(kwh: f64) -> Self {
-        Value::Energy(kwh * JOULES_IN_KWH)
+        Value::Energy(kwh * 1000.0 * JOULES_IN_WH)
+    }
+
+    #[inline(always)]
+    pub fn from_mm(mm: f64) -> Self {
+        Value::Length(mm / 1000.0)
     }
 
     pub fn is_f64(&self) -> bool {
@@ -138,8 +150,10 @@ impl Value {
             | Value::Power(_)
             | Value::RelativeIntensity(_)
             | Value::Rh(_)
+            | Value::Speed(_)
             | Value::Temperature(_)
-            | Value::Volume(_) => true,
+            | Value::Volume(_)
+            | Value::Cloudiness(_) => true,
             _ => false,
         }
     }

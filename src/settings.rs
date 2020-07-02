@@ -47,6 +47,9 @@ pub enum Service {
     /// [Lua](https://www.lua.org/) scripting.
     Lua(services::lua::Lua),
 
+    /// [OpenWeather](https://openweathermap.org/).
+    OpenWeather(services::openweather::OpenWeather),
+
     /// Sunrise and sunset messages.
     Solar(services::solar::Solar),
 

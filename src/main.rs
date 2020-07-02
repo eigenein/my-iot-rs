@@ -70,7 +70,7 @@ fn main() -> Result<()> {
         .send(Message::new("my-iot::start").type_(MessageType::ReadNonLogged))?;
     core::persistence::thread::spawn(db.clone(), &mut bus)?;
     services::db::Db.spawn("system::db".into(), &mut bus, db.clone())?;
-    core::services::spawn_all(&settings, &opt.service_ids, &mut bus)?;
+    services::spawn_all(&settings, &opt.service_ids, &mut bus)?;
     bus.spawn()?;
 
     info!("Starting web server on port {}…", settings.http_port);

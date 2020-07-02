@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ sensor.title() }} – {{ sensor.room_title }} – My IoT{% endblock %}
+{% block title %}{{ sensor.title() }} – {{ sensor.location }} – My IoT{% endblock %}
 
 {% block head %}
   <meta http-equiv="refresh" content="{{ minutes * 60 / Self::AUTO_REFRESH_PER_MINUTE }}">
@@ -28,7 +28,7 @@
           {% endif -%}
 
           <span class="icon"><i class="fas fa-couch"></i></span>
-          <span>{{ sensor.room_title }}</span>
+          <span>{{ sensor.location }}</span>
 
           <span class="icon"><i class="far fa-clock"></i></span>
           <span title="{{ reading.timestamp.to_string() }}">

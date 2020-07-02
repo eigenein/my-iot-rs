@@ -1,7 +1,7 @@
 //! [YouLess](https://www.youless.nl/home.html) kWh meter to ethernet bridge.
 
 use crate::prelude::*;
-use crate::services::prelude::*;
+use crate::services::{deserialize_timestamp, CLIENT};
 use std::time::Duration;
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
@@ -12,11 +12,9 @@ pub struct YouLess {
     #[serde(default = "default_url")]
     url: String,
 
+    /// Which location the sensors should be put into.
     #[serde(default)]
-    room_title: Option<String>,
-
-    #[serde(skip, default = "default_client")]
-    client: Client,
+    location: Option<String>,
 }
 
 /// Defaults to one minute.
@@ -44,52 +42,52 @@ impl YouLess {
     }
 
     fn loop_(&self, service_id: &str, tx: &Sender) -> Result<()> {
-        let response = self
-            .client
+        let response = CLIENT
             .get(&self.url)
             .send()?
+            .error_for_status()?
             .json::<Vec<Response>>()?
             .pop()
             .ok_or("YouLess response is empty")?;
         Message::new(format!("{}::nett", service_id))
             .value(Value::from_kwh(response.nett))
-            .optional_room_title(self.room_title.clone())
+            .optional_location(self.location.clone())
             .sensor_title("Nett Counter")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::power", service_id))
             .value(Value::Power(response.power))
-            .optional_room_title(self.room_title.clone())
+            .optional_location(self.location.clone())
             .sensor_title("Actual Consumption")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::consumption_low", service_id))
             .value(Value::from_kwh(response.consumption_low))
-            .optional_room_title(self.room_title.clone())
+            .optional_location(self.location.clone())
             .sensor_title("Total Consumption Low")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::consumption_high", service_id))
             .value(Value::from_kwh(response.consumption_high))
-            .optional_room_title(self.room_title.clone())
+            .optional_location(self.location.clone())
             .sensor_title("Total Consumption High")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::production_low", service_id))
             .value(Value::from_kwh(response.production_low))
-            .optional_room_title(self.room_title.clone())
+            .optional_location(self.location.clone())
             .sensor_title("Total Production Low")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::production_high", service_id))
             .value(Value::from_kwh(response.production_high))
-            .optional_room_title(self.room_title.clone())
+            .optional_location(self.location.clone())
             .sensor_title("Total Production High")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
         Message::new(format!("{}::consumption_gas", service_id))
             .value(Value::Volume(response.gas))
-            .optional_room_title(self.room_title.clone())
+            .optional_location(self.location.clone())
             .sensor_title("Total Gas Consumption")
             .timestamp(response.timestamp)
             .send_and_forget(tx);
@@ -131,10 +129,6 @@ struct Response {
     /// Counter gas-meter (in m^3).
     #[serde(rename = "gas")]
     gas: f64,
-}
-
-fn deserialize_timestamp<'de, D: Deserializer<'de>>(deserializer: D) -> Result<DateTime<Local>, D::Error> {
-    Ok(Local.timestamp(i64::deserialize(deserializer)?, 0))
 }
 
 #[cfg(test)]

@@ -11,8 +11,9 @@ pub struct Solar {
     #[serde(default = "default_interval_millis")]
     interval_millis: u64,
 
+    /// Which location should the sensor be put into.
     #[serde(default)]
-    room_title: Option<String>,
+    location: Option<String>,
 
     secrets: Secrets,
 }
@@ -44,7 +45,7 @@ impl Solar {
                         Message::new(format!("{}::before::sunrise", service_id))
                             .type_(Type::ReadSnapshot)
                             .sensor_title("Time Before Sunrise")
-                            .optional_room_title(self.room_title.clone())
+                            .optional_location(self.location.clone())
                             .value(Value::Duration((sunrise - now).num_seconds() as f64))
                             .send_and_forget(&tx);
                     }
@@ -52,7 +53,7 @@ impl Solar {
                         Message::new(format!("{}::before::sunset", service_id))
                             .type_(Type::ReadSnapshot)
                             .sensor_title("Time Before Sunset")
-                            .optional_room_title(self.room_title.clone())
+                            .optional_location(self.location.clone())
                             .value(Value::Duration((sunset - now).num_seconds() as f64))
                             .send_and_forget(&tx);
                     }
@@ -60,7 +61,7 @@ impl Solar {
                         Message::new(format!("{}::after::sunrise", service_id))
                             .type_(Type::ReadSnapshot)
                             .sensor_title("Time After Sunrise")
-                            .optional_room_title(self.room_title.clone())
+                            .optional_location(self.location.clone())
                             .value(Value::Duration((now - sunrise).num_seconds() as f64))
                             .send_and_forget(&tx);
                     }
@@ -68,7 +69,7 @@ impl Solar {
                         Message::new(format!("{}::after::sunset", service_id))
                             .type_(Type::ReadSnapshot)
                             .sensor_title("Time After Sunset")
-                            .optional_room_title(self.room_title.clone())
+                            .optional_location(self.location.clone())
                             .value(Value::Duration((now - sunset).num_seconds() as f64))
                             .send_and_forget(&tx);
                     }
@@ -76,13 +77,13 @@ impl Solar {
                 Ok(SunriseAndSet::PolarDay) => {
                     Message::new(format!("{}::polar_day", service_id))
                         .type_(Type::ReadNonLogged)
-                        .optional_room_title(self.room_title.clone())
+                        .optional_location(self.location.clone())
                         .send_and_forget(&tx);
                 }
                 Ok(SunriseAndSet::PolarNight) => {
                     Message::new(format!("{}::polar_night", service_id))
                         .type_(Type::ReadNonLogged)
-                        .optional_room_title(self.room_title.clone())
+                        .optional_location(self.location.clone())
                         .send_and_forget(&tx);
                 }
                 Err(error) => error!("Failed to calculate sunrise and sunset: {}", error.to_string()),
