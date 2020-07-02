@@ -295,6 +295,26 @@ fn get_webmanifest() -> Cached {
     )
 }
 
+impl Value {
+    pub fn is_f64(&self) -> bool {
+        match self {
+            Value::Duration(_)
+            | Value::Cloudiness(_)
+            | Value::Counter(_)
+            | Value::Energy(_)
+            | Value::Length(_)
+            | Value::Power(_)
+            | Value::RelativeIntensity(_)
+            | Value::Rh(_)
+            | Value::Speed(_)
+            | Value::Temperature(_)
+            | Value::Volume(_)
+            | Value::DataSize(_) => true,
+            _ => false,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

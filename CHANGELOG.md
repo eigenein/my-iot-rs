@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.73.3`
+
+- Enable `Counter` and `DataSize` for `f64` charts
+
 ## `0.73.2`
 
 - Fix `human_format` for the strict zeroes
