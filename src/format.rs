@@ -1,6 +1,6 @@
 /// Format value to keep only 3 digits before the decimal point.
 pub fn human_format(value: f64, unit: &str) -> String {
-    if value.is_zero() {
+    if value == 0.0 {
         return format!("{:.1} {}", value, unit);
     }
     let abs_value = value.abs();
@@ -47,5 +47,10 @@ mod tests {
     #[test]
     fn negative() {
         assert_eq!(human_format(-793.0, "W"), "-793.0 W");
+    }
+
+    #[test]
+    fn zero() {
+        assert_eq!(human_format(0.0, "W"), "0.0 W");
     }
 }
