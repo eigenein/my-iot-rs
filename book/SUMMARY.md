@@ -14,3 +14,4 @@
   - [Tado](services/tado.md)
   - [Telegram]()
   - [YouLess]()
+- [Cookbook]()
