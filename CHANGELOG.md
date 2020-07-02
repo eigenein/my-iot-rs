@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- Fix `index` hero title
+
 ## `0.73.3`
 
 - Enable `Counter` and `DataSize` for `f64` charts
