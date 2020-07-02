@@ -7,8 +7,8 @@ Provides sensors with durations to and after sunrise and sunset:
 - `{service_id}::after::sunset`
 
 For polar night and day the following non-logged messages get emitted:
-- `{service_id}::polar_day`
-- `{service_id}::polar_night`
+- `{service_id}::polar::day`
+- `{service_id}::polar::night`
 
 ## Settings
 

@@ -99,7 +99,7 @@ impl Tado {
             }
 
             if let ZoneSettingAttributes::Heating { temperature } = zone_state.setting.attributes {
-                Message::new(format!("{}::set_temperature", sensor_prefix))
+                Message::new(format!("{}::temperature::set", sensor_prefix))
                     .value(Value::Temperature(temperature.celsius))
                     .location(&zone.name)
                     .sensor_title("Set Temperature")

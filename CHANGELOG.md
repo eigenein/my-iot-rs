@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.73.1`
+
+- Fix rain sensors for OpenWeather, rename sensors
+
 ## `0.73.0`
 
 - OpenWeather API service, closes #16 #110

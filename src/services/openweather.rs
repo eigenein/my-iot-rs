@@ -56,33 +56,33 @@ impl OpenWeather {
             .sensor_title("Temperature")
             .location(&response.city_name)
             .send_and_forget(tx);
-        Message::new(format!("{}::feel_temperature", sensor_prefix))
+        Message::new(format!("{}::temperature::feel", sensor_prefix))
             .value(Value::Temperature(response.main.feel_temperature))
             .timestamp(response.timestamp)
             .sensor_title("Feel Temperature")
             .location(&response.city_name)
             .send_and_forget(tx);
-        Message::new(format!("{}::temperature_min", sensor_prefix))
+        Message::new(format!("{}::temperature::min", sensor_prefix))
             .value(Value::Temperature(response.main.temperature_min))
             .timestamp(response.timestamp)
             .sensor_title("Minimal Temperature")
             .location(&response.city_name)
             .send_and_forget(tx);
-        Message::new(format!("{}::temperature_max", sensor_prefix))
+        Message::new(format!("{}::temperature::max", sensor_prefix))
             .value(Value::Temperature(response.main.temperature_max))
             .timestamp(response.timestamp)
             .sensor_title("Maximal Temperature")
             .location(&response.city_name)
             .send_and_forget(tx);
 
-        Message::new(format!("{}::wind_speed", sensor_prefix))
+        Message::new(format!("{}::wind::speed", sensor_prefix))
             .value(Value::Speed(response.wind.speed))
             .timestamp(response.timestamp)
             .sensor_title("Wind Speed")
             .location(&response.city_name)
             .send_and_forget(tx);
         if let Some(speed) = response.wind.gusts {
-            Message::new(format!("{}::wind_gusts", sensor_prefix))
+            Message::new(format!("{}::wind::gusts", sensor_prefix))
                 .value(Value::Speed(speed))
                 .timestamp(response.timestamp)
                 .sensor_title("Wind Gusts")
@@ -97,14 +97,12 @@ impl OpenWeather {
             .location(&response.city_name)
             .send_and_forget(tx);
 
-        if let Some(rain) = response.rain {
-            Message::new(format!("{}::rain_last_hour", sensor_prefix))
-                .value(Value::from_mm(rain.last_hour))
-                .timestamp(response.timestamp)
-                .sensor_title("Rain Last Hour")
-                .location(&response.city_name)
-                .send_and_forget(tx);
-        }
+        Message::new(format!("{}::rain::last_hour", sensor_prefix))
+            .value(Value::from_mm(response.rain.last_hour))
+            .timestamp(response.timestamp)
+            .sensor_title("Rain Last Hour")
+            .location(&response.city_name)
+            .send_and_forget(tx);
 
         Ok(())
     }
@@ -125,7 +123,8 @@ struct Response {
 
     wind: ResponseWind,
 
-    rain: Option<ResponseRain>,
+    #[serde(default)]
+    rain: ResponseRain,
 
     clouds: ResponseClouds,
 }
@@ -163,6 +162,12 @@ struct ResponseRain {
     /// Rain volume for the last 1 hour, mm.
     #[serde(rename = "1h")]
     last_hour: f64,
+}
+
+impl Default for ResponseRain {
+    fn default() -> Self {
+        Self { last_hour: 0.0 }
+    }
 }
 
 #[derive(Deserialize)]

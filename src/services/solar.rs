@@ -75,13 +75,13 @@ impl Solar {
                     }
                 }
                 Ok(SunriseAndSet::PolarDay) => {
-                    Message::new(format!("{}::polar_day", service_id))
+                    Message::new(format!("{}::polar::day", service_id))
                         .type_(Type::ReadNonLogged)
                         .optional_location(self.location.clone())
                         .send_and_forget(&tx);
                 }
                 Ok(SunriseAndSet::PolarNight) => {
-                    Message::new(format!("{}::polar_night", service_id))
+                    Message::new(format!("{}::polar::night", service_id))
                         .type_(Type::ReadNonLogged)
                         .optional_location(self.location.clone())
                         .send_and_forget(&tx);

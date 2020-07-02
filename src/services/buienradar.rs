@@ -66,7 +66,7 @@ impl Buienradar {
         }
         if let Some(temperature) = measurement.ground_temperature {
             tx.send(
-                Message::new(format!("{}::ground_temperature", sensor_prefix))
+                Message::new(format!("{}::temperature::ground", sensor_prefix))
                     .type_(MessageType::ReadLogged)
                     .value(Value::Temperature(temperature))
                     .timestamp(measurement.timestamp)
@@ -76,7 +76,7 @@ impl Buienradar {
         }
         if let Some(temperature) = measurement.feel_temperature {
             tx.send(
-                Message::new(format!("{}::feel_temperature", sensor_prefix))
+                Message::new(format!("{}::temperature::feel", sensor_prefix))
                     .type_(MessageType::ReadLogged)
                     .value(Value::Temperature(temperature))
                     .timestamp(measurement.timestamp)
@@ -86,7 +86,7 @@ impl Buienradar {
         }
         if let Some(bft) = measurement.wind_speed_bft {
             tx.send(
-                Message::new(format!("{}::wind_force", sensor_prefix))
+                Message::new(format!("{}::wind::force", sensor_prefix))
                     .type_(MessageType::ReadLogged)
                     .value(Value::Bft(bft))
                     .timestamp(measurement.timestamp)
@@ -96,7 +96,7 @@ impl Buienradar {
         }
         if let Some(point) = measurement.wind_direction {
             tx.send(
-                Message::new(format!("{}::wind_direction", sensor_prefix))
+                Message::new(format!("{}::wind::direction", sensor_prefix))
                     .type_(MessageType::ReadLogged)
                     .value(Value::WindDirection(point))
                     .timestamp(measurement.timestamp)
@@ -105,7 +105,7 @@ impl Buienradar {
             )?;
         }
         if let Some(watts) = measurement.sun_power {
-            Message::new(format!("{}::sun_power", sensor_prefix))
+            Message::new(format!("{}::sun::power", sensor_prefix))
                 .value(Value::Power(watts))
                 .timestamp(measurement.timestamp)
                 .sensor_title("Sun Power per ㎡")
@@ -113,7 +113,7 @@ impl Buienradar {
                 .send_and_forget(tx);
         }
         if let Some(speed) = measurement.wind_speed {
-            Message::new(format!("{}::wind_speed", sensor_prefix))
+            Message::new(format!("{}::wind::speed", sensor_prefix))
                 .value(Value::Speed(speed))
                 .timestamp(measurement.timestamp)
                 .sensor_title("Wind Speed")
@@ -121,7 +121,7 @@ impl Buienradar {
                 .send_and_forget(tx);
         }
         if let Some(speed) = measurement.wind_gusts {
-            Message::new(format!("{}::wind_gusts", sensor_prefix))
+            Message::new(format!("{}::wind::gusts", sensor_prefix))
                 .value(Value::Speed(speed))
                 .timestamp(measurement.timestamp)
                 .sensor_title("Wind Gusts")
