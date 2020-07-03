@@ -1,8 +1,9 @@
 //! Telegram service for Lua.
 
-use crate::services::lua::prelude::*;
-use crate::services::telegram::{SendMessageRequest, Telegram, TelegramChatId, TelegramMessage};
 use rlua::prelude::*;
+
+use crate::services::lua::prelude::*;
+use crate::services::telegram::{SendMessageRequest, Telegram, TelegramChatId};
 
 impl<'lua> FromLua<'lua> for TelegramChatId {
     fn from_lua(lua_value: LuaValue<'lua>, _: LuaContext<'lua>) -> LuaResult<Self> {
@@ -19,9 +20,8 @@ impl<'lua> FromLua<'lua> for TelegramChatId {
 
 impl UserData for Telegram {
     fn add_methods<'lua, M: UserDataMethods<'lua, Self>>(methods: &mut M) {
-        methods.add_method("sendMessage", |_, self_, (chat_id, text): (TelegramChatId, String)| {
-            self_
-                .call_api::<_, TelegramMessage>("sendMessage", &SendMessageRequest { chat_id, text })
+        methods.add_method("sendMessage", |_, this, (chat_id, text): (TelegramChatId, String)| {
+            this.send_message(&SendMessageRequest { chat_id, text })
                 .map_err(|err| LuaError::RuntimeError(err.to_string()))?;
             Ok(())
         });

@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.75.0`
+
+- [Rhai](https://schungx.github.io/rhai/) scripting, closes #93
+
 ## `0.74.0`
 
 - Fix `index` hero title

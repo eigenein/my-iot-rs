@@ -1,13 +1,15 @@
 //! [Telegram bot](https://core.telegram.org/bots/api) service which is able to receive and send messages.
 
-use crate::prelude::*;
-use crate::services::CLIENT;
+use std::fmt::Debug;
+use std::time::Duration;
+
 use log::debug;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::fmt::Debug;
-use std::time::Duration;
+
+use crate::prelude::*;
+use crate::services::CLIENT;
 
 const GET_UPDATES_TIMEOUT_SECS: u64 = 60;
 
@@ -83,20 +85,24 @@ impl Telegram {
         )
     }
 
+    pub fn send_message(&self, request: &SendMessageRequest) -> Result<TelegramMessage> {
+        self.call_api("sendMessage", request)
+    }
+
     /// Call [Telegram Bot API](https://core.telegram.org/bots/api) method.
-    pub fn call_api<P, R>(&self, method: &str, parameters: &P) -> Result<R>
+    pub fn call_api<P, R>(&self, method: &str, request: &P) -> Result<R>
     where
         P: Serialize + Debug + ?Sized,
         R: DeserializeOwned,
     {
-        debug!("{}({:?})", &method, parameters);
+        debug!("{}({:?})", &method, request);
         // FIXME: https://github.com/eigenein/my-iot-rs/issues/44
         let mut request = CLIENT
             .get(&format!(
                 "https://api.telegram.org/bot{}/{}",
                 self.secrets.token, method
             ))
-            .json(parameters);
+            .json(request);
         if method == "getUpdates" {
             request = request.timeout(Duration::from_secs(GET_UPDATES_TIMEOUT_SECS + 1));
         }
@@ -124,7 +130,7 @@ pub struct TelegramUpdate {
     pub message: Option<TelegramMessage>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum TelegramChatId {
     UniqueId(i64),

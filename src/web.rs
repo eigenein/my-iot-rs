@@ -1,10 +1,9 @@
 //! Implements the web server.
 
-use crate::prelude::*;
-use crate::settings::Settings;
-use crate::web::cached_content::Cached;
-use crate::web::if_none_match::IfNoneMatch;
-use crate::web::message_counter::MessageCounter;
+use std::io::Cursor;
+use std::sync::atomic::AtomicU64;
+use std::sync::Arc;
+
 use chrono::Duration;
 use itertools::Itertools;
 use rocket::config::Environment;
@@ -15,9 +14,13 @@ use rocket::response::content::{Content, Html};
 use rocket::response::Redirect;
 use rocket::{delete, get, routes, uri, Config, Response, Rocket, State};
 use rocket_contrib::json::Json;
-use std::io::Cursor;
-use std::sync::atomic::AtomicU64;
-use std::sync::Arc;
+
+use crate::consts::*;
+use crate::prelude::*;
+use crate::settings::Settings;
+use crate::web::cached_content::Cached;
+use crate::web::if_none_match::IfNoneMatch;
+use crate::web::message_counter::MessageCounter;
 
 mod cached_content;
 mod entity_tag;
@@ -317,10 +320,12 @@ impl Value {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::settings::*;
     use rocket::http::Status;
     use rocket::local::Client;
+
+    use crate::settings::*;
+
+    use super::*;
 
     type Result = crate::Result<()>;
 

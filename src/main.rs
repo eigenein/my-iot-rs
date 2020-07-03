@@ -2,14 +2,17 @@
 
 #![feature(proc_macro_hygiene, decl_macro)]
 
-use crate::prelude::*;
-use log::LevelFilter;
-use simplelog::{ConfigBuilder, TermLogger, TerminalMode, ThreadLogMode};
 use std::path::PathBuf;
 use std::sync::atomic::AtomicU64;
 use std::sync::Arc;
+
+use log::LevelFilter;
+use simplelog::{ConfigBuilder, TermLogger, TerminalMode, ThreadLogMode};
 use structopt::StructOpt;
 
+use crate::prelude::*;
+
+mod consts;
 mod core;
 mod format;
 mod prelude;
