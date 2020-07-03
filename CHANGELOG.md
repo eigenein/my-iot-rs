@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.75.1`
+
+- `spawn_process` logging #93
+
 ## `0.75.0`
 
 - [Rhai](https://schungx.github.io/rhai/) scripting, closes #93

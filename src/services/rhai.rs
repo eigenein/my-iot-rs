@@ -5,6 +5,7 @@ use rhai::{Array, Dynamic, Engine, EvalAltResult, RegisterFn, RegisterResultFn, 
 use crate::prelude::*;
 use crate::services::telegram::*;
 use crate::settings::Service;
+use itertools::Itertools;
 use std::sync::Arc;
 
 type FnResult = Box<EvalAltResult>;
@@ -204,6 +205,11 @@ impl Rhai {
 
 /// Used to spawn an external process.
 fn spawn_process(program: &str, args: Array) -> Result<Dynamic, FnResult> {
+    debug!(
+        "Spawning: {} {:?}",
+        program,
+        args.iter().map(|arg| arg.to_string()).join(" ")
+    );
     Command::new(program)
         .args(args.iter().map(|arg| arg.to_string()))
         .spawn()
