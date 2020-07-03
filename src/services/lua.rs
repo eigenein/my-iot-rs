@@ -1,4 +1,5 @@
-//! Executes a [Lua](https://www.lua.org/) script for each message allowing to implement any automation scenarios.
+//! Executes a [Lua](https://www.lua.org/) script for each message
+//! allowing to implement any automation scenarios.
 
 use crate::prelude::*;
 use crate::services::lua::prelude::*;
@@ -10,7 +11,8 @@ mod prelude;
 mod telegram;
 
 const MESSAGE_ARG_TYPE: &str = "type";
-const MESSAGE_ARG_LOCATION: &str = "room_title";
+const MESSAGE_ARG_ROOM_TITLE: &str = "room_title";
+const MESSAGE_ARG_LOCATION: &str = "location";
 const MESSAGE_ARG_SENSOR_TITLE: &str = "sensor_title";
 const MESSAGE_ARG_VALUE: &str = "value";
 const MESSAGE_ARG_TIMESTAMP_MILLIS: &str = "timestamp_millis";
@@ -43,7 +45,7 @@ impl Lua {
             init_functions(context, tx.clone())?;
             init_services(context, &services)?;
 
-            info!("Loading and executing the script…");
+            info!("[{}] Loading and executing the script…", service_id);
             context.load(&self.script).set_name(&service_id)?.exec()?;
 
             Ok(())
@@ -97,6 +99,7 @@ fn create_args_table<'lua>(context: LuaContext<'lua>, message: &Message) -> LuaR
     let args = context.create_table()?;
     args.set("sensor_id", message.sensor.id.clone())?;
     args.set(MESSAGE_ARG_TYPE, message.type_)?;
+    args.set(MESSAGE_ARG_ROOM_TITLE, message.sensor.location.clone())?;
     args.set(MESSAGE_ARG_LOCATION, message.sensor.location.clone())?;
     args.set(MESSAGE_ARG_SENSOR_TITLE, message.sensor.title.clone())?;
     args.set(MESSAGE_ARG_VALUE, message.reading.value.clone())?;
@@ -255,7 +258,6 @@ impl<'lua> ToLua<'lua> for PointOfTheCompass {
 impl<'lua> ToLua<'lua> for MessageType {
     fn to_lua(self, context: LuaContext<'lua>) -> LuaResult<LuaValue<'lua>> {
         match self {
-            MessageType::ReadSnapshot => "READ_SNAPSHOT",
             MessageType::ReadNonLogged => "READ_NON_LOGGED",
             MessageType::ReadLogged => "READ_LOGGED",
             MessageType::Write => "WRITE",
@@ -270,7 +272,6 @@ impl<'lua> FromLua<'lua> for MessageType {
             LuaValue::String(string) => match string.to_str()? {
                 "READ_LOGGED" => Ok(MessageType::ReadLogged),
                 "READ_NON_LOGGED" => Ok(MessageType::ReadNonLogged),
-                "READ_SNAPSHOT" => Ok(MessageType::ReadSnapshot),
                 "WRITE" => Ok(MessageType::Write),
                 _ => Err(rlua::Error::RuntimeError(format!(
                     "`{:?}` cannot be made into a message type, unknown value",

@@ -28,10 +28,6 @@ pub enum Type {
     /// Think of, for example, a chat message.
     ReadNonLogged,
 
-    /// Sensor reading that invalidates previous reading. Only last reading gets stored.
-    /// Think of, for example, a camera snapshot.
-    ReadSnapshot,
-
     /// Used to control other services. One service may send this to control a sensor of another service.
     Write,
 }

@@ -50,6 +50,9 @@ pub enum Service {
     /// [OpenWeather](https://openweathermap.org/).
     OpenWeather(services::openweather::OpenWeather),
 
+    /// [Rhai](https://schungx.github.io/rhai/).
+    Rhai(services::rhai::Rhai),
+
     /// Sunrise and sunset messages.
     Solar(services::solar::Solar),
 

@@ -43,7 +43,6 @@ impl Solar {
                 Ok(SunriseAndSet::Daylight(sunrise, sunset)) => {
                     if now < sunrise {
                         Message::new(format!("{}::before::sunrise", service_id))
-                            .type_(Type::ReadSnapshot)
                             .sensor_title("Time Before Sunrise")
                             .optional_location(self.location.clone())
                             .value(Value::Duration((sunrise - now).num_seconds() as f64))
@@ -51,7 +50,6 @@ impl Solar {
                     }
                     if now < sunset {
                         Message::new(format!("{}::before::sunset", service_id))
-                            .type_(Type::ReadSnapshot)
                             .sensor_title("Time Before Sunset")
                             .optional_location(self.location.clone())
                             .value(Value::Duration((sunset - now).num_seconds() as f64))
@@ -59,7 +57,6 @@ impl Solar {
                     }
                     if sunrise < now {
                         Message::new(format!("{}::after::sunrise", service_id))
-                            .type_(Type::ReadSnapshot)
                             .sensor_title("Time After Sunrise")
                             .optional_location(self.location.clone())
                             .value(Value::Duration((now - sunrise).num_seconds() as f64))
@@ -67,7 +64,6 @@ impl Solar {
                     }
                     if sunset < now {
                         Message::new(format!("{}::after::sunset", service_id))
-                            .type_(Type::ReadSnapshot)
                             .sensor_title("Time After Sunset")
                             .optional_location(self.location.clone())
                             .value(Value::Duration((now - sunset).num_seconds() as f64))

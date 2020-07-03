@@ -1,8 +1,9 @@
 # `my-iot`
 
-## `master`
+## `0.74.0`
 
 - Fix `index` hero title
+- [Rhai](https://schungx.github.io/rhai/) scripting (in progress) #93
 
 ## `0.73.3`
 

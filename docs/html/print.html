@@ -91,7 +91,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="introduction/installation.html"><strong aria-hidden="true">1.1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="introduction/settings.html"><strong aria-hidden="true">1.2.</strong> Settings</a></li><li class="chapter-item expanded "><a href="introduction/run-at-system-startup.html"><strong aria-hidden="true">1.3.</strong> Run at System Startup</a></li><li class="chapter-item expanded "><a href="introduction/publish-on-the-internet.html"><strong aria-hidden="true">1.4.</strong> Publish on the Internet</a></li></ol></li><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">2.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><strong aria-hidden="true">2.1.</strong> Buienradar</li><li class="chapter-item expanded "><strong aria-hidden="true">2.2.</strong> Clock</li><li class="chapter-item expanded "><a href="services/lua.html"><strong aria-hidden="true">2.3.</strong> Lua</a></li><li class="chapter-item expanded "><strong aria-hidden="true">2.4.</strong> OpenWeather</li><li class="chapter-item expanded "><a href="services/solar.html"><strong aria-hidden="true">2.5.</strong> Solar</a></li><li class="chapter-item expanded "><a href="services/tado.html"><strong aria-hidden="true">2.6.</strong> Tado</a></li><li class="chapter-item expanded "><strong aria-hidden="true">2.7.</strong> Telegram</li><li class="chapter-item expanded "><strong aria-hidden="true">2.8.</strong> YouLess</li></ol></li><li class="chapter-item expanded "><strong aria-hidden="true">3.</strong> Cookbook</li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="introduction/installation.html"><strong aria-hidden="true">1.1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="introduction/settings.html"><strong aria-hidden="true">1.2.</strong> Settings</a></li><li class="chapter-item expanded "><a href="introduction/run-at-system-startup.html"><strong aria-hidden="true">1.3.</strong> Run at System Startup</a></li><li class="chapter-item expanded "><a href="introduction/publish-on-the-internet.html"><strong aria-hidden="true">1.4.</strong> Publish on the Internet</a></li></ol></li><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">2.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><strong aria-hidden="true">2.1.</strong> Buienradar</li><li class="chapter-item expanded "><strong aria-hidden="true">2.2.</strong> Clock</li><li class="chapter-item expanded "><a href="services/lua.html"><strong aria-hidden="true">2.3.</strong> Lua</a></li><li class="chapter-item expanded "><strong aria-hidden="true">2.4.</strong> OpenWeather</li><li class="chapter-item expanded "><a href="services/rhai.html"><strong aria-hidden="true">2.5.</strong> Rhai</a></li><li class="chapter-item expanded "><a href="services/solar.html"><strong aria-hidden="true">2.6.</strong> Solar</a></li><li class="chapter-item expanded "><a href="services/tado.html"><strong aria-hidden="true">2.7.</strong> Tado</a></li><li class="chapter-item expanded "><strong aria-hidden="true">2.8.</strong> Telegram</li><li class="chapter-item expanded "><strong aria-hidden="true">2.9.</strong> YouLess</li></ol></li><li class="chapter-item expanded "><strong aria-hidden="true">3.</strong> Cookbook</li><li><ol class="section"><li class="chapter-item expanded "><a href="cookbook/rise_and_shine.html"><strong aria-hidden="true">3.1.</strong> Rise and Shine with IKEA Trådfri</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -393,29 +393,7 @@ script = '''
 </tbody></table>
 <h4><a class="header" href="#a-hrefhttpsenwikipediaorgwikipoints_of_the_compasspoints-of-the-compassa" id="a-hrefhttpsenwikipediaorgwikipoints_of_the_compasspoints-of-the-compassa"><a href="https://en.wikipedia.org/wiki/Points_of_the_compass">Points of the Compass</a></a></h4>
 <p>TODO</p>
-<h2><a class="header" href="#recipes" id="recipes">Recipes</a></h2>
-<p>I store my settings on <a href="https://gist.github.com/eigenein/f4af6ca1d8db0cd36de981429aa3e6e2">GitHub Gist</a> as an extra example.</p>
-<h3><a class="header" href="#rise-and-shine-ikea-trådfri-lights-starting-one-hour-before-sunset" id="rise-and-shine-ikea-trådfri-lights-starting-one-hour-before-sunset">«Rise and shine» IKEA Trådfri lights starting one hour before sunset</a></h3>
-<p>At the moment of writing the recipe there is no native <code>Tradfri</code> service. I’m following <a href="https://github.com/glenndehaan/ikea-tradfri-coap-docs/blob/master/README.md">the <code>coap-client</code> tutorial</a> to control bulbs.</p>
-<pre><code class="language-toml">[services.sun_vijfhuizen]
-type = &quot;Solar&quot;
-latitude = 52.000000
-longitude = 4.000000
-room_title = &quot;Vijfhuizen&quot;
-
-[services.rise_and_shine]
-type = &quot;Lua&quot;
-filter_sensor_ids = &quot;^sun_vijfhuizen::before::sunset$&quot;
-script = '''
-function onMessage(message)
-  if message.value &lt; 3600 then
-    os.execute(string.format(
-      &quot;coap-client -m put -u user -k shared_key -e '{\&quot;5851\&quot;: %d}' coaps://GW-XXXXXXXXXXXX.home:5684/15004/131080&quot;,
-      math.floor(255 * ((3600 - message.value) / 3600))
-    ))
-  end
-end
-</code></pre>
+<h1><a class="header" href="#a-hrefhttpsschungxgithubiorhairhaia-scripting" id="a-hrefhttpsschungxgithubiorhairhaia-scripting"><a href="https://schungx.github.io/rhai/">Rhai</a> Scripting</a></h1>
 <h1><a class="header" href="#solar" id="solar">Solar</a></h1>
 <p>Provides sensors with durations to and after sunrise and sunset:</p>
 <ul>
@@ -465,6 +443,27 @@ email = &quot;user@example.com&quot;
 
 # Account password.
 password = &quot;example&quot;
+</code></pre>
+<h1><a class="header" href="#rise-and-shine-ikea-trådfri-lights-starting-one-hour-before-sunset" id="rise-and-shine-ikea-trådfri-lights-starting-one-hour-before-sunset">«Rise and shine» IKEA Trådfri lights starting one hour before sunset</a></h1>
+<p>At the moment of writing the recipe there is no native <code>Tradfri</code> service. I’m following <a href="https://github.com/glenndehaan/ikea-tradfri-coap-docs/blob/master/README.md">the <code>coap-client</code> tutorial</a> to control bulbs.</p>
+<pre><code class="language-toml">[services.sun_vijfhuizen]
+type = &quot;Solar&quot;
+latitude = 52.000000
+longitude = 4.000000
+room_title = &quot;Vijfhuizen&quot;
+
+[services.rise_and_shine]
+type = &quot;Lua&quot;
+filter_sensor_ids = &quot;^sun_vijfhuizen::before::sunset$&quot;
+script = '''
+function onMessage(message)
+  if message.value &lt; 3600 then
+    os.execute(string.format(
+      &quot;coap-client -m put -u user -k shared_key -e '{\&quot;5851\&quot;: %d}' coaps://GW-XXXXXXXXXXXX.home:5684/15004/131080&quot;,
+      math.floor(255 * ((3600 - message.value) / 3600))
+    ))
+  end
+end
 </code></pre>
 
                     </main>

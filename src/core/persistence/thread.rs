@@ -62,8 +62,7 @@ fn upsert_messages(db: &Connection, messages: Vec<Message>) -> Result<()> {
 
     for message in messages.iter() {
         debug!("{:?}", &message);
-        // TODO: handle `ReadSnapshot` properly.
-        if message.type_ == MessageType::ReadLogged || message.type_ == MessageType::ReadSnapshot {
+        if message.type_ == MessageType::ReadLogged {
             message.upsert_into(&*transaction)?;
         }
     }
