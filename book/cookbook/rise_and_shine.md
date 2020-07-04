@@ -10,15 +10,23 @@ longitude = 4.000000
 room_title = "Vijfhuizen"
 
 [services.rise_and_shine]
-type = "Lua"
-filter_sensor_ids = "^sun_vijfhuizen::before::sunset$"
+type = "Rhai"
 script = '''
-function onMessage(message)
-  if message.value < 3600 then
-    os.execute(string.format(
-      "coap-client -m put -u user -k shared_key -e '{\"5851\": %d}' coaps://GW-XXXXXXXXXXXX.home:5684/15004/131080",
-      math.floor(255 * ((3600 - message.value) / 3600))
-    ))
-  end
-end
-```
+    fn on_message(message) {
+        if message.sensor_id == "sun_vijfhuizen::before::sunset" && message.value.inner < 3600.0 {
+            let brightness = 255 * (3600 - message.value.inner.to_int()) / 3600;
+            print("Brightness: " + brightness);
+            spawn_process("coap-client", [
+                "-m",
+                "put",
+                "-u",
+                "eigenein",
+                "-k",
+                "2GOjFumz6iVnecdt",
+                "-e",
+                "{\"5851\": " + brightness + "}",
+                "coaps://GW-A0C9A0679CBB.home:5684/15004/131080",
+            ]);
+        }
+    }
+'''

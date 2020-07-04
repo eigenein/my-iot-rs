@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.76.0`
+
+- Change `Telegram` Rhai interface and refactor the `Rhai` code #93
+
 ## `0.75.1`
 
 - `spawn_process` logging #93

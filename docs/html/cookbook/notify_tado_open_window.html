@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>«Rise and Shine» with IKEA Trådfri - My IoT</title>
+        <title>Notify tado° open window - My IoT</title>
         
         
 
@@ -89,7 +89,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../introduction/installation.html"><strong aria-hidden="true">1.1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../introduction/settings.html"><strong aria-hidden="true">1.2.</strong> Settings</a></li><li class="chapter-item expanded "><a href="../introduction/run-at-system-startup.html"><strong aria-hidden="true">1.3.</strong> Run at System Startup</a></li><li class="chapter-item expanded "><a href="../introduction/publish-on-the-internet.html"><strong aria-hidden="true">1.4.</strong> Publish on the Internet</a></li></ol></li><li class="chapter-item expanded "><a href="../services.html"><strong aria-hidden="true">2.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><strong aria-hidden="true">2.1.</strong> Buienradar</li><li class="chapter-item expanded "><strong aria-hidden="true">2.2.</strong> Clock</li><li class="chapter-item expanded "><a href="../services/lua.html"><strong aria-hidden="true">2.3.</strong> Lua (deprecated)</a></li><li class="chapter-item expanded "><strong aria-hidden="true">2.4.</strong> OpenWeather</li><li class="chapter-item expanded "><a href="../services/rhai.html"><strong aria-hidden="true">2.5.</strong> Rhai</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../services/rhai/telegram.html"><strong aria-hidden="true">2.5.1.</strong> Telegram</a></li></ol></li><li class="chapter-item expanded "><a href="../services/solar.html"><strong aria-hidden="true">2.6.</strong> Solar</a></li><li class="chapter-item expanded "><a href="../services/tado.html"><strong aria-hidden="true">2.7.</strong> Tado</a></li><li class="chapter-item expanded "><strong aria-hidden="true">2.8.</strong> Telegram</li><li class="chapter-item expanded "><strong aria-hidden="true">2.9.</strong> YouLess</li></ol></li><li class="chapter-item expanded "><strong aria-hidden="true">3.</strong> Cookbook</li><li><ol class="section"><li class="chapter-item expanded "><a href="../cookbook/notify_tado_open_window.html"><strong aria-hidden="true">3.1.</strong> Notify tado° open window</a></li><li class="chapter-item expanded "><a href="../cookbook/rise_and_shine.html" class="active"><strong aria-hidden="true">3.2.</strong> «Rise and Shine» with IKEA Trådfri</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../introduction/installation.html"><strong aria-hidden="true">1.1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../introduction/settings.html"><strong aria-hidden="true">1.2.</strong> Settings</a></li><li class="chapter-item expanded "><a href="../introduction/run-at-system-startup.html"><strong aria-hidden="true">1.3.</strong> Run at System Startup</a></li><li class="chapter-item expanded "><a href="../introduction/publish-on-the-internet.html"><strong aria-hidden="true">1.4.</strong> Publish on the Internet</a></li></ol></li><li class="chapter-item expanded "><a href="../services.html"><strong aria-hidden="true">2.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><strong aria-hidden="true">2.1.</strong> Buienradar</li><li class="chapter-item expanded "><strong aria-hidden="true">2.2.</strong> Clock</li><li class="chapter-item expanded "><a href="../services/lua.html"><strong aria-hidden="true">2.3.</strong> Lua (deprecated)</a></li><li class="chapter-item expanded "><strong aria-hidden="true">2.4.</strong> OpenWeather</li><li class="chapter-item expanded "><a href="../services/rhai.html"><strong aria-hidden="true">2.5.</strong> Rhai</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../services/rhai/telegram.html"><strong aria-hidden="true">2.5.1.</strong> Telegram</a></li></ol></li><li class="chapter-item expanded "><a href="../services/solar.html"><strong aria-hidden="true">2.6.</strong> Solar</a></li><li class="chapter-item expanded "><a href="../services/tado.html"><strong aria-hidden="true">2.7.</strong> Tado</a></li><li class="chapter-item expanded "><strong aria-hidden="true">2.8.</strong> Telegram</li><li class="chapter-item expanded "><strong aria-hidden="true">2.9.</strong> YouLess</li></ol></li><li class="chapter-item expanded "><strong aria-hidden="true">3.</strong> Cookbook</li><li><ol class="section"><li class="chapter-item expanded "><a href="../cookbook/notify_tado_open_window.html" class="active"><strong aria-hidden="true">3.1.</strong> Notify tado° open window</a></li><li class="chapter-item expanded "><a href="../cookbook/rise_and_shine.html"><strong aria-hidden="true">3.2.</strong> «Rise and Shine» with IKEA Trådfri</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -159,32 +159,16 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#rise-and-shine-ikea-trådfri-lights-starting-one-hour-before-sunset" id="rise-and-shine-ikea-trådfri-lights-starting-one-hour-before-sunset">«Rise and shine» IKEA Trådfri lights starting one hour before sunset</a></h1>
-<p>At the moment of writing the recipe there is no native <code>Tradfri</code> service. I’m following <a href="https://github.com/glenndehaan/ikea-tradfri-coap-docs/blob/master/README.md">the <code>coap-client</code> tutorial</a> to control bulbs.</p>
-<pre><code class="language-toml">[services.sun_vijfhuizen]
-type = &quot;Solar&quot;
-latitude = 52.000000
-longitude = 4.000000
-room_title = &quot;Vijfhuizen&quot;
-
-[services.rise_and_shine]
+                        <h1><a class="header" href="#notify-tado-open-window" id="notify-tado-open-window">Notify tado° open window</a></h1>
+<pre><code class="language-toml">[services.notify_open_window]
 type = &quot;Rhai&quot;
 script = '''
     fn on_message(message) {
-        if message.sensor_id == &quot;sun_vijfhuizen::before::sunset&quot; &amp;&amp; message.value.inner &lt; 3600.0 {
-            let brightness = 255 * (3600 - message.value.inner.to_int()) / 3600;
-            print(&quot;Brightness: &quot; + brightness);
-            spawn_process(&quot;coap-client&quot;, [
-                &quot;-m&quot;,
-                &quot;put&quot;,
-                &quot;-u&quot;,
-                &quot;eigenein&quot;,
-                &quot;-k&quot;,
-                &quot;2GOjFumz6iVnecdt&quot;,
-                &quot;-e&quot;,
-                &quot;{\&quot;5851\&quot;: &quot; + brightness + &quot;}&quot;,
-                &quot;coaps://GW-A0C9A0679CBB.home:5684/15004/131080&quot;,
-            ]);
+        if message.sensor_id == &quot;tado::469375::1::open_window_activated&quot; {
+            telegram.call(new_send_message(
+                -1001349838037,
+                &quot;💨 Открыто окно в &quot; + message.location + &quot; @eigenein&quot;,
+            ));
         }
     }
 '''
@@ -195,11 +179,15 @@ script = '''
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-                            <a rel="prev" href="../cookbook/notify_tado_open_window.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../services/tado.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
 
+                        
+                            <a rel="next" href="../cookbook/rise_and_shine.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
                         
 
                         <div style="clear: both"></div>
@@ -209,11 +197,15 @@ script = '''
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-                    <a rel="prev" href="../cookbook/notify_tado_open_window.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../services/tado.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
 
+                
+                    <a rel="next" href="../cookbook/rise_and_shine.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
                 
             </nav>
 

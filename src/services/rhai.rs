@@ -1,14 +1,14 @@
 use std::process::Command;
 
+use itertools::Itertools;
 use rhai::{Array, Dynamic, Engine, EvalAltResult, RegisterFn, RegisterResultFn, Scope, AST};
 
 use crate::prelude::*;
-use crate::services::telegram::*;
 use crate::settings::Service;
-use itertools::Itertools;
-use std::sync::Arc;
 
-type FnResult = Box<EvalAltResult>;
+type FnResult = Result<Dynamic, Box<EvalAltResult>>;
+
+mod telegram;
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Rhai {
@@ -28,13 +28,11 @@ impl Rhai {
                 let ast = self.compile_script(&service_id, &engine)?;
                 let mut scope = Scope::new();
 
-                Self::register_message_type_functions(&mut engine);
-                Self::register_message_functions(&mut engine, &tx);
-                Self::register_value_functions(&mut engine);
+                Self::register_types(&mut engine);
+                Self::register_global_functions(&service_id, &mut engine);
+                Self::register_functions(&mut engine, &tx);
                 Self::push_constants(&mut scope);
-                Self::register_global_functions(&mut engine);
-                Self::register_service_functions(&mut engine);
-                Self::set_service_values(&mut scope, &services);
+                Self::push_services(&mut scope, &services);
 
                 let engine = engine;
                 self.consume_ast(&service_id, &engine, &ast, &mut scope)?;
@@ -65,16 +63,24 @@ impl Rhai {
             .map_err(|error| error!("[{}] Execution error: {}", service_id, error.to_string()))
     }
 
+    fn register_types(engine: &mut Engine) {
+        engine.register_type::<MessageType>();
+        engine.register_type::<Message>();
+        engine.register_type::<Value>();
+
+        telegram::register_types(engine);
+    }
+
     fn push_constants(scope: &mut Scope) {
         scope.push_constant("message_read_non_logged", MessageType::ReadNonLogged);
         scope.push_constant("message_read_logged", MessageType::ReadLogged);
         scope.push_constant("message_write", MessageType::Write);
+
+        telegram::push_constants(scope);
     }
 
     /// Registers `MessageType` functions.
     fn register_message_type_functions(engine: &mut Engine) {
-        engine.register_type::<MessageType>();
-
         engine.register_fn("to_string", to_debug_string::<MessageType>);
         engine.register_fn("print", to_debug_string::<MessageType>);
         engine.register_fn("debug", to_debug_string::<MessageType>);
@@ -82,8 +88,6 @@ impl Rhai {
 
     /// Registers `Message` functions.
     fn register_message_functions(engine: &mut Engine, tx: &Sender) {
-        engine.register_type::<Message>();
-
         engine.register_fn("new_message", Message::new::<String>);
         {
             let tx = tx.clone();
@@ -124,13 +128,10 @@ impl Rhai {
                 this.sensor.location = location;
             },
         );
-        // TODO: more getters and setters.
+        // TODO: the rest.
     }
 
-    /// Registers `Value` functions.
     fn register_value_functions(engine: &mut Engine) {
-        engine.register_type::<Value>();
-
         engine.register_fn("to_string", to_debug_string::<Value>);
         engine.register_fn("print", to_debug_string::<Value>);
         engine.register_get("inner", |this: &mut Value| -> Dynamic {
@@ -155,56 +156,56 @@ impl Rhai {
         });
     }
 
-    fn register_global_functions(engine: &mut Engine) {
-        engine.on_print(|string| info!("{}", string));
-        engine.on_debug(|string| debug!("{}", string));
+    fn register_global_functions(service_id: &str, engine: &mut Engine) {
+        Self::register_logging_functions(service_id, engine);
+        Self::register_standard_functions(engine);
+    }
+
+    fn register_functions(engine: &mut Engine, tx: &Sender) {
+        Self::register_message_type_functions(engine);
+        Self::register_message_functions(engine, &tx);
+        Self::register_value_functions(engine);
+
+        telegram::register_functions(engine);
+    }
+
+    fn register_logging_functions(service_id: &str, engine: &mut Engine) {
+        {
+            let service_id = service_id.to_string();
+            engine.register_fn("error", move |string: &str| error!("[{}] {}", service_id, string));
+        }
+        {
+            let service_id = service_id.to_string();
+            engine.register_fn("warning", move |string: &str| warn!("[{}] {}", service_id, string));
+        }
+        {
+            let service_id = service_id.to_string();
+            engine.on_print(move |string| info!("[{}] {}", service_id, string));
+        }
+        {
+            let service_id = service_id.to_string();
+            engine.on_debug(move |string| debug!("[{}] {}", service_id, string));
+        }
+    }
+
+    fn register_standard_functions(engine: &mut Engine) {
         engine.register_result_fn("spawn_process", spawn_process);
     }
 
     /// Assigns the service instances to the inner variables.
-    fn set_service_values<'a>(scope: &mut Scope<'a>, services: &'a HashMap<String, Service>) {
+    fn push_services<'a>(scope: &mut Scope<'a>, services: &'a HashMap<String, Service>) {
         for (service_id, service) in services.iter() {
+            #[allow(clippy::single_match)]
             match service.clone() {
-                Service::Telegram(telegram) => scope.set_value(service_id, Arc::new(telegram)),
-                _ => scope.set_value(service_id, ()),
+                Service::Telegram(telegram) => scope.push_constant(service_id, telegram),
+                _ => (),
             }
         }
-    }
-
-    /// Registers service functions available for a user.
-    fn register_service_functions(engine: &mut Engine) {
-        Self::register_telegram_functions(engine);
-    }
-
-    fn register_telegram_functions(engine: &mut Engine) {
-        engine.register_type::<Arc<Telegram>>();
-        engine.register_type::<TelegramChatId>();
-
-        engine.register_fn("telegram_unique_id", |unique_id| {
-            Dynamic::from(TelegramChatId::UniqueId(unique_id))
-        });
-        engine.register_fn("telegram_username", |username| {
-            Dynamic::from(TelegramChatId::Username(username))
-        });
-
-        engine.register_result_fn(
-            "send_message",
-            |this: &mut Arc<Telegram>, chat_id: TelegramChatId, text: &str| -> Result<Dynamic, FnResult> {
-                Ok(this
-                    .send_message(&SendMessageRequest {
-                        chat_id,
-                        text: text.into(),
-                    })
-                    .map_err(to_string)?
-                    .message_id
-                    .into())
-            },
-        );
     }
 }
 
 /// Used to spawn an external process.
-fn spawn_process(program: &str, args: Array) -> Result<Dynamic, FnResult> {
+fn spawn_process(program: &str, args: Array) -> FnResult {
     debug!(
         "Spawning: {} {:?}",
         program,
@@ -226,7 +227,7 @@ mod tests {
     #[test]
     fn spawn_process_ok() -> Result<()> {
         let mut engine = Engine::new();
-        Rhai::register_global_functions(&mut engine);
+        Rhai::register_standard_functions(&mut engine);
         engine.eval(r#"spawn_process("echo", ["-n"])"#)?;
         Ok(())
     }
