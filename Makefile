@@ -21,12 +21,8 @@ check/fmt:
 check/test:
 	@cargo test --workspace
 
-.PHONY: check/docs
-check/docs:
-	@mdbook test
-
 .PHONY: check
-check: check/clippy check/fmt check/test check/docs
+check: check/clippy check/fmt check/test
 
 .PHONY: html docs
 html docs:
