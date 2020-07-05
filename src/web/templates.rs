@@ -4,7 +4,6 @@ use askama::Template;
 use rocket::uri;
 use serde_json::json;
 
-use crate::consts::*;
 use crate::format::human_format;
 use crate::prelude::*;
 use crate::web::{rocket_uri_macro_delete_sensor, rocket_uri_macro_get_sensor_json, rocket_uri_macro_get_settings};

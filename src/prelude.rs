@@ -21,6 +21,19 @@ pub type Result<T, E = Box<dyn Error>> = std::result::Result<T, E>;
 pub type Receiver = crossbeam::channel::Receiver<Message>;
 pub type Sender = crossbeam::channel::Sender<Message>;
 
+/// Amount of [Joule](https://en.wikipedia.org/wiki/Joule)s
+/// in 1 [watt-hour](https://en.wikipedia.org/wiki/Kilowatt-hour).
+pub const JOULES_IN_WH: f64 = 3600.0;
+
+pub const WH_IN_JOULE: f64 = 1.0 / JOULES_IN_WH;
+
+/// `User-Agent` header used for all outcoming HTTP requests.
+pub const USER_AGENT: &str = concat!(
+    "My IoT / ",
+    crate_version!(),
+    " (Rust; https://github.com/eigenein/my-iot-rs)"
+);
+
 /// Converts the object into its debug representation.
 pub fn to_debug_string<T: std::fmt::Debug>(this: &mut T) -> String {
     format!("{:?}", this)

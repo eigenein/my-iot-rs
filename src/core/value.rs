@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::consts::*;
+use crate::prelude::*;
 
 /// Sensor reading value.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]

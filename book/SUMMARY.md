@@ -8,7 +8,6 @@
 - [Services](services.md)
   - [Buienradar]()
   - [Clock]()
-  - [Lua (deprecated)](services/lua.md)
   - [OpenWeather]()
   - [Rhai](services/rhai.md)
     - [Telegram](services/rhai/telegram.md)

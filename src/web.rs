@@ -15,7 +15,6 @@ use rocket::response::Redirect;
 use rocket::{delete, get, routes, uri, Config, Response, Rocket, State};
 use rocket_contrib::json::Json;
 
-use crate::consts::*;
 use crate::prelude::*;
 use crate::settings::Settings;
 use crate::web::cached_content::Cached;

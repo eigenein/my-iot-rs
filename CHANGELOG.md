@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.77.0`
+
+- Drop `Lua` service #93
+
 ## `0.76.0`
 
 - Change `Telegram` Rhai interface and refactor the `Rhai` code #93

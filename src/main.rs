@@ -12,7 +12,6 @@ use structopt::StructOpt;
 
 use crate::prelude::*;
 
-mod consts;
 mod core;
 mod format;
 mod prelude;

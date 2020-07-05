@@ -44,9 +44,6 @@ pub enum Service {
     /// Regularly emits a counter value.
     Clock(services::clock::Clock),
 
-    /// [Lua](https://www.lua.org/) scripting.
-    Lua(services::lua::Lua),
-
     /// [OpenWeather](https://openweathermap.org/).
     OpenWeather(services::openweather::OpenWeather),
 

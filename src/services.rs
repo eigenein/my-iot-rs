@@ -7,20 +7,12 @@ use std::time::Duration;
 pub mod buienradar;
 pub mod clock;
 pub mod db;
-pub mod lua;
 pub mod openweather;
 pub mod rhai;
 pub mod solar;
 pub mod tado;
 pub mod telegram;
 pub mod youless;
-
-/// `User-Agent` header used for all outcoming HTTP requests.
-const USER_AGENT: &str = concat!(
-    "My IoT / ",
-    crate_version!(),
-    " (Rust; https://github.com/eigenein/my-iot-rs)"
-);
 
 lazy_static! {
     /// `Client` instance used to make requests to all services.
@@ -44,7 +36,6 @@ pub fn spawn_all(settings: &Settings, service_ids: &Option<Vec<String>>, bus: &m
             match service.clone() {
                 Service::Buienradar(buienradar) => buienradar.spawn(service_id, bus),
                 Service::Clock(clock) => clock.spawn(service_id, bus),
-                Service::Lua(lua) => lua.spawn(service_id, bus, settings.services.clone()),
                 Service::OpenWeather(openweather) => openweather.spawn(service_id, bus),
                 Service::Rhai(rhai) => rhai.spawn(service_id, bus, settings.services.clone()),
                 Service::Solar(solar) => solar.spawn(service_id, bus),
