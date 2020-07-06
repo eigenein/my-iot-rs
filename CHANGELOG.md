@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.77.1`
+
+- Fix `credentials: same-origin` for PWA
+
 ## `0.77.0`
 
 - Drop `Lua` service #93

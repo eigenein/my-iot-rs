@@ -6,7 +6,9 @@ const cacheName = 'default';
 self.addEventListener('fetch', function(event) {
   event.respondWith(
     caches.open(cacheName).then(function(cache) {
-      return fetch(event.request).then(function (response) {
+      return fetch(event.request, {
+        credentials: 'same-origin',
+      }).then(function (response) {
         if (response.ok) {
           console.log('📦 ' + event.request.url);
           cache.put(event.request, response.clone());
