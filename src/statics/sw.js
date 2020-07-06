@@ -9,10 +9,11 @@ self.addEventListener('fetch', function(event) {
       return fetch(event.request, {
         credentials: 'same-origin',
       }).then(function (response) {
-        if (response.ok) {
-          console.log('📦 ' + event.request.url);
-          cache.put(event.request, response.clone());
+        if (!response.ok) {
+          throw new Error(response.status + ' ' + response.statusText);
         }
+        console.log('📦 ' + event.request.url);
+        cache.put(event.request, response.clone());
         return response;
       }).catch(function() {
         console.log('🎯 ' + event.request.url);

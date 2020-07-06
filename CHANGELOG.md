@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.78.1`
+
+- Raise an error for any unsuccessful response in the service worker
+
 ## `0.78.0`
 
 - Remove `migrations` for a while – I want to redesign it
