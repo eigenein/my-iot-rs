@@ -1,10 +1,9 @@
 //! [tado°](https://www.tado.com/) API.
 
 use crate::prelude::*;
-use crate::services::CLIENT;
+use crate::services::{call_json_api, CLIENT};
 use reqwest::{Method, Url};
 use std::sync::{Arc, Mutex, MutexGuard};
-use std::thread;
 use std::time::{Duration, SystemTime};
 
 const CLIENT_ID: &str = "public-api-preview";
@@ -38,22 +37,17 @@ fn default_token() -> Arc<Mutex<Option<Token>>> {
 }
 
 impl Tado {
-    pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
+    pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result {
         let tx = bus.add_tx();
         let me = self.get_me()?;
         let home = self.get_home(me.home_id)?;
 
-        thread::Builder::new().name(service_id.clone()).spawn(move || loop {
-            if let Err(error) = self.loop_(&service_id, &me, &home, &tx) {
-                error!("Failed to refresh the sensors: {}", error.to_string());
-            }
-            thread::sleep(REFRESH_PERIOD);
-        })?;
-
-        Ok(())
+        spawn_service_loop(service_id.clone(), REFRESH_PERIOD, move || {
+            self.loop_(&service_id, &me, &home, &tx)
+        })
     }
 
-    fn loop_(&self, service_id: &str, me: &Me, home: &Home, tx: &Sender) -> Result<()> {
+    fn loop_(&self, service_id: &str, me: &Me, home: &Home, tx: &Sender) -> Result {
         let weather = self.get_weather(me.home_id)?;
 
         Message::new(format!("{}::{}::solar_intensity", service_id, me.home_id))
@@ -207,13 +201,7 @@ impl Tado {
         U: AsRef<str> + std::fmt::Display,
         R: DeserializeOwned,
     {
-        debug!("Calling {}…", url);
-        let access_token = self.get_access_token()?;
-        Ok(CLIENT
-            .request(method, url.as_ref())
-            .header("Authorization", format!("Bearer {}", access_token))
-            .send()?
-            .json()?)
+        call_json_api(method, &self.get_access_token()?, url)
     }
 
     fn get_me(&self) -> Result<Me> {
@@ -253,7 +241,7 @@ impl Tado {
     }
 
     /// Activates the [Open Window](https://support.tado.com/en/articles/3387308-how-does-the-open-window-detection-skill-work) mode.
-    fn activate_open_window(&self, home_id: u32, zone_id: u32) -> Result<()> {
+    fn activate_open_window(&self, home_id: u32, zone_id: u32) -> Result {
         self.call(
             Method::POST,
             format!(
@@ -433,7 +421,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse_token() -> Result<()> {
+    fn parse_token() -> Result {
         // language=json
         serde_json::from_str::<Token>(
             r#"{"access_token": "abc", "token_type": "bearer", "refresh_token": "def", "expires_in": 599, "scope": "home.user", "jti": "xyz-123"}"#,
@@ -442,7 +430,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_me() -> Result<()> {
+    fn parse_me() -> Result {
         // language=json
         serde_json::from_str::<Me>(
             r#"{"name": "Terence Eden", "email": "you@example.com", "username": "your_user_name", "enabled": true, "id": "987654321", "homeId": 123456, "locale": "en_GB", "type": "WEB_USER"}"#,
@@ -451,7 +439,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_home() -> Result<()> {
+    fn parse_home() -> Result {
         // language=json
         serde_json::from_str::<Home>(
             r#"{"id": 123456, "name": " ", "dateTimeZone": "Europe/London", "dateCreated": "2015-12-18T19:21:59.315Z", "temperatureUnit": "CELSIUS", "installationCompleted": true, "partner": " ", "simpleSmartScheduleEnabled": true, "awayRadiusInMeters": 123.45, "usePreSkillsApps": true, "skills": [], "christmasModeEnabled": true, "contactDetails": {"name": "Terence Eden", "email": " ", "phone": " "}, "address": {"addressLine1": " ", "addressLine2": null, "zipCode": " ", "city": " ", "state": null, "country": "GBR"}, "geolocation": {"latitude": 12.3456789, "longitude": -1.23456}, "consentGrantSkippable": true}"#,
@@ -460,7 +448,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_zones() -> Result<()> {
+    fn parse_zones() -> Result {
         // language=json
         serde_json::from_str::<Zones>(
             r#"[{"id": 1,"name": "Heating","type": "HEATING","dateCreated": "2015-12-21T15:46:45.000Z","deviceTypes": ["RU01"],"devices": [{"deviceType": "RU01","serialNo": " ","shortSerialNo": " ","currentFwVersion": "54.8","connectionState": {"value": true,"timestamp": "2019-02-13T19:30:52.733Z"},"characteristics": {"capabilities": ["INSIDE_TEMPERATURE_MEASUREMENT", "IDENTIFY", "OPEN_WINDOW_DETECTION"]},"batteryState": "NORMAL","duties": ["ZONE_UI", "ZONE_LEADER"]}],"reportAvailable": false,"supportsDazzle": true,"dazzleEnabled": true,"dazzleMode": {"supported": true,"enabled": true},"openWindowDetection": {"supported": true,"enabled": true,"timeoutInSeconds": 1800}}, {"id": 0,"name": "Hot Water","type": "HOT_WATER","dateCreated": "2016-10-03T11:31:42.272Z","deviceTypes": ["BU01", "RU01"],"devices": [{"deviceType": "BU01","serialNo": " ","shortSerialNo": " ","currentFwVersion": "49.4","connectionState": {"value": true,"timestamp": "2019-02-13T19:36:17.361Z"},"characteristics": {"capabilities": []},"isDriverConfigured": true,"duties": ["ZONE_DRIVER"]}, {"deviceType": "RU01","serialNo": " ","shortSerialNo": " ","currentFwVersion": "54.8","connectionState": {"value": true,"timestamp": "2019-02-13T19:30:52.733Z"},"characteristics": {"capabilities": ["INSIDE_TEMPERATURE_MEASUREMENT", "IDENTIFY", "OPEN_WINDOW_DETECTION"]},"batteryState": "NORMAL","duties": ["ZONE_UI", "ZONE_LEADER"]}],"reportAvailable": false,"supportsDazzle": false,"dazzleEnabled": false,"dazzleMode": {"supported": false},"openWindowDetection": {"supported": false}}]"#,
@@ -469,14 +457,14 @@ mod tests {
     }
 
     #[test]
-    fn parse_home_state() -> Result<()> {
+    fn parse_home_state() -> Result {
         // language=json
         serde_json::from_str::<HomeState>(r#"{"presence":"HOME"}"#)?;
         Ok(())
     }
 
     #[test]
-    fn parse_zone_state_hot_water() -> Result<()> {
+    fn parse_zone_state_hot_water() -> Result {
         // language=json
         serde_json::from_str::<ZoneState>(
             r#"{"tadoMode": "HOME","geolocationOverride": false,"geolocationOverrideDisableTime": null,"preparation": null,"setting": {"type": "HOT_WATER","power": "OFF","temperature": null},"overlayType": null,"overlay": null,"openWindow": null,"nextScheduleChange": {"start": "2019-02-13T19:00:00Z","setting": {"type": "HOT_WATER","power": "ON","temperature": null}},"link": {"state": "ONLINE"},"activityDataPoints": {},"sensorDataPoints": {}}"#,
@@ -485,7 +473,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_zone_state_heating() -> Result<()> {
+    fn parse_zone_state_heating() -> Result {
         // language=json
         serde_json::from_str::<ZoneState>(
             r#"{"tadoMode": "HOME","geolocationOverride": false,"geolocationOverrideDisableTime": null,"preparation": null,"setting": {"type": "HEATING","power": "ON","temperature": {"celsius": 15.00,"fahrenheit": 59.00}},"overlayType": null,"overlay": null,"openWindow": null,"nextScheduleChange": {"start": "2019-02-13T17:30:00Z","setting": {"type": "HEATING","power": "ON","temperature": {"celsius": 18.00,"fahrenheit": 64.40}}},"link": {"state": "ONLINE"},"activityDataPoints": {"heatingPower": {"type": "PERCENTAGE","percentage": 0.00,"timestamp": "2019-02-13T10:19:37.135Z"}},"sensorDataPoints": {"insideTemperature": {"celsius": 16.59,"fahrenheit": 61.86,"timestamp": "2019-02-13T10:30:52.733Z","type": "TEMPERATURE","precision": {"celsius": 0.1,"fahrenheit": 0.1}},"humidity": {"type": "PERCENTAGE","percentage": 57.20,"timestamp": "2019-02-13T10:30:52.733Z"}}}"#,
@@ -499,7 +487,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_weather_ok() -> Result<()> {
+    fn parse_weather_ok() -> Result {
         // language=json
         serde_json::from_str::<Weather>(
             r#"{"solarIntensity": {"type": "PERCENTAGE", "percentage": 68.10, "timestamp": "2019-02-10T10:35:00.989Z"}, "outsideTemperature": {"celsius": 8.00, "fahrenheit": 46.40, "timestamp": "2019-02-10T10:35:00.989Z", "type": "TEMPERATURE", "precision": {"celsius": 0.01, "fahrenheit": 0.01}}, "weatherState": {"type": "WEATHER_STATE", "value": "CLOUDY_PARTLY", "timestamp": "2019-02-10T10:35:00.989Z"}}"#,

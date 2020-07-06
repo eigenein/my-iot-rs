@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Installation - My IoT</title>
+        <title>Ring - My IoT</title>
         
         
 
@@ -89,7 +89,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../introduction/installation.html" class="active"><strong aria-hidden="true">1.1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../introduction/settings.html"><strong aria-hidden="true">1.2.</strong> Settings</a></li><li class="chapter-item expanded "><a href="../introduction/run-at-system-startup.html"><strong aria-hidden="true">1.3.</strong> Run at System Startup</a></li><li class="chapter-item expanded "><a href="../introduction/publish-on-the-internet.html"><strong aria-hidden="true">1.4.</strong> Publish on the Internet</a></li></ol></li><li class="chapter-item expanded "><a href="../services.html"><strong aria-hidden="true">2.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><strong aria-hidden="true">2.1.</strong> Buienradar</li><li class="chapter-item expanded "><strong aria-hidden="true">2.2.</strong> Clock</li><li class="chapter-item expanded "><strong aria-hidden="true">2.3.</strong> OpenWeather</li><li class="chapter-item expanded "><a href="../services/rhai.html"><strong aria-hidden="true">2.4.</strong> Rhai</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../services/rhai/telegram.html"><strong aria-hidden="true">2.4.1.</strong> Telegram</a></li></ol></li><li class="chapter-item expanded "><a href="../services/ring.html"><strong aria-hidden="true">2.5.</strong> Ring</a></li><li class="chapter-item expanded "><a href="../services/solar.html"><strong aria-hidden="true">2.6.</strong> Solar</a></li><li class="chapter-item expanded "><a href="../services/tado.html"><strong aria-hidden="true">2.7.</strong> Tado</a></li><li class="chapter-item expanded "><strong aria-hidden="true">2.8.</strong> Telegram</li><li class="chapter-item expanded "><strong aria-hidden="true">2.9.</strong> YouLess</li></ol></li><li class="chapter-item expanded "><strong aria-hidden="true">3.</strong> Cookbook</li><li><ol class="section"><li class="chapter-item expanded "><a href="../cookbook/notify_tado_open_window.html"><strong aria-hidden="true">3.1.</strong> Notify tado° open window</a></li><li class="chapter-item expanded "><a href="../cookbook/rise_and_shine.html"><strong aria-hidden="true">3.2.</strong> «Rise and Shine» with IKEA Trådfri</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../introduction/installation.html"><strong aria-hidden="true">1.1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../introduction/settings.html"><strong aria-hidden="true">1.2.</strong> Settings</a></li><li class="chapter-item expanded "><a href="../introduction/run-at-system-startup.html"><strong aria-hidden="true">1.3.</strong> Run at System Startup</a></li><li class="chapter-item expanded "><a href="../introduction/publish-on-the-internet.html"><strong aria-hidden="true">1.4.</strong> Publish on the Internet</a></li></ol></li><li class="chapter-item expanded "><a href="../services.html"><strong aria-hidden="true">2.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><strong aria-hidden="true">2.1.</strong> Buienradar</li><li class="chapter-item expanded "><strong aria-hidden="true">2.2.</strong> Clock</li><li class="chapter-item expanded "><strong aria-hidden="true">2.3.</strong> OpenWeather</li><li class="chapter-item expanded "><a href="../services/rhai.html"><strong aria-hidden="true">2.4.</strong> Rhai</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../services/rhai/telegram.html"><strong aria-hidden="true">2.4.1.</strong> Telegram</a></li></ol></li><li class="chapter-item expanded "><a href="../services/ring.html" class="active"><strong aria-hidden="true">2.5.</strong> Ring</a></li><li class="chapter-item expanded "><a href="../services/solar.html"><strong aria-hidden="true">2.6.</strong> Solar</a></li><li class="chapter-item expanded "><a href="../services/tado.html"><strong aria-hidden="true">2.7.</strong> Tado</a></li><li class="chapter-item expanded "><strong aria-hidden="true">2.8.</strong> Telegram</li><li class="chapter-item expanded "><strong aria-hidden="true">2.9.</strong> YouLess</li></ol></li><li class="chapter-item expanded "><strong aria-hidden="true">3.</strong> Cookbook</li><li><ol class="section"><li class="chapter-item expanded "><a href="../cookbook/notify_tado_open_window.html"><strong aria-hidden="true">3.1.</strong> Notify tado° open window</a></li><li class="chapter-item expanded "><a href="../cookbook/rise_and_shine.html"><strong aria-hidden="true">3.2.</strong> «Rise and Shine» with IKEA Trådfri</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -159,37 +159,47 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#installation" id="installation">Installation</a></h1>
-<p>There’re few different ways to install My IoT. Either way, you get a single executable <code>my-iot</code>.</p>
-<hr />
-<p><strong>File Capabilities</strong></p>
-<p>You may need to manually set capabilities on the produced binary:</p>
-<pre><code class="language-bash">setcap cap_net_raw+ep /home/pi/.cargo/bin/my-iot
+                        <h1><a class="header" href="#a-hrefhttpsringcomringa" id="a-hrefhttpsringcomringa"><a href="https://ring.com">Ring</a></a></h1>
+<p>Note: uses the unofficial API.</p>
+<h2><a class="header" href="#setting-up" id="setting-up">Setting up</a></h2>
+<p>Here I use <a href="https://httpie.org/">HTTPie</a> for the <code>http</code> command.</p>
+<p>First, log in with your email and password:</p>
+<pre><code class="language-shellscript">http 'https://oauth.ring.com/oauth/token' scope=client client_id=ring_official_android grant_type=password username=&quot;…&quot; password='…'
 </code></pre>
-<p>This is needed to use some low-level protocols (for instance, <a href="https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol">ICMP</a>) as a non-root user.</p>
-<hr />
-<h2><a class="header" href="#pre-compiled-binaries-for-raspberry-pi-zero-w" id="pre-compiled-binaries-for-raspberry-pi-zero-w">Pre-compiled binaries for Raspberry Pi Zero W</a></h2>
-<pre><code class="language-bash">curl -fsSL https://raw.githubusercontent.com/eigenein/my-iot-rs/master/install.sh | bash
+<p>If you have the 2-factor authentication enabled (you do, right?), you’ll get HTTP 412 back and an SMS with a code:</p>
+<pre><code class="language-text">HTTP/1.1 412 Precondition Failed
+
+{
+    &quot;next_time_in_secs&quot;: 60,
+    &quot;phone&quot;: &quot;+3xxxxxxxx44&quot;
+}
 </code></pre>
-<h2><a class="header" href="#install-from-cratesio" id="install-from-cratesio">Install from crates.io</a></h2>
-<pre><code class="language-bash">cargo install my-iot
+<p>Repeat the log-in step with the additional headers added:</p>
+<pre><code class="language-shellscript">http 'https://oauth.ring.com/oauth/token' scope=client client_id=ring_official_android grant_type=password  username=&quot;…&quot; password='…' 2fa-support:true 2fa-code:123456
 </code></pre>
-<h2><a class="header" href="#cross-compile-for-raspberry-pi-zero-w" id="cross-compile-for-raspberry-pi-zero-w">Cross-compile for Raspberry Pi Zero W</a></h2>
-<pre><code class="language-bash">make docker/build/arm-unknown-linux-gnueabihf
+<p>You should get a <code>refresh_token</code> back, which you then specify as the service <code>initial_refresh_token</code> setting value:</p>
+<pre><code class="language-json">{
+    &quot;access_token&quot;: &quot;…&quot;,
+    &quot;expires_in&quot;: 3600,
+    &quot;refresh_token&quot;: &quot;…&quot;,
+    &quot;scope&quot;: &quot;client&quot;,
+    &quot;token_type&quot;: &quot;Bearer&quot;
+}
 </code></pre>
+<p>My IoT doesn’t need an <code>access_token</code>, because it will obtain a new one immediately via a <code>refresh_token</code>.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-                            <a rel="prev" href="../introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../services/rhai/telegram.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
 
                         
-                            <a rel="next" href="../introduction/settings.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="../services/solar.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -201,13 +211,13 @@
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-                    <a rel="prev" href="../introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../services/rhai/telegram.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
 
                 
-                    <a rel="next" href="../introduction/settings.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="../services/solar.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 

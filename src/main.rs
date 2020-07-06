@@ -48,7 +48,7 @@ struct Opt {
 }
 
 /// Entry point.
-fn main() -> Result<()> {
+fn main() -> Result {
     let opt: Opt = Opt::from_args();
     if opt.version {
         // I want to print only the version, without the application name.
@@ -70,16 +70,16 @@ fn main() -> Result<()> {
     let mut bus = Bus::new(message_counter.clone());
     bus.add_tx()
         .send(Message::new("my-iot::start").type_(MessageType::ReadNonLogged))?;
-    core::persistence::thread::spawn(db.clone(), &mut bus)?;
+    core::connection::thread::spawn(db.clone(), &mut bus)?;
     services::db::Db.spawn("system::db".into(), &mut bus, db.clone())?;
-    services::spawn_all(&settings, &opt.service_ids, &mut bus)?;
+    services::spawn_all(&settings, &opt.service_ids, &mut bus, &db)?;
     bus.spawn()?;
 
     info!("Starting web server on port {}…", settings.http_port);
     web::start_server(&settings, db, message_counter)
 }
 
-fn init_logging(silent: bool, verbose: bool) -> Result<()> {
+fn init_logging(silent: bool, verbose: bool) -> Result {
     TermLogger::init(
         if silent {
             LevelFilter::Warn

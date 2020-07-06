@@ -8,10 +8,39 @@ use rusqlite::{OptionalExtension, NO_PARAMS};
 use std::path::Path;
 use std::sync::{Arc, Mutex, MutexGuard};
 
-mod migrations;
 pub mod reading;
 pub mod sensor;
 pub mod thread;
+
+// language=sql
+const DATABASE_SCRIPT: &str = r#"
+    PRAGMA foreign_keys = ON;
+
+    CREATE TABLE IF NOT EXISTS sensors (
+        pk INTEGER NOT NULL PRIMARY KEY, -- `sensor_id` SeaHash
+        sensor_id TEXT NOT NULL UNIQUE,
+        timestamp INTEGER NOT NULL, -- unix time, milliseconds
+        title TEXT DEFAULT NULL,
+        room_title TEXT DEFAULT NULL, -- renamed to `location`
+        value JSON NOT NULL,
+        expires_at INTEGER NOT NULL -- deprecated and unused
+    );
+
+    CREATE TABLE IF NOT EXISTS readings (
+        sensor_fk INTEGER NOT NULL REFERENCES sensors ON UPDATE CASCADE ON DELETE CASCADE,
+        timestamp INTEGER NOT NULL, -- unix time, milliseconds
+        value JSON NOT NULL
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_fk_timestamp
+        ON readings (sensor_fk ASC, timestamp DESC);
+
+    CREATE TABLE IF NOT EXISTS user_data (
+        pk TEXT NOT NULL PRIMARY KEY,
+        value JSON NOT NULL,
+        expires_at INTEGER NULL -- unix time, milliseconds
+    );
+"#;
 
 /// Wraps `rusqlite::Connection` and provides the high-level database methods.
 #[derive(Clone)]
@@ -25,8 +54,7 @@ impl Connection {
             connection: Arc::new(Mutex::new(rusqlite::Connection::open(path)?)),
         };
         // language=sql
-        connection.connection()?.execute_batch("PRAGMA foreign_keys = ON;")?;
-        connection.migrate()?;
+        connection.connection()?.execute_batch(DATABASE_SCRIPT)?;
         Ok(connection)
     }
 
@@ -42,7 +70,7 @@ impl Connection {
                 // language=sql
                 r"SELECT * FROM sensors ORDER BY room_title, sensor_id",
             )?
-            .query_map(NO_PARAMS, get_actual)?
+            .query_map(NO_PARAMS, get_sensor_reading)?
             .map(|r| r.map_err(Into::into))
             .collect()
     }
@@ -68,12 +96,13 @@ impl Connection {
             .connection()?
             // language=sql
             .prepare_cached(r"SELECT * FROM sensors WHERE sensor_id = ?1")?
-            .query_row(params![sensor_id], get_actual)
+            .query_row(params![sensor_id], get_sensor_reading)
             .optional()?)
     }
 
-    pub fn delete_sensor(&self, sensor_id: &str) -> Result<()> {
+    pub fn delete_sensor(&self, sensor_id: &str) -> Result {
         self.connection()?
+            // language=sql
             .prepare_cached(r"DELETE FROM sensors WHERE sensor_id = ?1")?
             .execute(params![sensor_id])?;
         Ok(())
@@ -110,7 +139,7 @@ impl Connection {
         Ok(self
             .connection()?
             // language=sql
-            .prepare("SELECT COUNT(*) FROM sensors")?
+            .prepare_cached("SELECT COUNT(*) FROM sensors")?
             .query_row(NO_PARAMS, get_i64)
             .map(|v| v as u64)?)
     }
@@ -119,7 +148,7 @@ impl Connection {
         Ok(self
             .connection()?
             // language=sql
-            .prepare("SELECT COUNT(*) FROM readings")?
+            .prepare_cached("SELECT COUNT(*) FROM readings")?
             .query_row(NO_PARAMS, get_i64)
             .map(|v| v as u64)?)
     }
@@ -128,36 +157,47 @@ impl Connection {
         Ok(self
             .connection()?
             // language=sql
-            .prepare("SELECT COUNT(*) FROM readings WHERE sensor_fk = ?1")?
+            .prepare_cached("SELECT COUNT(*) FROM readings WHERE sensor_fk = ?1")?
             .query_row(params![hash_sensor_id(sensor_id)], get_i64)
             .map(|v| v as u64)?)
     }
 
-    /// Select the database version.
-    pub fn select_version(&self) -> Result<i32> {
-        let version: i32 = self
-            .connection()?
-            .pragma_query_value(None, "user_version", |row| row.get(0))?;
-        Ok(version)
+    #[allow(dead_code)]
+    pub fn set_user_data<V: Serialize>(&self, key: &str, value: V, expires_at: Option<DateTime<Local>>) -> Result {
+        self.connection()?
+            // language=sql
+            .prepare_cached(
+                r#"
+                -- noinspection SqlResolve @ any/"excluded"
+                INSERT INTO user_data (pk, value, expires_at)
+                VALUES (?1, ?2, ?3)
+                ON CONFLICT (pk) DO UPDATE SET value = excluded.value, expires_at = excluded.expires_at
+            "#,
+            )?
+            .execute(params![
+                key,
+                serde_json::to_string(&value)?,
+                expires_at.as_ref().map(DateTime::<Local>::timestamp_millis),
+            ])?;
+        Ok(())
     }
 
-    fn migrate(&self) -> Result<()> {
-        let version = self.select_version()? as usize;
-        let mut connection = self.connection()?;
-        migrations::MIGRATIONS
-            .iter()
-            .enumerate()
-            .filter(|(i, _)| version < *i)
-            .map(|(i, migrate)| -> Result<()> {
-                info!("Migrating to version {}…", i);
-                let tx = connection.transaction()?;
-                migrate(&tx)?;
-                tx.pragma_update(None, "user_version", &(i as i32))?;
-                tx.commit()?;
-                connection.execute("VACUUM", NO_PARAMS)?;
-                Ok(())
+    #[allow(dead_code)]
+    pub fn get_user_data<V: DeserializeOwned>(&self, key: &str) -> Result<Option<V>> {
+        Ok(self
+            .connection()?
+            // language=sql
+            .prepare_cached(
+                r#"
+                -- Having fun with strings getting auto-converted to integers.
+                SELECT CAST(value AS TEXT) as value FROM user_data
+                WHERE pk = ?1 AND (expires_at IS NULL OR expires_at >= ?2)
+                "#,
+            )?
+            .query_row(params![key, Local::now().timestamp_millis()], |row| {
+                Ok(serde_json::from_str(&row.get::<_, String>(0)?).expect("deserialization"))
             })
-            .collect()
+            .optional()?)
     }
 }
 
@@ -184,13 +224,11 @@ fn get_sensor(row: &Row) -> rusqlite::Result<Sensor> {
 fn get_reading(row: &Row) -> rusqlite::Result<Reading> {
     Ok(Reading {
         timestamp: Local.timestamp_millis(row.get("timestamp")?),
-        value: serde_json::from_str(&row.get::<_, String>("value")?).map_err(|error| {
-            rusqlite::Error::FromSqlConversionFailure(0, rusqlite::types::Type::Blob, Box::new(error))
-        })?,
+        value: serde_json::from_str(&row.get::<_, String>("value")?).unwrap(),
     })
 }
 
-fn get_actual(row: &Row) -> rusqlite::Result<(Sensor, Reading)> {
+fn get_sensor_reading(row: &Row) -> rusqlite::Result<(Sensor, Reading)> {
     Ok((get_sensor(row)?, get_reading(row)?))
 }
 
@@ -202,7 +240,7 @@ fn get_i64(row: &Row) -> rusqlite::Result<i64> {
 
 impl Message {
     /// Upsert the message into the database.
-    pub fn upsert_into(&self, connection: &rusqlite::Connection) -> Result<()> {
+    pub fn upsert_into(&self, connection: &rusqlite::Connection) -> Result {
         let sensor_pk = hash_sensor_id(&self.sensor.id);
         let timestamp = self.reading.timestamp.timestamp_millis();
         let value = serde_json::to_string(&self.reading.value)?;
@@ -211,16 +249,15 @@ impl Message {
             .prepare_cached(
                 // language=sql
                 r#"
-            -- noinspection SqlResolve @ any/"excluded"
-            -- noinspection SqlInsertValues
-            INSERT INTO sensors (pk, sensor_id, title, timestamp, room_title, value, expires_at)
-            VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0)
-            ON CONFLICT (pk) DO UPDATE SET
-                timestamp = excluded.timestamp,
-                title = excluded.title,
-                room_title = excluded.room_title,
-                value = excluded.value
-            "#,
+                    -- noinspection SqlResolve @ any/"excluded"
+                    INSERT INTO sensors (pk, sensor_id, title, timestamp, room_title, value, expires_at)
+                    VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0)
+                    ON CONFLICT (pk) DO UPDATE SET
+                        timestamp = excluded.timestamp,
+                        title = excluded.title,
+                        room_title = excluded.room_title,
+                        value = excluded.value
+                "#,
             )?
             .execute(params![
                 sensor_pk,
@@ -235,11 +272,11 @@ impl Message {
             .prepare_cached(
                 // language=sql
                 r#"
-            -- noinspection SqlResolve @ any/"excluded"
-            INSERT INTO readings (sensor_fk, timestamp, value)
-            VALUES (?1, ?2, ?3)
-            ON CONFLICT (sensor_fk, timestamp) DO UPDATE SET value = excluded.value
-            "#,
+                -- noinspection SqlResolve @ any/"excluded"
+                INSERT INTO readings (sensor_fk, timestamp, value)
+                VALUES (?1, ?2, ?3)
+                ON CONFLICT (sensor_fk, timestamp) DO UPDATE SET value = excluded.value
+                "#,
             )?
             .execute(params![sensor_pk, timestamp, value])?;
 
@@ -256,8 +293,14 @@ impl From<Message> for (Sensor, Reading) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::Duration;
 
-    type Result = crate::Result<()>;
+    #[test]
+    fn database_script_run_twice_ok() -> Result {
+        let db = Connection::open_and_initialize(":memory:")?;
+        db.connection()?.execute_batch(DATABASE_SCRIPT)?;
+        Ok(())
+    }
 
     #[test]
     fn double_upsert_keeps_one_reading() -> Result {
@@ -338,14 +381,6 @@ mod tests {
     }
 
     #[test]
-    fn migrates_to_the_latest_version() -> Result {
-        let db = Connection::open_and_initialize(":memory:")?;
-        let version = db.select_version()? as usize;
-        assert_eq!(version, migrations::MIGRATIONS.len() - 1);
-        Ok(())
-    }
-
-    #[test]
     fn select_readings_ok() -> Result {
         let db = Connection::open_and_initialize(":memory:")?;
         let message = Message::new("test")
@@ -354,6 +389,38 @@ mod tests {
         message.upsert_into(&*db.connection()?)?;
         let readings: Vec<(_, i64)> = db.select_values("test", &Local.timestamp_millis(0))?;
         assert_eq!(readings.get(0).unwrap(), &(message.reading.timestamp, 42));
+        Ok(())
+    }
+
+    #[test]
+    fn get_set_user_data_ok() -> Result {
+        let db = Connection::open_and_initialize(":memory:")?;
+        db.set_user_data("hello::world", 42_i32, Some(Local::now() + Duration::minutes(1)))?;
+        assert_eq!(db.get_user_data("hello::world")?, Some(42_i32));
+        Ok(())
+    }
+
+    #[test]
+    fn get_set_user_data_overwrite_ok() -> Result {
+        let db = Connection::open_and_initialize(":memory:")?;
+        db.set_user_data("hello::world", 43_i32, None)?;
+        db.set_user_data("hello::world", 42_i32, None)?;
+        assert_eq!(db.get_user_data("hello::world")?, Some(42_i32));
+        Ok(())
+    }
+
+    #[test]
+    fn get_expired_user_data_ok() -> Result {
+        let db = Connection::open_and_initialize(":memory:")?;
+        db.set_user_data("hello::world", 43_i32, Some(Local::now() - Duration::minutes(1)))?;
+        assert_eq!(db.get_user_data::<i32>("hello::world")?, None);
+        Ok(())
+    }
+
+    #[test]
+    fn missing_user_data_returns_none() -> Result {
+        let db = Connection::open_and_initialize(":memory:")?;
+        assert_eq!(db.get_user_data::<String>("hello::world")?, None);
         Ok(())
     }
 }

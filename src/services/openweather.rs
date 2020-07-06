@@ -19,20 +19,12 @@ struct Secrets {
 
 /// <https://openweathermap.org/current>
 impl OpenWeather {
-    pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
+    pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result {
         let tx = bus.add_tx();
-
-        thread::Builder::new().name(service_id.clone()).spawn(move || loop {
-            if let Err(error) = self.loop_(&service_id, &tx) {
-                error!("Failed to refresh the sensors: {}", error.to_string());
-            }
-            thread::sleep(REFRESH_PERIOD);
-        })?;
-
-        Ok(())
+        spawn_service_loop(service_id.clone(), REFRESH_PERIOD, move || self.loop_(&service_id, &tx))
     }
 
-    fn loop_(&self, service_id: &str, tx: &Sender) -> Result<()> {
+    fn loop_(&self, service_id: &str, tx: &Sender) -> Result {
         let response = CLIENT
             .get(Url::parse_with_params(
                 "https://api.openweathermap.org/data/2.5/weather",
@@ -179,10 +171,9 @@ struct ResponseClouds {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Result;
 
     #[test]
-    fn parse() -> Result<()> {
+    fn parse() -> Result {
         serde_json::from_str::<Response>(
             r#"{"coord":{"lon":4.66,"lat":52.36},"weather":[{"id":801,"main":"Clouds","description":"few clouds","icon":"02d"}],"base":"stations","main":{"temp":19.47,"feels_like":14.2,"temp_min":18.33,"temp_max":20,"pressure":1010,"humidity":60},"visibility":10000,"wind":{"speed":8.2,"deg":260},"clouds":{"all":20},"dt":1593698008,"sys":{"type":1,"id":1524,"country":"NL","sunrise":1593660273,"sunset":1593720364},"timezone":7200,"id":2747702,"name":"Schalkwijk","cod":200}"#,
         )?;

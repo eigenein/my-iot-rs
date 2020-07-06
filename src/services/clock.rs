@@ -17,7 +17,7 @@ const fn default_interval_millis() -> u64 {
 }
 
 impl Clock {
-    pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
+    pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result {
         let interval = Duration::from_millis(self.interval_millis);
         let tx = bus.add_tx();
 

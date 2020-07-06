@@ -11,6 +11,7 @@
   - [OpenWeather]()
   - [Rhai](services/rhai.md)
     - [Telegram](services/rhai/telegram.md)
+  - [Ring](services/ring.md)
   - [Solar](services/solar.md)
   - [Tado](services/tado.md)
   - [Telegram]()

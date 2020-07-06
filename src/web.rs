@@ -30,7 +30,7 @@ mod templates;
 const STATIC_MAX_AGE_SECS: u32 = 3600;
 
 /// Start the web application.
-pub fn start_server(settings: &Settings, db: Connection, message_counter: Arc<AtomicU64>) -> Result<()> {
+pub fn start_server(settings: &Settings, db: Connection, message_counter: Arc<AtomicU64>) -> Result {
     Err(Box::new(make_rocket(settings, db, message_counter)?.launch()))
 }
 
@@ -325,8 +325,6 @@ mod tests {
     use crate::settings::*;
 
     use super::*;
-
-    type Result = crate::Result<()>;
 
     #[test]
     fn index_ok() -> Result {

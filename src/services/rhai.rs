@@ -16,7 +16,7 @@ pub struct Rhai {
 }
 
 impl Rhai {
-    pub fn spawn(self, service_id: String, bus: &mut Bus, services: HashMap<String, Service>) -> Result<()> {
+    pub fn spawn(self, service_id: String, bus: &mut Bus, services: HashMap<String, Service>) -> Result {
         let tx = bus.add_tx();
         let rx = bus.add_rx();
 
@@ -220,12 +220,10 @@ fn spawn_process(program: &str, args: Array) -> FnResult {
 
 #[cfg(test)]
 mod tests {
-    use crate::Result;
-
     use super::*;
 
     #[test]
-    fn spawn_process_ok() -> Result<()> {
+    fn spawn_process_ok() -> Result {
         let mut engine = Engine::new();
         Rhai::register_standard_functions(&mut engine);
         engine.eval(r#"spawn_process("echo", ["-n"])"#)?;

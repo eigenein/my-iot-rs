@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 const COMMIT_INTERVAL_MILLIS: u64 = 1000;
 
 /// Spawn the persistence thread.
-pub fn spawn(db: Connection, bus: &mut Bus) -> Result<()> {
+pub fn spawn(db: Connection, bus: &mut Bus) -> Result {
     info!("Spawning readings persistence…");
     let rx = bus.add_rx();
     let buffer = Arc::new(Mutex::new(Vec::<Message>::new()));
@@ -55,7 +55,7 @@ pub fn spawn(db: Connection, bus: &mut Bus) -> Result<()> {
 /// Inserting messages one by one is quite slow on low-performance boards.
 /// Thus, I spin up a separate thread which accumulates incoming messages
 /// and periodically upserts them all within a single transaction.
-fn upsert_messages(db: &Connection, messages: Vec<Message>) -> Result<()> {
+fn upsert_messages(db: &Connection, messages: Vec<Message>) -> Result {
     info!("Upserting a bulk of {} messages…", messages.len());
     let mut connection = db.connection()?;
     let transaction = connection.transaction()?;

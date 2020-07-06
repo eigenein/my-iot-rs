@@ -27,21 +27,16 @@ fn default_url() -> String {
 }
 
 impl YouLess {
-    pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
-        let interval = Duration::from_millis(self.interval_millis as u64);
+    pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result {
         let tx = bus.add_tx();
-
-        thread::Builder::new().name(service_id.clone()).spawn(move || loop {
-            if let Err(error) = self.loop_(&service_id, &tx) {
-                error!("Failed to refresh the sensors: {}", error.to_string());
-            }
-            thread::sleep(interval);
-        })?;
-
-        Ok(())
+        spawn_service_loop(
+            service_id.clone(),
+            Duration::from_millis(self.interval_millis),
+            move || self.loop_(&service_id, &tx),
+        )
     }
 
-    fn loop_(&self, service_id: &str, tx: &Sender) -> Result<()> {
+    fn loop_(&self, service_id: &str, tx: &Sender) -> Result {
         let response = CLIENT
             .get(&self.url)
             .send()?
@@ -134,10 +129,9 @@ struct Response {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Result;
 
     #[test]
-    fn parse() -> Result<()> {
+    fn parse() -> Result {
         let response = serde_json::from_str::<Response>(
             r#"{"tm":1592815263,"net": 3602.148,"pwr":-368,"ts0":1584111000,"cs0": 0.000,"ps0": 0,"p1": 3851.282,"p2": 2949.180,"n1": 1000.784,"n2": 2197.530,"gas": 3564.538,"gts":2006221040}"#,
         )?;

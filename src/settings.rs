@@ -50,6 +50,9 @@ pub enum Service {
     /// [Rhai](https://schungx.github.io/rhai/).
     Rhai(services::rhai::Rhai),
 
+    /// [Ring](https://ring.com)
+    Ring(services::ring::Ring),
+
     /// Sunrise and sunset messages.
     Solar(services::solar::Solar),
 

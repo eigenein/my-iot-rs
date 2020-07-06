@@ -1,5 +1,12 @@
 # `my-iot`
 
+## `master`
+
+- Remove `migrations` for a while – I want to redesign it
+- Add user data database API
+- Refactor the service `spawn` functions
+- Designing the Ring.com service #61
+
 ## `0.77.1`
 
 - Fix `credentials: same-origin` for PWA

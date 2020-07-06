@@ -44,7 +44,7 @@ impl Bus {
     }
 
     /// Spawn the bus dispatcher thread.
-    pub fn spawn(self) -> Result<()> {
+    pub fn spawn(self) -> Result {
         info!("Spawning message bus…");
         thread::Builder::new().name("system::bus".into()).spawn(move || {
             for message in &self.rx {

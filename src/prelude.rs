@@ -11,13 +11,14 @@ pub use serde::{Deserialize, Deserializer, Serialize};
 pub use structopt::clap::crate_version;
 
 pub use crate::core::bus::Bus;
+pub use crate::core::connection::reading::Reading;
+pub use crate::core::connection::sensor::Sensor;
+pub use crate::core::connection::Connection;
 pub use crate::core::message::{Message, Type as MessageType};
-pub use crate::core::persistence::reading::Reading;
-pub use crate::core::persistence::sensor::Sensor;
-pub use crate::core::persistence::Connection;
+pub use crate::core::thread::spawn_service_loop;
 pub use crate::core::value::{PointOfTheCompass, Value};
 
-pub type Result<T, E = Box<dyn Error>> = std::result::Result<T, E>;
+pub type Result<T = (), E = Box<dyn Error>> = std::result::Result<T, E>;
 pub type Receiver = crossbeam::channel::Receiver<Message>;
 pub type Sender = crossbeam::channel::Sender<Message>;
 

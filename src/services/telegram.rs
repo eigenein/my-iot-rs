@@ -25,7 +25,7 @@ pub struct Secrets {
 }
 
 impl Telegram {
-    pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result<()> {
+    pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result {
         let tx = bus.add_tx();
 
         thread::Builder::new().name(service_id.clone()).spawn(move || {
@@ -55,7 +55,7 @@ impl Telegram {
     }
 
     /// Send reading messages from the provided Telegram update.
-    fn send_readings(&self, service_id: &str, tx: &Sender, update: &TelegramUpdate) -> Result<()> {
+    fn send_readings(&self, service_id: &str, tx: &Sender, update: &TelegramUpdate) -> Result {
         debug!("{}: {:?}", service_id, &update);
 
         if let Some(ref message) = update.message {
