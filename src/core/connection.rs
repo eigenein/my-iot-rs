@@ -162,7 +162,7 @@ impl Connection {
             .map(|v| v as u64)?)
     }
 
-    #[allow(dead_code)]
+    // TODO: transaction version.
     pub fn set_user_data<V: Serialize>(&self, key: &str, value: V, expires_at: Option<DateTime<Local>>) -> Result {
         self.connection()?
             // language=sql
@@ -182,7 +182,6 @@ impl Connection {
         Ok(())
     }
 
-    #[allow(dead_code)]
     pub fn get_user_data<V: DeserializeOwned>(&self, key: &str) -> Result<Option<V>> {
         Ok(self
             .connection()?
