@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.78.2`
+
+- Remove the service worker cache because it doesn't play well with basic authentication
+
 ## `0.78.1`
 
 - Raise an error for any unsuccessful response in the service worker

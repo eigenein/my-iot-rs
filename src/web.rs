@@ -10,7 +10,7 @@ use rocket::config::Environment;
 use rocket::http::hyper::header::ETag;
 use rocket::http::ContentType;
 use rocket::http::Status;
-use rocket::response::content::{Content, Html};
+use rocket::response::content::Content;
 use rocket::response::Redirect;
 use rocket::{delete, get, routes, uri, Config, Response, Rocket, State};
 use rocket_contrib::json::Json;
@@ -20,12 +20,14 @@ use crate::settings::Settings;
 use crate::web::cached_content::Cached;
 use crate::web::if_none_match::IfNoneMatch;
 use crate::web::message_counter::MessageCounter;
+use crate::web::to_html_string::ToHtmlString;
 
 mod cached_content;
 mod entity_tag;
 mod if_none_match;
 mod message_counter;
 mod templates;
+mod to_html_string;
 
 const STATIC_MAX_AGE_SECS: u32 = 3600;
 
@@ -73,8 +75,7 @@ fn make_rocket(settings: &Settings, db: Connection, message_counter: Arc<AtomicU
 }
 
 #[get("/")]
-fn get_index(db: State<Connection>, message_counter: State<MessageCounter>) -> Result<Html<String>> {
-    // TODO: `ETag`.
+fn get_index(db: State<Connection>, message_counter: State<MessageCounter>) -> Result<ToHtmlString<impl ToString>> {
     let actuals = db
         .select_actuals()?
         .into_iter()
@@ -82,24 +83,21 @@ fn get_index(db: State<Connection>, message_counter: State<MessageCounter>) -> R
         .into_iter()
         .map(|(location, group)| (location, group.collect_vec()))
         .collect_vec();
-    Ok(Html(
-        templates::IndexTemplate {
-            actuals,
-            message_count: message_counter.inner().value(),
-        }
-        .to_string(),
-    ))
+    Ok(ToHtmlString(templates::IndexTemplate {
+        actuals,
+        message_count: message_counter.inner().value(),
+    }))
 }
 
 #[get("/settings")]
-fn get_settings(settings: State<Settings>, message_counter: State<MessageCounter>) -> Result<Html<String>> {
-    Ok(Html(
-        templates::SettingsTemplate {
-            settings: toml::to_string_pretty(&toml::Value::try_from(settings.inner())?)?,
-            message_count: message_counter.inner().value(),
-        }
-        .to_string(),
-    ))
+fn get_settings(
+    settings: State<Settings>,
+    message_counter: State<MessageCounter>,
+) -> Result<ToHtmlString<impl ToString>> {
+    Ok(ToHtmlString(templates::SettingsTemplate {
+        settings: toml::to_string_pretty(&toml::Value::try_from(settings.inner())?)?,
+        message_count: message_counter.inner().value(),
+    }))
 }
 
 #[get("/sensors/<sensor_id>?<minutes>")]
@@ -162,6 +160,8 @@ fn delete_sensor(db: State<Connection>, sensor_id: String) -> Result<Redirect> {
 
 #[get("/sensors/<sensor_id>/json")]
 fn get_sensor_json(db: State<Connection>, sensor_id: String) -> Result<Option<Json<Reading>>> {
+    // TODO: ETag
+    // TODO: Cache-Control: private, no-cache
     Ok(db.select_sensor(&sensor_id)?.map(|(_, reading)| Json(reading)))
 }
 
