@@ -1,7 +1,7 @@
 use std::process::Command;
 
 use itertools::Itertools;
-use rhai::{Array, Dynamic, Engine, EvalAltResult, RegisterFn, RegisterResultFn, Scope, AST};
+use rhai::{Array, Dynamic, Engine, EvalAltResult, ImmutableString, RegisterFn, RegisterResultFn, Scope, AST};
 
 use crate::prelude::*;
 use crate::settings::Service;
@@ -146,12 +146,19 @@ impl Rhai {
                 | Value::Rh(value)
                 | Value::Speed(value)
                 | Value::Volume(value)
-                | Value::RelativeIntensity(value) => Dynamic::from(*value),
+                | Value::RelativeIntensity(value)
+                | Value::BatteryLife(value) => Dynamic::from(*value),
                 Value::Counter(value) | Value::DataSize(value) => Dynamic::from(*value),
                 Value::ImageUrl(value) | Value::Text(value) => Dynamic::from(value.clone()),
                 Value::Boolean(value) => Dynamic::from(*value),
                 Value::WindDirection(value) => Dynamic::from(*value),
                 Value::Bft(value) => Dynamic::from(*value),
+                Value::Video(content_type, content) => {
+                    let mut map = rhai::Map::new();
+                    map.insert("type".into(), Dynamic::from(content_type.clone()));
+                    map.insert("content".into(), Dynamic::from(content.clone()));
+                    map.into()
+                }
             }
         });
     }
@@ -190,6 +197,9 @@ impl Rhai {
 
     fn register_standard_functions(engine: &mut Engine) {
         engine.register_result_fn("spawn_process", spawn_process);
+        engine.register_fn("starts_with", |this: &mut ImmutableString, other: &str| {
+            this.starts_with(other)
+        });
     }
 
     /// Assigns the service instances to the inner variables.

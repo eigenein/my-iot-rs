@@ -6,10 +6,10 @@ type = "Rhai"
 script = '''
     fn on_message(message) {
         if message.sensor_id == "tado::469375::1::open_window_activated" {
-            telegram.call(new_send_message(
+            telegram.send_message(
                 -1001349838037,
                 "💨 Открыто окно в " + message.location + " @eigenein",
-            ));
+            );
         }
     }
 '''

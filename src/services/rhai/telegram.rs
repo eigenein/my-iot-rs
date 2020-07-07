@@ -1,4 +1,4 @@
-use rhai::{Engine, RegisterFn, RegisterResultFn, Scope};
+use rhai::{Engine, RegisterResultFn, Scope};
 
 use crate::prelude::*;
 use crate::services::rhai::FnResult;
@@ -16,28 +16,24 @@ pub fn push_constants(scope: &mut Scope) {
 }
 
 pub fn register_functions(engine: &mut Engine) {
-    engine.register_fn("new_send_message", |unique_id: i64, text: &str| {
-        TelegramSendMessage::new(TelegramChatId::UniqueId(unique_id), text)
-    });
-    engine.register_fn("new_send_message", |username: &str, text: &str| {
-        TelegramSendMessage::new(TelegramChatId::Username(username.into()), text)
-    });
-
-    engine.register_set(
-        "parse_mode",
-        |this: &mut TelegramSendMessage, parse_mode: TelegramParseMode| {
-            this.parse_mode = Some(parse_mode);
+    engine.register_result_fn(
+        "send_message",
+        |this: &mut Telegram, unique_id: i64, text: &str| -> FnResult {
+            Ok(this
+                .call::<_, TelegramMessage>(&TelegramSendMessage::new(TelegramChatId::UniqueId(unique_id), text))
+                .map_err(to_string)?
+                .message_id
+                .into())
         },
     );
 
     engine.register_result_fn(
-        "call",
-        |this: &mut Telegram, request: TelegramSendMessage| -> FnResult {
-            Ok(this
-                .call::<_, TelegramMessage>(&request)
-                .map_err(to_string)?
-                .message_id
-                .into())
+        "send_video",
+        |_this: &mut Telegram, _unique_id: i64, value: Value| -> FnResult {
+            match value {
+                Value::Video(_content_type, _content) => unimplemented!(),
+                _ => Err(format!("{:?} cannot be made into a video", value).into()),
+            }
         },
     );
 }

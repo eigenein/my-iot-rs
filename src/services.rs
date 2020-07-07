@@ -81,5 +81,6 @@ where
         .request(method, url.as_ref())
         .header("Authorization", format!("Bearer {}", access_token))
         .send()?
+        .error_for_status()?
         .json()?)
 }

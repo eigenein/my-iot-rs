@@ -130,7 +130,10 @@ impl Tado {
 
         Ok(())
     }
+}
 
+/// Authentication.
+impl Tado {
     /// Ensures that the service is logged in. Logs in or refreshes the access token when needed.
     /// Returns an active access token.
     fn get_access_token(&self) -> Result<String> {
@@ -195,7 +198,10 @@ impl Tado {
         *token_guard = Some(response);
         Ok(access_token)
     }
+}
 
+/// API methods.
+impl Tado {
     fn call<U, R>(&self, method: Method, url: U) -> Result<R>
     where
         U: AsRef<str> + std::fmt::Display,

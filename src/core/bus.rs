@@ -48,10 +48,7 @@ impl Bus {
         info!("Spawning message bus…");
         thread::Builder::new().name("system::bus".into()).spawn(move || {
             for message in &self.rx {
-                info!(
-                    "[{:?}] {} = {:?}",
-                    &message.type_, &message.sensor.id, &message.reading.value
-                );
+                Self::log_message(&message);
                 for tx in self.service_txs.iter() {
                     message.clone().send_and_forget(&tx);
                 }
@@ -61,6 +58,19 @@ impl Bus {
             unreachable!();
         })?;
         Ok(())
+    }
+
+    fn log_message(message: &Message) {
+        match &message.reading.value {
+            Value::Video(content_type, content) => info!(
+                "[{:?}] {}: {} ({} bytes)",
+                &message.type_,
+                &message.sensor.id,
+                content_type,
+                content.len()
+            ),
+            ref value => info!("[{:?}] {} = {:?}", &message.type_, &message.sensor.id, value),
+        }
     }
 }
 

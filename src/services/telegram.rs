@@ -71,7 +71,10 @@ impl Telegram {
 
         Ok(())
     }
+}
 
+/// API.
+impl Telegram {
     /// <https://core.telegram.org/bots/api#getupdates>
     fn get_updates(&self, offset: Option<i64>) -> Result<Vec<TelegramUpdate>> {
         self.call(&TelegramGetUpdates {
@@ -127,6 +130,8 @@ pub struct TelegramUpdate {
 #[serde(untagged)]
 pub enum TelegramChatId {
     UniqueId(i64),
+
+    #[allow(unused)]
     Username(String),
 }
 

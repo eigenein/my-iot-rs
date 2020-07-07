@@ -303,6 +303,7 @@ impl Value {
             Value::Duration(_)
             | Value::Cloudiness(_)
             | Value::Counter(_)
+            | Value::DataSize(_)
             | Value::Energy(_)
             | Value::Length(_)
             | Value::Power(_)
@@ -311,7 +312,7 @@ impl Value {
             | Value::Speed(_)
             | Value::Temperature(_)
             | Value::Volume(_)
-            | Value::DataSize(_) => true,
+            | Value::BatteryLife(_) => true,
             _ => false,
         }
     }

@@ -1,5 +1,10 @@
 # `my-iot`
 
+## `0.79.0`
+
+- Ring minimum viable service #61
+- Changed `Telegram.send_message` interface
+
 ## `0.78.2`
 
 - Remove the service worker cache because it doesn't play well with basic authentication

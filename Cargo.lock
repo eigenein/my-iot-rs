@@ -884,9 +884,10 @@ dependencies = [
 
 [[package]]
 name = "my-iot"
-version = "0.78.2"
+version = "0.79.0"
 dependencies = [
  "askama 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bytes 0.5.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono-tz 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "crossbeam 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",

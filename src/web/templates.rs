@@ -144,7 +144,7 @@ impl Value {
     /// Get whether value could be rendered inline.
     pub fn is_inline(&self) -> bool {
         match self {
-            Value::ImageUrl(_) => false,
+            Value::ImageUrl(_) | Value::Video(_, _) => false,
             _ => true,
         }
     }
@@ -253,6 +253,26 @@ impl std::fmt::Display for Value {
 
             // language=HTML
             Value::Cloudiness(percentage) => write!(f, r#"<i class="fas fa-cloud"></i> {}%"#, percentage),
+
+            // language=HTML
+            Value::BatteryLife(percentage) => write!(
+                f,
+                r#"<i class="fas fa-battery-{}"></i> {}%"#,
+                if *percentage > 80.0 {
+                    "full"
+                } else if *percentage > 60.0 {
+                    "three-quarters"
+                } else if *percentage > 40.0 {
+                    "half"
+                } else if *percentage > 20.0 {
+                    "quarter"
+                } else {
+                    "empty"
+                },
+                percentage
+            ),
+
+            Value::Video(_, _) => unimplemented!(),
         }
     }
 }

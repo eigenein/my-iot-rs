@@ -3,6 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::prelude::*;
+use bytes::Bytes;
 
 /// Sensor reading value.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -64,6 +65,14 @@ pub enum Value {
 
     /// [Cloudiness](https://en.wikipedia.org/wiki/Cloud_cover), percentage.
     Cloudiness(f64),
+
+    /// Battery relative charge, percentage.
+    BatteryLife(f64),
+
+    /// Video content with a type.
+    /// TODO: proper serialization, it's gonna be tough…
+    #[serde(skip)]
+    Video(String, Bytes),
 }
 
 impl From<bool> for Value {
