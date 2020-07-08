@@ -153,10 +153,10 @@ impl Rhai {
                 Value::Boolean(value) => Dynamic::from(*value),
                 Value::WindDirection(value) => Dynamic::from(*value),
                 Value::Bft(value) => Dynamic::from(*value),
-                Value::Video(content_type, content) => {
+                Value::Blob(content_type, bytes) => {
                     let mut map = rhai::Map::new();
-                    map.insert("type".into(), Dynamic::from(content_type.clone()));
-                    map.insert("content".into(), Dynamic::from(content.clone()));
+                    map.insert("content_type".into(), Dynamic::from(content_type.clone()));
+                    map.insert("bytes".into(), Dynamic::from(bytes.clone()));
                     map.into()
                 }
             }

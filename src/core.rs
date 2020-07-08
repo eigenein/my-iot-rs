@@ -1,5 +1,5 @@
 pub mod bus;
-pub mod connection;
+pub mod db;
 pub mod message;
 pub mod thread;
 pub mod value;

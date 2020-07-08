@@ -144,7 +144,7 @@ impl Value {
     /// Get whether value could be rendered inline.
     pub fn is_inline(&self) -> bool {
         match self {
-            Value::ImageUrl(_) | Value::Video(_, _) => false,
+            Value::ImageUrl(_) | Value::Blob(..) => false,
             _ => true,
         }
     }
@@ -272,7 +272,7 @@ impl std::fmt::Display for Value {
                 percentage
             ),
 
-            Value::Video(_, _) => unimplemented!(),
+            Value::Blob(_, _) => unimplemented!(),
         }
     }
 }

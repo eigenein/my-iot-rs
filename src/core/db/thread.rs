@@ -61,9 +61,13 @@ fn upsert_messages(db: &Connection, messages: Vec<Message>) -> Result {
     let transaction = connection.transaction()?;
 
     for message in messages.iter() {
-        debug!("{:?}", &message);
         if message.type_ == MessageType::ReadLogged {
-            message.upsert_into(&*transaction)?;
+            if let Value::Blob(..) = message.reading.value {
+                // TODO: custom serialization.
+            } else {
+                debug!("{:?}", &message);
+                message.upsert_into(&*transaction)?;
+            }
         }
     }
 

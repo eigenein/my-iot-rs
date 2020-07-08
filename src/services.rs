@@ -62,6 +62,7 @@ fn build_client() -> Result<Client> {
         .use_rustls_tls()
         .default_headers(headers)
         .timeout(Duration::from_secs(10))
+        .pool_idle_timeout(Some(Duration::from_secs(300)))
         .build()?)
 }
 
@@ -77,10 +78,12 @@ where
     R: DeserializeOwned,
 {
     debug!("Calling {}…", url);
-    Ok(CLIENT
+    let response = CLIENT
         .request(method, url.as_ref())
         .header("Authorization", format!("Bearer {}", access_token))
         .send()?
         .error_for_status()?
-        .json()?)
+        .json()?;
+    debug!("Finished {}.", url);
+    Ok(response)
 }

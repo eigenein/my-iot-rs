@@ -69,10 +69,10 @@ pub enum Value {
     /// Battery relative charge, percentage.
     BatteryLife(f64),
 
-    /// Video content with a type.
-    /// TODO: proper serialization, it's gonna be tough…
+    /// Binary content with a content type. Isn't stored in a database at the moment.
+    /// Perhaps, I should write a custom serialization for this particular variant.
     #[serde(skip)]
-    Video(String, Bytes),
+    Blob(String, Bytes),
 }
 
 impl From<bool> for Value {

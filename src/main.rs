@@ -70,7 +70,7 @@ fn main() -> Result {
     let mut bus = Bus::new(message_counter.clone());
     bus.add_tx()
         .send(Message::new("my-iot::start").type_(MessageType::ReadNonLogged))?;
-    core::connection::thread::spawn(db.clone(), &mut bus)?;
+    core::db::thread::spawn(db.clone(), &mut bus)?;
     services::db::Db.spawn("system::db".into(), &mut bus, db.clone())?;
     services::spawn_all(&settings, &opt.service_ids, &mut bus, &db)?;
     bus.spawn()?;

@@ -11,9 +11,7 @@ pub use serde::{Deserialize, Deserializer, Serialize};
 pub use structopt::clap::crate_version;
 
 pub use crate::core::bus::Bus;
-pub use crate::core::connection::reading::Reading;
-pub use crate::core::connection::sensor::Sensor;
-pub use crate::core::connection::Connection;
+pub use crate::core::db::{reading::Reading, sensor::Sensor, Connection};
 pub use crate::core::message::{Message, Type as MessageType};
 pub use crate::core::thread::spawn_service_loop;
 pub use crate::core::value::{PointOfTheCompass, Value};

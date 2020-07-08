@@ -19,3 +19,4 @@
 - [Cookbook]()
   - [Notify tado° open window](cookbook/notify_tado_open_window.md)
   - [«Rise and Shine» with IKEA Trådfri](cookbook/rise_and_shine.md)
+  - [Send Ring doorbell videos to Telegram](cookbook/send_ring_doorbell_videos_to_telegram.md)

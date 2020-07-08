@@ -1,13 +1,15 @@
-use rhai::{Engine, RegisterResultFn, Scope};
+use rhai::{Dynamic, Engine, RegisterResultFn, Scope};
 
 use crate::prelude::*;
 use crate::services::rhai::FnResult;
 use crate::services::telegram::*;
+use bytes::Bytes;
 
 pub fn register_types(engine: &mut Engine) {
+    engine.register_type::<Bytes>();
     engine.register_type::<Telegram>();
-    engine.register_type::<TelegramSendMessage>();
     engine.register_type::<TelegramParseMode>();
+    engine.register_type::<TelegramMessage>();
 }
 
 pub fn push_constants(scope: &mut Scope) {
@@ -19,21 +21,35 @@ pub fn register_functions(engine: &mut Engine) {
     engine.register_result_fn(
         "send_message",
         |this: &mut Telegram, unique_id: i64, text: &str| -> FnResult {
-            Ok(this
-                .call::<_, TelegramMessage>(&TelegramSendMessage::new(TelegramChatId::UniqueId(unique_id), text))
-                .map_err(to_string)?
-                .message_id
-                .into())
+            // TODO: `options` parameter.
+            Ok(Dynamic::from(
+                this.call::<TelegramMessage>(
+                    &TelegramMethodCall::SendMessage {
+                        chat_id: TelegramChatId::UniqueId(unique_id),
+                        text: text.into(),
+                        parse_mode: None, // TODO: from `options`.
+                    },
+                    None,
+                )
+                .map_err(to_string)?,
+            ))
         },
     );
 
     engine.register_result_fn(
         "send_video",
-        |_this: &mut Telegram, _unique_id: i64, value: Value| -> FnResult {
-            match value {
-                Value::Video(_content_type, _content) => unimplemented!(),
-                _ => Err(format!("{:?} cannot be made into a video", value).into()),
-            }
+        |this: &mut Telegram, unique_id: i64, bytes: Bytes| -> FnResult {
+            // TODO: `options` parameter.
+            Ok(Dynamic::from(
+                this.call::<TelegramMessage>(
+                    &TelegramMethodCall::SendVideo {
+                        chat_id: TelegramChatId::UniqueId(unique_id),
+                        video: None, // TODO: override for `&str`.
+                    },
+                    Some(("video".into(), bytes)),
+                )
+                .map_err(to_string)?,
+            ))
         },
     );
 }

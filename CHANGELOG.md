@@ -1,5 +1,12 @@
 # `my-iot`
 
+## `0.80.0`
+
+Let's try some [gitmoji](https://gitmoji.carloscuesta.me/) in the changelog!
+
+- ✨ Implement Rhai `telegram.send_video` function #93 #18
+- ♻️ Refactor `Telegram` calls
+
 ## `0.79.0`
 
 - Ring minimum viable service #61

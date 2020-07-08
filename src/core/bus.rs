@@ -62,7 +62,7 @@ impl Bus {
 
     fn log_message(message: &Message) {
         match &message.reading.value {
-            Value::Video(content_type, content) => info!(
+            Value::Blob(content_type, content) => info!(
                 "[{:?}] {}: {} ({} bytes)",
                 &message.type_,
                 &message.sensor.id,

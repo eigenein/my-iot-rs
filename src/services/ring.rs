@@ -62,6 +62,7 @@ impl Ring {
         for history in response.iter() {
             let flag_key = format!("{}::doorbot::history::{}::is_processed", service_id, history.id);
             if db.get_user_data(&flag_key)? == Some(true) {
+                debug!("[{}] Recording #{} has already been processed.", service_id, history.id);
                 continue;
             }
             if history.recording.status != Some(RecordingStatus::Ready) {
@@ -77,7 +78,7 @@ impl Ring {
             .type_(MessageType::ReadNonLogged)
             .timestamp(history.created_at)
             .sensor_title(&device.description)
-            .value(Value::Video("video/mp4".into(), content))
+            .value(Value::Blob("video/mp4".into(), content))
             .send_and_forget(tx);
             db.set_user_data(&flag_key, true, None)?;
         }
