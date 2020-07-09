@@ -44,44 +44,50 @@ impl Ring {
                             .value(Value::BatteryLife(f64::from_str(battery_life)?))
                             .send_and_forget(&tx);
                     }
-                    self.process_doorbot_recordings(&service_id, &db, &device, &tx)?;
+                    self.process_recordings(&service_id, &db, &device, &tx)?;
                 }
                 Ok(())
             },
         )
     }
 
-    fn process_doorbot_recordings(
-        &self,
-        service_id: &str,
-        db: &Connection,
-        device: &DeviceResponse,
-        tx: &Sender,
-    ) -> Result {
+    fn process_recordings(&self, service_id: &str, db: &Connection, device: &DeviceResponse, tx: &Sender) -> Result {
         let response = self.get_doorbot_history(service_id, db, device.id)?;
-        for history in response.iter() {
-            let flag_key = format!("{}::doorbot::history::{}::is_processed", service_id, history.id);
+        for entry in response.iter() {
+            let flag_key = format!("{}::doorbot::history::{}::is_processed", service_id, entry.id);
             if db.get_user_data(&flag_key)? == Some(true) {
-                debug!("[{}] Recording #{} has already been processed.", service_id, history.id);
+                debug!("[{}] Recording #{} has already been processed.", service_id, entry.id);
                 continue;
             }
-            if history.recording.status != Some(RecordingStatus::Ready) {
-                warn!("[{}] Recording #{} is not ready yet.", service_id, history.id);
+            if entry.recording.status != Some(RecordingStatus::Ready) {
+                warn!("[{}] Recording #{} is not ready yet.", service_id, entry.id);
                 continue;
             }
-            let content = self.get_recording(service_id, db, history)?;
-            info!("[{}] {} bytes downloaded.", service_id, content.len());
-            Message::new(format!(
-                "{}::doorbot::{}::recording::{}",
-                service_id, device.id, history.id
-            ))
-            .type_(MessageType::ReadNonLogged)
-            .timestamp(history.created_at)
-            .sensor_title("Recording")
-            .location(&device.description)
-            .value(Value::Blob(Arc::new(content)))
-            .send_and_forget(tx);
-            db.set_user_data(&flag_key, true, None)?;
+            match self.get_recording(service_id, db, entry) {
+                Ok(content) => {
+                    info!("[{}] {} bytes downloaded.", service_id, content.len());
+                    Message::new(format!(
+                        "{}::doorbot::{}::recording::{}",
+                        service_id, device.id, entry.id
+                    ))
+                    .type_(MessageType::ReadNonLogged)
+                    .timestamp(entry.created_at)
+                    .sensor_title("Recording")
+                    .location(&device.description)
+                    .value(Value::Blob(Arc::new(content)))
+                    .send_and_forget(tx);
+                    db.set_user_data(&flag_key, true, None)?;
+                }
+                Err(error) => {
+                    error!(
+                        "[{}] Failed to download recording #{}: {}",
+                        service_id,
+                        entry.id,
+                        error.to_string()
+                    );
+                    continue;
+                }
+            }
         }
         Ok(())
     }

@@ -2,6 +2,7 @@
 
 ## `0.81.1`
 
+- 🥅 Do not fail the entire recordings loop when failed to download a one Ring recording
 - ⚗ Increase the `CLIENT` timeout to mitigate api.ring.com slowness
 
 ## `0.81.0`
