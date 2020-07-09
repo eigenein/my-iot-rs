@@ -1,9 +1,7 @@
 # [Telegram](../telegram.md) in [Rhai](../rhai.md)
 
-## Example
+## Available Methods
 
-```rust,noplaypen
-let message = new_send_message(-1001349838037, "@eigenein Hello *World*");
-message.parse_mode = parse_mode_markdown_v2;
-telegram.call(message);
-```
+### [`send_message(chat_id, text, options)`](https://core.telegram.org/bots/api#sendmessage)
+
+### [`send_video(chat_id, video, options)`](https://core.telegram.org/bots/api#sendvideo)

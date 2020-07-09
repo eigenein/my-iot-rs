@@ -91,7 +91,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="introduction/installation.html"><strong aria-hidden="true">1.1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="introduction/settings.html"><strong aria-hidden="true">1.2.</strong> Settings</a></li><li class="chapter-item expanded "><a href="introduction/run-at-system-startup.html"><strong aria-hidden="true">1.3.</strong> Run at System Startup</a></li><li class="chapter-item expanded "><a href="introduction/publish-on-the-internet.html"><strong aria-hidden="true">1.4.</strong> Publish on the Internet</a></li></ol></li><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">2.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><strong aria-hidden="true">2.1.</strong> Buienradar</li><li class="chapter-item expanded "><strong aria-hidden="true">2.2.</strong> Clock</li><li class="chapter-item expanded "><strong aria-hidden="true">2.3.</strong> OpenWeather</li><li class="chapter-item expanded "><a href="services/rhai.html"><strong aria-hidden="true">2.4.</strong> Rhai</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="services/rhai/telegram.html"><strong aria-hidden="true">2.4.1.</strong> Telegram</a></li></ol></li><li class="chapter-item expanded "><a href="services/ring.html"><strong aria-hidden="true">2.5.</strong> Ring</a></li><li class="chapter-item expanded "><a href="services/solar.html"><strong aria-hidden="true">2.6.</strong> Solar</a></li><li class="chapter-item expanded "><a href="services/tado.html"><strong aria-hidden="true">2.7.</strong> Tado</a></li><li class="chapter-item expanded "><a href="services/telegram.html"><strong aria-hidden="true">2.8.</strong> Telegram</a></li><li class="chapter-item expanded "><strong aria-hidden="true">2.9.</strong> YouLess</li></ol></li><li class="chapter-item expanded "><strong aria-hidden="true">3.</strong> Cookbook</li><li><ol class="section"><li class="chapter-item expanded "><a href="cookbook/notify_tado_open_window.html"><strong aria-hidden="true">3.1.</strong> Notify tado° open window</a></li><li class="chapter-item expanded "><a href="cookbook/rise_and_shine.html"><strong aria-hidden="true">3.2.</strong> «Rise and Shine» with IKEA Trådfri</a></li><li class="chapter-item expanded "><a href="cookbook/send_ring_doorbell_videos_to_telegram.html"><strong aria-hidden="true">3.3.</strong> Send Ring doorbell videos to Telegram</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="introduction/installation.html"><strong aria-hidden="true">1.1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="introduction/settings.html"><strong aria-hidden="true">1.2.</strong> Settings</a></li><li class="chapter-item expanded "><a href="introduction/run-at-system-startup.html"><strong aria-hidden="true">1.3.</strong> Run at System Startup</a></li><li class="chapter-item expanded "><a href="introduction/publish-on-the-internet.html"><strong aria-hidden="true">1.4.</strong> Publish on the Internet</a></li></ol></li><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">2.</strong> Services</a></li><li><ol class="section"><li class="chapter-item expanded "><strong aria-hidden="true">2.1.</strong> Buienradar</li><li class="chapter-item expanded "><strong aria-hidden="true">2.2.</strong> Clock</li><li class="chapter-item expanded "><strong aria-hidden="true">2.3.</strong> OpenWeather</li><li class="chapter-item expanded "><a href="services/rhai.html"><strong aria-hidden="true">2.4.</strong> Rhai</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="services/rhai/telegram.html"><strong aria-hidden="true">2.4.1.</strong> Telegram</a></li></ol></li><li class="chapter-item expanded "><a href="services/ring.html"><strong aria-hidden="true">2.5.</strong> Ring</a></li><li class="chapter-item expanded "><a href="services/solar.html"><strong aria-hidden="true">2.6.</strong> Solar</a></li><li class="chapter-item expanded "><a href="services/tado.html"><strong aria-hidden="true">2.7.</strong> Tado</a></li><li class="chapter-item expanded "><a href="services/telegram.html"><strong aria-hidden="true">2.8.</strong> Telegram</a></li><li class="chapter-item expanded "><strong aria-hidden="true">2.9.</strong> YouLess</li></ol></li><li class="chapter-item expanded "><a href="cookbook.html"><strong aria-hidden="true">3.</strong> Cookbook</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="cookbook/notify_tado_open_window.html"><strong aria-hidden="true">3.1.</strong> Notify tado° open window</a></li><li class="chapter-item expanded "><a href="cookbook/rise_and_shine.html"><strong aria-hidden="true">3.2.</strong> «Rise and Shine» with IKEA Trådfri</a></li><li class="chapter-item expanded "><a href="cookbook/send_ring_doorbell_videos_to_telegram.html"><strong aria-hidden="true">3.3.</strong> Send Ring doorbell videos to Telegram</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -336,12 +336,18 @@ http {
 <li>Listening to other services messages and reacting on them</li>
 </ul>
 <h1><a class="header" href="#a-hrefhttpsschungxgithubiorhairhaia-scripting" id="a-hrefhttpsschungxgithubiorhairhaia-scripting"><a href="https://schungx.github.io/rhai/">Rhai</a> Scripting</a></h1>
+<p><code>Rhai</code> provides a way to automate things. A script listens to messages in the system and reacts by emitting another messages and/or by calling service methods.</p>
+<p>Take also a look at the <a href="services/../cookbook.html">Cookbook</a> for examples.</p>
+<h2><a class="header" href="#callback-on_message" id="callback-on_message">Callback <code>on_message</code></a></h2>
+<h2><a class="header" href="#additional-global-functions" id="additional-global-functions">Additional Global Functions</a></h2>
+<h3><a class="header" href="#spawn_processprogram-args" id="spawn_processprogram-args"><code>spawn_process(program, args)</code></a></h3>
+<h3><a class="header" href="#errormessage-and-warningmessage" id="errormessage-and-warningmessage"><code>error(message)</code> and <code>warning(message)</code></a></h3>
+<h2><a class="header" href="#additional-string-functions" id="additional-string-functions">Additional String Functions</a></h2>
+<h3><a class="header" href="#starts_withanother" id="starts_withanother"><code>starts_with(another)</code></a></h3>
 <h1><a class="header" href="#a-hrefservicesrhaitelegramhtmltelegrama-in-a-hrefservicesrhairhaihtmlrhaia" id="a-hrefservicesrhaitelegramhtmltelegrama-in-a-hrefservicesrhairhaihtmlrhaia"><a href="services/rhai/../telegram.html">Telegram</a> in <a href="services/rhai/../rhai.html">Rhai</a></a></h1>
-<h2><a class="header" href="#example-3" id="example-3">Example</a></h2>
-<pre><code class="language-rust noplaypen">let message = new_send_message(-1001349838037, &quot;@eigenein Hello *World*&quot;);
-message.parse_mode = parse_mode_markdown_v2;
-telegram.call(message);
-</code></pre>
+<h2><a class="header" href="#available-methods" id="available-methods">Available Methods</a></h2>
+<h3><a class="header" href="#a-hrefhttpscoretelegramorgbotsapisendmessagesend_messagechat_id-text-optionsa" id="a-hrefhttpscoretelegramorgbotsapisendmessagesend_messagechat_id-text-optionsa"><a href="https://core.telegram.org/bots/api#sendmessage"><code>send_message(chat_id, text, options)</code></a></a></h3>
+<h3><a class="header" href="#a-hrefhttpscoretelegramorgbotsapisendvideosend_videochat_id-video-optionsa" id="a-hrefhttpscoretelegramorgbotsapisendvideosend_videochat_id-video-optionsa"><a href="https://core.telegram.org/bots/api#sendvideo"><code>send_video(chat_id, video, options)</code></a></a></h3>
 <h1><a class="header" href="#a-hrefhttpsringcomringa" id="a-hrefhttpsringcomringa"><a href="https://ring.com">Ring</a></a></h1>
 <p>Note: uses the unofficial API.</p>
 <h2><a class="header" href="#setting-up" id="setting-up">Setting up</a></h2>
@@ -420,7 +426,17 @@ email = &quot;user@example.com&quot;
 # Account password.
 password = &quot;example&quot;
 </code></pre>
-<h1><a class="header" href="#telegram" id="telegram">Telegram</a></h1>
+<h1><a class="header" href="#a-hrefhttpscoretelegramorgbotsapitelegrama" id="a-hrefhttpscoretelegramorgbotsapitelegrama"><a href="https://core.telegram.org/bots/api">Telegram</a></a></h1>
+<p>Implements a <a href="https://core.telegram.org/bots">Telegram Bot</a>.</p>
+<h2><a class="header" href="#settings-3" id="settings-3">Settings</a></h2>
+<p>You’ll need an <a href="https://core.telegram.org/bots#creating-a-new-bot">authorization token</a>:</p>
+<pre><code class="language-toml">[services.service_id]
+type = &quot;Telegram&quot;
+
+[services.service_id.secrets]
+token = &quot;123456789:FoObAr&quot;
+</code></pre>
+<h1><a class="header" href="#cookbook" id="cookbook">Cookbook</a></h1>
 <h1><a class="header" href="#notify-tado-open-window" id="notify-tado-open-window">Notify tado° open window</a></h1>
 <pre><code class="language-toml">[services.notify_open_window]
 type = &quot;Rhai&quot;

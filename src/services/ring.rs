@@ -111,12 +111,12 @@ impl Ring {
         )
     }
 
-    fn get_recording(&self, service_id: &str, db: &Connection, history: &HistoryResponse) -> Result<Bytes> {
-        info!("[{}] Downloading recording #{}…", service_id, history.id);
+    fn get_recording(&self, service_id: &str, db: &Connection, entry: &HistoryResponse) -> Result<Bytes> {
+        info!("[{}] Downloading recording #{}…", service_id, entry.id);
         Ok(CLIENT
             .get(&format!(
                 "https://api.ring.com/clients_api/dings/{}/recording",
-                history.id
+                entry.id
             ))
             .header(
                 "Authorization",
