@@ -92,7 +92,7 @@ impl Telegram {
     pub fn call<R: DeserializeOwned>(
         &self,
         call: &TelegramMethodCall,
-        input_file: Option<(String, Bytes)>,
+        input_file: Option<(String, Arc<Bytes>)>,
     ) -> Result<R> {
         debug!("{:?}", call);
 

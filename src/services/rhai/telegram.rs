@@ -31,7 +31,7 @@ pub fn register_functions(engine: &mut Engine) {
 
     engine.register_result_fn(
         "send_video",
-        |this: &mut Telegram, unique_id: i64, bytes: Bytes, options: Map| -> FnResult {
+        |this: &mut Telegram, unique_id: i64, bytes: Arc<Bytes>, options: Map| -> FnResult {
             // TODO: `options` parameter.
             Ok(Dynamic::from(
                 this.call::<TelegramMessage>(

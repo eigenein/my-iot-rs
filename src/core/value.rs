@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::prelude::*;
 use bytes::Bytes;
+use std::sync::Arc;
 
 /// Sensor reading value.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -72,7 +73,7 @@ pub enum Value {
     /// Binary content. Isn't stored in a database at the moment.
     /// Perhaps, I should write a custom serialization for this particular variant.
     #[serde(skip)]
-    Blob(Bytes),
+    Blob(Arc<Bytes>),
 }
 
 impl From<bool> for Value {

@@ -79,7 +79,7 @@ impl Ring {
             .timestamp(history.created_at)
             .sensor_title("Recording")
             .location(&device.description)
-            .value(Value::Blob(content))
+            .value(Value::Blob(Arc::new(content)))
             .send_and_forget(tx);
             db.set_user_data(&flag_key, true, None)?;
         }
