@@ -170,15 +170,6 @@ pub struct TelegramChat {
     pub id: i64,
 }
 
-/// <https://core.telegram.org/bots/api#formatting-options>
-#[derive(Serialize, Clone, Debug)]
-pub enum TelegramParseMode {
-    MarkdownV2,
-
-    #[serde(rename = "HTML")]
-    Html,
-}
-
 #[derive(Serialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum TelegramMethodCall {
@@ -197,8 +188,9 @@ pub enum TelegramMethodCall {
         chat_id: TelegramChatId,
         text: String,
 
+        /// <https://core.telegram.org/bots/api#formatting-options>
         #[serde(skip_serializing_if = "Option::is_none")]
-        parse_mode: Option<TelegramParseMode>,
+        parse_mode: Option<String>,
     },
 
     /// <https://core.telegram.org/bots/api#sendvideo>
@@ -209,5 +201,11 @@ pub enum TelegramMethodCall {
         /// Use `input_file` parameter to send a `Bytes`.
         #[serde(skip_serializing_if = "Option::is_none")]
         video: Option<String>,
+
+        #[serde(skip_serializing_if = "Option::is_none")]
+        caption: Option<String>,
+
+        #[serde(skip_serializing_if = "Option::is_none")]
+        parse_mode: Option<String>,
     },
 }

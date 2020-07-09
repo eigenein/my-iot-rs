@@ -8,7 +8,11 @@ script = '''
 
     fn on_message(message) {
         if message.sensor_id.starts_with("ring::doorbot::32333947::recording::") {
-            telegram.send_video(chat_id, message.value.inner);
+            telegram.send_video(
+                chat_id,
+                message.value.inner,
+                #{caption: "🎥 " + message.location},
+            );
         }
     }
 '''

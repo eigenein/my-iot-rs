@@ -167,7 +167,8 @@ script = '''
         if message.sensor_id == &quot;tado::469375::1::open_window_activated&quot; {
             telegram.send_message(
                 -1001349838037,
-                &quot;💨 Открыто окно в &quot; + message.location + &quot; @eigenein&quot;,
+                &quot;💨 Открыто окно в *&quot; + message.location + &quot;* @eigenein&quot;,
+                #{parse_mode: &quot;MarkdownV2&quot;},
             );
         }
     }

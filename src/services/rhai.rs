@@ -71,23 +71,76 @@ impl Rhai {
         telegram::register_types(engine);
     }
 
+    fn register_global_functions(service_id: &str, engine: &mut Engine) {
+        Self::register_logging_functions(service_id, engine);
+        Self::register_standard_functions(engine);
+    }
+
+    fn register_functions(engine: &mut Engine, tx: &Sender) {
+        Self::register_debug_functions::<MessageType>(engine);
+        Self::register_debug_functions::<DateTime<Local>>(engine);
+
+        Self::register_message_functions(engine, &tx);
+        Self::register_value_functions(engine);
+
+        telegram::register_functions(engine);
+    }
+
     fn push_constants(scope: &mut Scope) {
         scope.push_constant("message_read_non_logged", MessageType::ReadNonLogged);
         scope.push_constant("message_read_logged", MessageType::ReadLogged);
         scope.push_constant("message_write", MessageType::Write);
-
-        telegram::push_constants(scope);
     }
 
-    /// Registers `MessageType` functions.
-    fn register_message_type_functions(engine: &mut Engine) {
-        engine.register_fn("to_string", to_debug_string::<MessageType>);
-        engine.register_fn("print", to_debug_string::<MessageType>);
-        engine.register_fn("debug", to_debug_string::<MessageType>);
+    /// Assigns the service instances to the inner variables.
+    fn push_services<'a>(scope: &mut Scope<'a>, services: &'a HashMap<String, Service>) {
+        for (service_id, service) in services.iter() {
+            #[allow(clippy::single_match)]
+            match service.clone() {
+                Service::Telegram(telegram) => scope.push_constant(service_id, telegram),
+                _ => (),
+            }
+        }
+    }
+
+    fn register_logging_functions(service_id: &str, engine: &mut Engine) {
+        {
+            let service_id = service_id.to_string();
+            engine.register_fn("error", move |string: &str| error!("[{}] {}", service_id, string));
+        }
+        {
+            let service_id = service_id.to_string();
+            engine.register_fn("warning", move |string: &str| warn!("[{}] {}", service_id, string));
+        }
+        {
+            let service_id = service_id.to_string();
+            engine.on_print(move |string| info!("[{}] {}", service_id, string));
+        }
+        {
+            let service_id = service_id.to_string();
+            engine.on_debug(move |string| debug!("[{}] {}", service_id, string));
+        }
+    }
+
+    fn register_standard_functions(engine: &mut Engine) {
+        engine.register_result_fn("spawn_process", spawn_process);
+        engine.register_fn("starts_with", |this: &mut ImmutableString, other: &str| {
+            this.starts_with(other)
+        });
+    }
+
+    fn register_debug_functions<T: std::fmt::Debug + Clone + Send + Sync + 'static>(engine: &mut Engine) {
+        engine.register_fn("to_string", to_debug_string::<T>);
+        engine.register_fn("print", to_debug_string::<T>);
+        engine.register_fn("debug", to_debug_string::<T>);
+        engine.register_fn("+", |left: &str, right: T| left.to_owned() + &format!("{:?}", right));
+        engine.register_fn("+", |left: T, right: &str| format!("{:?}", left) + right);
     }
 
     /// Registers `Message` functions.
     fn register_message_functions(engine: &mut Engine, tx: &Sender) {
+        Self::register_debug_functions::<Message>(engine);
+
         engine.register_fn("new_message", Message::new::<String>);
         {
             let tx = tx.clone();
@@ -95,10 +148,6 @@ impl Rhai {
                 this.clone().send_and_forget(&tx);
             });
         }
-
-        engine.register_fn("to_string", to_debug_string::<Message>);
-        engine.register_fn("print", to_debug_string::<Message>);
-        engine.register_fn("debug", to_debug_string::<Message>);
 
         engine.register_get_set(
             "sensor_id",
@@ -128,12 +177,25 @@ impl Rhai {
                 this.sensor.location = location;
             },
         );
-        // TODO: the rest.
+        engine.register_get_set(
+            "sensor_title",
+            |this: &mut Message| this.sensor.title.clone(),
+            |this: &mut Message, title: Option<String>| {
+                this.sensor.title = title;
+            },
+        );
+        engine.register_get_set(
+            "timestamp",
+            |this: &mut Message| this.reading.timestamp,
+            |this: &mut Message, timestamp: DateTime<Local>| {
+                this.reading.timestamp = timestamp;
+            },
+        );
     }
 
     fn register_value_functions(engine: &mut Engine) {
-        engine.register_fn("to_string", to_debug_string::<Value>);
-        engine.register_fn("print", to_debug_string::<Value>);
+        Self::register_debug_functions::<Value>(engine);
+
         engine.register_get("inner", |this: &mut Value| -> Dynamic {
             match this {
                 Value::None => ().into(),
@@ -156,56 +218,6 @@ impl Rhai {
                 Value::WindDirection(value) => Dynamic::from(*value),
             }
         });
-    }
-
-    fn register_global_functions(service_id: &str, engine: &mut Engine) {
-        Self::register_logging_functions(service_id, engine);
-        Self::register_standard_functions(engine);
-    }
-
-    fn register_functions(engine: &mut Engine, tx: &Sender) {
-        Self::register_message_type_functions(engine);
-        Self::register_message_functions(engine, &tx);
-        Self::register_value_functions(engine);
-
-        telegram::register_functions(engine);
-    }
-
-    fn register_logging_functions(service_id: &str, engine: &mut Engine) {
-        {
-            let service_id = service_id.to_string();
-            engine.register_fn("error", move |string: &str| error!("[{}] {}", service_id, string));
-        }
-        {
-            let service_id = service_id.to_string();
-            engine.register_fn("warning", move |string: &str| warn!("[{}] {}", service_id, string));
-        }
-        {
-            let service_id = service_id.to_string();
-            engine.on_print(move |string| info!("[{}] {}", service_id, string));
-        }
-        {
-            let service_id = service_id.to_string();
-            engine.on_debug(move |string| debug!("[{}] {}", service_id, string));
-        }
-    }
-
-    fn register_standard_functions(engine: &mut Engine) {
-        engine.register_result_fn("spawn_process", spawn_process);
-        engine.register_fn("starts_with", |this: &mut ImmutableString, other: &str| {
-            this.starts_with(other)
-        });
-    }
-
-    /// Assigns the service instances to the inner variables.
-    fn push_services<'a>(scope: &mut Scope<'a>, services: &'a HashMap<String, Service>) {
-        for (service_id, service) in services.iter() {
-            #[allow(clippy::single_match)]
-            match service.clone() {
-                Service::Telegram(telegram) => scope.push_constant(service_id, telegram),
-                _ => (),
-            }
-        }
     }
 }
 

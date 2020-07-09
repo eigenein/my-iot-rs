@@ -1,5 +1,6 @@
 # `my-iot`
 
+- ✨ Add `options` parameter to Telegram in Rhai #93 #18
 - 💥 Removed content type from `Value::Blob`. I'll use `tree_magic` later, if needed
 
 ## `0.80.0`
