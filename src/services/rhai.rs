@@ -148,17 +148,12 @@ impl Rhai {
                 | Value::Volume(value)
                 | Value::RelativeIntensity(value)
                 | Value::BatteryLife(value) => Dynamic::from(*value),
+                Value::Bft(value) => Dynamic::from(*value),
+                Value::Blob(bytes) => Dynamic::from(bytes.clone()),
+                Value::Boolean(value) => Dynamic::from(*value),
                 Value::Counter(value) | Value::DataSize(value) => Dynamic::from(*value),
                 Value::ImageUrl(value) | Value::Text(value) => Dynamic::from(value.clone()),
-                Value::Boolean(value) => Dynamic::from(*value),
                 Value::WindDirection(value) => Dynamic::from(*value),
-                Value::Bft(value) => Dynamic::from(*value),
-                Value::Blob(content_type, bytes) => {
-                    let mut map = rhai::Map::new();
-                    map.insert("content_type".into(), Dynamic::from(content_type.clone()));
-                    map.insert("bytes".into(), Dynamic::from(bytes.clone()));
-                    map.into()
-                }
             }
         });
     }

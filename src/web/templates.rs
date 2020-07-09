@@ -272,7 +272,7 @@ impl std::fmt::Display for Value {
                 percentage
             ),
 
-            Value::Blob(_, _) => unimplemented!(),
+            Value::Blob(..) => unimplemented!(),
         }
     }
 }

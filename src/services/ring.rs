@@ -78,7 +78,7 @@ impl Ring {
             .type_(MessageType::ReadNonLogged)
             .timestamp(history.created_at)
             .sensor_title(&device.description)
-            .value(Value::Blob("video/mp4".into(), content))
+            .value(Value::Blob(content))
             .send_and_forget(tx);
             db.set_user_data(&flag_key, true, None)?;
         }

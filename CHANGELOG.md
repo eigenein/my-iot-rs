@@ -1,5 +1,7 @@
 # `my-iot`
 
+- 💥 Removed content type from `Value::Blob`. I'll use `tree_magic` later, if needed
+
 ## `0.80.0`
 
 Let's try some [gitmoji](https://gitmoji.carloscuesta.me/) in the changelog!

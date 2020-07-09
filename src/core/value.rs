@@ -69,10 +69,10 @@ pub enum Value {
     /// Battery relative charge, percentage.
     BatteryLife(f64),
 
-    /// Binary content with a content type. Isn't stored in a database at the moment.
+    /// Binary content. Isn't stored in a database at the moment.
     /// Perhaps, I should write a custom serialization for this particular variant.
     #[serde(skip)]
-    Blob(String, Bytes),
+    Blob(Bytes),
 }
 
 impl From<bool> for Value {
