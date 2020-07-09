@@ -14,7 +14,7 @@
   - [Ring](services/ring.md)
   - [Solar](services/solar.md)
   - [Tado](services/tado.md)
-  - [Telegram]()
+  - [Telegram](services/telegram.md)
   - [YouLess]()
 - [Cookbook]()
   - [Notify tado° open window](cookbook/notify_tado_open_window.md)

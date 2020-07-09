@@ -1,4 +1,4 @@
-# Telegram in Rhai
+# [Telegram](../telegram.md) in [Rhai](../rhai.md)
 
 ## Example
 
