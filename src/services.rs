@@ -61,7 +61,7 @@ fn build_client() -> Result<Client> {
         .gzip(true)
         .use_rustls_tls()
         .default_headers(headers)
-        .timeout(Duration::from_secs(10))
+        .timeout(Duration::from_secs(30))
         .pool_idle_timeout(Some(Duration::from_secs(300)))
         .build()?)
 }

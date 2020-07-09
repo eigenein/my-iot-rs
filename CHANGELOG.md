@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.81.1`
+
+- ⚗ Increase the `CLIENT` timeout to mitigate api.ring.com slowness
+
 ## `0.81.0`
 
 - ⚡️ Avoid unnecessary cloning of binary large objects
