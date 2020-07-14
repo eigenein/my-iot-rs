@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- ⚗ Cross-building for `armv7-unknown-linux-gnueabihf`
+
 ## `0.81.1`
 
 - 🥅 Do not fail the entire recordings loop when failed to download a one Ring recording

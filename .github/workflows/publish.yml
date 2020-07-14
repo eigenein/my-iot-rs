@@ -20,8 +20,10 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Build for Raspberry Pi Zero (W)
+      - name: Build for Raspberry Pi 0/1
         run: make docker/build/arm-unknown-linux-gnueabihf
+      - name: Build for Raspberry Pi 2/3/4
+        run: make docker/build/armv7-unknown-linux-gnueabihf
 
       - name: Release
         id: release
@@ -34,7 +36,7 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload for Raspberry Pi Zero (W)
+      - name: Upload for Raspberry Pi 0/1
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -42,4 +44,14 @@ jobs:
           upload_url: ${{ steps.release.outputs.upload_url }}
           asset_path: target/arm-unknown-linux-gnueabihf/release/my-iot
           asset_name: my-iot-arm-unknown-linux-gnueabihf
+          asset_content_type: application/octet-stream
+
+      - name: Upload for Raspberry Pi 2/3/4
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.release.outputs.upload_url }}
+          asset_path: target/armv7-unknown-linux-gnueabihf/release/my-iot
+          asset_name: my-iot-armv7-unknown-linux-gnueabihf
           asset_content_type: application/octet-stream
