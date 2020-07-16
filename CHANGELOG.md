@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.82.1`
+
+- ⚗ Checking the caching of the Docker images #117
+
 ## `0.82.0`
 
 - ⚗ Use BuiltKit caching to speed up the publish action #117
