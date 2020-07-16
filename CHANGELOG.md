@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- 🗑 Remove the publish caching because it doesn't work anyway
+
 ## `0.82.6`
 
 - ⚡️ Use `slim` image for Raspberry Pi builds #117

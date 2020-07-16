@@ -12,24 +12,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - uses: actions/cache@v2
-        with:
-          path: docker.tar
-          key: ${{ runner.os }}-docker
-
-      - name: Load Docker Backup
-        run: |
-          ls -lah docker.tar
-          docker load --input docker.tar
-        continue-on-error: true
       - name: Build for Raspberry Pi 0/1
         run: make docker/build/arm-unknown-linux-gnueabihf
       - name: Build for Raspberry Pi 2/3/4
         run: make docker/build/armv7-unknown-linux-gnueabihf
-      - name: Create Docker Backup
-        run: |
-          docker save --output docker.tar eigenein/my-iot-rs/arm-unknown-linux-gnueabihf eigenein/my-iot-rs/armv7-unknown-linux-gnueabihf
-          ls -lah docker.tar
 
       - name: Release
         id: release
