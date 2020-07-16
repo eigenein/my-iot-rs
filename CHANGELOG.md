@@ -2,6 +2,7 @@
 
 ## `master`
 
+- 🔇 Suppress `sending on a disconnected channel`, closes #112
 - 🗑 Remove the publish caching because it doesn't work anyway
 
 ## `0.82.6`
