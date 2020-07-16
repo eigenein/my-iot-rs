@@ -14,13 +14,13 @@ jobs:
 
       - uses: actions/cache@v2
         with:
-          path: $GITHUB_WORKSPACE/docker.tar
-          key: docker-tar
+          path: docker.tar
+          key: ${{ runner.os }}-docker
 
       - name: Load Docker Backup
         run: |
-          ls -lah $GITHUB_WORKSPACE/docker.tar
-          docker load --input $GITHUB_WORKSPACE/docker.tar
+          ls -lah docker.tar
+          docker load --input docker.tar
         continue-on-error: true
       - name: Build for Raspberry Pi 0/1
         run: make docker/build/arm-unknown-linux-gnueabihf
@@ -28,8 +28,8 @@ jobs:
         run: make docker/build/armv7-unknown-linux-gnueabihf
       - name: Create Docker Backup
         run: |
-          docker save --output $GITHUB_WORKSPACE/docker.tar eigenein/my-iot-rs/arm-unknown-linux-gnueabihf eigenein/my-iot-rs/armv7-unknown-linux-gnueabihf
-          ls -lah $GITHUB_WORKSPACE/docker.tar
+          docker save --output docker.tar eigenein/my-iot-rs/arm-unknown-linux-gnueabihf
+          ls -lah docker.tar
 
       - name: Release
         id: release
