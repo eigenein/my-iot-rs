@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.82.6`
+
+- ⚡️ Use `slim` image for Raspberry Pi builds #117
+
 ## `0.82.5`
 
 - ⚗ Fix the caching #117

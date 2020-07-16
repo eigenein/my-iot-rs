@@ -1,4 +1,4 @@
-FROM rustlang/rust:nightly-buster AS base
+FROM rustlang/rust:nightly-buster-slim AS base
 LABEL maintainer="Pavel Perestoronin <eigenein@gmail.com>"
 LABEL org.label-schema.description="My IoT builder for different devices"
 LABEL org.label-schema.vcs-url="https://github.com/eigenein/my-iot-rs"
@@ -8,6 +8,8 @@ ENV \
     OPENSSL_VERSION="1.1.1d" \
     OPENSSL_LIB_DIR=/usr/local/lib \
     OPENSSL_INCLUDE_DIR=/usr/local/include
+
+RUN apt-get update && apt-get install --assume-yes curl make
 
 # Download OpenSSL, we'll need it for the all targets.
 RUN curl "https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz" | tar zxf -
@@ -19,6 +21,7 @@ FROM base AS arm-unknown-linux-gnueabihf
 
 # Install build tools.
 RUN rustup target add arm-unknown-linux-gnueabihf
+RUN apt-get install --assume-yes git
 RUN \
     git clone --depth=1 https://github.com/raspberrypi/tools.git \
     && cd tools \
@@ -47,9 +50,7 @@ ENTRYPOINT cargo build --release --target arm-unknown-linux-gnueabihf --manifest
 FROM base AS armv7-unknown-linux-gnueabihf
 
 RUN rustup target add armv7-unknown-linux-gnueabihf
-RUN \
-    apt-get update \
-    && apt-get install --assume-yes g++-arm-linux-gnueabihf
+RUN apt-get install --assume-yes g++-arm-linux-gnueabihf libfindbin-libs-perl
 
 ENV \
     ARCH=arm \

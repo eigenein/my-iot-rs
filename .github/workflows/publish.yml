@@ -28,7 +28,7 @@ jobs:
         run: make docker/build/armv7-unknown-linux-gnueabihf
       - name: Create Docker Backup
         run: |
-          docker save --output docker.tar eigenein/my-iot-rs/arm-unknown-linux-gnueabihf
+          docker save --output docker.tar eigenein/my-iot-rs/arm-unknown-linux-gnueabihf eigenein/my-iot-rs/armv7-unknown-linux-gnueabihf
           ls -lah docker.tar
 
       - name: Release
