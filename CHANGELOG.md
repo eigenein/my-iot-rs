@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `0.82.3`
+
+- ⚗ Checking the caching of the Docker images #117
+
 ## `0.82.2`
 
 - ⚗ Fix the caching #117
