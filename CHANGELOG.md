@@ -1,7 +1,8 @@
 # `my-iot`
 
-## `master`
+## `0.82.0`
 
+- ⚗ Use BuiltKit caching to speed up the publish action #117
 - ⚗ Cross-building for `armv7-unknown-linux-gnueabihf`
 
 ## `0.81.1`

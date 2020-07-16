@@ -30,7 +30,11 @@ html docs:
 	@touch docs
 
 docker/build/%:
-	@DOCKER_BUILDKIT=1 docker build -t "eigenein/my-iot-rs/$*" -f Dockerfile . --target "$*"
+	@DOCKER_BUILDKIT=1 docker build . \
+		-t "eigenein/my-iot-rs/$*" \
+		-f Dockerfile --target "$*" \
+		--build-arg BUILDKIT_INLINE_CACHE=1 \
+		--cache-from "eigenein/my-iot-rs/$*"
 	@docker run --rm -v "$(PWD):/my-iot-rs" "eigenein/my-iot-rs/$*"
 
 .PHONY: src/statics
