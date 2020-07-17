@@ -2,6 +2,7 @@
 
 ## `master`
 
+- 🗑 Remove unnecessary `engine.register_type` calls
 - 🔇 Suppress `sending on a disconnected channel`, closes #112
 - 🗑 Remove the publish caching because it doesn't work anyway
 

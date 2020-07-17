@@ -28,7 +28,6 @@ impl Rhai {
                 let ast = self.compile_script(&service_id, &engine)?;
                 let mut scope = Scope::new();
 
-                Self::register_types(&mut engine);
                 Self::register_global_functions(&service_id, &mut engine);
                 Self::register_functions(&mut engine, &tx);
                 Self::push_constants(&mut scope);
@@ -61,14 +60,6 @@ impl Rhai {
         engine
             .consume_ast_with_scope(scope, &ast)
             .map_err(|error| error!("[{}] Execution error: {}", service_id, error.to_string()))
-    }
-
-    fn register_types(engine: &mut Engine) {
-        engine.register_type::<MessageType>();
-        engine.register_type::<Message>();
-        engine.register_type::<Value>();
-
-        telegram::register_types(engine);
     }
 
     fn register_global_functions(service_id: &str, engine: &mut Engine) {

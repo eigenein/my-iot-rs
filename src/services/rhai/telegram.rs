@@ -5,12 +5,6 @@ use crate::services::rhai::FnResult;
 use crate::services::telegram::*;
 use bytes::Bytes;
 
-pub fn register_types(engine: &mut Engine) {
-    engine.register_type::<Bytes>();
-    engine.register_type::<Telegram>();
-    engine.register_type::<TelegramMessage>();
-}
-
 pub fn register_functions(engine: &mut Engine) {
     engine.register_result_fn(
         "send_message",
