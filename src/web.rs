@@ -299,7 +299,7 @@ fn get_webmanifest() -> Cached {
 
 impl Value {
     pub fn is_f64(&self) -> bool {
-        match self {
+        matches!(self,
             Value::Duration(_)
             | Value::Cloudiness(_)
             | Value::Counter(_)
@@ -312,9 +312,8 @@ impl Value {
             | Value::Speed(_)
             | Value::Temperature(_)
             | Value::Volume(_)
-            | Value::BatteryLife(_) => true,
-            _ => false,
-        }
+            | Value::BatteryLife(_)
+        )
     }
 }
 

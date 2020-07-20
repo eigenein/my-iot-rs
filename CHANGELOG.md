@@ -1,5 +1,6 @@
 # `master`
 
+- ♻️ Use `matches!` macro where applicable
 - ✨ New `is_online` sensor for Ring doorbells
 - 🚸 Make Home and Settings navbar items visible on mobile devices
 

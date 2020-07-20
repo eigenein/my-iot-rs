@@ -143,10 +143,7 @@ fn chart_options(sensor_title: &str) -> serde_json::Value {
 impl Value {
     /// Get whether value could be rendered inline.
     pub fn is_inline(&self) -> bool {
-        match self {
-            Value::ImageUrl(_) | Value::Blob(..) => false,
-            _ => true,
-        }
+        !matches!(self, Value::ImageUrl(_) | Value::Blob(..))
     }
 }
 
