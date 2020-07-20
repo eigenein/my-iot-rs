@@ -37,18 +37,29 @@ impl Ring {
                 let devices = self.get_devices(&service_id, &db)?;
                 info!("{} doorbots, {} chimes.", devices.doorbots.len(), devices.chimes.len());
                 for device in devices.doorbots {
-                    if let Some(ref battery_life) = device.battery_life {
-                        Message::new(format!("{}::doorbot::{}::battery_life", service_id, device.id))
-                            .location(&device.description)
-                            .sensor_title("Doorbot Battery State")
-                            .value(Value::BatteryLife(f64::from_str(battery_life)?))
-                            .send_and_forget(&tx);
-                    }
+                    self.process_device(&device, &format!("{}::doorbot", service_id), "Doorbot", &tx)?;
                     self.process_recordings(&service_id, &db, &device, &tx)?;
                 }
                 Ok(())
             },
         )
+    }
+
+    fn process_device(&self, device: &DeviceResponse, sensor_prefix: &str, title: &str, tx: &Sender) -> Result {
+        let sensor_prefix = format!("{}::{}::", sensor_prefix, device.id);
+        Message::new(format!("{}::is_online", sensor_prefix))
+            .location(&device.description)
+            .sensor_title(format!("{} Online", title))
+            .value(device.alerts.connection == DeviceConnection::Online)
+            .send_and_forget(&tx);
+        if let Some(ref battery_life) = device.battery_life {
+            Message::new(format!("{}::battery_life", sensor_prefix))
+                .location(&device.description)
+                .sensor_title(format!("{} Battery State", title))
+                .value(Value::BatteryLife(f64::from_str(battery_life)?))
+                .send_and_forget(&tx);
+        }
+        Ok(())
     }
 
     fn process_recordings(&self, service_id: &str, db: &Connection, device: &DeviceResponse, tx: &Sender) -> Result {
@@ -193,6 +204,22 @@ struct DeviceResponse {
 
     /// Example: `"77"`.
     battery_life: Option<String>,
+
+    alerts: DeviceAlerts,
+}
+
+#[derive(Deserialize)]
+struct DeviceAlerts {
+    connection: DeviceConnection,
+}
+
+#[derive(Deserialize, PartialEq)]
+enum DeviceConnection {
+    #[serde(rename = "online")]
+    Online,
+
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Deserialize)]

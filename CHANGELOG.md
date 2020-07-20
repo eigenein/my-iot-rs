@@ -1,5 +1,6 @@
 # `master`
 
+- ✨ New `is_online` sensor for Ring doorbells
 - 🚸 Make Home and Settings navbar items visible on mobile devices
 
 # `0.83.0`
