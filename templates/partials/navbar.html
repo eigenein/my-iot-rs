@@ -1,6 +1,14 @@
 <nav class="navbar" role="navigation" aria-label="main navigation">
   <div class="container">
     <div class="navbar-brand">
+      <a class="navbar-item {% if selected_item == "index" %}is-active{% endif %}" href="/">
+        <span class="icon"><i class="fas fa-home"></i></span> <span>Home</span>
+      </a>
+
+      <a class="navbar-item {% if selected_item == "settings" %}is-active{% endif %}" href="{{ uri!(get_settings) }}">
+        <span class="icon"><i class="fas fa-cog"></i></span> <span>Settings</span>
+      </a>
+
       <a class="navbar-burger burger" role="button" aria-label="menu" aria-expanded="false" data-target="navbar-menu">
         <span aria-hidden="true"></span>
         <span aria-hidden="true"></span>
@@ -10,13 +18,6 @@
 
     <div id="navbar-menu" class="navbar-menu">
       <div class="navbar-start">
-        <a class="navbar-item {% if selected_item == "index" %}is-active{% endif %}" href="/">
-          <span class="icon"><i class="fas fa-home"></i></span> <span>Home</span>
-        </a>
-
-        <a class="navbar-item {% if selected_item == "settings" %}is-active{% endif %}" href="{{ uri!(get_settings) }}">
-          <span class="icon"><i class="fas fa-cog"></i></span> <span>Settings</span>
-        </a>
       </div>
 
       <div class="navbar-end">

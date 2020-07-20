@@ -1,5 +1,9 @@
 # `my-iot`
 
+## `master`
+
+- 🚸 Make Home and Settings navbar items visible on mobile devices
+
 ## `0.83.0`
 
 - ⚡️ Remove unnecessary OpenSSL dependency
