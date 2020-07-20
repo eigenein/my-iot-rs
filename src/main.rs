@@ -35,7 +35,7 @@ struct Opt {
     db: String,
 
     /// Run only the specified service IDs.
-    #[structopt(long = "service-id")]
+    #[structopt(short = "i", long = "service-id")]
     service_ids: Option<Vec<String>>,
 
     /// Setting files
