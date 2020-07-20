@@ -1,3 +1,7 @@
+# `master`
+
+- ⬆️ Upgrade dependencies
+
 # `0.84.0`
 
 - ✨ Add a short alias for the `--service-id` option
