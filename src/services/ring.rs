@@ -46,7 +46,7 @@ impl Ring {
     }
 
     fn process_device(&self, device: &DeviceResponse, sensor_prefix: &str, title: &str, tx: &Sender) -> Result {
-        let sensor_prefix = format!("{}::{}::", sensor_prefix, device.id);
+        let sensor_prefix = format!("{}::{}", sensor_prefix, device.id);
         Message::new(format!("{}::is_online", sensor_prefix))
             .location(&device.description)
             .sensor_title(format!("{} Online", title))
