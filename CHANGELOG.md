@@ -1,4 +1,4 @@
-# `master`
+# `0.84.0`
 
 - ✨ Add a short alias for the `--service-id` option
 - ♻️ Use `matches!` macro where applicable
