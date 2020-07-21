@@ -21,6 +21,7 @@ use crate::web::cached_content::Cached;
 use crate::web::if_none_match::IfNoneMatch;
 use crate::web::message_counter::MessageCounter;
 use crate::web::to_html_string::ToHtmlString;
+use std::convert::TryInto;
 
 mod cached_content;
 mod entity_tag;
@@ -117,7 +118,7 @@ fn get_sensor<'r>(
         }
 
         let minutes = minutes.unwrap_or(60);
-        let chart = if reading.value.is_f64() {
+        let chart = if TryInto::<f64>::try_into(&reading.value).is_ok() {
             templates::F64ChartPartialTemplate::new(
                 &sensor.title(),
                 db.select_values(&sensor_id, &(Local::now() - Duration::minutes(minutes)))?,
@@ -297,26 +298,6 @@ fn get_webmanifest() -> Cached {
         STATIC_MAX_AGE_SECS,
         Content(ContentType::JSON, include_bytes!("statics/my-iot.webmanifest")),
     )
-}
-
-impl Value {
-    pub fn is_f64(&self) -> bool {
-        matches!(self,
-            Value::Duration(_)
-            | Value::Cloudiness(_)
-            | Value::Counter(_)
-            | Value::DataSize(_)
-            | Value::Energy(_)
-            | Value::Length(_)
-            | Value::Power(_)
-            | Value::RelativeIntensity(_)
-            | Value::Rh(_)
-            | Value::Speed(_)
-            | Value::Temperature(_)
-            | Value::Volume(_)
-            | Value::BatteryLife(_)
-        )
-    }
 }
 
 #[cfg(test)]

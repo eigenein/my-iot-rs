@@ -6,6 +6,7 @@ use bytes::Bytes;
 use std::sync::Arc;
 
 pub mod from;
+pub mod try_into;
 
 /// Sensor reading value.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -24,6 +25,7 @@ pub enum Value {
     Boolean(bool),
 
     /// Wind direction.
+    // TODO: `StringEnum` instead.
     WindDirection(PointOfTheCompass),
 
     /// Size in [bytes](https://en.wikipedia.org/wiki/Byte).

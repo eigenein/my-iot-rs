@@ -5,6 +5,7 @@ use rhai::{Array, Dynamic, Engine, EvalAltResult, ImmutableString, RegisterFn, R
 
 use crate::prelude::*;
 use crate::settings::Service;
+use bytes::Bytes;
 
 type FnResult = Result<Dynamic, Box<EvalAltResult>>;
 
@@ -188,25 +189,19 @@ impl Rhai {
         Self::register_debug_functions::<Value>(engine);
 
         engine.register_get("inner", |this: &mut Value| -> Dynamic {
-            match this {
-                Value::None => ().into(),
-                Value::Temperature(value)
-                | Value::Cloudiness(value)
-                | Value::Duration(value)
-                | Value::Energy(value)
-                | Value::Length(value)
-                | Value::Power(value)
-                | Value::Rh(value)
-                | Value::Speed(value)
-                | Value::Volume(value)
-                | Value::RelativeIntensity(value)
-                | Value::BatteryLife(value) => Dynamic::from(*value),
-                Value::Bft(value) => Dynamic::from(*value),
-                Value::Blob(bytes) => Dynamic::from(bytes.clone()),
-                Value::Boolean(value) => Dynamic::from(*value),
-                Value::Counter(value) | Value::DataSize(value) => Dynamic::from(*value),
-                Value::ImageUrl(value) | Value::Text(value) => Dynamic::from(value.clone()),
-                Value::WindDirection(value) => Dynamic::from(*value),
+            let this: &Value = this;
+            if let Ok(value) = this.try_into() {
+                Dynamic::from::<f64>(value)
+            } else if let Ok(value) = this.try_into() {
+                Dynamic::from::<i64>(value)
+            } else if let Ok(value) = this.try_into() {
+                Dynamic::from::<bool>(value)
+            } else if let Ok(value) = this.try_into() {
+                Dynamic::from::<String>(value)
+            } else if let Ok(value) = this.try_into() {
+                Dynamic::from::<Arc<Bytes>>(value)
+            } else {
+                Dynamic::from(())
             }
         });
     }
@@ -235,6 +230,30 @@ mod tests {
         let mut engine = Engine::new();
         Rhai::register_standard_functions(&mut engine);
         engine.eval(r#"spawn_process("echo", ["-n"])"#)?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_value_inner_ok() -> Result {
+        let mut engine = Engine::new();
+        let mut scope = Scope::new();
+        Rhai::register_value_functions(&mut engine);
+
+        scope.push("value", Value::Counter(42));
+        assert_eq!(engine.eval_with_scope::<i64>(&mut scope, "value.inner")?, 42);
+
+        scope.push("value", Value::Text("hello".into()));
+        assert_eq!(engine.eval_with_scope::<String>(&mut scope, "value.inner")?, "hello");
+
+        scope.push("value", Value::Boolean(true));
+        assert_eq!(engine.eval_with_scope::<bool>(&mut scope, "value.inner")?, true);
+
+        scope.push("value", Value::None);
+        assert_eq!(engine.eval_with_scope::<()>(&mut scope, "value.inner")?, ());
+
+        scope.push("value", Value::Temperature(42.0));
+        assert_eq!(engine.eval_with_scope::<f64>(&mut scope, "value.inner")?, 42.0);
+
         Ok(())
     }
 }

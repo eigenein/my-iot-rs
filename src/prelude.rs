@@ -1,4 +1,5 @@
 pub use std::collections::HashMap;
+pub use std::convert::TryInto;
 pub use std::error::Error;
 pub use std::sync::Arc;
 pub use std::thread;
@@ -16,6 +17,7 @@ pub use crate::core::db::{reading::Reading, sensor::Sensor, Connection};
 pub use crate::core::message::{Message, Type as MessageType};
 pub use crate::core::thread::spawn_service_loop;
 pub use crate::core::value::from::*;
+pub use crate::core::value::try_into::*;
 pub use crate::core::value::*;
 
 pub type Result<T = (), E = Box<dyn Error>> = std::result::Result<T, E>;

@@ -1,5 +1,6 @@
 # `master`
 
+- ♻️ Introduce `TryInto` conversions for `Value` and use them in `rhai`
 - ♻️ Refactor `Value` conversions
 - 🚸 Notify when there is no chart for a sensor
 - 🚸 Add navigation link to the book
