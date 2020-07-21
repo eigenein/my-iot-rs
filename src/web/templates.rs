@@ -85,7 +85,7 @@ pub struct F64ChartPartialTemplate {
 }
 
 impl F64ChartPartialTemplate {
-    pub fn new(sensor_title: &str, values: Vec<(DateTime<Local>, f64)>, multiplier: f64) -> Self {
+    pub fn new(sensor_title: &str, readings: Vec<Reading>, multiplier: f64) -> Self {
         F64ChartPartialTemplate {
             chart: json!({
                 "type": "line",
@@ -95,10 +95,13 @@ impl F64ChartPartialTemplate {
                         "label": sensor_title,
                         "borderColor": "#209CEE",
                         "fill": false,
-                        "data": values.iter().map(|(timestamp, value)| json!({
-                            "x": timestamp.timestamp_millis(),
-                            "y": value * multiplier,
-                        })).collect::<serde_json::Value>(),
+                        "data": readings
+                            .iter()
+                            .filter_map(|reading| f64::try_from(&reading.value).ok().map(|value| json!({
+                                "x": reading.timestamp.timestamp_millis(),
+                                "y": value * multiplier,
+                            })))
+                            .collect::<serde_json::Value>(),
                     }],
                 },
             }),

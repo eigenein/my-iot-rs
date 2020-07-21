@@ -118,10 +118,11 @@ fn get_sensor<'r>(
         }
 
         let minutes = minutes.unwrap_or(60);
+        let readings = db.select_readings(&sensor_id, &(Local::now() - Duration::minutes(minutes)))?;
         let chart = if TryInto::<f64>::try_into(&reading.value).is_ok() {
             templates::F64ChartPartialTemplate::new(
                 &sensor.title(),
-                db.select_values(&sensor_id, &(Local::now() - Duration::minutes(minutes)))?,
+                readings,
                 if let Value::Energy(_) = reading.value {
                     WH_IN_JOULE
                 } else {

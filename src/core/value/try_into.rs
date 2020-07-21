@@ -1,11 +1,11 @@
 use crate::prelude::*;
 use bytes::Bytes;
 
-impl TryInto<f64> for &Value {
+impl TryFrom<&Value> for f64 {
     type Error = ();
 
-    fn try_into(self) -> Result<f64, Self::Error> {
-        match self {
+    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+        match value {
             Value::Temperature(value)
             | Value::Cloudiness(value)
             | Value::Duration(value)
@@ -22,11 +22,11 @@ impl TryInto<f64> for &Value {
     }
 }
 
-impl TryInto<i64> for &Value {
+impl TryFrom<&Value> for i64 {
     type Error = ();
 
-    fn try_into(self) -> Result<i64, Self::Error> {
-        match self {
+    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+        match value {
             Value::Bft(value) => (*value).try_into().map_err(|_| ()),
             Value::Counter(value) | Value::DataSize(value) => (*value).try_into().map_err(|_| ()),
             _ => Err(()),
@@ -34,33 +34,33 @@ impl TryInto<i64> for &Value {
     }
 }
 
-impl TryInto<bool> for &Value {
+impl TryFrom<&Value> for bool {
     type Error = ();
 
-    fn try_into(self) -> Result<bool, Self::Error> {
-        match self {
+    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+        match value {
             Value::Boolean(value) => Ok(*value),
             _ => Err(()),
         }
     }
 }
 
-impl TryInto<String> for &Value {
+impl TryFrom<&Value> for String {
     type Error = ();
 
-    fn try_into(self) -> Result<String, Self::Error> {
-        match self {
+    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+        match value {
             Value::ImageUrl(value) | Value::Text(value) => Ok(value.clone()),
             _ => Err(()),
         }
     }
 }
 
-impl TryInto<Arc<Bytes>> for &Value {
+impl TryFrom<&Value> for Arc<Bytes> {
     type Error = ();
 
-    fn try_into(self) -> Result<Arc<Bytes>, Self::Error> {
-        match self {
+    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+        match value {
             Value::Blob(bytes) => Ok(bytes.clone()),
             _ => Err(()),
         }

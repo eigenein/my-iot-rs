@@ -1,5 +1,5 @@
 pub use std::collections::HashMap;
-pub use std::convert::TryInto;
+pub use std::convert::{TryFrom, TryInto};
 pub use std::error::Error;
 pub use std::sync::Arc;
 pub use std::thread;
@@ -15,6 +15,7 @@ pub use structopt::clap::crate_version;
 pub use crate::core::bus::Bus;
 pub use crate::core::db::{reading::Reading, sensor::Sensor, Connection};
 pub use crate::core::message::{Message, Type as MessageType};
+pub use crate::core::si::*;
 pub use crate::core::thread::spawn_service_loop;
 pub use crate::core::value::from::*;
 pub use crate::core::value::try_into::*;
@@ -23,12 +24,6 @@ pub use crate::core::value::*;
 pub type Result<T = (), E = Box<dyn Error>> = std::result::Result<T, E>;
 pub type Receiver = crossbeam::channel::Receiver<Message>;
 pub type Sender = crossbeam::channel::Sender<Message>;
-
-/// Amount of [Joule](https://en.wikipedia.org/wiki/Joule)s
-/// in 1 [watt-hour](https://en.wikipedia.org/wiki/Kilowatt-hour).
-pub const JOULES_IN_WH: f64 = 3600.0;
-
-pub const WH_IN_JOULE: f64 = 1.0 / JOULES_IN_WH;
 
 /// `User-Agent` header used for all outcoming HTTP requests.
 pub const USER_AGENT: &str = concat!(
