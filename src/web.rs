@@ -129,7 +129,9 @@ fn get_sensor<'r>(
             )
             .to_string()
         } else {
-            "".into()
+            // language=html
+            r#"<div class="notification is-warning content"><p>Chart is unimplemented for this sensor.</p></div>"#
+                .into()
         };
 
         Response::build()

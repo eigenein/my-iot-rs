@@ -1,5 +1,6 @@
 # `master`
 
+- 🚸 Notify when there is no chart for a sensor
 - 🚸 Add navigation link to the book
 - ⬆️ Upgrade dependencies
 
