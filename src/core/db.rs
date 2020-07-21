@@ -215,7 +215,7 @@ fn get_sensor(row: &Row) -> rusqlite::Result<Sensor> {
 fn get_reading(row: &Row) -> rusqlite::Result<Reading> {
     Ok(Reading {
         timestamp: Local.timestamp_millis(row.get("timestamp")?),
-        value: serde_json::from_str(&row.get::<_, String>("value")?).unwrap(),
+        value: serde_json::from_str(&row.get::<_, String>("value")?).unwrap_or(Value::Other),
     })
 }
 

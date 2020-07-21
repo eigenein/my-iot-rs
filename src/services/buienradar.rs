@@ -85,11 +85,11 @@ impl Buienradar {
                     .location(&measurement.name),
             )?;
         }
-        if let Some(point) = measurement.wind_direction {
+        if let Some(point) = &measurement.wind_direction {
             tx.send(
                 Message::new(format!("{}::wind::direction", sensor_prefix))
                     .type_(MessageType::ReadLogged)
-                    .value(Value::WindDirection(point))
+                    .value(Value::StringEnum(point.clone()))
                     .timestamp(measurement.timestamp)
                     .sensor_title("Wind Direction")
                     .location(&measurement.name),
@@ -167,7 +167,7 @@ struct BuienradarStationMeasurement {
     timestamp: DateTime<Local>,
 
     #[serde(default, rename = "winddirection")]
-    wind_direction: Option<PointOfTheCompass>,
+    wind_direction: Option<String>,
 
     #[serde(rename = "weatherdescription")]
     weather_description: String,
@@ -201,7 +201,6 @@ mod tests {
         )?;
         let measurement = &feed.actual.station_measurements[0];
         assert_eq!(measurement.temperature, Some(24.2), "{:?}", measurement.temperature);
-        assert_eq!(measurement.wind_direction, Some(PointOfTheCompass::North));
         Ok(())
     }
 }

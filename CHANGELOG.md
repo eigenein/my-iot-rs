@@ -1,5 +1,6 @@
 # `master`
 
+- 💥 `Value::WindDirection` is dropped in favour of `Value::StringEnum`
 - 🚸 Notify when there is no data points for a chart
 - ♻️ Use `TryInto` to convert values for a chart
 - ♻️ Introduce `TryInto` conversions for `Value` and use them in `rhai`

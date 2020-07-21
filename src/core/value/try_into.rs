@@ -50,7 +50,7 @@ impl TryFrom<&Value> for String {
 
     fn try_from(value: &Value) -> Result<Self, Self::Error> {
         match value {
-            Value::ImageUrl(value) | Value::Text(value) => Ok(value.clone()),
+            Value::ImageUrl(value) | Value::Text(value) | Value::StringEnum(value) => Ok(value.clone()),
             _ => Err(()),
         }
     }

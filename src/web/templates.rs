@@ -158,6 +158,9 @@ impl std::fmt::Display for Value {
             Value::None => write!(f, r#"<i class="fas fa-question"></i> None"#),
 
             // language=HTML
+            Value::Other => write!(f, r#"<i class="fas fa-question"></i> Other"#),
+
+            // language=HTML
             Value::Counter(count) => write!(f, r#"<i class="fas fa-sort-numeric-up-alt"></i> {}"#, count),
 
             // language=HTML
@@ -171,6 +174,9 @@ impl std::fmt::Display for Value {
             Value::Text(ref text) => write!(f, r#"<i class="fas fa-quote-left"></i> {}"#, text),
 
             // language=HTML
+            Value::StringEnum(ref text) => write!(f, r#"<i class="fas fa-list-ul"></i> {}"#, text),
+
+            // language=HTML
             Value::Temperature(celsius) => write!(
                 f,
                 r#"<i class="fas fa-thermometer-half"></i> {}"#,
@@ -179,30 +185,6 @@ impl std::fmt::Display for Value {
 
             // language=HTML
             Value::Bft(force) => write!(f, r#"<i class="fas fa-wind"></i> {} BFT"#, force),
-
-            // language=HTML
-            Value::WindDirection(point) => write!(
-                f,
-                r#"<i class="fas fa-wind"></i> {}"#,
-                match point {
-                    PointOfTheCompass::East => "East",
-                    PointOfTheCompass::EastNortheast => "East-northeast",
-                    PointOfTheCompass::EastSoutheast => "East-southeast",
-                    PointOfTheCompass::North => "North",
-                    PointOfTheCompass::NorthNortheast => "North-northeast",
-                    PointOfTheCompass::NorthNorthwest => "North-northwest",
-                    PointOfTheCompass::Northeast => "Northeast",
-                    PointOfTheCompass::Northwest => "Northwest",
-                    PointOfTheCompass::South => "South",
-                    PointOfTheCompass::SouthSoutheast => "South-southeast",
-                    PointOfTheCompass::SouthSouthwest => "South-southwest",
-                    PointOfTheCompass::Southeast => "Southeast",
-                    PointOfTheCompass::Southwest => "Southwest",
-                    PointOfTheCompass::West => "West",
-                    PointOfTheCompass::WestNorthwest => "West-northwest",
-                    PointOfTheCompass::WestSouthwest => "West-southwest",
-                }
-            ),
 
             // language=HTML
             Value::Rh(percentage) => write!(f, r#"<i class="fas fa-water"></i> {}%"#, percentage),
@@ -326,7 +308,6 @@ mod filters {
                 _ if celsius < 30.0 => "is-warning",
                 _ => "is-danger",
             },
-            Value::WindDirection(_) => "is-light",
             Value::Rh(percentage) => match percentage {
                 _ if percentage < 25.0 => "is-link",
                 _ if percentage < 30.0 => "is-info",

@@ -24,10 +24,6 @@ pub enum Value {
     /// Boolean.
     Boolean(bool),
 
-    /// Wind direction.
-    // TODO: `StringEnum` instead.
-    WindDirection(PointOfTheCompass),
-
     /// Size in [bytes](https://en.wikipedia.org/wiki/Byte).
     DataSize(u64),
 
@@ -77,63 +73,17 @@ pub enum Value {
     /// Perhaps, I should write a custom serialization for this particular variant.
     #[serde(skip)]
     Blob(Arc<Bytes>),
+
+    /// String value from a finite set.
+    StringEnum(String),
+
+    /// For variants that do not exist anymore but still stored in the database.
+    #[serde(other)]
+    Other,
 }
 
 impl AsRef<Value> for Value {
     fn as_ref(&self) -> &Self {
         &self
     }
-}
-
-/// [Points of the compass](https://en.wikipedia.org/wiki/Points_of_the_compass).
-/// Provides the common aliases in English and Dutch.
-#[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq)]
-pub enum PointOfTheCompass {
-    #[serde(alias = "N")]
-    North,
-
-    #[serde(alias = "NNE", alias = "NNO")]
-    NorthNortheast,
-
-    #[serde(alias = "NE", alias = "NO")]
-    Northeast,
-
-    #[serde(alias = "ENE", alias = "ONO")]
-    EastNortheast,
-
-    #[serde(alias = "E", alias = "O")]
-    East,
-
-    #[serde(alias = "ESE", alias = "OZO")]
-    EastSoutheast,
-
-    #[serde(alias = "SE", alias = "ZO")]
-    Southeast,
-
-    #[serde(alias = "SSE", alias = "ZZO")]
-    SouthSoutheast,
-
-    #[serde(alias = "S", alias = "Z")]
-    South,
-
-    #[serde(alias = "SSW", alias = "ZZW")]
-    SouthSouthwest,
-
-    #[serde(alias = "SW", alias = "ZW")]
-    Southwest,
-
-    #[serde(alias = "WSW", alias = "WZW")]
-    WestSouthwest,
-
-    #[serde(alias = "W")]
-    West,
-
-    #[serde(alias = "WNW")]
-    WestNorthwest,
-
-    #[serde(alias = "NW")]
-    Northwest,
-
-    #[serde(alias = "NNW")]
-    NorthNorthwest,
 }
