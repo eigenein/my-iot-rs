@@ -331,6 +331,11 @@ mod filters {
                 _ if percentage < 90.0 => "is-warning",
                 _ => "is-danger",
             },
+            Value::BatteryLife(percentage) => match percentage {
+                _ if percentage > 60.0 => "is-success",
+                _ if percentage > 30.0 => "is-warning",
+                _ => "is-danger",
+            },
             Value::Power(watts) => match watts {
                 _ if watts <= 0.0 => "is-success",
                 _ if watts <= 4000.0 => "is-warning",
