@@ -2,9 +2,10 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::prelude::*;
 use bytes::Bytes;
 use std::sync::Arc;
+
+pub mod from;
 
 /// Sensor reading value.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -76,12 +77,6 @@ pub enum Value {
     Blob(Arc<Bytes>),
 }
 
-impl From<bool> for Value {
-    fn from(value: bool) -> Self {
-        Self::Boolean(value)
-    }
-}
-
 impl AsRef<Value> for Value {
     fn as_ref(&self) -> &Self {
         &self
@@ -139,17 +134,4 @@ pub enum PointOfTheCompass {
 
     #[serde(alias = "NNW")]
     NorthNorthwest,
-}
-
-impl Value {
-    /// Builds a `Value` instance from [kilowatt-hours](https://en.wikipedia.org/wiki/Kilowatt-hour).
-    #[inline(always)]
-    pub fn from_kwh(kwh: f64) -> Self {
-        Value::Energy(kwh * 1000.0 * JOULES_IN_WH)
-    }
-
-    #[inline(always)]
-    pub fn from_mm(mm: f64) -> Self {
-        Value::Length(mm / 1000.0)
-    }
 }

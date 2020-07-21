@@ -15,7 +15,8 @@ pub use crate::core::bus::Bus;
 pub use crate::core::db::{reading::Reading, sensor::Sensor, Connection};
 pub use crate::core::message::{Message, Type as MessageType};
 pub use crate::core::thread::spawn_service_loop;
-pub use crate::core::value::{PointOfTheCompass, Value};
+pub use crate::core::value::from::*;
+pub use crate::core::value::*;
 
 pub type Result<T = (), E = Box<dyn Error>> = std::result::Result<T, E>;
 pub type Receiver = crossbeam::channel::Receiver<Message>;
