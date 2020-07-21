@@ -1,4 +1,4 @@
-# `master`
+# `0.85.0`
 
 - 🚸 Add coloring for `Value::BatteryLife`
 - 💥 `Value::WindDirection` is dropped in favour of `Value::StringEnum`
