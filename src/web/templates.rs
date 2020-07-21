@@ -32,7 +32,7 @@ pub struct SensorTemplate {
     pub sensor: Sensor,
     pub reading: Reading,
 
-    /// Stringified sensor chart, may be empty.
+    /// Stringified sensor chart.
     pub chart: String,
 
     /// Chart period.

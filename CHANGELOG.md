@@ -1,5 +1,6 @@
 # `master`
 
+- 🚸 Notify when there is no data points for a chart
 - ♻️ Use `TryInto` to convert values for a chart
 - ♻️ Introduce `TryInto` conversions for `Value` and use them in `rhai`
 - ♻️ Refactor `Value` conversions

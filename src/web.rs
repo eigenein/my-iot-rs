@@ -119,7 +119,10 @@ fn get_sensor<'r>(
 
         let minutes = minutes.unwrap_or(60);
         let readings = db.select_readings(&sensor_id, &(Local::now() - Duration::minutes(minutes)))?;
-        let chart = if TryInto::<f64>::try_into(&reading.value).is_ok() {
+        let chart = if readings.is_empty() {
+            // language=html
+            r#"<div class="notification content"><p>No data points within the period.</p></div>"#.to_string()
+        } else if TryInto::<f64>::try_into(&reading.value).is_ok() {
             templates::F64ChartPartialTemplate::new(
                 &sensor.title(),
                 readings,
@@ -132,8 +135,7 @@ fn get_sensor<'r>(
             .to_string()
         } else {
             // language=html
-            r#"<div class="notification is-warning content"><p>Chart is unimplemented for this sensor.</p></div>"#
-                .into()
+            r#"<div class="notification content"><p>Chart is unimplemented for this sensor.</p></div>"#.to_string()
         };
 
         Response::build()
