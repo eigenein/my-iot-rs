@@ -1,5 +1,6 @@
 # `master`
 
+- 🚸 Add navigation link to the book
 - ⬆️ Upgrade dependencies
 
 # `0.84.0`
