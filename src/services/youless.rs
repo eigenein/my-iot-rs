@@ -9,8 +9,8 @@ pub struct YouLess {
     #[serde(default = "default_interval_millis")]
     interval_millis: u64,
 
-    #[serde(default = "default_url")]
-    url: String,
+    #[serde(default = "default_host")]
+    host: String,
 
     /// Which location the sensors should be put into.
     #[serde(default)]
@@ -22,23 +22,24 @@ const fn default_interval_millis() -> u64 {
     1000
 }
 
-fn default_url() -> String {
-    "http://youless/e?f=j".into()
+fn default_host() -> String {
+    "youless".into()
 }
 
 impl YouLess {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result {
         let tx = bus.add_tx();
+        let url = format!("http://{}/e?f=j", self.host);
         spawn_service_loop(
             service_id.clone(),
             Duration::from_millis(self.interval_millis),
-            move || self.loop_(&service_id, &tx),
+            move || self.loop_(&service_id, &url, &tx),
         )
     }
 
-    fn loop_(&self, service_id: &str, tx: &Sender) -> Result {
+    fn loop_(&self, service_id: &str, url: &str, tx: &Sender) -> Result {
         let response = CLIENT
-            .get(&self.url)
+            .get(url)
             .send()?
             .error_for_status()?
             .json::<Vec<Response>>()?

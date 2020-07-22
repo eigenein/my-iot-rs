@@ -1,3 +1,7 @@
+# `master`
+
+- 💥 YouLess: replace the `url` setting with the `host` setting
+
 # `0.85.0`
 
 - 🚸 Add coloring for `Value::BatteryLife`
