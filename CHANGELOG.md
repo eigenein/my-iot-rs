@@ -1,4 +1,4 @@
-# `master`
+# `0.86.0`
 
 - 💥 YouLess: replace the `url` setting with the `host` setting
 
