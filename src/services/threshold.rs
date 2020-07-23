@@ -35,10 +35,10 @@ impl Threshold {
                         error!("[{}] Value is not `f64`.", &service_id);
                         continue;
                     };
-                    if state == Some(State::Low) && value >= self.high {
+                    if (state == Some(State::Low) || state.is_none()) && value >= self.high {
                         state = Some(State::High);
                         Self::send_message(&service_id, "high", message, &tx);
-                    } else if state == Some(State::High) && value < self.low {
+                    } else if (state == Some(State::High) || state.is_none()) && value < self.low {
                         state = Some(State::Low);
                         Self::send_message(&service_id, "low", message, &tx);
                     }
