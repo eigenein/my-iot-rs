@@ -102,7 +102,9 @@ impl Rhai {
         for (service_id, service) in services.iter() {
             #[allow(clippy::single_match)]
             match service.clone() {
-                Service::Telegram(telegram) => scope.push_constant(service_id, telegram),
+                Service::Telegram(telegram) => {
+                    scope.push_constant(service_id, telegram);
+                }
                 _ => (),
             }
         }

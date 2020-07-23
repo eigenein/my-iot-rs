@@ -1,5 +1,6 @@
-# `master`
+# `0.87.0`
 
+- ⬆️ Upgrade dependencies
 - ✨ New `sensor_pattern` setting for `Rhai` service to allow the easy filtering
 - ✨ New `Threshold` service #115
 
