@@ -15,6 +15,7 @@
   - [Solar](services/solar.md)
   - [Tado](services/tado.md)
   - [Telegram](services/telegram.md)
+  - [Threshold]()
   - [YouLess]()
 - [Cookbook](cookbook.md)
   - [Notify tado° open window](cookbook/notify_tado_open_window.md)

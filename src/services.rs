@@ -14,6 +14,7 @@ pub mod ring;
 pub mod solar;
 pub mod tado;
 pub mod telegram;
+pub mod threshold;
 pub mod youless;
 
 lazy_static! {
@@ -40,11 +41,12 @@ pub fn spawn_all(settings: &Settings, service_ids: &Option<Vec<String>>, bus: &m
                 Service::Clock(clock) => clock.spawn(service_id, bus),
                 Service::OpenWeather(openweather) => openweather.spawn(service_id, bus),
                 Service::Rhai(rhai) => rhai.spawn(service_id, bus, settings.services.clone()),
+                Service::Ring(ring) => ring.spawn(service_id, bus, db),
                 Service::Solar(solar) => solar.spawn(service_id, bus),
                 Service::Tado(tado) => tado.spawn(service_id, bus),
                 Service::Telegram(telegram) => telegram.spawn(service_id, bus),
+                Service::Threshold(threshold) => threshold.spawn(service_id, bus),
                 Service::YouLess(youless) => youless.spawn(service_id, bus),
-                Service::Ring(ring) => ring.spawn(service_id, bus, db),
             }
         } {
             error!("Failed to spawn `{}`: {}", service_id, error.to_string());

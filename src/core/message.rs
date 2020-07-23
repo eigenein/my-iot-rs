@@ -63,6 +63,11 @@ impl Message {
         self
     }
 
+    pub fn optional_sensor_title<S: Into<Option<String>>>(mut self, sensor_title: S) -> Self {
+        self.sensor.title = sensor_title.into();
+        self
+    }
+
     pub fn location<S: Into<String>>(mut self, location: S) -> Self {
         self.sensor.location = location.into();
         self

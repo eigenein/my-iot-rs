@@ -62,6 +62,8 @@ pub enum Service {
     /// [Telegram bot](https://core.telegram.org/bots/api) service.
     Telegram(services::telegram::Telegram),
 
+    Threshold(services::threshold::Threshold),
+
     /// [YouLess](https://www.youless.nl/home.html) kWh meter to ethernet bridge.
     YouLess(services::youless::YouLess),
 }
