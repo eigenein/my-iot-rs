@@ -1,5 +1,6 @@
 # `master`
 
+- ✨ New `sensor_pattern` setting for `Rhai` service to allow the easy filtering
 - ✨ New `Threshold` service #115
 
 # `0.86.0`

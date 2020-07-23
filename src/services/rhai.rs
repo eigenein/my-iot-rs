@@ -1,11 +1,12 @@
 use std::process::Command;
 
+use bytes::Bytes;
 use itertools::Itertools;
+use regex::Regex;
 use rhai::{Array, Dynamic, Engine, EvalAltResult, ImmutableString, RegisterFn, RegisterResultFn, Scope, AST};
 
 use crate::prelude::*;
 use crate::settings::Service;
-use bytes::Bytes;
 
 type FnResult = Result<Dynamic, Box<EvalAltResult>>;
 
@@ -14,6 +15,9 @@ mod telegram;
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Rhai {
     script: String,
+
+    #[serde(with = "serde_regex", default)]
+    sensor_pattern: Option<Regex>,
 }
 
 impl Rhai {
@@ -38,6 +42,15 @@ impl Rhai {
                 self.consume_ast(&service_id, &engine, &ast, &mut scope)?;
 
                 for message in &rx {
+                    if let Some(pattern) = &self.sensor_pattern {
+                        if !pattern.is_match(&message.sensor.id) {
+                            debug!(
+                                "[{}] `{}` is filtered out by the pattern.",
+                                service_id, message.sensor.id
+                            );
+                            continue;
+                        }
+                    }
                     if let Err(error) = engine.call_fn::<_, Dynamic>(&mut scope, &ast, "on_message", (message,)) {
                         error!("[{}] `on_message` has failed: {}", &service_id, error.to_string());
                     }
