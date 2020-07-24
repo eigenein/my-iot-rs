@@ -341,12 +341,7 @@ mod tests {
 
     fn client() -> crate::Result<Client> {
         Ok(Client::new(make_rocket(
-            &Settings {
-                http: HttpSettings {
-                    port: default_http_port(),
-                },
-                services: HashMap::new(),
-            },
+            &toml::from_str::<Settings>("")?,
             Connection::open_and_initialize(":memory:")?,
             Arc::new(AtomicU64::new(0)),
         )?)?)

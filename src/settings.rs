@@ -24,6 +24,7 @@ pub fn read<P: AsRef<Path> + std::fmt::Debug>(paths: Vec<P>) -> Result<Settings>
 /// Settings root.
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Settings {
+    #[serde(default)]
     pub http: HttpSettings,
 
     /// Services configuration.
@@ -38,6 +39,14 @@ pub struct HttpSettings {
     /// Web server port. It's used for the user interface as well as for webhooks.
     #[serde(default = "default_http_port")]
     pub port: u16,
+}
+
+impl Default for HttpSettings {
+    fn default() -> Self {
+        Self {
+            port: default_http_port(),
+        }
+    }
 }
 
 /// Service settings section.

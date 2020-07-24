@@ -1,5 +1,6 @@
-# `master`
+# `0.88.0`
 
+- ✨ New `--suppress-log-timestamps` CLI option, closes #111
 - 💥 Replace the `http_port` setting with the `http.port` setting
 
 # `0.87.0`

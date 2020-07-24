@@ -15,7 +15,7 @@ BindsTo = network-online.target
 After = network.target network-online.target
 
 [Service]
-ExecStart = /home/pi/bin/my-iot --silent my-iot/my-iot.toml my-iot/secrets.toml
+ExecStart = /home/pi/bin/my-iot --silent --suppress-log-timestamps my-iot/my-iot.toml my-iot/secrets.toml
 WorkingDirectory = /home/pi
 StandardOutput = journal
 StandardError = journal
