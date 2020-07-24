@@ -24,14 +24,20 @@ pub fn read<P: AsRef<Path> + std::fmt::Debug>(paths: Vec<P>) -> Result<Settings>
 /// Settings root.
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Settings {
-    /// Web server port. It's used for the user interface as well as for webhooks.
-    #[serde(default = "default_http_port")]
-    pub http_port: u16,
+    pub http: HttpSettings,
 
     /// Services configuration.
     /// Each entry is a pair of service ID (defined by user) and service settings.
     /// Service ID is normally used as a sensor prefix, for instance: `service_id::service_sensor`.
+    #[serde(default = "HashMap::new")]
     pub services: HashMap<String, Service>,
+}
+
+#[derive(Deserialize, Debug, Clone, Serialize)]
+pub struct HttpSettings {
+    /// Web server port. It's used for the user interface as well as for webhooks.
+    #[serde(default = "default_http_port")]
+    pub port: u16,
 }
 
 /// Service settings section.

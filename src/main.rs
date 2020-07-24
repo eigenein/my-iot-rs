@@ -75,7 +75,7 @@ fn main() -> Result {
     services::spawn_all(&settings, &opt.service_ids, &mut bus, &db)?;
     bus.spawn()?;
 
-    info!("Starting web server on port {}…", settings.http_port);
+    info!("Starting web server on port {}…", settings.http.port);
     web::start_server(&settings, db, message_counter)
 }
 

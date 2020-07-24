@@ -1,3 +1,7 @@
+# `master`
+
+- 💥 Replace the `http_port` setting with the `http.port` setting
+
 # `0.87.0`
 
 - ⬆️ Upgrade dependencies

@@ -41,7 +41,7 @@ pub fn start_server(settings: &Settings, db: Connection, message_counter: Arc<At
 fn make_rocket(settings: &Settings, db: Connection, message_counter: Arc<AtomicU64>) -> Result<Rocket> {
     Ok(rocket::custom(
         Config::build(Environment::Production)
-            .port(settings.http_port)
+            .port(settings.http.port)
             .keep_alive(600)
             .finalize()?,
     )
@@ -342,7 +342,9 @@ mod tests {
     fn client() -> crate::Result<Client> {
         Ok(Client::new(make_rocket(
             &Settings {
-                http_port: default_http_port(),
+                http: HttpSettings {
+                    port: default_http_port(),
+                },
                 services: HashMap::new(),
             },
             Connection::open_and_initialize(":memory:")?,
