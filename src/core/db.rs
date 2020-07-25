@@ -52,7 +52,6 @@ impl Connection {
         let connection = Self {
             connection: Arc::new(Mutex::new(rusqlite::Connection::open(path)?)),
         };
-        // language=sql
         connection.connection()?.execute_batch(DATABASE_SCRIPT)?;
         Ok(connection)
     }
@@ -123,6 +122,15 @@ impl Connection {
                 params![hash_sensor_id(sensor_id), since.timestamp_millis()],
                 get_reading,
             )?
+            .map(|r| r.map_err(Into::into))
+            .collect()
+    }
+
+    pub fn select_last_n_readings(&self, sensor_id: &str, limit: usize) -> Result<Vec<Reading>> {
+        self.connection()?
+            // language=sql
+            .prepare_cached("SELECT timestamp, value FROM readings WHERE sensor_fk = ?1 ORDER BY timestamp LIMIT ?2")?
+            .query_map(params![hash_sensor_id(sensor_id), limit as i64], get_reading)?
             .map(|r| r.map_err(Into::into))
             .collect()
     }

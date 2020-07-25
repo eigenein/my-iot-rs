@@ -68,6 +68,8 @@ pub enum Service {
     /// [Ring](https://ring.com)
     Ring(services::ring::Ring),
 
+    SimpleAnomalyDetector(services::anomaly::simple_detector::SimpleAnomalyDetector),
+
     /// Sunrise and sunset messages.
     Solar(services::solar::Solar),
 

@@ -5,6 +5,7 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::Method;
 use std::time::Duration;
 
+pub mod anomaly;
 pub mod buienradar;
 pub mod clock;
 pub mod db;
@@ -37,16 +38,17 @@ pub fn spawn_all(settings: &Settings, service_ids: &Option<Vec<String>>, bus: &m
         if let Err(error) = {
             let service_id = service_id.clone();
             match service.clone() {
-                Service::Buienradar(buienradar) => buienradar.spawn(service_id, bus),
-                Service::Clock(clock) => clock.spawn(service_id, bus),
-                Service::OpenWeather(openweather) => openweather.spawn(service_id, bus),
-                Service::Rhai(rhai) => rhai.spawn(service_id, bus, settings.services.clone()),
-                Service::Ring(ring) => ring.spawn(service_id, bus, db),
-                Service::Solar(solar) => solar.spawn(service_id, bus),
-                Service::Tado(tado) => tado.spawn(service_id, bus),
-                Service::Telegram(telegram) => telegram.spawn(service_id, bus),
-                Service::Threshold(threshold) => threshold.spawn(service_id, bus),
-                Service::YouLess(youless) => youless.spawn(service_id, bus),
+                Service::Buienradar(service) => service.spawn(service_id, bus),
+                Service::Clock(service) => service.spawn(service_id, bus),
+                Service::OpenWeather(service) => service.spawn(service_id, bus),
+                Service::Rhai(service) => service.spawn(service_id, bus, settings.services.clone()),
+                Service::Ring(service) => service.spawn(service_id, bus, db),
+                Service::SimpleAnomalyDetector(service) => service.spawn(service_id, bus, db),
+                Service::Solar(service) => service.spawn(service_id, bus),
+                Service::Tado(service) => service.spawn(service_id, bus),
+                Service::Telegram(service) => service.spawn(service_id, bus),
+                Service::Threshold(service) => service.spawn(service_id, bus),
+                Service::YouLess(service) => service.spawn(service_id, bus),
             }
         } {
             error!("Failed to spawn `{}`: {}", service_id, error.to_string());

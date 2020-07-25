@@ -4,9 +4,10 @@ I consider the service and message passing interface more-or-less stable and don
 
 - Code review
 - Performance improvements
+- Fixing `FIXME`s and `TODO`s
 - Cross-compilation for different boards
-- New service implementation or API documentation
-- Updating the book
+- New service implementation or its API documentation
+- Writing the user documentation
 
 ## Workflow
 

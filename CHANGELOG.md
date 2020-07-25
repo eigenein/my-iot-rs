@@ -1,3 +1,7 @@
+# `0.89.0`
+
+- ✨ `SimpleAnomalyDetector`, closes #125
+
 # `0.88.0`
 
 - ✨ New `--suppress-log-timestamps` CLI option, closes #111
