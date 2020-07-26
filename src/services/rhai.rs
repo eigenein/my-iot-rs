@@ -3,7 +3,7 @@ use std::process::Command;
 use bytes::Bytes;
 use itertools::Itertools;
 use regex::Regex;
-use rhai::{Array, Dynamic, Engine, EvalAltResult, ImmutableString, RegisterFn, RegisterResultFn, Scope, AST};
+use rhai::{Array, Dynamic, Engine, EvalAltResult, ImmutableString, RegisterFn, RegisterResultFn, Scope};
 
 use crate::prelude::*;
 use crate::settings::Service;
@@ -25,22 +25,22 @@ impl Rhai {
         let tx = bus.add_tx();
         let rx = bus.add_rx();
 
+        let mut engine = Engine::new();
+        engine.set_max_expr_depths(128, 32);
+        let ast = engine.compile(&self.script)?;
+        let mut scope = Scope::new();
+
+        Self::register_global_functions(&service_id, &mut engine);
+        Self::register_functions(&mut engine, &tx);
+        Self::push_constants(&mut scope);
+        Self::push_services(&mut scope, services);
+
+        let engine = engine;
+        engine.consume_ast_with_scope(&mut scope, &ast)?;
+
         thread::Builder::new()
             .name(service_id.clone())
             .spawn(move || -> Result<(), ()> {
-                let mut engine = Engine::new();
-                engine.set_max_expr_depths(128, 32);
-                let ast = self.compile_script(&service_id, &engine)?;
-                let mut scope = Scope::new();
-
-                Self::register_global_functions(&service_id, &mut engine);
-                Self::register_functions(&mut engine, &tx);
-                Self::push_constants(&mut scope);
-                Self::push_services(&mut scope, &services);
-
-                let engine = engine;
-                self.consume_ast(&service_id, &engine, &ast, &mut scope)?;
-
                 for message in &rx {
                     if let Some(pattern) = &self.sensor_pattern {
                         if !pattern.is_match(&message.sensor.id) {
@@ -60,20 +60,6 @@ impl Rhai {
             })?;
 
         Ok(())
-    }
-
-    /// Safely compiles the script and logs any errors.
-    fn compile_script(&self, service_id: &str, engine: &Engine) -> Result<AST, ()> {
-        engine
-            .compile(&self.script)
-            .map_err(|error| error!("[{}] Compilation error: {}", service_id, error.to_string()))
-    }
-
-    /// Safely executes the AST and logs any errors.
-    fn consume_ast(&self, service_id: &str, engine: &Engine, ast: &AST, scope: &mut Scope) -> Result<(), ()> {
-        engine
-            .consume_ast_with_scope(scope, &ast)
-            .map_err(|error| error!("[{}] Execution error: {}", service_id, error.to_string()))
     }
 
     fn register_global_functions(service_id: &str, engine: &mut Engine) {
@@ -98,10 +84,10 @@ impl Rhai {
     }
 
     /// Assigns the service instances to the inner variables.
-    fn push_services<'a>(scope: &mut Scope<'a>, services: &'a HashMap<String, Service>) {
-        for (service_id, service) in services.iter() {
+    fn push_services(scope: &mut Scope, services: HashMap<String, Service>) {
+        for (service_id, service) in services.into_iter() {
             #[allow(clippy::single_match)]
-            match service.clone() {
+            match service {
                 Service::Telegram(telegram) => {
                     scope.push_constant(service_id, telegram);
                 }
