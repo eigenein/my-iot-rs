@@ -1,5 +1,6 @@
 # `master`
 
+- ⬆️ Upgrade dependencies
 - ♻️ Initialize `Rhai` in the main thread since I use a `Sync` engine
 - ♻️ Extract the duplicated code into `crate::services::helpers::expect`
 
