@@ -36,7 +36,3 @@ pub const USER_AGENT: &str = concat!(
 pub fn to_debug_string<T: std::fmt::Debug>(this: &mut T) -> String {
     format!("{:?}", this)
 }
-
-pub fn to_string<O: ToString>(object: O) -> String {
-    object.to_string()
-}

@@ -218,7 +218,7 @@ fn spawn_process(program: &str, args: Array) -> FnResult {
     Command::new(program)
         .args(args.iter().map(|arg| arg.to_string()))
         .spawn()
-        .map_err(to_string)?;
+        .map_err(|error| error.to_string())?;
     Ok(().into())
 }
 
