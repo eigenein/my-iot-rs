@@ -9,6 +9,7 @@ pub mod anomaly;
 pub mod buienradar;
 pub mod clock;
 pub mod db;
+pub mod helpers;
 pub mod openweather;
 pub mod rhai;
 pub mod ring;

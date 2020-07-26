@@ -1,3 +1,7 @@
+# `master`
+
+- ♻️ Extract the duplicated code into `crate::services::helpers::expect`
+
 # `0.89.0`
 
 - ✨ `SimpleAnomalyDetector`, closes #125

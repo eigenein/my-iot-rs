@@ -4,6 +4,7 @@ use statrs::statistics::Statistics;
 
 use crate::prelude::*;
 use crate::services::anomaly::min_heap_reading::MinHeapReading;
+use crate::services::helpers::expect::expect;
 
 /// [Normal distribution](https://en.wikipedia.org/wiki/Normal_distribution)-based
 /// [anomaly detector](https://en.wikipedia.org/wiki/Anomaly_detection).
@@ -43,15 +44,9 @@ impl SimpleAnomalyDetector {
             let mut mean_variance: Option<(f64, f64)> = None;
 
             for message in rx {
-                // TODO: duplicated code, see `threshold.rs`.
-                if message.sensor.id != self.sensor_id {
-                    continue;
-                }
-                let value = if let Ok(value) = TryInto::<f64>::try_into(&message.reading.value) {
-                    value
-                } else {
-                    error!("[{}] Value is not `f64`.", &service_id);
-                    continue;
+                let value = match expect::<f64>(&service_id, &message, &self.sensor_id) {
+                    Some(value) => value,
+                    None => continue,
                 };
 
                 if let Some((mean, variance)) = mean_variance {

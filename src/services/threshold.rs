@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::services::helpers::expect::expect;
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Threshold {
@@ -26,14 +27,9 @@ impl Threshold {
             .spawn(move || -> Result<(), ()> {
                 let mut state = None;
                 for message in &rx {
-                    if message.sensor.id != self.sensor_id {
-                        continue;
-                    }
-                    let value = if let Ok(value) = TryInto::<f64>::try_into(&message.reading.value) {
-                        value
-                    } else {
-                        error!("[{}] Value is not `f64`.", &service_id);
-                        continue;
+                    let value = match expect::<f64>(&service_id, &message, &self.sensor_id) {
+                        Some(value) => value,
+                        None => continue,
                     };
                     if (state == Some(State::Low) || state.is_none()) && value >= self.high {
                         state = Some(State::High);
