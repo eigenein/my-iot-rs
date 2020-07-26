@@ -1,5 +1,6 @@
 # `master`
 
+- ⚡️ Remove unnecessary `cloned()` calls
 - ♻️ Refactor Telegram bindings in Rhai
 - ⬆️ Upgrade dependencies
 - ♻️ Initialize `Rhai` in the main thread since I use a `Sync` engine
