@@ -3,7 +3,7 @@
 use crate::prelude::*;
 use crate::services::{call_json_api, CLIENT};
 use reqwest::{Method, Url};
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::{Mutex, MutexGuard};
 use std::time::{Duration, SystemTime};
 
 const CLIENT_ID: &str = "public-api-preview";

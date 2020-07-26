@@ -3,9 +3,9 @@
 //! The bus implements many-producer-many-consumer queue and allows each service
 //! to listen to each other service.
 
-use crate::prelude::*;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::Arc;
+
+use crate::prelude::*;
 
 pub struct Bus {
     /// Service message inbox senders.

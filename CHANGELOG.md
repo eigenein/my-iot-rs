@@ -1,5 +1,6 @@
 # `master`
 
+- 🔥 Remove unnecessary imports
 - ⚡️ Remove unnecessary `cloned()` calls
 - ♻️ Refactor Telegram bindings in Rhai
 - ⬆️ Upgrade dependencies
