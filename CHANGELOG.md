@@ -1,5 +1,6 @@
-# `master`
+# `0.90.0`
 
+- ♻️ De-duplicate code in `buienradar` and `db`
 - 🔥 Remove unnecessary imports
 - ⚡️ Remove unnecessary `cloned()` calls
 - ♻️ Refactor Telegram bindings in Rhai

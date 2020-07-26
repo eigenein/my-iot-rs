@@ -48,79 +48,72 @@ impl Buienradar {
         if let Some(temperature) = measurement.temperature {
             tx.send(
                 Message::new(format!("{}::temperature", sensor_prefix))
-                    .type_(MessageType::ReadLogged)
                     .value(Value::Temperature(temperature))
-                    .timestamp(measurement.timestamp)
-                    .sensor_title("Temperature")
-                    .location(&measurement.name),
+                    .set_common_buienradar_attributes(measurement)
+                    .sensor_title("Temperature"),
             )?;
         }
         if let Some(temperature) = measurement.ground_temperature {
             tx.send(
                 Message::new(format!("{}::temperature::ground", sensor_prefix))
-                    .type_(MessageType::ReadLogged)
                     .value(Value::Temperature(temperature))
-                    .timestamp(measurement.timestamp)
-                    .sensor_title("Ground Temperature")
-                    .location(&measurement.name),
+                    .set_common_buienradar_attributes(measurement)
+                    .sensor_title("Ground Temperature"),
             )?;
         }
         if let Some(temperature) = measurement.feel_temperature {
             tx.send(
                 Message::new(format!("{}::temperature::feel", sensor_prefix))
-                    .type_(MessageType::ReadLogged)
                     .value(Value::Temperature(temperature))
-                    .timestamp(measurement.timestamp)
-                    .sensor_title("Feel Temperature")
-                    .location(&measurement.name),
+                    .set_common_buienradar_attributes(measurement)
+                    .sensor_title("Feel Temperature"),
             )?;
         }
         if let Some(bft) = measurement.wind_speed_bft {
             tx.send(
                 Message::new(format!("{}::wind::force", sensor_prefix))
-                    .type_(MessageType::ReadLogged)
                     .value(Value::Bft(bft))
-                    .timestamp(measurement.timestamp)
-                    .sensor_title("Wind Force")
-                    .location(&measurement.name),
+                    .set_common_buienradar_attributes(measurement)
+                    .sensor_title("Wind Force"),
             )?;
         }
         if let Some(point) = &measurement.wind_direction {
             tx.send(
                 Message::new(format!("{}::wind::direction", sensor_prefix))
-                    .type_(MessageType::ReadLogged)
                     .value(Value::StringEnum(point.clone()))
-                    .timestamp(measurement.timestamp)
-                    .sensor_title("Wind Direction")
-                    .location(&measurement.name),
+                    .set_common_buienradar_attributes(measurement)
+                    .sensor_title("Wind Direction"),
             )?;
         }
         if let Some(watts) = measurement.sun_power {
             Message::new(format!("{}::sun::power", sensor_prefix))
                 .value(Value::Power(watts))
-                .timestamp(measurement.timestamp)
+                .set_common_buienradar_attributes(measurement)
                 .sensor_title("Sun Power per ㎡")
-                .location(&measurement.name)
                 .send_and_forget(tx);
         }
         if let Some(speed) = measurement.wind_speed {
             Message::new(format!("{}::wind::speed", sensor_prefix))
                 .value(Value::Speed(speed))
-                .timestamp(measurement.timestamp)
+                .set_common_buienradar_attributes(measurement)
                 .sensor_title("Wind Speed")
-                .location(&measurement.name)
                 .send_and_forget(tx);
         }
         if let Some(speed) = measurement.wind_gusts {
             Message::new(format!("{}::wind::gusts", sensor_prefix))
                 .value(Value::Speed(speed))
-                .timestamp(measurement.timestamp)
+                .set_common_buienradar_attributes(measurement)
                 .sensor_title("Wind Gusts")
-                .location(&measurement.name)
                 .send_and_forget(tx);
         }
 
         Ok(())
+    }
+}
+
+impl Message {
+    fn set_common_buienradar_attributes(self, measurement: &BuienradarStationMeasurement) -> Self {
+        self.timestamp(measurement.timestamp).location(&measurement.name)
     }
 }
 

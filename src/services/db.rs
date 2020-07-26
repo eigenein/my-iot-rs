@@ -17,21 +17,27 @@ impl Db {
         tx.send(
             Message::new("db::size")
                 .value(Value::DataSize(db.select_size()?))
-                .sensor_title("Database Size".to_string())
-                .location("System"),
+                .sensor_title("Database Size")
+                .set_common_db_attributes(),
         )?;
         tx.send(
             Message::new("db::sensor_count")
                 .value(Value::Counter(db.select_sensor_count()?))
                 .sensor_title("Sensor Count")
-                .location("System"),
+                .set_common_db_attributes(),
         )?;
         tx.send(
             Message::new("db::reading_count")
                 .value(Value::Counter(db.select_reading_count()?))
                 .sensor_title("Reading Count")
-                .location("System"),
+                .set_common_db_attributes(),
         )?;
         Ok(())
+    }
+}
+
+impl Message {
+    fn set_common_db_attributes(self) -> Self {
+        self.location("System")
     }
 }
