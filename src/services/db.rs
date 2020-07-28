@@ -22,7 +22,7 @@ impl Db {
         )?;
         tx.send(
             Message::new("db::sensor_count")
-                .value(Value::Counter(db.select_sensor_count()?))
+                .value(Value::Counter(db.select_sensor_count()?.try_into()?))
                 .sensor_title("Sensor Count")
                 .set_common_db_attributes(),
         )?;

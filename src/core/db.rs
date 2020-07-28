@@ -2,6 +2,7 @@
 
 use crate::prelude::*;
 use chrono::prelude::*;
+use rusqlite::types::FromSql;
 use rusqlite::{params, Row};
 use rusqlite::{OptionalExtension, NO_PARAMS};
 use std::path::Path;
@@ -10,36 +11,6 @@ use std::sync::{Arc, Mutex, MutexGuard};
 pub mod reading;
 pub mod sensor;
 pub mod thread;
-
-// language=sql
-const DATABASE_SCRIPT: &str = r#"
-    PRAGMA foreign_keys = ON;
-
-    CREATE TABLE IF NOT EXISTS sensors (
-        pk INTEGER NOT NULL PRIMARY KEY, -- `sensor_id` SeaHash
-        sensor_id TEXT NOT NULL UNIQUE,
-        timestamp INTEGER NOT NULL, -- unix time, milliseconds
-        title TEXT DEFAULT NULL,
-        room_title TEXT DEFAULT NULL, -- renamed to `location`
-        value JSON NOT NULL,
-        expires_at INTEGER NOT NULL -- deprecated and unused
-    );
-
-    CREATE TABLE IF NOT EXISTS readings (
-        sensor_fk INTEGER NOT NULL REFERENCES sensors ON UPDATE CASCADE ON DELETE CASCADE,
-        timestamp INTEGER NOT NULL, -- unix time, milliseconds
-        value JSON NOT NULL
-    );
-
-    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_fk_timestamp
-        ON readings (sensor_fk ASC, timestamp DESC);
-
-    CREATE TABLE IF NOT EXISTS user_data (
-        pk TEXT NOT NULL PRIMARY KEY,
-        value JSON NOT NULL,
-        expires_at INTEGER NULL -- unix time, milliseconds
-    );
-"#;
 
 /// Wraps `rusqlite::Connection` and provides the high-level database methods.
 #[derive(Clone)]
@@ -52,13 +23,34 @@ impl Connection {
         let connection = Self {
             connection: Arc::new(Mutex::new(rusqlite::Connection::open(path)?)),
         };
-        connection.connection()?.execute_batch(DATABASE_SCRIPT)?;
+        connection.connection()?.execute_batch("PRAGMA foreign_keys = ON;")?;
+        connection.migrate()?;
         Ok(connection)
+    }
+
+    fn migrate(&self) -> Result {
+        let user_version = self.get_user_version()?;
+        let mut connection = self.connection()?;
+        for (i, migration) in MIGRATIONS.iter().enumerate() {
+            if user_version < i + 1 {
+                info!("Applying migration #{}…", i + 1);
+                let tx = connection.transaction()?;
+                tx.execute_batch(migration)?;
+                tx.commit()?;
+            }
+        }
+        Ok(())
     }
 
     /// Acquires lock and returns the underlying `rusqlite::Connection`.
     pub fn connection(&self) -> Result<MutexGuard<'_, rusqlite::Connection>> {
         Ok(self.connection.lock().expect("Failed to acquire the database lock"))
+    }
+
+    pub fn get_user_version(&self) -> Result<usize> {
+        Ok(self
+            .connection()?
+            .pragma_query_value(None, "user_version", get_single::<i64, usize>)?)
     }
 
     /// Selects the latest readings for all sensors.
@@ -84,8 +76,7 @@ impl Connection {
                 SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()
                 "#,
             )?
-            .query_row(NO_PARAMS, get_i64)
-            .map(|v| v as u64)?)
+            .query_row(NO_PARAMS, get_single::<i64, u64>)?)
     }
 
     /// Selects the specified sensor.
@@ -135,13 +126,12 @@ impl Connection {
             .collect()
     }
 
-    pub fn select_sensor_count(&self) -> Result<u64> {
+    pub fn select_sensor_count(&self) -> Result<usize> {
         Ok(self
             .connection()?
             // language=sql
             .prepare_cached("SELECT COUNT(*) FROM sensors")?
-            .query_row(NO_PARAMS, get_i64)
-            .map(|v| v as u64)?)
+            .query_row(NO_PARAMS, get_single::<i64, usize>)?)
     }
 
     pub fn select_reading_count(&self) -> Result<u64> {
@@ -149,8 +139,7 @@ impl Connection {
             .connection()?
             // language=sql
             .prepare_cached("SELECT COUNT(*) FROM readings")?
-            .query_row(NO_PARAMS, get_i64)
-            .map(|v| v as u64)?)
+            .query_row(NO_PARAMS, get_single::<i64, u64>)?)
     }
 
     pub fn select_sensor_reading_count(&self, sensor_id: &str) -> Result<u64> {
@@ -158,8 +147,7 @@ impl Connection {
             .connection()?
             // language=sql
             .prepare_cached("SELECT COUNT(*) FROM readings WHERE sensor_fk = ?1")?
-            .query_row(params![hash_sensor_id(sensor_id)], get_i64)
-            .map(|v| v as u64)?)
+            .query_row(params![hash_sensor_id(sensor_id)], get_single::<i64, u64>)?)
     }
 
     // TODO: transaction version.
@@ -216,6 +204,7 @@ fn get_sensor(row: &Row) -> rusqlite::Result<Sensor> {
         id: row.get("sensor_id")?,
         title: row.get("title")?,
         location: row.get("room_title")?,
+        is_writable: row.get("is_writable")?,
     })
 }
 
@@ -231,10 +220,16 @@ fn get_sensor_reading(row: &Row) -> rusqlite::Result<(Sensor, Reading)> {
     Ok((get_sensor(row)?, get_reading(row)?))
 }
 
-/// Selects a single `i64` value, used with single-integer `SELECT`s.
 #[inline(always)]
-fn get_i64(row: &Row) -> rusqlite::Result<i64> {
-    row.get::<_, i64>(0)
+fn get_single<T, R>(row: &Row) -> rusqlite::Result<R>
+where
+    T: FromSql,
+    R: TryFrom<T>,
+    R::Error: Send + Sync + Error + 'static,
+{
+    TryInto::<R>::try_into(row.get::<_, T>(0)?)
+        .map_err(Box::new)
+        .map_err(|error| rusqlite::Error::FromSqlConversionFailure(0, row.get_raw(0).data_type(), error))
 }
 
 impl Message {
@@ -249,13 +244,14 @@ impl Message {
                 // language=sql
                 r#"
                     -- noinspection SqlResolve @ any/"excluded"
-                    INSERT INTO sensors (pk, sensor_id, title, timestamp, room_title, value, expires_at)
-                    VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0)
+                    INSERT INTO sensors (pk, sensor_id, title, timestamp, room_title, value, expires_at, is_writable)
+                    VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0, ?7)
                     ON CONFLICT (pk) DO UPDATE SET
                         timestamp = excluded.timestamp,
                         title = excluded.title,
                         room_title = excluded.room_title,
-                        value = excluded.value
+                        value = excluded.value,
+                        is_writable = excluded.is_writable
                 "#,
             )?
             .execute(params![
@@ -265,6 +261,7 @@ impl Message {
                 timestamp,
                 self.sensor.location,
                 value,
+                self.sensor.is_writable,
             ])?;
 
         connection
@@ -289,17 +286,47 @@ impl From<Message> for (Sensor, Reading) {
     }
 }
 
+const MIGRATIONS: &[&str] = &[
+    // language=sql
+    r#"
+    CREATE TABLE IF NOT EXISTS sensors (
+        pk INTEGER NOT NULL PRIMARY KEY, -- `sensor_id` SeaHash
+        sensor_id TEXT NOT NULL UNIQUE,
+        timestamp INTEGER NOT NULL, -- unix time, milliseconds
+        title TEXT DEFAULT NULL,
+        room_title TEXT DEFAULT NULL, -- renamed to `location`
+        value JSON NOT NULL,
+        expires_at INTEGER NOT NULL -- unused
+    );
+
+    CREATE TABLE IF NOT EXISTS readings (
+        sensor_fk INTEGER NOT NULL REFERENCES sensors ON UPDATE CASCADE ON DELETE CASCADE,
+        timestamp INTEGER NOT NULL, -- unix time, milliseconds
+        value JSON NOT NULL -- serialized `Value`
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_fk_timestamp
+        ON readings (sensor_fk ASC, timestamp DESC);
+
+    CREATE TABLE IF NOT EXISTS user_data (
+        pk TEXT NOT NULL PRIMARY KEY,
+        value JSON NOT NULL, -- serialized `Value`
+        expires_at INTEGER NULL -- unix time, milliseconds
+    );
+
+    PRAGMA user_version = 1;
+    "#,
+    // language=sql
+    r#"
+    ALTER TABLE sensors ADD COLUMN is_writable INTEGER NOT NULL DEFAULT 0;
+    PRAGMA user_version = 2;
+    "#,
+];
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use chrono::Duration;
-
-    #[test]
-    fn database_script_run_twice_ok() -> Result {
-        let db = Connection::open_and_initialize(":memory:")?;
-        db.connection()?.execute_batch(DATABASE_SCRIPT)?;
-        Ok(())
-    }
 
     #[test]
     fn double_upsert_keeps_one_reading() -> Result {

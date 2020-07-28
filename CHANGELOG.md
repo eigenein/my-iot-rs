@@ -1,5 +1,6 @@
 # `master`
 
+- 🚧 Support writable sensors #98
 - ⬆️ Upgrade dependencies
 
 # `0.90.0`

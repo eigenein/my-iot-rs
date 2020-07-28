@@ -40,6 +40,7 @@ impl Message {
                 id: sensor_id.into(),
                 title: None,
                 location: DEFAULT_LOCATION.into(),
+                is_writable: false,
             },
             reading: Reading {
                 timestamp: Local::now(),

@@ -8,4 +8,6 @@ pub struct Sensor {
 
     /// Human-readable location title.
     pub location: String,
+
+    pub is_writable: bool,
 }
