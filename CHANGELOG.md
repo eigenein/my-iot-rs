@@ -1,3 +1,7 @@
+# `master`
+
+- ⬆️ Upgrade dependencies
+
 # `0.90.0`
 
 - ♻️ De-duplicate code in `buienradar` and `db`
