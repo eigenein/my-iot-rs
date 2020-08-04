@@ -23,7 +23,9 @@ impl Connection {
         let connection = Self {
             connection: Arc::new(Mutex::new(rusqlite::Connection::open(path)?)),
         };
-        connection.connection()?.execute_batch("PRAGMA foreign_keys = ON;")?;
+        connection
+            .connection()?
+            .execute("PRAGMA foreign_keys = ON", NO_PARAMS)?;
         connection.migrate()?;
         Ok(connection)
     }
@@ -37,6 +39,8 @@ impl Connection {
                 let tx = connection.transaction()?;
                 tx.execute_batch(migration)?;
                 tx.commit()?;
+                info!("Vacuuming…");
+                connection.execute("VACUUM", NO_PARAMS)?;
             }
         }
         Ok(())
@@ -58,7 +62,7 @@ impl Connection {
         self.connection()?
             .prepare_cached(
                 // language=sql
-                r"SELECT * FROM sensors ORDER BY room_title, sensor_id",
+                r"SELECT * FROM sensors ORDER BY location, sensor_id",
             )?
             .query_map(NO_PARAMS, get_sensor_reading)?
             .map(|r| r.map_err(Into::into))
@@ -150,7 +154,6 @@ impl Connection {
             .query_row(params![hash_sensor_id(sensor_id)], get_single::<i64, u64>)?)
     }
 
-    // TODO: transaction version.
     pub fn set_user_data<V: Serialize>(&self, key: &str, value: V, expires_at: Option<DateTime<Local>>) -> Result {
         self.connection()?
             // language=sql
@@ -164,7 +167,7 @@ impl Connection {
             )?
             .execute(params![
                 key,
-                serde_json::to_string(&value)?,
+                bincode::serialize(&value)?,
                 expires_at.as_ref().map(DateTime::<Local>::timestamp_millis),
             ])?;
         Ok(())
@@ -177,12 +180,12 @@ impl Connection {
             .prepare_cached(
                 r#"
                 -- Having fun with strings getting auto-converted to integers.
-                SELECT CAST(value AS TEXT) as value FROM user_data
+                SELECT value FROM user_data
                 WHERE pk = ?1 AND (expires_at IS NULL OR expires_at >= ?2)
                 "#,
             )?
             .query_row(params![key, Local::now().timestamp_millis()], |row| {
-                Ok(serde_json::from_str(&row.get::<_, String>(0)?).expect("deserialization"))
+                Ok(bincode::deserialize(&row.get::<_, Vec<u8>>(0)?).unwrap())
             })
             .optional()?)
     }
@@ -203,7 +206,7 @@ fn get_sensor(row: &Row) -> rusqlite::Result<Sensor> {
     Ok(Sensor {
         id: row.get("sensor_id")?,
         title: row.get("title")?,
-        location: row.get("room_title")?,
+        location: row.get("location")?,
         is_writable: row.get("is_writable")?,
     })
 }
@@ -212,7 +215,7 @@ fn get_sensor(row: &Row) -> rusqlite::Result<Sensor> {
 fn get_reading(row: &Row) -> rusqlite::Result<Reading> {
     Ok(Reading {
         timestamp: Local.timestamp_millis(row.get("timestamp")?),
-        value: serde_json::from_str(&row.get::<_, String>("value")?).unwrap_or(Value::Other),
+        value: bincode::deserialize(&row.get::<_, Vec<u8>>("value")?).unwrap_or(Value::Other),
     })
 }
 
@@ -237,19 +240,19 @@ impl Message {
     pub fn upsert_into(&self, connection: &rusqlite::Connection) -> Result {
         let sensor_pk = hash_sensor_id(&self.sensor.id);
         let timestamp = self.reading.timestamp.timestamp_millis();
-        let value = serde_json::to_string(&self.reading.value)?;
+        let value = bincode::serialize(&self.reading.value)?;
 
         connection
             .prepare_cached(
                 // language=sql
                 r#"
                     -- noinspection SqlResolve @ any/"excluded"
-                    INSERT INTO sensors (pk, sensor_id, title, timestamp, room_title, value, expires_at, is_writable)
-                    VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0, ?7)
+                    INSERT INTO sensors (pk, sensor_id, title, timestamp, location, value, is_writable)
+                    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
                     ON CONFLICT (pk) DO UPDATE SET
                         timestamp = excluded.timestamp,
                         title = excluded.title,
-                        room_title = excluded.room_title,
+                        location = excluded.location,
                         value = excluded.value,
                         is_writable = excluded.is_writable
                 "#,
@@ -310,16 +313,51 @@ const MIGRATIONS: &[&str] = &[
 
     CREATE TABLE IF NOT EXISTS user_data (
         pk TEXT NOT NULL PRIMARY KEY,
-        value JSON NOT NULL, -- serialized `Value`
+        value JSON NOT NULL,
         expires_at INTEGER NULL -- unix time, milliseconds
     );
 
     PRAGMA user_version = 1;
     "#,
+    //
     // language=sql
     r#"
     ALTER TABLE sensors ADD COLUMN is_writable INTEGER NOT NULL DEFAULT 0;
     PRAGMA user_version = 2;
+    "#,
+    //
+    // language=sql
+    r#"
+    DROP TABLE readings;
+    DROP TABLE sensors;
+    DROP TABLE user_data;
+
+    CREATE TABLE IF NOT EXISTS sensors (
+        pk INTEGER NOT NULL PRIMARY KEY, -- `sensor_id` SeaHash
+        sensor_id TEXT NOT NULL UNIQUE,
+        timestamp INTEGER NOT NULL, -- unix time, milliseconds
+        title TEXT DEFAULT NULL,
+        location TEXT DEFAULT NULL,
+        value BLOB NOT NULL,
+        is_writable INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS readings (
+        sensor_fk INTEGER NOT NULL REFERENCES sensors ON UPDATE CASCADE ON DELETE CASCADE,
+        timestamp INTEGER NOT NULL, -- unix time, milliseconds
+        value JSON NOT NULL -- serialized `Value`
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_fk_timestamp
+        ON readings (sensor_fk ASC, timestamp DESC);
+
+    CREATE TABLE IF NOT EXISTS user_data (
+        pk TEXT NOT NULL PRIMARY KEY,
+        value BLOB NOT NULL,
+        expires_at INTEGER NULL -- unix time, milliseconds
+    );
+
+    PRAGMA user_version = 3;
     "#,
 ];
 

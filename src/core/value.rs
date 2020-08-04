@@ -1,6 +1,7 @@
 //! Implements sensor reading value.
 
-use serde::{Deserialize, Serialize};
+use crate::prelude::*;
+use serde::{de, Deserialize, Serialize, Serializer};
 
 use bytes::Bytes;
 use std::sync::Arc;
@@ -10,7 +11,6 @@ pub mod try_into;
 
 /// Sensor reading value.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-#[serde(tag = "type", content = "value")]
 pub enum Value {
     /// No value.
     None,
@@ -69,9 +69,8 @@ pub enum Value {
     /// Battery relative charge, percentage.
     BatteryLife(f64),
 
-    /// Binary content. Isn't stored in a database at the moment.
-    /// Perhaps, I should write a custom serialization for this particular variant.
-    #[serde(skip)]
+    /// Arbitrary binary content.
+    #[serde(serialize_with = "serialize_bytes", deserialize_with = "deserialize_bytes")]
     Blob(Arc<Bytes>),
 
     /// String value from a finite set.
@@ -86,4 +85,14 @@ impl AsRef<Value> for Value {
     fn as_ref(&self) -> &Self {
         &self
     }
+}
+
+fn serialize_bytes<S: Serializer>(bytes: &Arc<Bytes>, serializer: S) -> Result<S::Ok, S::Error> {
+    serializer.serialize_bytes(bytes.as_ref())
+}
+
+fn deserialize_bytes<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Arc<Bytes>, D::Error> {
+    Ok(Arc::new(Bytes::from(
+        Vec::<u8>::deserialize(deserializer).map_err(de::Error::custom)?,
+    )))
 }

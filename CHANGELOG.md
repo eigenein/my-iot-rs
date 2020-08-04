@@ -1,5 +1,6 @@
-# `master`
+# `0.91.0`
 
+- 💥 Change the value serialization and **drop all the sensors and readings** #133
 - 🚧 Support writable sensors #98
 - ⬆️ Upgrade dependencies
 
