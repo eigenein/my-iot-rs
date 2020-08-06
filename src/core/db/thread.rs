@@ -65,12 +65,8 @@ fn upsert_messages(db: &Connection, messages: Vec<Message>) -> Result {
 
     for message in messages.iter() {
         if message.type_ == MessageType::ReadLogged {
-            if let Value::Blob(..) = message.reading.value {
-                // FIXME: this `if` is not needed anymore.
-            } else {
-                debug!("{:?}", &message);
-                message.upsert_into(&*transaction)?;
-            }
+            debug!("[{:?}] {}", &message.type_, &message.sensor.id);
+            message.upsert_into(&*transaction)?;
         }
     }
 

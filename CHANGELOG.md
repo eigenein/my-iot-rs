@@ -1,5 +1,6 @@
 # `master`
 
+- 🔥 Remove the condition to avoid storing of BLOBs into the database
 - 💡 Improve documentation comments
 - ⬆️ Upgrade dependencies
 
