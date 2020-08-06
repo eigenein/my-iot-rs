@@ -223,6 +223,12 @@ fn get_sensor_reading(row: &Row) -> rusqlite::Result<(Sensor, Reading)> {
     Ok((get_sensor(row)?, get_reading(row)?))
 }
 
+/// Gets a single value from the row.
+///
+/// # Type Arguments
+///
+/// - `T`: type that is passed to the database driver.
+/// - `R`: desired return type.
 #[inline(always)]
 fn get_single<T, R>(row: &Row) -> rusqlite::Result<R>
 where
@@ -289,6 +295,7 @@ impl From<Message> for (Sensor, Reading) {
     }
 }
 
+// TODO: move to a separate file.
 const MIGRATIONS: &[&str] = &[
     // language=sql
     r#"

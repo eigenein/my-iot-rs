@@ -1,3 +1,5 @@
+//! Simple anomaly detector based on normal distribution for a one variable.
+
 use std::collections::BinaryHeap;
 
 use statrs::statistics::Statistics;

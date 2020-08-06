@@ -1,3 +1,5 @@
+//! Convenience functions to construct a `Value`.
+
 use crate::prelude::*;
 
 impl From<bool> for Value {

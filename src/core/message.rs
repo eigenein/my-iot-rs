@@ -1,4 +1,4 @@
-//! Describes a sensor reading and related structures.
+//! Describes a message, the core reading exchange structure.
 
 use crate::prelude::*;
 

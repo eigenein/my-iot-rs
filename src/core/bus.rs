@@ -17,16 +17,18 @@ pub struct Bus {
     /// The bus message inbox receiver.
     rx: Receiver,
 
-    message_counter: Arc<AtomicU64>,
+    /// Dispatched message count.
+    message_count: Arc<AtomicU64>,
 }
 
 impl Bus {
     pub fn new(message_counter: Arc<AtomicU64>) -> Self {
+        // TODO: initialize the `message_counter` here and add a function to return a clone.
         let (tx, rx) = crossbeam::channel::unbounded::<Message>();
         Self {
             tx,
             rx,
-            message_counter,
+            message_count: message_counter,
             service_txs: Vec::new(),
         }
     }
@@ -52,7 +54,7 @@ impl Bus {
                 for tx in self.service_txs.iter() {
                     message.clone().send_and_forget(&tx);
                 }
-                let number = self.message_counter.fetch_add(1, Ordering::Relaxed);
+                let number = self.message_count.fetch_add(1, Ordering::Relaxed);
                 debug!("Dispatched (#{}) {}", number, &message.sensor.id);
             }
             unreachable!();

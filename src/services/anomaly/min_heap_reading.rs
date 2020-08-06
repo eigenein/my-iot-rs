@@ -1,3 +1,6 @@
+//! Defines a structure and the related operations to implement a min-heap
+//! with the max-heap from the standard library.
+
 use chrono::{DateTime, Local};
 use std::cmp::Ordering;
 

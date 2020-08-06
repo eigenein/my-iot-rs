@@ -1,6 +1,8 @@
 use crate::prelude::*;
 use std::any::type_name;
 
+/// Returns a `Some<T>` if the message matches the specified sensor ID and
+/// the reading is convertible to the specified type.
 pub fn expect<'a, T: TryFrom<&'a Value>>(
     service_id: &str,
     message: &'a Message,

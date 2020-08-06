@@ -1,5 +1,6 @@
 # `master`
 
+- 💡 Improve documentation comments
 - ⬆️ Upgrade dependencies
 
 # `0.91.0`

@@ -1,3 +1,5 @@
+//! Telegram methods for Rhai.
+
 use bytes::Bytes;
 use rhai::{Dynamic, Engine, Map, RegisterResultFn};
 

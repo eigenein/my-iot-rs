@@ -1,3 +1,5 @@
+//! Database persistence thread.
+
 use crate::prelude::*;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
@@ -34,6 +36,7 @@ pub fn spawn(db: Connection, bus: &mut Bus) -> Result {
                 if buffer.is_empty() {
                     continue;
                 }
+                // TODO: is it possible to move out the messages instead of clone+clear?
                 let messages = buffer.clone();
                 buffer.clear();
                 messages
@@ -63,7 +66,7 @@ fn upsert_messages(db: &Connection, messages: Vec<Message>) -> Result {
     for message in messages.iter() {
         if message.type_ == MessageType::ReadLogged {
             if let Value::Blob(..) = message.reading.value {
-                // TODO: custom serialization.
+                // FIXME: this `if` is not needed anymore.
             } else {
                 debug!("{:?}", &message);
                 message.upsert_into(&*transaction)?;
