@@ -30,24 +30,16 @@ pub fn spawn(db: Connection, bus: &mut Bus) -> Result {
         .spawn(move || loop {
             sleep(Duration::from_millis(COMMIT_INTERVAL_MILLIS));
 
-            let messages = {
-                // Acquire a lock, quickly clone the messages (if any) and release the lock.
-                let mut buffer = buffer.lock().unwrap();
-                if buffer.is_empty() {
-                    continue;
-                }
-                // TODO: is it possible to move out the messages instead of clone+clear?
-                let messages = buffer.clone();
-                buffer.clear();
-                messages
-            };
+            // Acquire the lock, drain the buffer and release the lock immediately.
+            let messages: Vec<Message> = { buffer.lock().unwrap().drain(..).collect() };
 
-            // Now `messages` is a clone, thus we can perform a slow operation.
-            let start_time = Instant::now();
-            if let Err(error) = upsert_messages(&db, messages) {
-                error!("could not upsert the messages: {}", error);
+            if !messages.is_empty() {
+                let start_time = Instant::now();
+                if let Err(error) = upsert_messages(&db, messages) {
+                    error!("could not upsert the messages: {}", error);
+                }
+                info!("Took {:.1?}.", start_time.elapsed());
             }
-            info!("Took {:.1?}.", start_time.elapsed());
         })?;
 
     Ok(())
