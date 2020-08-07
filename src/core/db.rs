@@ -8,6 +8,7 @@ use rusqlite::{OptionalExtension, NO_PARAMS};
 use std::path::Path;
 use std::sync::{Arc, Mutex, MutexGuard};
 
+pub mod migrations;
 pub mod reading;
 pub mod sensor;
 pub mod thread;
@@ -33,7 +34,7 @@ impl Connection {
     fn migrate(&self) -> Result {
         let user_version = self.get_user_version()?;
         let mut connection = self.connection()?;
-        for (i, migration) in MIGRATIONS.iter().enumerate() {
+        for (i, migration) in migrations::MIGRATIONS.iter().enumerate() {
             if user_version < i + 1 {
                 info!("Applying migration #{}…", i + 1);
                 let tx = connection.transaction()?;
@@ -294,79 +295,6 @@ impl From<Message> for (Sensor, Reading) {
         (message.sensor, message.reading)
     }
 }
-
-// TODO: move to a separate file.
-const MIGRATIONS: &[&str] = &[
-    // language=sql
-    r#"
-    CREATE TABLE IF NOT EXISTS sensors (
-        pk INTEGER NOT NULL PRIMARY KEY, -- `sensor_id` SeaHash
-        sensor_id TEXT NOT NULL UNIQUE,
-        timestamp INTEGER NOT NULL, -- unix time, milliseconds
-        title TEXT DEFAULT NULL,
-        room_title TEXT DEFAULT NULL, -- renamed to `location`
-        value JSON NOT NULL,
-        expires_at INTEGER NOT NULL -- unused
-    );
-
-    CREATE TABLE IF NOT EXISTS readings (
-        sensor_fk INTEGER NOT NULL REFERENCES sensors ON UPDATE CASCADE ON DELETE CASCADE,
-        timestamp INTEGER NOT NULL, -- unix time, milliseconds
-        value JSON NOT NULL -- serialized `Value`
-    );
-
-    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_fk_timestamp
-        ON readings (sensor_fk ASC, timestamp DESC);
-
-    CREATE TABLE IF NOT EXISTS user_data (
-        pk TEXT NOT NULL PRIMARY KEY,
-        value JSON NOT NULL,
-        expires_at INTEGER NULL -- unix time, milliseconds
-    );
-
-    PRAGMA user_version = 1;
-    "#,
-    //
-    // language=sql
-    r#"
-    ALTER TABLE sensors ADD COLUMN is_writable INTEGER NOT NULL DEFAULT 0;
-    PRAGMA user_version = 2;
-    "#,
-    //
-    // language=sql
-    r#"
-    DROP TABLE readings;
-    DROP TABLE sensors;
-    DROP TABLE user_data;
-
-    CREATE TABLE IF NOT EXISTS sensors (
-        pk INTEGER NOT NULL PRIMARY KEY, -- `sensor_id` SeaHash
-        sensor_id TEXT NOT NULL UNIQUE,
-        timestamp INTEGER NOT NULL, -- unix time, milliseconds
-        title TEXT DEFAULT NULL,
-        location TEXT DEFAULT NULL,
-        value BLOB NOT NULL,
-        is_writable INTEGER NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS readings (
-        sensor_fk INTEGER NOT NULL REFERENCES sensors ON UPDATE CASCADE ON DELETE CASCADE,
-        timestamp INTEGER NOT NULL, -- unix time, milliseconds
-        value JSON NOT NULL -- serialized `Value`
-    );
-
-    CREATE UNIQUE INDEX IF NOT EXISTS readings_sensor_fk_timestamp
-        ON readings (sensor_fk ASC, timestamp DESC);
-
-    CREATE TABLE IF NOT EXISTS user_data (
-        pk TEXT NOT NULL PRIMARY KEY,
-        value BLOB NOT NULL,
-        expires_at INTEGER NULL -- unix time, milliseconds
-    );
-
-    PRAGMA user_version = 3;
-    "#,
-];
 
 #[cfg(test)]
 mod tests {
