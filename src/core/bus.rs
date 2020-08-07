@@ -8,6 +8,9 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use crate::prelude::*;
 
 pub struct Bus {
+    /// Dispatched message count.
+    pub message_count: Arc<AtomicU64>,
+
     /// Service message inbox senders.
     service_txs: Vec<Sender>,
 
@@ -16,19 +19,15 @@ pub struct Bus {
 
     /// The bus message inbox receiver.
     rx: Receiver,
-
-    /// Dispatched message count.
-    message_count: Arc<AtomicU64>,
 }
 
 impl Bus {
-    pub fn new(message_counter: Arc<AtomicU64>) -> Self {
-        // TODO: initialize the `message_counter` here and add a function to return a clone.
+    pub fn new() -> Self {
         let (tx, rx) = crossbeam::channel::unbounded::<Message>();
         Self {
             tx,
             rx,
-            message_count: message_counter,
+            message_count: Arc::new(AtomicU64::new(0)),
             service_txs: Vec::new(),
         }
     }
@@ -50,22 +49,30 @@ impl Bus {
         info!("Spawning message bus…");
         thread::Builder::new().name("system::bus".into()).spawn(move || {
             for message in &self.rx {
-                Self::log_message(&message);
+                let sequence_number = self.message_count.fetch_add(1, Ordering::Relaxed);
+                Self::log_message(&message, sequence_number);
                 for tx in self.service_txs.iter() {
                     message.clone().send_and_forget(&tx);
                 }
-                let number = self.message_count.fetch_add(1, Ordering::Relaxed);
-                debug!("Dispatched (#{}) {}", number, &message.sensor.id);
             }
             unreachable!();
         })?;
         Ok(())
     }
 
-    fn log_message(message: &Message) {
+    fn log_message(message: &Message, sequence_number: u64) {
         match &message.reading.value {
-            Value::Blob(content) => info!("[{:?}] {}: {} bytes", &message.type_, &message.sensor.id, content.len()),
-            ref value => info!("[{:?}] {} = {:?}", &message.type_, &message.sensor.id, value),
+            Value::Blob(content) => info!(
+                "[#{}] [{:?}] {}: {} bytes",
+                sequence_number,
+                &message.type_,
+                &message.sensor.id,
+                content.len()
+            ),
+            ref value => info!(
+                "[#{}] [{:?}] {} = {:?}",
+                sequence_number, &message.type_, &message.sensor.id, value
+            ),
         }
     }
 }

@@ -1,5 +1,6 @@
 # `master`
 
+- ♻️ Move the message counter initialization into `Bus`
 - ⚡️ Remove unnecessary cloning of messages in the database thread
 - 🔥 Remove the condition to avoid storing of BLOBs into the database
 - 💡 Improve documentation comments

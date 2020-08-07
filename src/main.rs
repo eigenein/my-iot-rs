@@ -2,9 +2,6 @@
 
 #![feature(proc_macro_hygiene, decl_macro)]
 
-use std::sync::atomic::AtomicU64;
-use std::sync::Arc;
-
 use log::LevelFilter;
 use simplelog::{ConfigBuilder, TermLogger, TerminalMode, ThreadLogMode};
 use structopt::StructOpt;
@@ -39,13 +36,13 @@ fn main() -> Result {
     let db = Connection::open_and_initialize(&opts.db)?;
 
     info!("Starting services…");
-    let message_counter = Arc::new(AtomicU64::new(0));
-    let mut bus = Bus::new(message_counter.clone());
+    let mut bus = Bus::new();
     bus.add_tx()
         .send(Message::new("my-iot::start").type_(MessageType::ReadNonLogged))?;
     core::db::thread::spawn(db.clone(), &mut bus)?;
     services::db::Db.spawn("system::db".into(), &mut bus, db.clone())?;
     services::spawn_all(&settings, &opts.service_ids, &mut bus, &db)?;
+    let message_counter = bus.message_count.clone();
     bus.spawn()?;
 
     info!("Starting web server on port {}…", settings.http.port);
