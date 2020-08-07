@@ -5,12 +5,16 @@ use std::time::Duration;
 
 use bytes::Bytes;
 use log::debug;
+use reqwest::blocking::multipart::{Form, Part};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
+use method_call::MethodCall;
+
 use crate::prelude::*;
 use crate::services::CLIENT;
-use reqwest::blocking::multipart::{Form, Part};
+
+pub mod method_call;
 
 const GET_UPDATES_TIMEOUT_SECS: u64 = 60;
 
@@ -79,7 +83,7 @@ impl Telegram {
     /// <https://core.telegram.org/bots/api#getupdates>
     fn get_updates(&self, offset: Option<i64>) -> Result<Vec<TelegramUpdate>> {
         self.call(
-            &TelegramMethodCall::GetUpdates {
+            &MethodCall::GetUpdates {
                 offset,
                 timeout: GET_UPDATES_TIMEOUT_SECS,
                 allowed_updates: &["message"],
@@ -89,22 +93,10 @@ impl Telegram {
     }
 
     /// Calls a [Telegram Bot API](https://core.telegram.org/bots/api) method.
-    pub fn call<R: DeserializeOwned>(
-        &self,
-        call: &TelegramMethodCall,
-        input_file: Option<(String, Arc<Bytes>)>,
-    ) -> Result<R> {
+    pub fn call<R: DeserializeOwned>(&self, call: &MethodCall, input_file: Option<(String, Arc<Bytes>)>) -> Result<R> {
         debug!("{:?}", call);
 
-        let url = format!(
-            "https://api.telegram.org/bot{}/{}",
-            self.secrets.token,
-            match call {
-                TelegramMethodCall::GetUpdates { .. } => "getUpdates",
-                TelegramMethodCall::SendMessage { .. } => "sendMessage",
-                TelegramMethodCall::SendVideo { .. } => "sendVideo",
-            },
-        );
+        let url = format!("https://api.telegram.org/bot{}/{}", self.secrets.token, call.url_part(),);
 
         let mut request = match input_file {
             Some((field_name, bytes)) => CLIENT
@@ -115,7 +107,7 @@ impl Telegram {
         };
 
         // `GetUpdates` requires a timeout that is at least as long as the one in the request itself.
-        if let TelegramMethodCall::GetUpdates { .. } = call {
+        if let MethodCall::GetUpdates { .. } = call {
             request = request.timeout(Duration::from_secs(GET_UPDATES_TIMEOUT_SECS + 1));
         }
 
@@ -168,44 +160,4 @@ pub struct TelegramMessage {
 #[derive(Deserialize, Debug, Clone)]
 pub struct TelegramChat {
     pub id: i64,
-}
-
-#[derive(Serialize, Debug, Clone)]
-#[serde(untagged)]
-pub enum TelegramMethodCall {
-    /// https://core.telegram.org/bots/api#getupdates
-    GetUpdates {
-        #[serde(skip_serializing_if = "Option::is_none")]
-        offset: Option<i64>,
-
-        timeout: u64,
-
-        allowed_updates: &'static [&'static str],
-    },
-
-    /// <https://core.telegram.org/bots/api#sendmessage>
-    SendMessage {
-        chat_id: TelegramChatId,
-        text: String,
-
-        /// <https://core.telegram.org/bots/api#formatting-options>
-        #[serde(skip_serializing_if = "Option::is_none")]
-        parse_mode: Option<String>,
-    },
-
-    /// <https://core.telegram.org/bots/api#sendvideo>
-    SendVideo {
-        chat_id: TelegramChatId,
-
-        /// Only allows to pass a URL or a file ID.
-        /// Use `input_file` parameter to send a `Bytes`.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        video: Option<String>,
-
-        #[serde(skip_serializing_if = "Option::is_none")]
-        caption: Option<String>,
-
-        #[serde(skip_serializing_if = "Option::is_none")]
-        parse_mode: Option<String>,
-    },
 }
