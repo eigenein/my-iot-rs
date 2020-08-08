@@ -1,4 +1,4 @@
-# `master`
+# `0.92.0`
 
 - 🔥 Remove thread names
 - ♻️ Refactor `services::telegram` and `services::rhai::telegram`
