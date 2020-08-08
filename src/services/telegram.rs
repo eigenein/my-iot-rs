@@ -33,7 +33,7 @@ impl Telegram {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result {
         let tx = bus.add_tx();
 
-        thread::Builder::new().name(service_id.clone()).spawn(move || {
+        thread::spawn(move || {
             let mut offset: Option<i64> = None;
             loop {
                 match self.loop_(&service_id, offset, &tx) {
@@ -44,7 +44,7 @@ impl Telegram {
                     }
                 }
             }
-        })?;
+        });
 
         Ok(())
     }

@@ -42,7 +42,7 @@ impl SimpleAnomalyDetector {
             })
             .collect();
 
-        thread::Builder::new().name(service_id.clone()).spawn(move || {
+        thread::spawn(move || {
             let mut mean_variance: Option<(f64, f64)> = None;
 
             for message in rx {
@@ -52,9 +52,9 @@ impl SimpleAnomalyDetector {
                 };
 
                 if let Some((mean, variance)) = mean_variance {
-                    let offset = (value - mean) / variance.sqrt();
-                    debug!("[{}] {} | mean: {} | {:.2}σ", service_id, value, mean, offset);
-                    let is_anomaly = offset.abs() > self.sigma;
+                    let z_score = (value - mean) / variance.sqrt();
+                    debug!("[{}] {} | mean: {} | z: {:.2}σ", service_id, value, mean, z_score);
+                    let is_anomaly = z_score.abs() > self.sigma;
 
                     let mut new_message = Message::new(format!("{}::{}::is_typical", service_id, self.sensor_id))
                         .timestamp(message.reading.timestamp)
@@ -96,7 +96,7 @@ impl SimpleAnomalyDetector {
                     ));
                 }
             }
-        })?;
+        });
 
         Ok(())
     }

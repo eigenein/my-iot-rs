@@ -22,26 +22,24 @@ impl Threshold {
         let tx = bus.add_tx();
         let rx = bus.add_rx();
 
-        thread::Builder::new()
-            .name(service_id.clone())
-            .spawn(move || -> Result<(), ()> {
-                let mut state = None;
-                for message in &rx {
-                    let value = match expect::<f64>(&service_id, &message, &self.sensor_id) {
-                        Some(value) => value,
-                        None => continue,
-                    };
-                    if (state == Some(State::Low) || state.is_none()) && value >= self.high {
-                        state = Some(State::High);
-                        Self::send_message(&service_id, "high", message, &tx);
-                    } else if (state == Some(State::High) || state.is_none()) && value < self.low {
-                        state = Some(State::Low);
-                        Self::send_message(&service_id, "low", message, &tx);
-                    }
+        thread::spawn(move || -> Result<(), ()> {
+            let mut state = None;
+            for message in &rx {
+                let value = match expect::<f64>(&service_id, &message, &self.sensor_id) {
+                    Some(value) => value,
+                    None => continue,
+                };
+                if (state == Some(State::Low) || state.is_none()) && value >= self.high {
+                    state = Some(State::High);
+                    Self::send_message(&service_id, "high", message, &tx);
+                } else if (state == Some(State::High) || state.is_none()) && value < self.low {
+                    state = Some(State::Low);
+                    Self::send_message(&service_id, "low", message, &tx);
                 }
+            }
 
-                unreachable!();
-            })?;
+            unreachable!();
+        });
 
         Ok(())
     }

@@ -8,11 +8,11 @@ where
     F: Fn() -> Result,
     F: Send + 'static,
 {
-    thread::Builder::new().name(service_id.clone()).spawn(move || loop {
+    thread::spawn(move || loop {
         if let Err(error) = loop_() {
             error!("[{}] The iteration has failed: {}", service_id, error.to_string());
         }
         thread::sleep(interval);
-    })?;
+    });
     Ok(())
 }

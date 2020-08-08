@@ -38,26 +38,24 @@ impl Rhai {
         let engine = engine;
         engine.consume_ast_with_scope(&mut scope, &ast)?;
 
-        thread::Builder::new()
-            .name(service_id.clone())
-            .spawn(move || -> Result<(), ()> {
-                for message in &rx {
-                    if let Some(pattern) = &self.sensor_pattern {
-                        if !pattern.is_match(&message.sensor.id) {
-                            debug!(
-                                "[{}] `{}` is filtered out by the pattern.",
-                                service_id, message.sensor.id
-                            );
-                            continue;
-                        }
-                    }
-                    if let Err(error) = engine.call_fn::<_, Dynamic>(&mut scope, &ast, "on_message", (message,)) {
-                        error!("[{}] `on_message` has failed: {}", &service_id, error.to_string());
+        thread::spawn(move || -> Result<(), ()> {
+            for message in &rx {
+                if let Some(pattern) = &self.sensor_pattern {
+                    if !pattern.is_match(&message.sensor.id) {
+                        debug!(
+                            "[{}] `{}` is filtered out by the pattern.",
+                            service_id, message.sensor.id
+                        );
+                        continue;
                     }
                 }
+                if let Err(error) = engine.call_fn::<_, Dynamic>(&mut scope, &ast, "on_message", (message,)) {
+                    error!("[{}] `on_message` has failed: {}", &service_id, error.to_string());
+                }
+            }
 
-                unreachable!();
-            })?;
+            unreachable!();
+        });
 
         Ok(())
     }

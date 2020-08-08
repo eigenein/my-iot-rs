@@ -1,5 +1,6 @@
 # `master`
 
+- 🔥 Remove thread names
 - ♻️ Refactor `services::telegram` and `services::rhai::telegram`
 - ♻️ Move migrations into the separate module
 - ♻️ Move the message counter initialization into `Bus`

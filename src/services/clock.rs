@@ -21,8 +21,7 @@ impl Clock {
         let interval = Duration::from_millis(self.interval_millis);
         let tx = bus.add_tx();
 
-        // TODO: use `spawn_service_loop`.
-        thread::Builder::new().name(service_id.clone()).spawn(move || {
+        thread::spawn(move || {
             let mut counter = 1;
             loop {
                 Message::new(&service_id)
@@ -31,7 +30,7 @@ impl Clock {
                 counter += 1;
                 thread::sleep(interval);
             }
-        })?;
+        });
 
         Ok(())
     }

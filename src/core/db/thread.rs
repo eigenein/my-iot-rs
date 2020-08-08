@@ -15,32 +15,28 @@ pub fn spawn(db: Connection, bus: &mut Bus) -> Result {
 
     {
         let buffer = buffer.clone();
-        thread::Builder::new()
-            .name("system::persistence::receiver".into())
-            .spawn(move || {
-                for message in &rx {
-                    buffer.lock().unwrap().push(message);
-                }
-                unreachable!();
-            })?;
+        thread::spawn(move || {
+            for message in &rx {
+                buffer.lock().unwrap().push(message);
+            }
+            unreachable!();
+        });
     }
 
-    thread::Builder::new()
-        .name("system::persistence::executor".into())
-        .spawn(move || loop {
-            sleep(Duration::from_millis(COMMIT_INTERVAL_MILLIS));
+    thread::spawn(move || loop {
+        sleep(Duration::from_millis(COMMIT_INTERVAL_MILLIS));
 
-            // Acquire the lock, drain the buffer and release the lock immediately.
-            let messages: Vec<Message> = { buffer.lock().unwrap().drain(..).collect() };
+        // Acquire the lock, drain the buffer and release the lock immediately.
+        let messages: Vec<Message> = { buffer.lock().unwrap().drain(..).collect() };
 
-            if !messages.is_empty() {
-                let start_time = Instant::now();
-                if let Err(error) = upsert_messages(&db, messages) {
-                    error!("could not upsert the messages: {}", error);
-                }
-                info!("Took {:.1?}.", start_time.elapsed());
+        if !messages.is_empty() {
+            let start_time = Instant::now();
+            if let Err(error) = upsert_messages(&db, messages) {
+                error!("could not upsert the messages: {}", error);
             }
-        })?;
+            info!("Took {:.1?}.", start_time.elapsed());
+        }
+    });
 
     Ok(())
 }

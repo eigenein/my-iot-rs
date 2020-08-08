@@ -47,7 +47,7 @@ impl Bus {
     /// Spawn the bus dispatcher thread.
     pub fn spawn(self) -> Result {
         info!("Spawning message bus…");
-        thread::Builder::new().name("system::bus".into()).spawn(move || {
+        thread::spawn(move || {
             for message in &self.rx {
                 let sequence_number = self.message_count.fetch_add(1, Ordering::Relaxed);
                 Self::log_message(&message, sequence_number);
@@ -56,7 +56,7 @@ impl Bus {
                 }
             }
             unreachable!();
-        })?;
+        });
         Ok(())
     }
 
