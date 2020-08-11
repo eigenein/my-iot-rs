@@ -1,11 +1,11 @@
 use std::str::FromStr;
 use std::time::Duration;
 
+use bytes::Bytes;
 use reqwest::Method;
 
 use crate::prelude::*;
-use crate::services::{call_json_api, CLIENT};
-use bytes::Bytes;
+use crate::services::prelude::*;
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Ring {
@@ -26,47 +26,69 @@ const fn default_interval_millis() -> u64 {
 }
 
 impl Ring {
-    pub fn spawn(self, service_id: String, bus: &mut Bus, db: &Connection) -> Result {
-        let tx = bus.add_tx();
-        let db = db.clone();
+    pub fn spawn(self, service_id: String, db: Connection, bus: &mut Bus) -> Result {
+        let mut tx = bus.add_tx();
+        task::spawn(async move {
+            loop {
+                handle_service_result(
+                    &service_id,
+                    Duration::from_millis(self.interval_millis),
+                    self.loop_(&service_id, &db, &mut tx).await,
+                )
+                .await;
+            }
+        });
 
-        spawn_service_loop(
-            service_id.clone(),
-            Duration::from_millis(self.interval_millis),
-            move || {
-                let devices = self.get_devices(&service_id, &db)?;
-                info!("{} doorbots, {} chimes.", devices.doorbots.len(), devices.chimes.len());
-                for device in devices.doorbots {
-                    self.process_device(&device, &format!("{}::doorbot", service_id), "Doorbot", &tx)?;
-                    self.process_recordings(&service_id, &db, &device, &tx)?;
-                }
-                Ok(())
-            },
-        )
+        Ok(())
     }
 
-    fn process_device(&self, device: &DeviceResponse, sensor_prefix: &str, title: &str, tx: &Sender) -> Result {
+    async fn loop_(&self, service_id: &str, db: &Connection, tx: &mut Sender) -> Result {
+        let devices = self.get_devices(&service_id, &db).await?;
+        info!("{} doorbots, {} chimes.", devices.doorbots.len(), devices.chimes.len());
+        for device in devices.doorbots {
+            self.process_device(&device, &format!("{}::doorbot", service_id), "Doorbot", tx)
+                .await?;
+            self.process_recordings(&service_id, &db, &device, tx).await?;
+        }
+        Ok(())
+    }
+
+    async fn process_device(
+        &self,
+        device: &DeviceResponse,
+        sensor_prefix: &str,
+        title: &str,
+        tx: &mut Sender,
+    ) -> Result {
         let sensor_prefix = format!("{}::{}", sensor_prefix, device.id);
         Message::new(format!("{}::is_online", sensor_prefix))
             .location(&device.description)
             .sensor_title(format!("{} Online", title))
             .value(device.alerts.connection == DeviceConnection::Online)
-            .send_and_forget(&tx);
+            .send_to(tx)
+            .await;
         if let Some(ref battery_life) = device.battery_life {
             Message::new(format!("{}::battery_life", sensor_prefix))
                 .location(&device.description)
                 .sensor_title(format!("{} Battery State", title))
                 .value(Value::BatteryLife(f64::from_str(battery_life)?))
-                .send_and_forget(&tx);
+                .send_to(tx)
+                .await;
         }
         Ok(())
     }
 
-    fn process_recordings(&self, service_id: &str, db: &Connection, device: &DeviceResponse, tx: &Sender) -> Result {
-        let response = self.get_doorbot_history(service_id, db, device.id)?;
+    async fn process_recordings(
+        &self,
+        service_id: &str,
+        db: &Connection,
+        device: &DeviceResponse,
+        tx: &mut Sender,
+    ) -> Result {
+        let response = self.get_doorbot_history(service_id, db, device.id).await?;
         for entry in response.iter() {
             let flag_key = format!("{}::doorbot::history::{}::is_processed", service_id, entry.id);
-            if db.get_user_data(&flag_key)? == Some(true) {
+            if db.get_user_data(&flag_key).await? == Some(true) {
                 debug!("[{}] Recording #{} has already been processed.", service_id, entry.id);
                 continue;
             }
@@ -74,7 +96,7 @@ impl Ring {
                 warn!("[{}] Recording #{} is not ready yet.", service_id, entry.id);
                 continue;
             }
-            match self.get_recording(service_id, db, entry) {
+            match self.get_recording(service_id, db, entry).await {
                 Ok(content) => {
                     info!("[{}] {} bytes downloaded.", service_id, content.len());
                     Message::new(format!(
@@ -86,8 +108,9 @@ impl Ring {
                     .sensor_title("Recording")
                     .location(&device.description)
                     .value(Value::Blob(Arc::new(content)))
-                    .send_and_forget(tx);
-                    db.set_user_data(&flag_key, true, None)?;
+                    .send_to(tx)
+                    .await;
+                    db.set_user_data(&flag_key, true, None).await?;
                 }
                 Err(error) => {
                     error!(
@@ -106,23 +129,30 @@ impl Ring {
 
 /// Ring.com APIs.
 impl Ring {
-    fn get_devices(&self, service_id: &str, db: &Connection) -> Result<DevicesResponse> {
+    async fn get_devices(&self, service_id: &str, db: &Connection) -> Result<DevicesResponse> {
         call_json_api(
             Method::GET,
-            &self.get_access_token(service_id, db)?,
+            &self.get_access_token(service_id, db).await?,
             "https://api.ring.com/clients_api/ring_devices",
         )
+        .await
     }
 
-    fn get_doorbot_history(&self, service_id: &str, db: &Connection, device_id: i32) -> Result<Vec<HistoryResponse>> {
+    async fn get_doorbot_history(
+        &self,
+        service_id: &str,
+        db: &Connection,
+        device_id: i32,
+    ) -> Result<Vec<HistoryResponse>> {
         call_json_api(
             Method::GET,
-            &self.get_access_token(service_id, db)?,
+            &self.get_access_token(service_id, db).await?,
             &format!("https://api.ring.com/clients_api/doorbots/{}/history", device_id),
         )
+        .await
     }
 
-    fn get_recording(&self, service_id: &str, db: &Connection, entry: &HistoryResponse) -> Result<Bytes> {
+    async fn get_recording(&self, service_id: &str, db: &Connection, entry: &HistoryResponse) -> Result<Bytes> {
         info!("[{}] Downloading recording #{}…", service_id, entry.id);
         Ok(CLIENT
             .get(&format!(
@@ -131,22 +161,24 @@ impl Ring {
             ))
             .header(
                 "Authorization",
-                format!("Bearer {}", self.get_access_token(service_id, db)?),
+                format!("Bearer {}", self.get_access_token(service_id, db).await?),
             )
-            .send()?
+            .send()
+            .await?
             .error_for_status()?
-            .bytes()?)
+            .bytes()
+            .await?)
     }
 }
 
 /// Authentication.
 impl Ring {
     /// Gets an active access token. Refreshes an old token, if needed.
-    fn get_access_token(&self, service_id: &str, db: &Connection) -> Result<String> {
+    async fn get_access_token(&self, service_id: &str, db: &Connection) -> Result<String> {
         let access_token_key = format!("{}::access_token", service_id);
         let refresh_token_key = format!("{}::refresh_token", service_id);
 
-        Ok(match db.get_user_data::<String>(&access_token_key)? {
+        Ok(match db.get_user_data::<String>(&access_token_key).await? {
             Some(access_token) => {
                 debug!("[{}] Found an existing access token.", service_id);
                 access_token
@@ -154,7 +186,8 @@ impl Ring {
             None => {
                 info!("[{}] Refreshing access token…", service_id);
                 let refresh_token = db
-                    .get_user_data::<String>(&refresh_token_key)?
+                    .get_user_data::<String>(&refresh_token_key)
+                    .await?
                     .unwrap_or_else(|| self.secrets.initial_refresh_token.clone());
                 let response = CLIENT
                     .post("https://oauth.ring.com/oauth/token")
@@ -164,15 +197,19 @@ impl Ring {
                         ("grant_type", "refresh_token"),
                         ("refresh_token", &refresh_token),
                     ])
-                    .send()?
+                    .send()
+                    .await?
                     .error_for_status()?
-                    .json::<TokenResponse>()?;
+                    .json::<TokenResponse>()
+                    .await?;
                 db.set_user_data(
                     &access_token_key,
                     &response.access_token,
                     Some(Local::now() + chrono::Duration::seconds(response.expires_in)),
-                )?;
-                db.set_user_data(&refresh_token_key, &response.refresh_token, None)?;
+                )
+                .await?;
+                db.set_user_data(&refresh_token_key, &response.refresh_token, None)
+                    .await?;
                 info!("[{}] Got a new access token.", service_id);
                 response.access_token
             }

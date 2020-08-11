@@ -1,9 +1,6 @@
 //! Periodically emits messages.
 
 use crate::prelude::*;
-use serde::Deserialize;
-use std::thread;
-use std::time::Duration;
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Clock {
@@ -17,18 +14,19 @@ const fn default_interval_millis() -> u64 {
 }
 
 impl Clock {
-    pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result {
+    pub async fn spawn(self, service_id: String, bus: &mut Bus) -> Result {
         let interval = Duration::from_millis(self.interval_millis);
-        let tx = bus.add_tx();
+        let mut tx = bus.add_tx();
 
-        thread::spawn(move || {
+        task::spawn(async move {
             let mut counter = 1;
             loop {
                 Message::new(&service_id)
                     .value(Value::Counter(counter))
-                    .send_and_forget(&tx);
+                    .send_to(&mut tx)
+                    .await;
                 counter += 1;
-                thread::sleep(interval);
+                task::sleep(interval).await;
             }
         });
 

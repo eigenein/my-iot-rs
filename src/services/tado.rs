@@ -1,10 +1,9 @@
 //! [tado°](https://www.tado.com/) API.
 
 use crate::prelude::*;
-use crate::services::{call_json_api, CLIENT};
+use crate::services::prelude::*;
 use reqwest::{Method, Url};
-use std::sync::{Mutex, MutexGuard};
-use std::time::{Duration, SystemTime};
+use std::time::SystemTime;
 
 const CLIENT_ID: &str = "public-api-preview";
 const CLIENT_SECRET: &str = "4HJGRffVR8xb3XdEUQpjgZ1VplJi6Xgw";
@@ -37,37 +36,48 @@ fn default_token() -> Arc<Mutex<Option<Token>>> {
 }
 
 impl Tado {
-    pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result {
-        let tx = bus.add_tx();
-        let me = self.get_me()?;
-        let home = self.get_home(me.home_id)?;
+    pub async fn spawn(self, service_id: String, bus: &mut Bus) -> Result {
+        let mut tx = bus.add_tx();
+        let me = self.get_me().await?;
+        let home = self.get_home(me.home_id).await?;
 
-        spawn_service_loop(service_id.clone(), REFRESH_PERIOD, move || {
-            self.loop_(&service_id, &me, &home, &tx)
-        })
+        task::spawn(async move {
+            loop {
+                handle_service_result(
+                    &service_id,
+                    REFRESH_PERIOD,
+                    self.loop_(&service_id, &me, &home, &mut tx).await,
+                )
+                .await;
+            }
+        });
+
+        Ok(())
     }
 
-    fn loop_(&self, service_id: &str, me: &Me, home: &Home, tx: &Sender) -> Result {
-        let weather = self.get_weather(me.home_id)?;
+    async fn loop_(&self, service_id: &str, me: &Me, home: &Home, tx: &mut Sender) -> Result {
+        let weather = self.get_weather(me.home_id).await?;
 
         Message::new(format!("{}::{}::solar_intensity", service_id, me.home_id))
             .timestamp(weather.solar_intensity.timestamp)
             .value(Value::RelativeIntensity(weather.solar_intensity.percentage))
             .location(&home.name)
             .sensor_title("Solar Intensity")
-            .send_and_forget(tx);
+            .send_to(tx)
+            .await;
 
-        let home_state = self.get_home_state(me.home_id)?;
+        let home_state = self.get_home_state(me.home_id).await?;
 
         Message::new(format!("{}::{}::is_home", service_id, me.home_id))
             .value(home_state.presence == Presence::Home)
             .location(&home.name)
             .sensor_title("At Home")
-            .send_and_forget(tx);
+            .send_to(tx)
+            .await;
 
-        for zone in self.get_zones(me.home_id)?.iter() {
+        for zone in self.get_zones(me.home_id).await?.iter() {
             let sensor_prefix = format!("{}::{}::{}", service_id, me.home_id, zone.id);
-            let zone_state = self.get_zone_state(me.home_id, zone.id)?;
+            let zone_state = self.get_zone_state(me.home_id, zone.id).await?;
             let zone_title = match zone.type_ {
                 ZoneType::Heating => "Heating",
                 ZoneType::HotWater => "Hot Water",
@@ -77,19 +87,22 @@ impl Tado {
                 .value(zone_state.link.state == LinkState::Online)
                 .location(&zone.name)
                 .sensor_title(format!("{} Online", zone_title))
-                .send_and_forget(tx);
+                .send_to(tx)
+                .await;
             Message::new(format!("{}::is_on", sensor_prefix))
                 .value(zone_state.setting.power == PowerState::On)
                 .location(&zone.name)
                 .sensor_title(format!("{} On", zone_title,))
-                .send_and_forget(tx);
+                .send_to(tx)
+                .await;
 
             if zone.open_window_detection.supported && zone.open_window_detection.enabled == Some(true) {
                 Message::new(format!("{}::is_window_closed", sensor_prefix))
                     .value(!zone_state.open_window_detected)
                     .location(&zone.name)
                     .sensor_title("Is Window Closed")
-                    .send_and_forget(tx);
+                    .send_to(tx)
+                    .await;
             }
 
             if let ZoneSettingAttributes::Heating { temperature } = zone_state.setting.attributes {
@@ -97,7 +110,8 @@ impl Tado {
                     .value(Value::Temperature(temperature.celsius))
                     .location(&zone.name)
                     .sensor_title("Set Temperature")
-                    .send_and_forget(tx);
+                    .send_to(tx)
+                    .await;
             }
 
             if let Some(humidity) = zone_state.sensor_data_points.humidity {
@@ -106,7 +120,8 @@ impl Tado {
                     .location(&zone.name)
                     .sensor_title("Humidity")
                     .value(Value::Rh(humidity.percentage))
-                    .send_and_forget(tx);
+                    .send_to(tx)
+                    .await;
             }
 
             if let Some(temperature) = zone_state.sensor_data_points.inside_temperature {
@@ -115,7 +130,8 @@ impl Tado {
                     .location(&zone.name)
                     .sensor_title("Ambient Temperature")
                     .value(Value::Temperature(temperature.celsius))
-                    .send_and_forget(tx);
+                    .send_to(tx)
+                    .await;
             }
 
             if self.enable_open_window_detection_skill && zone_state.open_window_detected {
@@ -123,8 +139,9 @@ impl Tado {
                     .type_(MessageType::ReadNonLogged)
                     .location(&zone.name)
                     .sensor_title("Open Window Activated")
-                    .send_and_forget(tx);
-                self.activate_open_window(me.home_id, zone.id)?;
+                    .send_to(tx)
+                    .await;
+                self.activate_open_window(me.home_id, zone.id).await?;
             }
         }
 
@@ -136,17 +153,17 @@ impl Tado {
 impl Tado {
     /// Ensures that the service is logged in. Logs in or refreshes the access token when needed.
     /// Returns an active access token.
-    fn get_access_token(&self) -> Result<String> {
-        let token_guard = self.token.lock().unwrap();
+    async fn get_access_token(&self) -> Result<String> {
+        let token_guard = self.token.lock().await;
         Ok(match *token_guard {
             None => {
                 debug!("No active token yet");
-                self.log_in(token_guard)?
+                self.log_in(token_guard).await?
             }
             Some(ref token) => {
                 if token.is_expired() {
                     debug!("The token has expired");
-                    self.refresh_token(token_guard)?
+                    self.refresh_token(token_guard).await?
                 } else {
                     debug!("There is an active token");
                     token.access_token.clone()
@@ -155,7 +172,7 @@ impl Tado {
         })
     }
 
-    fn log_in(&self, mut token_guard: MutexGuard<Option<Token>>) -> Result<String> {
+    async fn log_in(&self, mut token_guard: MutexGuard<'_, Option<Token>>) -> Result<String> {
         debug!("Logging in…");
         let response = CLIENT
             .post(Url::parse_with_params(
@@ -169,16 +186,18 @@ impl Tado {
                     ("password", &self.secrets.password),
                 ],
             )?)
-            .send()?
+            .send()
+            .await?
             .error_for_status()?
-            .json::<Token>()?;
+            .json::<Token>()
+            .await?;
         debug!("Logged in, the token expires at: {:?}", response.expires_at);
         let access_token = response.access_token.clone();
         *token_guard = Some(response);
         Ok(access_token)
     }
 
-    fn refresh_token(&self, mut token_guard: MutexGuard<Option<Token>>) -> Result<String> {
+    async fn refresh_token(&self, mut token_guard: MutexGuard<'_, Option<Token>>) -> Result<String> {
         debug!("Refreshing token…");
         let response = CLIENT
             .post(Url::parse_with_params(
@@ -191,8 +210,10 @@ impl Tado {
                     ("refresh_token", &token_guard.as_ref().unwrap().refresh_token),
                 ],
             )?)
-            .send()?
-            .json::<Token>()?;
+            .send()
+            .await?
+            .json::<Token>()
+            .await?;
         debug!("Refreshed the token, expires at: {:?}", response.expires_at);
         let access_token = response.access_token.clone();
         *token_guard = Some(response);
@@ -202,52 +223,57 @@ impl Tado {
 
 /// API methods.
 impl Tado {
-    fn call<U, R>(&self, method: Method, url: U) -> Result<R>
+    async fn call<U, R>(&self, method: Method, url: U) -> Result<R>
     where
         U: AsRef<str> + std::fmt::Display,
         R: DeserializeOwned,
     {
-        call_json_api(method, &self.get_access_token()?, url)
+        call_json_api(method, &self.get_access_token().await?, url).await
     }
 
-    fn get_me(&self) -> Result<Me> {
-        self.call(Method::GET, "https://my.tado.com/api/v1/me")
+    async fn get_me(&self) -> Result<Me> {
+        self.call(Method::GET, "https://my.tado.com/api/v1/me").await
     }
 
-    fn get_home(&self, home_id: u32) -> Result<Home> {
+    async fn get_home(&self, home_id: u32) -> Result<Home> {
         self.call(Method::GET, format!("https://my.tado.com/api/v2/homes/{}", home_id))
+            .await
     }
 
-    fn get_zones(&self, home_id: u32) -> Result<Zones> {
+    async fn get_zones(&self, home_id: u32) -> Result<Zones> {
         self.call(
             Method::GET,
             format!("https://my.tado.com/api/v2/homes/{}/zones", home_id),
         )
+        .await
     }
 
-    fn get_weather(&self, home_id: u32) -> Result<Weather> {
+    async fn get_weather(&self, home_id: u32) -> Result<Weather> {
         self.call(
             Method::GET,
             format!("https://my.tado.com/api/v2/homes/{}/weather", home_id),
         )
+        .await
     }
 
-    fn get_home_state(&self, home_id: u32) -> Result<HomeState> {
+    async fn get_home_state(&self, home_id: u32) -> Result<HomeState> {
         self.call(
             Method::GET,
             format!("https://my.tado.com/api/v2/homes/{}/state", home_id),
         )
+        .await
     }
 
-    fn get_zone_state(&self, home_id: u32, zone_id: u32) -> Result<ZoneState> {
+    async fn get_zone_state(&self, home_id: u32, zone_id: u32) -> Result<ZoneState> {
         self.call(
             Method::GET,
             format!("https://my.tado.com/api/v2/homes/{}/zones/{}/state", home_id, zone_id,),
         )
+        .await
     }
 
     /// Activates the [Open Window](https://support.tado.com/en/articles/3387308-how-does-the-open-window-detection-skill-work) mode.
-    fn activate_open_window(&self, home_id: u32, zone_id: u32) -> Result {
+    async fn activate_open_window(&self, home_id: u32, zone_id: u32) -> Result {
         self.call(
             Method::POST,
             format!(
@@ -255,6 +281,7 @@ impl Tado {
                 home_id, zone_id,
             ),
         )
+        .await
     }
 }
 

@@ -1,8 +1,6 @@
 //! Implements the web server.
 
 use std::io::Cursor;
-use std::sync::atomic::AtomicU64;
-use std::sync::Arc;
 
 use chrono::Duration;
 use itertools::Itertools;
@@ -19,26 +17,24 @@ use crate::prelude::*;
 use crate::settings::Settings;
 use crate::web::cached_content::Cached;
 use crate::web::if_none_match::IfNoneMatch;
-use crate::web::message_counter::MessageCounter;
 use crate::web::to_html_string::ToHtmlString;
 use std::convert::TryInto;
 
 mod cached_content;
 mod entity_tag;
 mod if_none_match;
-mod message_counter;
 mod templates;
 mod to_html_string;
 
 const STATIC_MAX_AGE_SECS: u32 = 3600;
 
 /// Start the web application.
-pub fn start_server(settings: &Settings, db: Connection, message_counter: Arc<AtomicU64>) -> Result {
-    Err(Box::new(make_rocket(settings, db, message_counter)?.launch()))
+pub fn start_server(settings: &Settings, db: Connection) -> Result {
+    Err(make_rocket(settings, db)?.launch().into())
 }
 
 /// Builds the [Rocket](https://rocket.rs/) application.
-fn make_rocket(settings: &Settings, db: Connection, message_counter: Arc<AtomicU64>) -> Result<Rocket> {
+fn make_rocket(settings: &Settings, db: Connection) -> Result<Rocket> {
     Ok(rocket::custom(
         Config::build(Environment::Production)
             .port(settings.http.port)
@@ -47,7 +43,6 @@ fn make_rocket(settings: &Settings, db: Connection, message_counter: Arc<AtomicU
     )
     .manage(db)
     .manage(settings.clone())
-    .manage(MessageCounter(message_counter))
     .mount(
         "/",
         routes![
@@ -76,40 +71,31 @@ fn make_rocket(settings: &Settings, db: Connection, message_counter: Arc<AtomicU
 }
 
 #[get("/")]
-fn get_index(db: State<Connection>, message_counter: State<MessageCounter>) -> Result<ToHtmlString<impl ToString>> {
-    let actuals = db
-        .select_actuals()?
+fn get_index(db: State<Connection>) -> Result<ToHtmlString<impl ToString>> {
+    let actuals = task::block_on(db.select_actuals())?
         .into_iter()
         .group_by(|(sensor, _)| sensor.location.clone())
         .into_iter()
         .map(|(location, group)| (location, group.collect_vec()))
         .collect_vec();
-    Ok(ToHtmlString(templates::IndexTemplate {
-        actuals,
-        message_count: message_counter.inner().value(),
-    }))
+    Ok(ToHtmlString(templates::IndexTemplate { actuals }))
 }
 
 #[get("/settings")]
-fn get_settings(
-    settings: State<Settings>,
-    message_counter: State<MessageCounter>,
-) -> Result<ToHtmlString<impl ToString>> {
+fn get_settings(settings: State<Settings>) -> Result<ToHtmlString<impl ToString>> {
     Ok(ToHtmlString(templates::SettingsTemplate {
         settings: toml::to_string_pretty(&toml::Value::try_from(settings.inner())?)?,
-        message_count: message_counter.inner().value(),
     }))
 }
 
 #[get("/sensors/<sensor_id>?<minutes>")]
 fn get_sensor<'r>(
     db: State<Connection>,
-    message_counter: State<MessageCounter>,
     if_none_match: Option<IfNoneMatch>,
     sensor_id: String,
     minutes: Option<i64>,
 ) -> Result<Response<'r>> {
-    if let Some((sensor, reading)) = db.select_sensor(&sensor_id)? {
+    if let Some((sensor, reading)) = task::block_on(db.select_sensor(&sensor_id))? {
         if let Some(IfNoneMatch(entity_tag)) = if_none_match {
             if reading.entity_tag().weak_eq(&entity_tag) {
                 // If there's a match, we can avoid spending CPU on generation of the chart.
@@ -118,7 +104,7 @@ fn get_sensor<'r>(
         }
 
         let minutes = minutes.unwrap_or(60);
-        let readings = db.select_readings(&sensor_id, &(Local::now() - Duration::minutes(minutes)))?;
+        let readings = task::block_on(db.select_readings(&sensor_id, &(Local::now() - Duration::minutes(minutes))))?;
         let chart = if readings.is_empty() {
             // language=html
             r#"<div class="notification content"><p>No data points within the period.</p></div>"#.to_string()
@@ -147,8 +133,7 @@ fn get_sensor<'r>(
                     reading,
                     chart,
                     minutes,
-                    reading_count: db.select_sensor_reading_count(&sensor_id)?,
-                    message_count: message_counter.inner().value(),
+                    reading_count: task::block_on(db.select_sensor_reading_count(&sensor_id))?,
                 }
                 .to_string(),
             ))
@@ -160,7 +145,7 @@ fn get_sensor<'r>(
 
 #[delete("/sensors/<sensor_id>")]
 fn delete_sensor(db: State<Connection>, sensor_id: String) -> Result<Redirect> {
-    db.delete_sensor(&sensor_id)?;
+    task::block_on(db.delete_sensor(&sensor_id))?;
     Ok(Redirect::to(uri!(get_index)))
 }
 
@@ -168,7 +153,7 @@ fn delete_sensor(db: State<Connection>, sensor_id: String) -> Result<Redirect> {
 fn get_sensor_json(db: State<Connection>, sensor_id: String) -> Result<Option<Json<Reading>>> {
     // TODO: ETag
     // TODO: Cache-Control: private, no-cache
-    Ok(db.select_sensor(&sensor_id)?.map(|(_, reading)| Json(reading)))
+    Ok(task::block_on(db.select_sensor(&sensor_id))?.map(|(_, reading)| Json(reading)))
 }
 
 #[get("/favicon.ico")]
@@ -305,45 +290,43 @@ fn get_webmanifest() -> Cached {
 
 #[cfg(test)]
 mod tests {
-    use rocket::http::Status;
     use rocket::local::Client;
 
     use crate::settings::*;
 
     use super::*;
 
-    #[test]
-    fn index_ok() -> Result {
-        let client = client()?;
+    #[async_std::test]
+    async fn index_ok() -> Result {
+        let client = client().await?;
         let response = client.get("/").dispatch();
         assert_eq!(response.status(), Status::Ok);
         assert_eq!(response.content_type(), Some(ContentType::HTML));
         Ok(())
     }
 
-    #[test]
-    fn settings_ok() -> Result {
-        let client = client()?;
+    #[async_std::test]
+    async fn settings_ok() -> Result {
+        let client = client().await?;
         let response = client.get("/settings").dispatch();
         assert_eq!(response.status(), Status::Ok);
         assert_eq!(response.content_type(), Some(ContentType::HTML));
         Ok(())
     }
 
-    #[test]
-    fn favicon_ok() -> Result {
-        let client = client()?;
+    #[async_std::test]
+    async fn favicon_ok() -> Result {
+        let client = client().await?;
         let response = client.get("/favicon.ico").dispatch();
         assert_eq!(response.status(), Status::Ok);
         assert_eq!(response.content_type(), Some(ContentType::Icon));
         Ok(())
     }
 
-    fn client() -> crate::Result<Client> {
+    async fn client() -> crate::Result<Client> {
         Ok(Client::new(make_rocket(
             &toml::from_str::<Settings>("")?,
-            Connection::open_and_initialize(":memory:")?,
-            Arc::new(AtomicU64::new(0)),
+            Connection::open_and_initialize(":memory:").await?,
         )?)?)
     }
 }

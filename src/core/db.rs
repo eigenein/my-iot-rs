@@ -6,12 +6,11 @@ use rusqlite::types::FromSql;
 use rusqlite::{params, Row};
 use rusqlite::{OptionalExtension, NO_PARAMS};
 use std::path::Path;
-use std::sync::{Arc, Mutex, MutexGuard};
 
 pub mod migrations;
 pub mod reading;
 pub mod sensor;
-pub mod thread;
+pub mod tasks;
 
 /// Wraps `rusqlite::Connection` and provides the high-level database methods.
 #[derive(Clone)]
@@ -20,20 +19,21 @@ pub struct Connection {
 }
 
 impl Connection {
-    pub fn open_and_initialize<P: AsRef<Path>>(path: P) -> Result<Self> {
+    pub async fn open_and_initialize<P: AsRef<Path>>(path: P) -> Result<Self> {
         let connection = Self {
             connection: Arc::new(Mutex::new(rusqlite::Connection::open(path)?)),
         };
         connection
-            .connection()?
+            .connection()
+            .await
             .execute("PRAGMA foreign_keys = ON", NO_PARAMS)?;
-        connection.migrate()?;
+        connection.migrate().await?;
         Ok(connection)
     }
 
-    fn migrate(&self) -> Result {
-        let user_version = self.get_user_version()?;
-        let mut connection = self.connection()?;
+    async fn migrate(&self) -> Result {
+        let user_version = self.get_user_version().await?;
+        let mut connection = self.connection().await;
         for (i, migration) in migrations::MIGRATIONS.iter().enumerate() {
             if user_version < i + 1 {
                 info!("Applying migration #{}…", i + 1);
@@ -47,20 +47,21 @@ impl Connection {
         Ok(())
     }
 
-    /// Acquires lock and returns the underlying `rusqlite::Connection`.
-    pub fn connection(&self) -> Result<MutexGuard<'_, rusqlite::Connection>> {
-        Ok(self.connection.lock().expect("Failed to acquire the database lock"))
+    pub async fn connection(&self) -> MutexGuard<'_, rusqlite::Connection> {
+        self.connection.lock().await
     }
 
-    pub fn get_user_version(&self) -> Result<usize> {
+    pub async fn get_user_version(&self) -> Result<usize> {
         Ok(self
-            .connection()?
+            .connection()
+            .await
             .pragma_query_value(None, "user_version", get_single::<i64, usize>)?)
     }
 
     /// Selects the latest readings for all sensors.
-    pub fn select_actuals(&self) -> Result<Vec<(Sensor, Reading)>> {
-        self.connection()?
+    pub async fn select_actuals(&self) -> Result<Vec<(Sensor, Reading)>> {
+        self.connection()
+            .await
             .prepare_cached(
                 // language=sql
                 r"SELECT * FROM sensors ORDER BY location, sensor_id",
@@ -71,9 +72,10 @@ impl Connection {
     }
 
     /// Selects the database size.
-    pub fn select_size(&self) -> Result<u64> {
+    pub async fn select_size(&self) -> Result<u64> {
         Ok(self
-            .connection()?
+            .connection()
+            .await
             // language=sql
             .prepare_cached(
                 r#"
@@ -85,17 +87,19 @@ impl Connection {
     }
 
     /// Selects the specified sensor.
-    pub fn select_sensor(&self, sensor_id: &str) -> Result<Option<(Sensor, Reading)>> {
+    pub async fn select_sensor(&self, sensor_id: &str) -> Result<Option<(Sensor, Reading)>> {
         Ok(self
-            .connection()?
+            .connection()
+            .await
             // language=sql
             .prepare_cached(r"SELECT * FROM sensors WHERE sensor_id = ?1")?
             .query_row(params![sensor_id], get_sensor_reading)
             .optional()?)
     }
 
-    pub fn delete_sensor(&self, sensor_id: &str) -> Result {
-        self.connection()?
+    pub async fn delete_sensor(&self, sensor_id: &str) -> Result {
+        self.connection()
+            .await
             // language=sql
             .prepare_cached(r"DELETE FROM sensors WHERE sensor_id = ?1")?
             .execute(params![sensor_id])?;
@@ -103,8 +107,9 @@ impl Connection {
     }
 
     /// Selects the specified sensor readings within the specified period.
-    pub fn select_readings(&self, sensor_id: &str, since: &DateTime<Local>) -> Result<Vec<Reading>> {
-        self.connection()?
+    pub async fn select_readings(&self, sensor_id: &str, since: &DateTime<Local>) -> Result<Vec<Reading>> {
+        self.connection()
+            .await
             // language=sql
             .prepare_cached(
                 r#"
@@ -122,8 +127,9 @@ impl Connection {
             .collect()
     }
 
-    pub fn select_last_n_readings(&self, sensor_id: &str, limit: usize) -> Result<Vec<Reading>> {
-        self.connection()?
+    pub async fn select_last_n_readings(&self, sensor_id: &str, limit: usize) -> Result<Vec<Reading>> {
+        self.connection()
+            .await
             // language=sql
             .prepare_cached("SELECT timestamp, value FROM readings WHERE sensor_fk = ?1 ORDER BY timestamp LIMIT ?2")?
             .query_map(params![hash_sensor_id(sensor_id), limit as i64], get_reading)?
@@ -131,32 +137,41 @@ impl Connection {
             .collect()
     }
 
-    pub fn select_sensor_count(&self) -> Result<usize> {
+    pub async fn select_sensor_count(&self) -> Result<usize> {
         Ok(self
-            .connection()?
+            .connection()
+            .await
             // language=sql
             .prepare_cached("SELECT COUNT(*) FROM sensors")?
             .query_row(NO_PARAMS, get_single::<i64, usize>)?)
     }
 
-    pub fn select_reading_count(&self) -> Result<u64> {
+    pub async fn select_reading_count(&self) -> Result<u64> {
         Ok(self
-            .connection()?
+            .connection()
+            .await
             // language=sql
             .prepare_cached("SELECT COUNT(*) FROM readings")?
             .query_row(NO_PARAMS, get_single::<i64, u64>)?)
     }
 
-    pub fn select_sensor_reading_count(&self, sensor_id: &str) -> Result<u64> {
+    pub async fn select_sensor_reading_count(&self, sensor_id: &str) -> Result<u64> {
         Ok(self
-            .connection()?
+            .connection()
+            .await
             // language=sql
             .prepare_cached("SELECT COUNT(*) FROM readings WHERE sensor_fk = ?1")?
             .query_row(params![hash_sensor_id(sensor_id)], get_single::<i64, u64>)?)
     }
 
-    pub fn set_user_data<V: Serialize>(&self, key: &str, value: V, expires_at: Option<DateTime<Local>>) -> Result {
-        self.connection()?
+    pub async fn set_user_data<V: Serialize>(
+        &self,
+        key: &str,
+        value: V,
+        expires_at: Option<DateTime<Local>>,
+    ) -> Result {
+        self.connection()
+            .await
             // language=sql
             .prepare_cached(
                 r#"
@@ -174,9 +189,10 @@ impl Connection {
         Ok(())
     }
 
-    pub fn get_user_data<V: DeserializeOwned>(&self, key: &str) -> Result<Option<V>> {
+    pub async fn get_user_data<V: DeserializeOwned>(&self, key: &str) -> Result<Option<V>> {
         Ok(self
-            .connection()?
+            .connection()
+            .await
             // language=sql
             .prepare_cached(
                 r#"
@@ -235,7 +251,7 @@ fn get_single<T, R>(row: &Row) -> rusqlite::Result<R>
 where
     T: FromSql,
     R: TryFrom<T>,
-    R::Error: Send + Sync + Error + 'static,
+    R::Error: Send + Sync + std::error::Error + 'static,
 {
     TryInto::<R>::try_into(row.get::<_, T>(0)?)
         .map_err(Box::new)
@@ -301,125 +317,127 @@ mod tests {
     use super::*;
     use chrono::Duration;
 
-    #[test]
-    fn double_upsert_keeps_one_reading() -> Result {
+    #[async_std::test]
+    async fn double_upsert_keeps_one_reading() -> Result {
         let message = Message::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000));
 
-        let db = Connection::open_and_initialize(":memory:")?;
+        let db = Connection::open_and_initialize(":memory:").await?;
         {
             // It acquires a lock on the database.
-            let connection = db.connection()?;
+            let connection = db.connection.lock().await;
             message.upsert_into(&connection)?;
             message.upsert_into(&connection)?;
         }
 
-        assert_eq!(db.select_reading_count()?, 1);
+        assert_eq!(db.select_reading_count().await?, 1);
 
         Ok(())
     }
 
-    #[test]
-    fn select_last_reading_returns_none_on_empty_database() -> Result {
-        let db = Connection::open_and_initialize(":memory:")?;
-        assert_eq!(db.select_sensor("test")?, None);
+    #[async_std::test]
+    async fn select_last_reading_returns_none_on_empty_database() -> Result {
+        let db = Connection::open_and_initialize(":memory:").await?;
+        assert_eq!(db.select_sensor("test").await?, None);
         Ok(())
     }
 
-    #[test]
-    fn select_last_reading_ok() -> Result {
+    #[async_std::test]
+    async fn select_last_reading_ok() -> Result {
         let message = Message::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000));
-        let db = Connection::open_and_initialize(":memory:")?;
-        message.upsert_into(&*db.connection()?)?;
-        assert_eq!(db.select_sensor("test")?, Some(message.into()));
+        let db = Connection::open_and_initialize(":memory:").await?;
+        message.upsert_into(&*db.connection.lock().await)?;
+        assert_eq!(db.select_sensor("test").await?, Some(message.into()));
         Ok(())
     }
 
-    #[test]
-    fn select_last_reading_returns_newer_reading() -> Result {
-        let db = Connection::open_and_initialize(":memory:")?;
+    #[async_std::test]
+    async fn select_last_reading_returns_newer_reading() -> Result {
+        let db = Connection::open_and_initialize(":memory:").await?;
         let mut message = Message::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_127_000));
-        message.upsert_into(&*db.connection()?)?;
+        message.upsert_into(&*db.connection.lock().await)?;
         message = message.timestamp(Local.timestamp_millis(1_566_424_128_000));
-        message.upsert_into(&*db.connection()?)?;
-        assert_eq!(db.select_sensor("test")?, Some(message.into()));
+        message.upsert_into(&*db.connection.lock().await)?;
+        assert_eq!(db.select_sensor("test").await?, Some(message.into()));
         Ok(())
     }
 
-    #[test]
-    fn select_actuals_ok() -> Result {
+    #[async_std::test]
+    async fn select_actuals_ok() -> Result {
         let message = Message::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000));
-        let db = Connection::open_and_initialize(":memory:")?;
-        message.upsert_into(&*db.connection()?)?;
-        assert_eq!(db.select_actuals()?, vec![(message.sensor, message.reading)]);
+        let db = Connection::open_and_initialize(":memory:").await?;
+        message.upsert_into(&*db.connection.lock().await)?;
+        assert_eq!(db.select_actuals().await?, vec![(message.sensor, message.reading)]);
         Ok(())
     }
 
-    #[test]
-    fn existing_sensor_is_reused() -> Result {
-        let db = Connection::open_and_initialize(":memory:")?;
+    #[async_std::test]
+    async fn existing_sensor_is_reused() -> Result {
+        let db = Connection::open_and_initialize(":memory:").await?;
         let old = Message::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000));
-        old.upsert_into(&*db.connection()?)?;
+        old.upsert_into(&*db.connection.lock().await)?;
         let new = Message::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_129_000));
-        new.upsert_into(&*db.connection()?)?;
+        new.upsert_into(&*db.connection.lock().await)?;
 
-        assert_eq!(db.select_sensor_count()?, 1);
+        assert_eq!(db.select_sensor_count().await?, 1);
 
         Ok(())
     }
 
-    #[test]
-    fn select_readings_ok() -> Result {
-        let db = Connection::open_and_initialize(":memory:")?;
+    #[async_std::test]
+    async fn select_readings_ok() -> Result {
+        let db = Connection::open_and_initialize(":memory:").await?;
         let message = Message::new("test")
             .value(Value::Counter(42))
             .timestamp(Local.timestamp_millis(1_566_424_128_000));
-        message.upsert_into(&*db.connection()?)?;
-        let readings = db.select_readings("test", &Local.timestamp_millis(0))?;
+        message.upsert_into(&*db.connection.lock().await)?;
+        let readings = db.select_readings("test", &Local.timestamp_millis(0)).await?;
         assert_eq!(readings.get(0).unwrap(), &message.reading);
         Ok(())
     }
 
-    #[test]
-    fn get_set_user_data_ok() -> Result {
-        let db = Connection::open_and_initialize(":memory:")?;
-        db.set_user_data("hello::world", 42_i32, Some(Local::now() + Duration::minutes(1)))?;
-        assert_eq!(db.get_user_data("hello::world")?, Some(42_i32));
+    #[async_std::test]
+    async fn get_set_user_data_ok() -> Result {
+        let db = Connection::open_and_initialize(":memory:").await?;
+        db.set_user_data("hello::world", 42_i32, Some(Local::now() + Duration::minutes(1)))
+            .await?;
+        assert_eq!(db.get_user_data("hello::world").await?, Some(42_i32));
         Ok(())
     }
 
-    #[test]
-    fn get_set_user_data_overwrite_ok() -> Result {
-        let db = Connection::open_and_initialize(":memory:")?;
-        db.set_user_data("hello::world", 43_i32, None)?;
-        db.set_user_data("hello::world", 42_i32, None)?;
-        assert_eq!(db.get_user_data("hello::world")?, Some(42_i32));
+    #[async_std::test]
+    async fn get_set_user_data_overwrite_ok() -> Result {
+        let db = Connection::open_and_initialize(":memory:").await?;
+        db.set_user_data("hello::world", 43_i32, None).await?;
+        db.set_user_data("hello::world", 42_i32, None).await?;
+        assert_eq!(db.get_user_data("hello::world").await?, Some(42_i32));
         Ok(())
     }
 
-    #[test]
-    fn get_expired_user_data_ok() -> Result {
-        let db = Connection::open_and_initialize(":memory:")?;
-        db.set_user_data("hello::world", 43_i32, Some(Local::now() - Duration::minutes(1)))?;
-        assert_eq!(db.get_user_data::<i32>("hello::world")?, None);
+    #[async_std::test]
+    async fn get_expired_user_data_ok() -> Result {
+        let db = Connection::open_and_initialize(":memory:").await?;
+        db.set_user_data("hello::world", 43_i32, Some(Local::now() - Duration::minutes(1)))
+            .await?;
+        assert_eq!(db.get_user_data::<i32>("hello::world").await?, None);
         Ok(())
     }
 
-    #[test]
-    fn missing_user_data_returns_none() -> Result {
-        let db = Connection::open_and_initialize(":memory:")?;
-        assert_eq!(db.get_user_data::<String>("hello::world")?, None);
+    #[async_std::test]
+    async fn missing_user_data_returns_none() -> Result {
+        let db = Connection::open_and_initialize(":memory:").await?;
+        assert_eq!(db.get_user_data::<String>("hello::world").await?, None);
         Ok(())
     }
 }

@@ -13,17 +13,12 @@ use crate::web::{rocket_uri_macro_delete_sensor, rocket_uri_macro_get_sensor_jso
 pub struct IndexTemplate {
     #[allow(clippy::type_complexity)]
     pub actuals: Vec<(String, Vec<(Sensor, Reading)>)>,
-
-    pub message_count: u64,
 }
 
 #[derive(Template)]
 #[template(path = "settings.html")]
 pub struct SettingsTemplate {
     pub settings: String,
-
-    /// Statistics in the footer.
-    pub message_count: u64,
 }
 
 #[derive(Template)]
@@ -39,9 +34,6 @@ pub struct SensorTemplate {
     pub minutes: i64,
 
     pub reading_count: u64,
-
-    /// Statistics in the footer.
-    pub message_count: u64,
 }
 
 impl SensorTemplate {

@@ -5,14 +5,14 @@ use std::time::Duration;
 
 use bytes::Bytes;
 use log::debug;
-use reqwest::blocking::multipart::{Form, Part};
+use reqwest::multipart::{Form, Part};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
 use method_call::MethodCall;
 
 use crate::prelude::*;
-use crate::services::CLIENT;
+use crate::services::prelude::*;
 
 pub mod method_call;
 
@@ -31,16 +31,16 @@ pub struct Secrets {
 
 impl Telegram {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result {
-        let tx = bus.add_tx();
+        let mut tx = bus.add_tx();
 
-        thread::spawn(move || {
+        task::spawn(async move {
             let mut offset: Option<i64> = None;
             loop {
-                match self.loop_(&service_id, offset, &tx) {
+                match self.loop_(&service_id, offset, &mut tx).await {
                     Ok(new_offset) => offset = new_offset,
                     Err(error) => {
                         error!("Failed to refresh the sensors: {}", error.to_string());
-                        sleep(Duration::from_secs(60));
+                        task::sleep(MINUTE).await;
                     }
                 }
             }
@@ -49,28 +49,28 @@ impl Telegram {
         Ok(())
     }
 
-    fn loop_(&self, service_id: &str, offset: Option<i64>, tx: &Sender) -> Result<Option<i64>> {
+    async fn loop_(&self, service_id: &str, offset: Option<i64>, tx: &mut Sender) -> Result<Option<i64>> {
         let mut offset = offset;
-        for update in self.get_updates(offset)?.iter() {
+        for update in self.get_updates(offset).await?.iter() {
             offset = offset.max(Some(update.update_id + 1));
-            self.send_readings(&service_id, &tx, &update)?;
+            self.send_readings(&service_id, tx, &update).await?;
         }
         debug!("{}: next offset: {:?}", &service_id, offset);
         Ok(offset)
     }
 
     /// Send reading messages from the provided Telegram update.
-    fn send_readings(&self, service_id: &str, tx: &Sender, update: &TelegramUpdate) -> Result {
+    async fn send_readings(&self, service_id: &str, tx: &mut Sender, update: &TelegramUpdate) -> Result {
         debug!("{}: {:?}", service_id, &update);
 
         if let Some(ref message) = update.message {
             if let Some(ref text) = message.text {
-                tx.send(
-                    Message::new(format!("{}::{}::message", service_id, message.chat.id))
-                        .type_(MessageType::ReadNonLogged)
-                        .value(Value::Text(text.into()))
-                        .timestamp(message.date),
-                )?;
+                Message::new(format!("{}::{}::message", service_id, message.chat.id))
+                    .type_(MessageType::ReadNonLogged)
+                    .value(Value::Text(text.into()))
+                    .timestamp(message.date)
+                    .send_to(tx)
+                    .await;
             }
         }
 
@@ -81,7 +81,7 @@ impl Telegram {
 /// API.
 impl Telegram {
     /// <https://core.telegram.org/bots/api#getupdates>
-    fn get_updates(&self, offset: Option<i64>) -> Result<Vec<TelegramUpdate>> {
+    async fn get_updates(&self, offset: Option<i64>) -> Result<Vec<TelegramUpdate>> {
         self.call(
             &MethodCall::GetUpdates {
                 offset,
@@ -90,10 +90,15 @@ impl Telegram {
             },
             None,
         )
+        .await
     }
 
     /// Calls a [Telegram Bot API](https://core.telegram.org/bots/api) method.
-    pub fn call<R: DeserializeOwned>(&self, call: &MethodCall, input_file: Option<(String, Arc<Bytes>)>) -> Result<R> {
+    pub async fn call<R: DeserializeOwned>(
+        &self,
+        call: &MethodCall,
+        input_file: Option<(String, Arc<Bytes>)>,
+    ) -> Result<R> {
         debug!("{:?}", call);
 
         let url = format!("https://api.telegram.org/bot{}/{}", self.secrets.token, call.url_part(),);
@@ -111,7 +116,7 @@ impl Telegram {
             request = request.timeout(Duration::from_secs(GET_UPDATES_TIMEOUT_SECS + 1));
         }
 
-        match request.send()?.json::<TelegramResponse<R>>()? {
+        match request.send().await?.json::<TelegramResponse<R>>().await? {
             TelegramResponse::Result { result } => Ok(result),
             TelegramResponse::Error { description } => {
                 error!("Telegram error: {:?}", description);

@@ -1,9 +1,5 @@
 use crate::prelude::*;
 use crate::settings::{Service, Settings};
-use lazy_static::lazy_static;
-use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::Method;
-use std::time::Duration;
 
 pub mod anomaly;
 pub mod buienradar;
@@ -11,6 +7,7 @@ pub mod clock;
 pub mod db;
 pub mod helpers;
 pub mod openweather;
+pub mod prelude;
 pub mod rhai;
 pub mod ring;
 pub mod solar;
@@ -19,13 +16,13 @@ pub mod telegram;
 pub mod threshold;
 pub mod youless;
 
-lazy_static! {
-    /// `Client` instance used to make requests to all services.
-    static ref CLIENT: Client = build_client().expect("Failed to build a client");
-}
-
 /// Spawn all the configured services.
-pub fn spawn_all(settings: &Settings, service_ids: &Option<Vec<String>>, bus: &mut Bus, db: &Connection) -> Result {
+pub async fn spawn_all(
+    settings: &Settings,
+    service_ids: &Option<Vec<String>>,
+    bus: &mut Bus,
+    db: &Connection,
+) -> Result {
     for (service_id, service) in settings.services.iter() {
         if let Some(service_ids) = service_ids {
             if !service_ids.contains(service_id) {
@@ -40,13 +37,13 @@ pub fn spawn_all(settings: &Settings, service_ids: &Option<Vec<String>>, bus: &m
             let service_id = service_id.clone();
             match service.clone() {
                 Service::Buienradar(service) => service.spawn(service_id, bus),
-                Service::Clock(service) => service.spawn(service_id, bus),
+                Service::Clock(service) => service.spawn(service_id, bus).await,
                 Service::OpenWeather(service) => service.spawn(service_id, bus),
                 Service::Rhai(service) => service.spawn(service_id, bus, settings.services.clone()),
-                Service::Ring(service) => service.spawn(service_id, bus, db),
-                Service::SimpleAnomalyDetector(service) => service.spawn(service_id, bus, db),
+                Service::Ring(service) => service.spawn(service_id, db.clone(), bus),
+                Service::SimpleAnomalyDetector(service) => service.spawn(service_id, bus, db).await,
                 Service::Solar(service) => service.spawn(service_id, bus),
-                Service::Tado(service) => service.spawn(service_id, bus),
+                Service::Tado(service) => service.spawn(service_id, bus).await,
                 Service::Telegram(service) => service.spawn(service_id, bus),
                 Service::Threshold(service) => service.spawn(service_id, bus),
                 Service::YouLess(service) => service.spawn(service_id, bus),
@@ -56,39 +53,4 @@ pub fn spawn_all(settings: &Settings, service_ids: &Option<Vec<String>>, bus: &m
         }
     }
     Ok(())
-}
-
-/// Builds an HTTP client to use with a service.
-fn build_client() -> Result<Client> {
-    let mut headers = HeaderMap::new();
-    headers.insert(reqwest::header::USER_AGENT, HeaderValue::from_static(USER_AGENT));
-    Ok(Client::builder()
-        .gzip(true)
-        .use_rustls_tls()
-        .default_headers(headers)
-        .timeout(Duration::from_secs(30))
-        .pool_idle_timeout(Some(Duration::from_secs(300)))
-        .build()?)
-}
-
-/// Deserializes a Unix time into `DateTime<Local>`.
-fn deserialize_timestamp<'de, D: Deserializer<'de>>(deserializer: D) -> Result<DateTime<Local>, D::Error> {
-    Ok(Local.timestamp(i64::deserialize(deserializer)?, 0))
-}
-
-/// Generic function to call a JSON API.
-fn call_json_api<U, R>(method: Method, access_token: &str, url: U) -> Result<R>
-where
-    U: AsRef<str> + std::fmt::Display,
-    R: DeserializeOwned,
-{
-    debug!("Calling {}…", url);
-    let response = CLIENT
-        .request(method, url.as_ref())
-        .header("Authorization", format!("Bearer {}", access_token))
-        .send()?
-        .error_for_status()?
-        .json()?;
-    debug!("Finished {}.", url);
-    Ok(response)
 }

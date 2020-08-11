@@ -1,9 +1,7 @@
-use crate::prelude::*;
-use crate::services::{deserialize_timestamp, CLIENT};
 use reqwest::Url;
-use std::time::Duration;
 
-const REFRESH_PERIOD: Duration = Duration::from_secs(60);
+use crate::prelude::*;
+use crate::services::prelude::*;
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct OpenWeather {
@@ -20,11 +18,16 @@ struct Secrets {
 /// <https://openweathermap.org/current>
 impl OpenWeather {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result {
-        let tx = bus.add_tx();
-        spawn_service_loop(service_id.clone(), REFRESH_PERIOD, move || self.loop_(&service_id, &tx))
+        let mut tx = bus.add_tx();
+        task::spawn(async move {
+            loop {
+                handle_service_result(&service_id, MINUTE, self.loop_(&service_id, &mut tx).await).await;
+            }
+        });
+        Ok(())
     }
 
-    fn loop_(&self, service_id: &str, tx: &Sender) -> Result {
+    async fn loop_(&self, service_id: &str, tx: &mut Sender) -> Result {
         let response = CLIENT
             .get(Url::parse_with_params(
                 "https://api.openweathermap.org/data/2.5/weather",
@@ -36,9 +39,11 @@ impl OpenWeather {
                     ("lon", &self.secrets.longitude.to_string()),
                 ],
             )?)
-            .send()?
+            .send()
+            .await?
             .error_for_status()?
-            .json::<Response>()?;
+            .json::<Response>()
+            .await?;
 
         let sensor_prefix = format!("{}::{}", service_id, response.city_id);
 
@@ -47,39 +52,45 @@ impl OpenWeather {
             .timestamp(response.timestamp)
             .sensor_title("Temperature")
             .location(&response.city_name)
-            .send_and_forget(tx);
+            .send_to(tx)
+            .await;
         Message::new(format!("{}::temperature::feel", sensor_prefix))
             .value(Value::Temperature(response.main.feel_temperature))
             .timestamp(response.timestamp)
             .sensor_title("Feel Temperature")
             .location(&response.city_name)
-            .send_and_forget(tx);
+            .send_to(tx)
+            .await;
         Message::new(format!("{}::temperature::min", sensor_prefix))
             .value(Value::Temperature(response.main.temperature_min))
             .timestamp(response.timestamp)
             .sensor_title("Minimal Temperature")
             .location(&response.city_name)
-            .send_and_forget(tx);
+            .send_to(tx)
+            .await;
         Message::new(format!("{}::temperature::max", sensor_prefix))
             .value(Value::Temperature(response.main.temperature_max))
             .timestamp(response.timestamp)
             .sensor_title("Maximal Temperature")
             .location(&response.city_name)
-            .send_and_forget(tx);
+            .send_to(tx)
+            .await;
 
         Message::new(format!("{}::wind::speed", sensor_prefix))
             .value(Value::Speed(response.wind.speed))
             .timestamp(response.timestamp)
             .sensor_title("Wind Speed")
             .location(&response.city_name)
-            .send_and_forget(tx);
+            .send_to(tx)
+            .await;
         if let Some(speed) = response.wind.gusts {
             Message::new(format!("{}::wind::gusts", sensor_prefix))
                 .value(Value::Speed(speed))
                 .timestamp(response.timestamp)
                 .sensor_title("Wind Gusts")
                 .location(&response.city_name)
-                .send_and_forget(tx);
+                .send_to(tx)
+                .await;
         }
 
         Message::new(format!("{}::cloudiness", sensor_prefix))
@@ -87,14 +98,16 @@ impl OpenWeather {
             .timestamp(response.timestamp)
             .sensor_title("Cloudiness")
             .location(&response.city_name)
-            .send_and_forget(tx);
+            .send_to(tx)
+            .await;
 
         Message::new(format!("{}::rain::last_hour", sensor_prefix))
             .value(Value::from_mm(response.rain.last_hour))
             .timestamp(response.timestamp)
             .sensor_title("Rain Last Hour")
             .location(&response.city_name)
-            .send_and_forget(tx);
+            .send_to(tx)
+            .await;
 
         Ok(())
     }

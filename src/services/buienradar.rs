@@ -1,15 +1,14 @@
 //! [Buienradar](https://www.buienradar.nl/) weather service.
 
-use crate::prelude::*;
-use crate::services::CLIENT;
 use chrono::offset::TimeZone;
 use chrono_tz::Europe::Amsterdam;
 use serde::{de, Deserialize, Deserializer};
-use std::time::Duration;
+
+use crate::prelude::*;
+use crate::services::prelude::*;
 
 /// Buienradar JSON feed URL.
 const URL: &str = "https://json.buienradar.nl/";
-const REFRESH_PERIOD: Duration = Duration::from_secs(60);
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Buienradar {
@@ -19,26 +18,33 @@ pub struct Buienradar {
 
 impl Buienradar {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result {
-        let tx = bus.add_tx();
-        spawn_service_loop(service_id.clone(), REFRESH_PERIOD, move || self.loop_(&service_id, &tx))
+        let mut tx = bus.add_tx();
+        task::spawn(async move {
+            loop {
+                handle_service_result(&service_id, MINUTE, self.loop_(&service_id, &mut tx).await).await;
+            }
+        });
+        Ok(())
     }
 
-    fn loop_(&self, service_id: &str, tx: &Sender) -> Result {
-        self.send_readings(self.fetch()?, &service_id, &tx)
+    async fn loop_(&self, service_id: &str, tx: &mut Sender) -> Result {
+        self.send_readings(self.fetch().await?, &service_id, tx).await
     }
 
     /// Fetch measurement for the configured station.
-    fn fetch(&self) -> Result<BuienradarFeedActual> {
+    async fn fetch(&self) -> Result<BuienradarFeedActual> {
         Ok(CLIENT
             .get(URL)
-            .send()?
+            .send()
+            .await?
             .error_for_status()?
-            .json::<BuienradarFeed>()?
+            .json::<BuienradarFeed>()
+            .await?
             .actual)
     }
 
     /// Sends out readings based on Buienradar station measurement.
-    fn send_readings(&self, actual: BuienradarFeedActual, service_id: &str, tx: &Sender) -> Result {
+    async fn send_readings(&self, actual: BuienradarFeedActual, service_id: &str, tx: &mut Sender) -> Result {
         let measurement = actual
             .station_measurements
             .iter()
@@ -46,65 +52,68 @@ impl Buienradar {
             .ok_or_else(|| format!("station {} is not found", self.station_id))?;
         let sensor_prefix = format!("{}::{}", service_id, self.station_id);
         if let Some(temperature) = measurement.temperature {
-            tx.send(
-                Message::new(format!("{}::temperature", sensor_prefix))
-                    .value(Value::Temperature(temperature))
-                    .set_common_buienradar_attributes(measurement)
-                    .sensor_title("Temperature"),
-            )?;
+            Message::new(format!("{}::temperature", sensor_prefix))
+                .value(Value::Temperature(temperature))
+                .set_common_buienradar_attributes(measurement)
+                .sensor_title("Temperature")
+                .send_to(tx)
+                .await;
         }
         if let Some(temperature) = measurement.ground_temperature {
-            tx.send(
-                Message::new(format!("{}::temperature::ground", sensor_prefix))
-                    .value(Value::Temperature(temperature))
-                    .set_common_buienradar_attributes(measurement)
-                    .sensor_title("Ground Temperature"),
-            )?;
+            Message::new(format!("{}::temperature::ground", sensor_prefix))
+                .value(Value::Temperature(temperature))
+                .set_common_buienradar_attributes(measurement)
+                .sensor_title("Ground Temperature")
+                .send_to(tx)
+                .await;
         }
         if let Some(temperature) = measurement.feel_temperature {
-            tx.send(
-                Message::new(format!("{}::temperature::feel", sensor_prefix))
-                    .value(Value::Temperature(temperature))
-                    .set_common_buienradar_attributes(measurement)
-                    .sensor_title("Feel Temperature"),
-            )?;
+            Message::new(format!("{}::temperature::feel", sensor_prefix))
+                .value(Value::Temperature(temperature))
+                .set_common_buienradar_attributes(measurement)
+                .sensor_title("Feel Temperature")
+                .send_to(tx)
+                .await;
         }
         if let Some(bft) = measurement.wind_speed_bft {
-            tx.send(
-                Message::new(format!("{}::wind::force", sensor_prefix))
-                    .value(Value::Bft(bft))
-                    .set_common_buienradar_attributes(measurement)
-                    .sensor_title("Wind Force"),
-            )?;
+            Message::new(format!("{}::wind::force", sensor_prefix))
+                .value(Value::Bft(bft))
+                .set_common_buienradar_attributes(measurement)
+                .sensor_title("Wind Force")
+                .send_to(tx)
+                .await;
         }
         if let Some(point) = &measurement.wind_direction {
-            tx.send(
-                Message::new(format!("{}::wind::direction", sensor_prefix))
-                    .value(Value::StringEnum(point.clone()))
-                    .set_common_buienradar_attributes(measurement)
-                    .sensor_title("Wind Direction"),
-            )?;
+            Message::new(format!("{}::wind::direction", sensor_prefix))
+                .value(Value::StringEnum(point.clone()))
+                .set_common_buienradar_attributes(measurement)
+                .sensor_title("Wind Direction")
+                .send_to(tx)
+                .await;
         }
         if let Some(watts) = measurement.sun_power {
             Message::new(format!("{}::sun::power", sensor_prefix))
                 .value(Value::Power(watts))
                 .set_common_buienradar_attributes(measurement)
                 .sensor_title("Sun Power per ㎡")
-                .send_and_forget(tx);
+                .send_to(tx)
+                .await;
         }
         if let Some(speed) = measurement.wind_speed {
             Message::new(format!("{}::wind::speed", sensor_prefix))
                 .value(Value::Speed(speed))
                 .set_common_buienradar_attributes(measurement)
                 .sensor_title("Wind Speed")
-                .send_and_forget(tx);
+                .send_to(tx)
+                .await;
         }
         if let Some(speed) = measurement.wind_gusts {
             Message::new(format!("{}::wind::gusts", sensor_prefix))
                 .value(Value::Speed(speed))
                 .set_common_buienradar_attributes(measurement)
                 .sensor_title("Wind Gusts")
-                .send_and_forget(tx);
+                .send_to(tx)
+                .await;
         }
 
         Ok(())

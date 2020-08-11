@@ -1,3 +1,7 @@
+# `0.93.0`
+
+- ✨ Go async!
+
 # `0.92.0`
 
 - 🔥 Remove thread names

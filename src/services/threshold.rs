@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::services::helpers::expect::expect;
+use crate::services::prelude::*;
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Threshold {
@@ -19,25 +19,24 @@ enum State {
 
 impl Threshold {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result {
-        let tx = bus.add_tx();
-        let rx = bus.add_rx();
+        let mut tx = bus.add_tx();
+        let mut rx = bus.add_rx();
 
-        thread::spawn(move || -> Result<(), ()> {
+        task::spawn(async move {
             let mut state = None;
-            for message in &rx {
+            while let Some(message) = rx.next().await {
                 let value = match expect::<f64>(&service_id, &message, &self.sensor_id) {
                     Some(value) => value,
                     None => continue,
                 };
                 if (state == Some(State::Low) || state.is_none()) && value >= self.high {
                     state = Some(State::High);
-                    Self::send_message(&service_id, "high", message, &tx);
+                    Self::send_message(&service_id, "high", message, &mut tx).await;
                 } else if (state == Some(State::High) || state.is_none()) && value < self.low {
                     state = Some(State::Low);
-                    Self::send_message(&service_id, "low", message, &tx);
+                    Self::send_message(&service_id, "low", message, &mut tx).await;
                 }
             }
-
             unreachable!();
         });
 
@@ -45,13 +44,14 @@ impl Threshold {
     }
 
     /// Sends a message with the sensor ID of `<service_id>::<original_sensor_id>::<low|high>`.
-    fn send_message(service_id: &str, suffix: &str, base_message: Message, tx: &Sender) {
+    async fn send_message(service_id: &str, suffix: &str, base_message: Message, tx: &mut Sender) {
         Message::new(format!("{}::{}::{}", service_id, &base_message.sensor.id, suffix))
             .type_(MessageType::ReadNonLogged)
             .value(base_message.reading.value)
             .timestamp(base_message.reading.timestamp)
             .optional_sensor_title(base_message.sensor.title)
             .location(base_message.sensor.location)
-            .send_and_forget(tx);
+            .send_to(tx)
+            .await;
     }
 }

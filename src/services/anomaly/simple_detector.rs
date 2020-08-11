@@ -26,14 +26,15 @@ const fn default_sigma() -> f64 {
 }
 
 impl SimpleAnomalyDetector {
-    pub fn spawn(self, service_id: String, bus: &mut Bus, db: &Connection) -> Result {
-        let rx = bus.add_rx();
-        let tx = bus.add_tx();
+    pub async fn spawn(self, service_id: String, bus: &mut Bus, db: &Connection) -> Result {
+        let mut rx = bus.add_rx();
+        let mut tx = bus.add_tx();
 
         // Avoid selecting the entire sample from the database all the time.
         // The `self.sample_size`-th element will be pushed on the first iteration, thus the `-1`.
         let mut heap: BinaryHeap<MinHeapReading> = db
-            .select_last_n_readings(&self.sensor_id, self.sample_size - 1)?
+            .select_last_n_readings(&self.sensor_id, self.sample_size - 1)
+            .await?
             .into_iter()
             .filter_map(|reading| {
                 TryInto::<f64>::try_into(&reading.value)
@@ -42,10 +43,10 @@ impl SimpleAnomalyDetector {
             })
             .collect();
 
-        thread::spawn(move || {
+        task::spawn(async move {
             let mut mean_variance: Option<(f64, f64)> = None;
 
-            for message in rx {
+            while let Some(message) = rx.next().await {
                 let value = match expect::<f64>(&service_id, &message, &self.sensor_id) {
                     Some(value) => value,
                     None => continue,
@@ -56,23 +57,24 @@ impl SimpleAnomalyDetector {
                     debug!("[{}] {} | mean: {} | z: {:.2}σ", service_id, value, mean, z_score);
                     let is_anomaly = z_score.abs() > self.sigma;
 
-                    let mut new_message = Message::new(format!("{}::{}::is_typical", service_id, self.sensor_id))
+                    let mut new_message = Message::new(format!("{}::{}::is_typical", service_id, &self.sensor_id))
                         .timestamp(message.reading.timestamp)
                         .optional_location(message.sensor.location.clone())
                         .value(!is_anomaly);
                     if let Some(title) = &message.sensor.title {
                         new_message = new_message.sensor_title(format!("Is {} Typical", title));
                     }
-                    new_message.send_and_forget(&tx);
+                    new_message.send_to(&mut tx).await;
 
                     if is_anomaly {
-                        Message::new(format!("{}::{}::anomaly", service_id, self.sensor_id))
+                        Message::new(format!("{}::{}::anomaly", service_id, &self.sensor_id))
                             .type_(MessageType::ReadNonLogged)
                             .value(message.reading.value)
                             .timestamp(message.reading.timestamp)
                             .optional_sensor_title(message.sensor.title)
                             .optional_location(message.sensor.location)
-                            .send_and_forget(&tx);
+                            .send_to(&mut tx)
+                            .await;
                     }
                 } else {
                     debug!("[{}] The mean and variance have not been initialized yet.", service_id);

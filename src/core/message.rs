@@ -49,6 +49,12 @@ impl Message {
         }
     }
 
+    pub async fn send_to(self, tx: &mut Sender) {
+        if let Err(error) = tx.send(self).await {
+            error!("Message bus error: {}", error);
+        }
+    }
+
     pub fn type_(mut self, type_: Type) -> Self {
         self.type_ = type_;
         self

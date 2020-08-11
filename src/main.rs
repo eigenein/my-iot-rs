@@ -17,8 +17,8 @@ mod services;
 mod settings;
 mod web;
 
-/// Entry point.
-fn main() -> Result {
+#[async_std::main]
+async fn main() -> Result {
     let opts = opts::Opts::from_args();
     if opts.version {
         // I want to print only the version, without the application name.
@@ -33,20 +33,18 @@ fn main() -> Result {
     debug!("Settings: {:?}", &settings);
 
     info!("Opening the database…");
-    let db = Connection::open_and_initialize(&opts.db)?;
+    let db = Connection::open_and_initialize(&opts.db).await?;
 
     info!("Starting services…");
     let mut bus = Bus::new();
-    bus.add_tx()
-        .send(Message::new("my-iot::start").type_(MessageType::ReadNonLogged))?;
-    core::db::thread::spawn(db.clone(), &mut bus)?;
-    services::db::Db.spawn("system::db".into(), &mut bus, db.clone())?;
-    services::spawn_all(&settings, &opts.service_ids, &mut bus, &db)?;
-    let message_counter = bus.message_count.clone();
-    bus.spawn()?;
+    core::db::tasks::spawn(db.clone(), &mut bus);
+    services::db::Db.spawn("system::db".into(), &mut bus, db.clone());
+    services::spawn_all(&settings, &opts.service_ids, &mut bus, &db).await?;
 
     info!("Starting web server on port {}…", settings.http.port);
-    web::start_server(&settings, db, message_counter)
+    std::thread::spawn(move || web::start_server(&settings, db));
+
+    bus.spawn().await
 }
 
 fn init_logging(opts: &Opts) -> Result {

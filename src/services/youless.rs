@@ -1,7 +1,7 @@
 //! [YouLess](https://www.youless.nl/home.html) kWh meter to ethernet bridge.
 
 use crate::prelude::*;
-use crate::services::{deserialize_timestamp, CLIENT};
+use crate::services::prelude::*;
 use std::time::Duration;
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
@@ -28,21 +28,31 @@ fn default_host() -> String {
 
 impl YouLess {
     pub fn spawn(self, service_id: String, bus: &mut Bus) -> Result {
-        let tx = bus.add_tx();
         let url = format!("http://{}/e?f=j", self.host);
-        spawn_service_loop(
-            service_id.clone(),
-            Duration::from_millis(self.interval_millis),
-            move || self.loop_(&service_id, &url, &tx),
-        )
+        let mut tx = bus.add_tx();
+
+        task::spawn(async move {
+            loop {
+                handle_service_result(
+                    &service_id,
+                    Duration::from_millis(self.interval_millis),
+                    self.loop_(&service_id, &url, &mut tx).await,
+                )
+                .await;
+            }
+        });
+
+        Ok(())
     }
 
-    fn loop_(&self, service_id: &str, url: &str, tx: &Sender) -> Result {
+    async fn loop_(&self, service_id: &str, url: &str, tx: &mut Sender) -> Result {
         let response = CLIENT
             .get(url)
-            .send()?
+            .send()
+            .await?
             .error_for_status()?
-            .json::<Vec<Response>>()?
+            .json::<Vec<Response>>()
+            .await?
             .pop()
             .ok_or("YouLess response is empty")?;
         Message::new(format!("{}::nett", service_id))
@@ -50,43 +60,50 @@ impl YouLess {
             .optional_location(self.location.clone())
             .sensor_title("Nett Counter")
             .timestamp(response.timestamp)
-            .send_and_forget(tx);
+            .send_to(tx)
+            .await;
         Message::new(format!("{}::power", service_id))
             .value(Value::Power(response.power))
             .optional_location(self.location.clone())
             .sensor_title("Actual Consumption")
             .timestamp(response.timestamp)
-            .send_and_forget(tx);
+            .send_to(tx)
+            .await;
         Message::new(format!("{}::consumption::low", service_id))
             .value(Value::from_kwh(response.consumption_low))
             .optional_location(self.location.clone())
             .sensor_title("Total Consumption Low")
             .timestamp(response.timestamp)
-            .send_and_forget(tx);
+            .send_to(tx)
+            .await;
         Message::new(format!("{}::consumption::high", service_id))
             .value(Value::from_kwh(response.consumption_high))
             .optional_location(self.location.clone())
             .sensor_title("Total Consumption High")
             .timestamp(response.timestamp)
-            .send_and_forget(tx);
+            .send_to(tx)
+            .await;
         Message::new(format!("{}::production::low", service_id))
             .value(Value::from_kwh(response.production_low))
             .optional_location(self.location.clone())
             .sensor_title("Total Production Low")
             .timestamp(response.timestamp)
-            .send_and_forget(tx);
+            .send_to(tx)
+            .await;
         Message::new(format!("{}::production::high", service_id))
             .value(Value::from_kwh(response.production_high))
             .optional_location(self.location.clone())
             .sensor_title("Total Production High")
             .timestamp(response.timestamp)
-            .send_and_forget(tx);
+            .send_to(tx)
+            .await;
         Message::new(format!("{}::gas", service_id))
             .value(Value::Volume(response.gas))
             .optional_location(self.location.clone())
             .sensor_title("Total Gas Consumption")
             .timestamp(response.timestamp)
-            .send_and_forget(tx);
+            .send_to(tx)
+            .await;
         Ok(())
     }
 }

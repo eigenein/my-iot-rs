@@ -22,8 +22,7 @@ pub struct Rhai {
 
 impl Rhai {
     pub fn spawn(self, service_id: String, bus: &mut Bus, services: HashMap<String, Service>) -> Result {
-        let tx = bus.add_tx();
-        let rx = bus.add_rx();
+        let mut rx = bus.add_rx();
 
         let mut engine = Engine::new();
         engine.set_max_expr_depths(128, 32);
@@ -31,15 +30,15 @@ impl Rhai {
         let mut scope = Scope::new();
 
         Self::register_global_functions(&service_id, &mut engine);
-        Self::register_functions(&mut engine, &tx);
+        Self::register_functions(&mut engine, bus.add_tx());
         Self::push_constants(&mut scope);
         Self::push_services(&mut scope, services);
 
         let engine = engine;
         engine.consume_ast_with_scope(&mut scope, &ast)?;
 
-        thread::spawn(move || -> Result<(), ()> {
-            for message in &rx {
+        task::spawn(async move {
+            while let Some(message) = rx.next().await {
                 if let Some(pattern) = &self.sensor_pattern {
                     if !pattern.is_match(&message.sensor.id) {
                         debug!(
@@ -65,11 +64,11 @@ impl Rhai {
         Self::register_standard_functions(engine);
     }
 
-    fn register_functions(engine: &mut Engine, tx: &Sender) {
+    fn register_functions(engine: &mut Engine, tx: Sender) {
         Self::register_debug_functions::<MessageType>(engine);
         Self::register_debug_functions::<DateTime<Local>>(engine);
 
-        Self::register_message_functions(engine, &tx);
+        Self::register_message_functions(engine, tx);
         Self::register_value_functions(engine);
 
         telegram::register_functions(engine);
@@ -129,16 +128,15 @@ impl Rhai {
     }
 
     /// Registers `Message` functions.
-    fn register_message_functions(engine: &mut Engine, tx: &Sender) {
+    fn register_message_functions(engine: &mut Engine, tx: Sender) {
         Self::register_debug_functions::<Message>(engine);
 
         engine.register_fn("new_message", Message::new::<String>);
-        {
-            let tx = tx.clone();
-            engine.register_fn("send", move |this: &mut Message| {
-                this.clone().send_and_forget(&tx);
-            });
-        }
+        engine.register_fn("send", move |this: &mut Message| {
+            let this = this.clone();
+            let mut tx = tx.clone();
+            task::spawn(async move { this.send_to(&mut tx).await });
+        });
 
         engine.register_get_set(
             "sensor_id",

@@ -13,14 +13,14 @@ pub fn register_functions(engine: &mut Engine) {
         "send_message",
         |this: &mut Telegram, unique_id: i64, text: &str, options: Map| -> FnResult {
             let mut options = options;
-            into_fn_result(this.call::<TelegramMessage>(
+            into_fn_result(task::block_on(this.call::<TelegramMessage>(
                 &MethodCall::SendMessage {
                     chat_id: TelegramChatId::UniqueId(unique_id),
                     text: text.into(),
                     parse_mode: get_option(&mut options, "parse_mode"),
                 },
                 None,
-            ))
+            )))
         },
     );
 
@@ -28,10 +28,10 @@ pub fn register_functions(engine: &mut Engine) {
         "send_video",
         |this: &mut Telegram, unique_id: i64, bytes: Arc<Bytes>, options: Map| -> FnResult {
             let mut options = options;
-            into_fn_result(this.call::<TelegramMessage>(
+            into_fn_result(task::block_on(this.call::<TelegramMessage>(
                 &MethodCall::new_send_video(TelegramChatId::UniqueId(unique_id), None, &mut options),
                 Some(("video".into(), bytes)),
-            ))
+            )))
         },
     );
 }
