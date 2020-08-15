@@ -7,6 +7,7 @@ pub mod clock;
 pub mod db;
 pub mod helpers;
 pub mod openweather;
+pub mod philips_hue;
 pub mod prelude;
 pub mod rhai;
 pub mod ring;
@@ -39,6 +40,7 @@ pub async fn spawn_all(
                 Service::Buienradar(service) => service.spawn(service_id, bus),
                 Service::Clock(service) => service.spawn(service_id, bus).await,
                 Service::OpenWeather(service) => service.spawn(service_id, bus),
+                Service::PhilipsHue(service) => service.spawn(service_id, bus),
                 Service::Rhai(service) => service.spawn(service_id, bus, settings.services.clone()),
                 Service::Ring(service) => service.spawn(service_id, db.clone(), bus),
                 Service::SimpleAnomalyDetector(service) => service.spawn(service_id, bus, db).await,

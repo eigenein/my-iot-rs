@@ -9,6 +9,7 @@
   - [Buienradar]()
   - [Clock]()
   - [OpenWeather]()
+  - [Philips Hue]()
   - [Rhai](services/rhai.md)
     - [Telegram](services/rhai/telegram.md)
   - [Ring](services/ring.md)

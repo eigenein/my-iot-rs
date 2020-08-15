@@ -40,7 +40,7 @@ fn spawn_bufferizer(mut rx: Receiver, buffer: Arc<Mutex<Vec<Message>>>) {
         while let Some(message) = rx.next().await {
             buffer.lock().await.push(message);
         }
-        Err::<(), _>(Error::new("The buffering task has stopped"))
+        unreachable!();
     });
 }
 

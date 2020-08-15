@@ -61,3 +61,4 @@ from_error!(toml::ser::Error, "TOML serialization error");
 from_error!(std::num::ParseFloatError, "Number could not be parsed");
 from_error!(std::num::TryFromIntError, "Number could not be converted");
 from_error!(serde_json::Error, "JSON error");
+from_error!(mdns::Error, "mDNS error");

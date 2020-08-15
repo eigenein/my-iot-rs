@@ -62,6 +62,9 @@ pub enum Service {
     /// [OpenWeather](https://openweathermap.org/).
     OpenWeather(services::openweather::OpenWeather),
 
+    /// [Philips Hue bridge](https://developers.meethue.com/develop/get-started-2/)
+    PhilipsHue(services::philips_hue::PhilipsHue),
+
     /// [Rhai](https://schungx.github.io/rhai/).
     Rhai(services::rhai::Rhai),
 

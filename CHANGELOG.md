@@ -1,3 +1,7 @@
+# `0.94.0`
+
+- 🚧 Philips Hue bridge discovery #132
+
 # `0.93.0`
 
 - ✨ Go async!
