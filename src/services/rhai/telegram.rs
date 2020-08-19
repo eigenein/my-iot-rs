@@ -5,39 +5,37 @@ use rhai::{Dynamic, Engine, Map, RegisterResultFn};
 
 use crate::prelude::*;
 use crate::services::rhai::FnResult;
-use crate::services::telegram::method_call::MethodCall;
 use crate::services::telegram::*;
 
 pub fn register_functions(engine: &mut Engine) {
-    engine.register_result_fn(
-        "send_message",
-        |this: &mut Telegram, unique_id: i64, text: &str, options: Map| -> FnResult {
-            let mut options = options;
-            into_fn_result(task::block_on(this.call::<TelegramMessage>(
-                &MethodCall::SendMessage {
-                    chat_id: TelegramChatId::UniqueId(unique_id),
-                    text: text.into(),
-                    parse_mode: get_option(&mut options, "parse_mode"),
-                },
-                None,
-            )))
-        },
-    );
+    engine.register_result_fn("send_message", Telegram::send_message_rhai);
+    engine.register_result_fn("send_video", Telegram::send_video_rhai);
+}
 
-    engine.register_result_fn(
-        "send_video",
-        |this: &mut Telegram, unique_id: i64, bytes: Arc<Bytes>, options: Map| -> FnResult {
-            let mut options = options;
-            into_fn_result(task::block_on(this.call::<TelegramMessage>(
-                &MethodCall::new_send_video(TelegramChatId::UniqueId(unique_id), None, &mut options),
-                Some(("video".into(), bytes)),
-            )))
-        },
-    );
+impl Telegram {
+    fn send_message_rhai(&mut self, unique_id: i64, text: &str, options: Map) -> FnResult {
+        let mut options = options;
+        into_fn_result(task::block_on(self.call::<TelegramMessage>(
+            &MethodCall::SendMessage {
+                chat_id: TelegramChatId::UniqueId(unique_id),
+                text: text.into(),
+                parse_mode: get_option(&mut options, "parse_mode"),
+            },
+            None,
+        )))
+    }
+
+    fn send_video_rhai(&mut self, unique_id: i64, bytes: Arc<Bytes>, options: Map) -> FnResult {
+        let mut options = options;
+        into_fn_result(task::block_on(self.call::<TelegramMessage>(
+            &MethodCall::new_rhai_send_video(TelegramChatId::UniqueId(unique_id), None, &mut options),
+            Some(("video".into(), bytes)),
+        )))
+    }
 }
 
 impl MethodCall {
-    fn new_send_video(chat_id: TelegramChatId, video: Option<String>, options: &mut Map) -> Self {
+    fn new_rhai_send_video(chat_id: TelegramChatId, video: Option<String>, options: &mut Map) -> Self {
         MethodCall::SendVideo {
             chat_id,
             video,

@@ -9,7 +9,7 @@ use reqwest::multipart::{Form, Part};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
-use method_call::MethodCall;
+pub use method_call::MethodCall;
 
 use crate::prelude::*;
 use crate::services::prelude::*;

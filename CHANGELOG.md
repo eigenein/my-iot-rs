@@ -1,3 +1,7 @@
+# `0.94.1`
+
+- ♻️ Refactor `services::rhai::telegram` for better stacktraces
+
 # `0.94.0`
 
 - 🚧 Philips Hue bridge discovery #132

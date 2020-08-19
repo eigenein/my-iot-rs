@@ -41,15 +41,12 @@ impl Rhai {
             while let Some(message) = rx.next().await {
                 if let Some(pattern) = &self.sensor_pattern {
                     if !pattern.is_match(&message.sensor.id) {
-                        debug!(
-                            "[{}] `{}` is filtered out by the pattern.",
-                            service_id, message.sensor.id
-                        );
+                        debug!("[{}] `{}` is filtered out.", service_id, message.sensor.id);
                         continue;
                     }
                 }
                 if let Err(error) = engine.call_fn::<_, Dynamic>(&mut scope, &ast, "on_message", (message,)) {
-                    error!("[{}] `on_message` has failed: {}", &service_id, error.to_string());
+                    error!("[{}] `on_message` has failed: {}", &service_id, error);
                 }
             }
 
