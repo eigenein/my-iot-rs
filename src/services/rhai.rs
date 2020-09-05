@@ -26,7 +26,7 @@ impl Rhai {
 
         let mut engine = Engine::new();
         engine.set_max_expr_depths(128, 32);
-        let ast = engine.compile(&self.script)?;
+        let mut ast = engine.compile(&self.script)?;
         let mut scope = Scope::new();
 
         Self::register_global_functions(&service_id, &mut engine);
@@ -34,7 +34,6 @@ impl Rhai {
         Self::push_constants(&mut scope);
         Self::push_services(&mut scope, services);
 
-        let engine = engine;
         engine.consume_ast_with_scope(&mut scope, &ast)?;
 
         task::spawn(async move {
@@ -45,9 +44,17 @@ impl Rhai {
                         continue;
                     }
                 }
-                if let Err(error) = engine.call_fn::<_, Dynamic>(&mut scope, &ast, "on_message", (message,)) {
-                    error!("[{}] `on_message` has failed: {}", &service_id, error);
-                }
+                let service_id = service_id.clone();
+                let (engine_, ast_, scope_) = task::spawn(async move {
+                    if let Err(error) = engine.call_fn::<_, Dynamic>(&mut scope, &ast, "on_message", (message,)) {
+                        error!("[{}] `on_message` has failed: {}", service_id, error);
+                    }
+                    (engine, ast, scope)
+                })
+                .await;
+                engine = engine_;
+                ast = ast_;
+                scope = scope_;
             }
 
             unreachable!();

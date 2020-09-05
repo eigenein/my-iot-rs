@@ -1,3 +1,7 @@
+# `0.94.2`
+
+- 🚑 Allow the message bus to continue after the Rhai service panics #136
+
 # `0.94.1`
 
 - ♻️ Refactor `services::rhai::telegram` for better stacktraces
