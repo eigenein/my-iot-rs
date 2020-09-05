@@ -1,3 +1,8 @@
+# `master`
+
+- ➖ Remove `reqwest::blocking` dependency
+- ⬆️ Upgrade the dependencies
+
 # `0.94.2`
 
 - 🚑 Allow the message bus to continue after the Rhai service panics #136
