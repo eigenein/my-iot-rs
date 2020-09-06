@@ -20,13 +20,13 @@ const GET_UPDATES_TIMEOUT_SECS: u64 = 60;
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Telegram {
-    secrets: Secrets,
+    pub secrets: Secrets,
 }
 
 /// Secrets section.
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Secrets {
-    token: String,
+    pub token: String,
 }
 
 impl Telegram {
@@ -82,7 +82,8 @@ impl Telegram {
 impl Telegram {
     /// <https://core.telegram.org/bots/api#getupdates>
     async fn get_updates(&self, offset: Option<i64>) -> Result<Vec<TelegramUpdate>> {
-        self.call(
+        Self::call(
+            &self.secrets.token,
             &MethodCall::GetUpdates {
                 offset,
                 timeout: GET_UPDATES_TIMEOUT_SECS,
@@ -94,14 +95,15 @@ impl Telegram {
     }
 
     /// Calls a [Telegram Bot API](https://core.telegram.org/bots/api) method.
-    pub async fn call<R: DeserializeOwned>(
-        &self,
-        call: &MethodCall,
+    pub async fn call<T: AsRef<str>, MC: Borrow<MethodCall>, R: DeserializeOwned>(
+        token: T,
+        call: MC,
         input_file: Option<(String, Arc<Bytes>)>,
     ) -> Result<R> {
+        let call = call.borrow();
         debug!("{:?}", call);
 
-        let url = format!("https://api.telegram.org/bot{}/{}", self.secrets.token, call.url_part(),);
+        let url = format!("https://api.telegram.org/bot{}/{}", token.as_ref(), call.url_part(),);
 
         let mut request = match input_file {
             Some((field_name, bytes)) => CLIENT

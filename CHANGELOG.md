@@ -1,5 +1,6 @@
-# `master`
+# `0.94.3`
 
+- 🚑 Fix the nested `block_on`, closes #136
 - ➖ Remove `reqwest::blocking` dependency
 - ⬆️ Upgrade the dependencies
 

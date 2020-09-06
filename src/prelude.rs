@@ -1,3 +1,4 @@
+pub use std::borrow::Borrow;
 pub use std::collections::HashMap;
 pub use std::convert::{TryFrom, TryInto};
 pub use std::future::Future;
