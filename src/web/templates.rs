@@ -33,7 +33,7 @@ pub struct SensorTemplate {
     /// Chart period.
     pub minutes: i64,
 
-    pub reading_count: u64,
+    pub reading_count: i64,
 }
 
 impl SensorTemplate {

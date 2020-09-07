@@ -33,7 +33,7 @@ async fn main() -> Result {
     debug!("Settings: {:?}", &settings);
 
     info!("Opening the database…");
-    let db = Connection::open_and_initialize(&opts.db).await?;
+    let db = Connection::open(&opts.db).await?;
 
     info!("Starting services…");
     let mut bus = Bus::new();
@@ -60,7 +60,8 @@ fn init_logging(opts: &Opts) -> Result {
         .add_filter_ignore_str("hyper")
         .add_filter_ignore_str("launch_")
         .add_filter_ignore_str("reqwest")
-        .add_filter_ignore_str("rustls");
+        .add_filter_ignore_str("rustls")
+        .add_filter_ignore_str("sqlx::query");
     if opts.suppress_log_timestamps {
         config_builder.set_time_level(LevelFilter::Off);
     }

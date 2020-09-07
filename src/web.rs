@@ -326,7 +326,7 @@ mod tests {
     async fn client() -> crate::Result<Client> {
         Ok(Client::new(make_rocket(
             &toml::from_str::<Settings>("")?,
-            Connection::open_and_initialize(":memory:").await?,
+            Connection::open(":memory:").await?,
         )?)?)
     }
 }

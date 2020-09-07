@@ -16,7 +16,7 @@ pub enum Value {
     None,
 
     /// Generic counter.
-    Counter(u64),
+    Counter(i64),
 
     /// Image URL.
     ImageUrl(String),
@@ -25,7 +25,7 @@ pub enum Value {
     Boolean(bool),
 
     /// Size in [bytes](https://en.wikipedia.org/wiki/Byte).
-    DataSize(u64),
+    DataSize(i64),
 
     /// [Plain text](https://en.wikipedia.org/wiki/Plain_text).
     Text(String),

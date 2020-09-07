@@ -14,7 +14,7 @@ use crate::services::helpers::expect::expect;
 pub struct SimpleAnomalyDetector {
     sensor_id: String,
 
-    sample_size: usize,
+    sample_size: i64,
 
     /// <https://en.wikipedia.org/wiki/68%E2%80%9395%E2%80%9399.7_rule>
     #[serde(default = "default_sigma")]

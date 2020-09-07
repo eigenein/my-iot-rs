@@ -51,16 +51,15 @@ fn spawn_bufferizer(mut rx: Receiver, buffer: Arc<Mutex<Vec<Message>>>) {
 /// and periodically upserts them all within a single transaction.
 async fn upsert_messages(db: &Connection, messages: Vec<Message>) -> Result {
     info!("Upserting a bulk of {} messages…", messages.len());
-    let mut connection = db.connection().await;
-    let transaction = connection.transaction()?;
+    let mut transaction = db.begin().await?;
 
     for message in messages.iter() {
         if message.type_ == MessageType::ReadLogged {
             debug!("[{:?}] {}", &message.type_, &message.sensor.id);
-            message.upsert_into(&*transaction)?;
+            Connection::upsert_message_to(&message, &mut transaction).await?;
         }
     }
 
-    transaction.commit()?;
+    transaction.commit().await?;
     Ok(())
 }

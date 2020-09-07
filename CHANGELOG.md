@@ -1,5 +1,6 @@
 # `master`
 
+- ⚡️ Replace `rusqlite` with `sqlx`, closes #140 (note: produces too much logging, set `--silent`)
 - ♻️ Extract the queries to constants
 
 # `0.94.3`

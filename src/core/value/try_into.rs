@@ -30,7 +30,7 @@ impl TryFrom<&Value> for i64 {
     fn try_from(value: &Value) -> Result<Self, Self::Error> {
         match value {
             Value::Bft(value) => (*value).try_into().map_err(|_| ()),
-            Value::Counter(value) | Value::DataSize(value) => (*value).try_into().map_err(|_| ()),
+            Value::Counter(value) | Value::DataSize(value) => Ok(*value),
             _ => Err(()),
         }
     }

@@ -23,13 +23,13 @@ impl Db {
             .send_to(tx)
             .await;
         Message::new("db::sensor_count")
-            .value(Value::Counter(db.select_sensor_count().await?.try_into()?))
+            .value(Value::Counter(db.select_sensor_count().await?))
             .sensor_title("Sensor Count")
             .set_common_db_attributes()
             .send_to(tx)
             .await;
         Message::new("db::reading_count")
-            .value(Value::Counter(db.select_reading_count().await?))
+            .value(Value::Counter(db.select_total_reading_count().await?))
             .sensor_title("Reading Count")
             .set_common_db_attributes()
             .send_to(tx)

@@ -7,7 +7,7 @@ pub use std::time::{Duration, Instant};
 pub use async_std::sync::{Arc, Mutex, MutexGuard};
 pub use async_std::task;
 pub use chrono::prelude::*;
-pub use futures::{SinkExt, StreamExt};
+pub use futures::prelude::*;
 pub use log::{debug, error, info, log, warn, Level as LogLevel};
 pub use reqwest::Client;
 pub use serde::de::DeserializeOwned;
