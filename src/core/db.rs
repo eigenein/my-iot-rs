@@ -60,12 +60,11 @@ impl Connection {
 
     /// Selects the latest readings for all sensors.
     pub async fn select_actuals(&self) -> Result<Vec<(Sensor, Reading)>> {
+        // language=sql
+        const QUERY: &str = r"SELECT * FROM sensors ORDER BY location, sensor_id";
         self.connection()
             .await
-            .prepare_cached(
-                // language=sql
-                r"SELECT * FROM sensors ORDER BY location, sensor_id",
-            )?
+            .prepare_cached(QUERY)?
             .query_map(NO_PARAMS, get_sensor_reading)?
             .map(|r| r.map_err(Into::into))
             .collect()
@@ -73,52 +72,52 @@ impl Connection {
 
     /// Selects the database size.
     pub async fn select_size(&self) -> Result<u64> {
+        // language=sql
+        const QUERY: &str = r#"
+            -- noinspection SqlResolve
+            SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()
+        "#;
         Ok(self
             .connection()
             .await
-            // language=sql
-            .prepare_cached(
-                r#"
-                -- noinspection SqlResolve
-                SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()
-                "#,
-            )?
+            .prepare_cached(QUERY)?
             .query_row(NO_PARAMS, get_single::<i64, u64>)?)
     }
 
     /// Selects the specified sensor.
     pub async fn select_sensor(&self, sensor_id: &str) -> Result<Option<(Sensor, Reading)>> {
+        // language=sql
+        const QUERY: &str = r"SELECT * FROM sensors WHERE sensor_id = ?1";
         Ok(self
             .connection()
             .await
-            // language=sql
-            .prepare_cached(r"SELECT * FROM sensors WHERE sensor_id = ?1")?
+            .prepare_cached(QUERY)?
             .query_row(params![sensor_id], get_sensor_reading)
             .optional()?)
     }
 
     pub async fn delete_sensor(&self, sensor_id: &str) -> Result {
+        // language=sql
+        const QUERY: &str = r"DELETE FROM sensors WHERE sensor_id = ?1";
         self.connection()
             .await
-            // language=sql
-            .prepare_cached(r"DELETE FROM sensors WHERE sensor_id = ?1")?
+            .prepare_cached(QUERY)?
             .execute(params![sensor_id])?;
         Ok(())
     }
 
     /// Selects the specified sensor readings within the specified period.
     pub async fn select_readings(&self, sensor_id: &str, since: &DateTime<Local>) -> Result<Vec<Reading>> {
+        // language=sql
+        const QUERY: &str = r#"
+            SELECT timestamp, value
+            FROM readings
+            WHERE sensor_fk = ?1 AND timestamp >= ?2
+            ORDER BY timestamp
+        "#;
         self.connection()
             .await
-            // language=sql
-            .prepare_cached(
-                r#"
-                SELECT timestamp, value
-                FROM readings
-                WHERE sensor_fk = ?1 AND timestamp >= ?2
-                ORDER BY timestamp
-                "#,
-            )?
+            .prepare_cached(QUERY)?
             .query_map(
                 params![hash_sensor_id(sensor_id), since.timestamp_millis()],
                 get_reading,
@@ -128,39 +127,43 @@ impl Connection {
     }
 
     pub async fn select_last_n_readings(&self, sensor_id: &str, limit: usize) -> Result<Vec<Reading>> {
+        // language=sql
+        const QUERY: &str = "SELECT timestamp, value FROM readings WHERE sensor_fk = ?1 ORDER BY timestamp LIMIT ?2";
         self.connection()
             .await
-            // language=sql
-            .prepare_cached("SELECT timestamp, value FROM readings WHERE sensor_fk = ?1 ORDER BY timestamp LIMIT ?2")?
+            .prepare_cached(QUERY)?
             .query_map(params![hash_sensor_id(sensor_id), limit as i64], get_reading)?
             .map(|r| r.map_err(Into::into))
             .collect()
     }
 
     pub async fn select_sensor_count(&self) -> Result<usize> {
+        const QUERY: &str = "SELECT COUNT(*) FROM sensors";
         Ok(self
             .connection()
             .await
-            // language=sql
-            .prepare_cached("SELECT COUNT(*) FROM sensors")?
+            .prepare_cached(QUERY)?
             .query_row(NO_PARAMS, get_single::<i64, usize>)?)
     }
 
     pub async fn select_reading_count(&self) -> Result<u64> {
+        // language=sql
+        const QUERY: &str = "SELECT COUNT(*) FROM readings";
         Ok(self
             .connection()
             .await
             // language=sql
-            .prepare_cached("SELECT COUNT(*) FROM readings")?
+            .prepare_cached(QUERY)?
             .query_row(NO_PARAMS, get_single::<i64, u64>)?)
     }
 
     pub async fn select_sensor_reading_count(&self, sensor_id: &str) -> Result<u64> {
+        // language=sql
+        const QUERY: &str = "SELECT COUNT(*) FROM readings WHERE sensor_fk = ?1";
         Ok(self
             .connection()
             .await
-            // language=sql
-            .prepare_cached("SELECT COUNT(*) FROM readings WHERE sensor_fk = ?1")?
+            .prepare_cached(QUERY)?
             .query_row(params![hash_sensor_id(sensor_id)], get_single::<i64, u64>)?)
     }
 
@@ -170,37 +173,31 @@ impl Connection {
         value: V,
         expires_at: Option<DateTime<Local>>,
     ) -> Result {
-        self.connection()
-            .await
-            // language=sql
-            .prepare_cached(
-                r#"
-                -- noinspection SqlResolve @ any/"excluded"
-                INSERT INTO user_data (pk, value, expires_at)
-                VALUES (?1, ?2, ?3)
-                ON CONFLICT (pk) DO UPDATE SET value = excluded.value, expires_at = excluded.expires_at
-            "#,
-            )?
-            .execute(params![
-                key,
-                bincode::serialize(&value)?,
-                expires_at.as_ref().map(DateTime::<Local>::timestamp_millis),
-            ])?;
+        // language=sql
+        const QUERY: &str = r#"
+            -- noinspection SqlResolve @ any/"excluded"
+            INSERT INTO user_data (pk, value, expires_at)
+            VALUES (?1, ?2, ?3)
+            ON CONFLICT (pk) DO UPDATE SET value = excluded.value, expires_at = excluded.expires_at
+        "#;
+        self.connection().await.prepare_cached(QUERY)?.execute(params![
+            key,
+            bincode::serialize(&value)?,
+            expires_at.as_ref().map(DateTime::<Local>::timestamp_millis),
+        ])?;
         Ok(())
     }
 
     pub async fn get_user_data<V: DeserializeOwned>(&self, key: &str) -> Result<Option<V>> {
+        // language=sql
+        const QEURY: &str = r#"
+            SELECT value FROM user_data
+            WHERE pk = ?1 AND (expires_at IS NULL OR expires_at >= ?2)
+        "#;
         Ok(self
             .connection()
             .await
-            // language=sql
-            .prepare_cached(
-                r#"
-                -- Having fun with strings getting auto-converted to integers.
-                SELECT value FROM user_data
-                WHERE pk = ?1 AND (expires_at IS NULL OR expires_at >= ?2)
-                "#,
-            )?
+            .prepare_cached(QEURY)?
             .query_row(params![key, Local::now().timestamp_millis()], |row| {
                 Ok(bincode::deserialize(&row.get::<_, Vec<u8>>(0)?).unwrap())
             })

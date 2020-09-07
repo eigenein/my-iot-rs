@@ -1,3 +1,7 @@
+# `master`
+
+- ♻️ Extract the queries to constants
+
 # `0.94.3`
 
 - 🚑 Fix the nested `block_on`, closes #136
