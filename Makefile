@@ -22,7 +22,7 @@ check/test:
 	@cargo test --workspace
 
 .PHONY: check
-check: check/clippy check/fmt check/test
+check: check/test check/clippy check/fmt
 
 .PHONY: html docs
 html docs:
