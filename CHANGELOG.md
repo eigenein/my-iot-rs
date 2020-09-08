@@ -1,3 +1,7 @@
+# `0.94.5`
+
+- 🚧 Use `rust-embedded/cross` instead of my custom images (the CI builds got broken by SQLx anyway)
+
 # `0.94.4`
 
 - 👷 First run tests and only then – the rest of the checks

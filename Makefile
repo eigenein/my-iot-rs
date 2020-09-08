@@ -3,7 +3,7 @@
 
 .PHONY: all
 all:
-	@RUSTFLAGS="-D warnings" cargo build --release
+	@cargo build --release
 
 .PHONY: clean
 clean:
@@ -28,14 +28,6 @@ check: check/test check/clippy check/fmt
 html docs:
 	@mdbook build
 	@touch docs
-
-docker/build/%:
-	@DOCKER_BUILDKIT=1 docker build . \
-		-t "eigenein/my-iot-rs/$*" \
-		-f Dockerfile --target "$*" \
-		--build-arg BUILDKIT_INLINE_CACHE=1 \
-		--cache-from "eigenein/my-iot-rs/$*"
-	@docker run --rm -v "$(PWD):/my-iot-rs" "eigenein/my-iot-rs/$*"
 
 .PHONY: src/statics
 src/statics:

@@ -9,15 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Build for Raspberry Pi 0/1
-        run: make docker/build/arm-unknown-linux-gnueabihf
-      - name: Build for Raspberry Pi 2/3/4
-        run: make docker/build/armv7-unknown-linux-gnueabihf
-
-      - name: Release
+      - name: Create a GitHub Release
         id: release
         uses: actions/create-release@v1.0.0
         env:
@@ -28,7 +20,18 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload for Raspberry Pi 0/1
+      - name: Install Cross
+        run: cargo install cross  # we need OpenSSL from SQLx #515 #575
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build for Raspberry Pi 0/1
+        run: cross build --target arm-unknown-linux-gnueabihf
+      - name: Build for Raspberry Pi 2/3/4
+        run: cross build --target armv7-unknown-linux-gnueabihf
+
+      - name: Upload for arm-unknown-linux-gnueabihf
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -38,7 +41,7 @@ jobs:
           asset_name: my-iot-arm-unknown-linux-gnueabihf
           asset_content_type: application/octet-stream
 
-      - name: Upload for Raspberry Pi 2/3/4
+      - name: Upload for armv7-unknown-linux-gnueabihf
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
