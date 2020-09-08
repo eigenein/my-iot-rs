@@ -1,4 +1,4 @@
-# `master`
+# `0.94.4`
 
 - 👷 First run tests and only then – the rest of the checks
 - ⚡️ Replace `rusqlite` with `sqlx`, closes #140 (note: produces too much logging, set `--silent`)
