@@ -1,3 +1,7 @@
+# `master`
+
+- 📝 Update the installation docs
+
 # `0.94.5`
 
 - 🚧 Use `rust-embedded/cross` instead of my custom images (the CI builds got broken by SQLx anyway)

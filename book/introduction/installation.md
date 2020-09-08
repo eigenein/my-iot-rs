@@ -1,35 +1,19 @@
 # Installation
 
-There're few different ways to install My IoT. Either way, you get a single executable `my-iot`.
+There are a few different ways to install My IoT. Either way, you get a single executable `my-iot`:
 
----
+- Grab a prebuilt binary from the GitHub releases: https://github.com/eigenein/my-iot-rs/releases
+- Install from crates.io: `cargo install my-iot`
+- Cross-compile: `cargo install cross && cross build --target …`
 
 **File Capabilities**
 
-You may need to manually set capabilities on the produced binary:
+You may need to manually set the file capabilities on the produced binary:
 
 ```bash
 setcap cap_net_raw+ep /home/pi/.cargo/bin/my-iot
 ```
 
-This is needed to use some low-level protocols (for instance, [ICMP](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol)) as a non-root user.
+This is needed to use some low-level protocols (for instance, [ICMP]) as a non-root user.
 
----
-
-## Pre-compiled binaries for Raspberry Pi Zero W
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/eigenein/my-iot-rs/master/install.sh | bash
-```
-
-## Install from crates.io
-
-```bash
-cargo install my-iot
-```
-
-## Cross-compile for Raspberry Pi Zero W
-
-```bash
-make docker/build/arm-unknown-linux-gnueabihf
-```
+[ICMP]: https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol

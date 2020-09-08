@@ -19,8 +19,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff" />
 
+        
         <link rel="icon" href="favicon.svg">
+        
+        
         <link rel="shortcut icon" href="favicon.png">
+        
         <link rel="stylesheet" href="css/variables.css">
         <link rel="stylesheet" href="css/general.css">
         <link rel="stylesheet" href="css/chrome.css">
@@ -181,23 +185,17 @@
 <li><a href="https://schungx.github.io/rhai/about/index.html">Rhai</a></li>
 </ul>
 <h1><a class="header" href="#installation" id="installation">Installation</a></h1>
-<p>There’re few different ways to install My IoT. Either way, you get a single executable <code>my-iot</code>.</p>
-<hr />
+<p>There are a few different ways to install My IoT. Either way, you get a single executable <code>my-iot</code>:</p>
+<ul>
+<li>Grab a prebuilt binary from the GitHub releases: https://github.com/eigenein/my-iot-rs/releases</li>
+<li>Install from crates.io: <code>cargo install my-iot</code></li>
+<li>Cross-compile: <code>cargo install cross &amp;&amp; cross build --target …</code></li>
+</ul>
 <p><strong>File Capabilities</strong></p>
-<p>You may need to manually set capabilities on the produced binary:</p>
+<p>You may need to manually set the file capabilities on the produced binary:</p>
 <pre><code class="language-bash">setcap cap_net_raw+ep /home/pi/.cargo/bin/my-iot
 </code></pre>
 <p>This is needed to use some low-level protocols (for instance, <a href="https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol">ICMP</a>) as a non-root user.</p>
-<hr />
-<h2><a class="header" href="#pre-compiled-binaries-for-raspberry-pi-zero-w" id="pre-compiled-binaries-for-raspberry-pi-zero-w">Pre-compiled binaries for Raspberry Pi Zero W</a></h2>
-<pre><code class="language-bash">curl -fsSL https://raw.githubusercontent.com/eigenein/my-iot-rs/master/install.sh | bash
-</code></pre>
-<h2><a class="header" href="#install-from-cratesio" id="install-from-cratesio">Install from crates.io</a></h2>
-<pre><code class="language-bash">cargo install my-iot
-</code></pre>
-<h2><a class="header" href="#cross-compile-for-raspberry-pi-zero-w" id="cross-compile-for-raspberry-pi-zero-w">Cross-compile for Raspberry Pi Zero W</a></h2>
-<pre><code class="language-bash">make docker/build/arm-unknown-linux-gnueabihf
-</code></pre>
 <h1><a class="header" href="#settings" id="settings">Settings</a></h1>
 <p>My IoT is configured using <a href="https://github.com/toml-lang/toml">TOML</a> files specified as command-line arguments:</p>
 <pre><code class="language-bash">my-iot my-iot.toml
