@@ -23,7 +23,11 @@ impl Connection {
             pool: SqlitePoolOptions::new().connect(uri).await?,
         };
         // language=sql
-        query("PRAGMA foreign_keys = ON").execute(&connection.pool).await?;
+        query("PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;")
+            .execute_many(&mut transaction)
+            .await
+            .try_collect::<SqliteDone>()
+            .await?;
         connection.migrate().await?;
         Ok(connection)
     }

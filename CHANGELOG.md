@@ -1,5 +1,6 @@
-# `master`
+# `0.94.6`
 
+- ⚗ Try WAL mode to avoid "database is locked" #142
 - 📝 Update the installation docs
 
 # `0.94.5`
