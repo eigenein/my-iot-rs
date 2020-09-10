@@ -24,7 +24,7 @@ impl Connection {
         };
         // language=sql
         query("PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;")
-            .execute_many(&mut transaction)
+            .execute_many(&connection.pool)
             .await
             .try_collect::<SqliteDone>()
             .await?;
