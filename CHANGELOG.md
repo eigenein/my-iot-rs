@@ -1,3 +1,7 @@
+# `0.94.7`
+
+- ⚗ Try plain old mutex instead of the WAL mode #142
+
 # `0.94.6`
 
 - ⚗ Try WAL mode to avoid "database is locked" #142
