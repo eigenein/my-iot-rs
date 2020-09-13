@@ -1,3 +1,7 @@
+# `0.94.10`
+
+- ⚡️ Improve compilation times by disabling the default features
+
 # `0.94.9`
 
 - ⚗ Add `--no-web-server` option to debug the high CPU usage by `my-iot` process #143
