@@ -1,3 +1,7 @@
+# `0.94.8`
+
+- 🚑 Fix default SQLx journal mode
+
 # `0.94.7`
 
 - ⚗ Try plain old mutex instead of the WAL mode #142

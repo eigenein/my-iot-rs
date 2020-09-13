@@ -1,8 +1,10 @@
 //! Database interface.
 
 use chrono::prelude::*;
-use sqlx::sqlite::{SqliteDone, SqliteRow};
-use sqlx::{query, query_scalar, Connection as SqlxConnection, Executor, Row, Sqlite, SqliteConnection};
+use sqlx::sqlite::{SqliteConnectOptions, SqliteDone, SqliteJournalMode, SqliteRow};
+use sqlx::{
+    query, query_scalar, ConnectOptions, Connection as SqlxConnection, Executor, Row, Sqlite, SqliteConnection,
+};
 
 use crate::prelude::*;
 
@@ -19,11 +21,16 @@ pub struct Connection {
 
 impl Connection {
     pub async fn open(uri: &str) -> Result<Self> {
-        let mut inner_connection = SqliteConnection::connect(uri).await?;
-        // language=sql
-        query("PRAGMA foreign_keys = ON").execute(&mut inner_connection).await?;
         let connection = Self {
-            inner_connection: Arc::new(Mutex::new(inner_connection)),
+            inner_connection: Arc::new(Mutex::new(
+                SqliteConnectOptions::new()
+                    .filename(uri)
+                    .create_if_missing(true)
+                    .journal_mode(SqliteJournalMode::Truncate)
+                    .foreign_keys(true)
+                    .connect()
+                    .await?,
+            )),
         };
         connection.migrate().await?;
         Ok(connection)
