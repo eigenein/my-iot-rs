@@ -32,4 +32,8 @@ pub struct Opts {
     /// Prints version information
     #[structopt(short = "V", long = "version")]
     pub version: bool,
+
+    /// Do not start the web server.
+    #[structopt(long = "no-web-server")]
+    pub no_web_server: bool,
 }

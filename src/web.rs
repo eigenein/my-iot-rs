@@ -30,6 +30,7 @@ const STATIC_MAX_AGE_SECS: u32 = 3600;
 
 /// Start the web application.
 pub fn start_server(settings: &Settings, db: Connection) -> Result {
+    info!("Starting web server on port {}…", settings.http.port);
     Err(make_rocket(settings, db)?.launch().into())
 }
 

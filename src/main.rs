@@ -41,8 +41,11 @@ async fn main() -> Result {
     services::db::Db.spawn("system::db".into(), &mut bus, db.clone());
     services::spawn_all(&settings, &opts.service_ids, &mut bus, &db).await?;
 
-    info!("Starting web server on port {}…", settings.http.port);
-    std::thread::spawn(move || web::start_server(&settings, db));
+    if !opts.no_web_server {
+        std::thread::spawn(move || web::start_server(&settings, db));
+    } else {
+        warn!("Web server is disabled.");
+    }
 
     bus.spawn().await
 }

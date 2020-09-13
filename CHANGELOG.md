@@ -1,6 +1,10 @@
+# `0.94.9`
+
+- ⚗ Add `--no-web-server` option to debug the high CPU usage by `my-iot` process #143
+
 # `0.94.8`
 
-- 🚑 Fix default SQLx journal mode
+- 🚑 Fix default SQLx journal mode #143
 
 # `0.94.7`
 

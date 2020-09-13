@@ -1312,7 +1312,7 @@ dependencies = [
 
 [[package]]
 name = "my-iot"
-version = "0.94.8"
+version = "0.94.9"
 dependencies = [
  "askama",
  "async-std",
