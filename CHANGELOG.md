@@ -1,4 +1,4 @@
-# `master`
+# `0.94.11`
 
 - 🎨 Remove carets from the dep versions
 - ⬆️ Bump `rhai` to `0.18.3`
