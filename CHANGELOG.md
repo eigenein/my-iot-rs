@@ -1,3 +1,8 @@
+# `master`
+
+- ⬆️ Bump `rhai` to `0.18.3`
+- ♻️ Refactor the deps, remove unused features
+
 # `0.94.10`
 
 - ⚡️ Improve compilation times by disabling the default features

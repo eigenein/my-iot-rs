@@ -70,7 +70,7 @@ features = ["json"]
 default-features = false
 
 [dependencies.rhai]
-version = "^0.17.0"
+version = "0.18.3"
 features = ["sync", "no_module"]
 default-features = false
 
