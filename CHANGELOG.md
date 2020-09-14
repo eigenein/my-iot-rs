@@ -1,5 +1,6 @@
 # `master`
 
+- 🎨 Remove carets from the dep versions
 - ⬆️ Bump `rhai` to `0.18.3`
 - ♻️ Refactor the deps, remove unused features
 
