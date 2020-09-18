@@ -122,7 +122,7 @@ impl Telegram {
             TelegramResponse::Result { result } => Ok(result),
             TelegramResponse::Error { description } => {
                 error!("Telegram error: {:?}", description);
-                Err(description.into())
+                Err(anyhow!("{}", description))
             }
         }
     }

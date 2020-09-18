@@ -49,7 +49,7 @@ impl PhilipsHue {
             }
         }
 
-        Err(Error::new("the mDNS discovery stream has unexpectedly ended"))
+        Err(anyhow!("the mDNS discovery stream has unexpectedly ended"))
     }
 
     async fn on_bridge_discovered(&self, ip_addr: IpAddr) {

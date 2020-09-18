@@ -285,7 +285,7 @@ fn signed_seahash(buffer: &[u8]) -> i64 {
 }
 
 /// Builds a `Sensor` instance based on the database row.
-fn get_sensor(row: &SqliteRow) -> Result<Sensor, sqlx::Error> {
+fn get_sensor(row: &SqliteRow) -> StdResult<Sensor, sqlx::Error> {
     Ok(Sensor {
         id: row.try_get("sensor_id")?,
         title: row.try_get("title")?,
@@ -295,7 +295,7 @@ fn get_sensor(row: &SqliteRow) -> Result<Sensor, sqlx::Error> {
 }
 
 /// Builds a `Reading` instance based on the database row.
-fn get_reading<R: Borrow<SqliteRow>>(row: R) -> Result<Reading, sqlx::Error> {
+fn get_reading<R: Borrow<SqliteRow>>(row: R) -> StdResult<Reading, sqlx::Error> {
     let row = row.borrow();
     Ok(Reading {
         timestamp: Local.timestamp_millis(row.try_get("timestamp")?),
@@ -303,7 +303,7 @@ fn get_reading<R: Borrow<SqliteRow>>(row: R) -> Result<Reading, sqlx::Error> {
     })
 }
 
-fn get_sensor_reading<R: Borrow<SqliteRow>>(row: R) -> Result<(Sensor, Reading), sqlx::Error> {
+fn get_sensor_reading<R: Borrow<SqliteRow>>(row: R) -> StdResult<(Sensor, Reading), sqlx::Error> {
     let row = row.borrow();
     Ok((get_sensor(row)?, get_reading(row)?))
 }

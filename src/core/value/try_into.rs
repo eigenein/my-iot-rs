@@ -6,7 +6,7 @@ use bytes::Bytes;
 impl TryFrom<&Value> for f64 {
     type Error = ();
 
-    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+    fn try_from(value: &Value) -> StdResult<Self, Self::Error> {
         match value {
             Value::Temperature(value)
             | Value::Cloudiness(value)
@@ -27,7 +27,7 @@ impl TryFrom<&Value> for f64 {
 impl TryFrom<&Value> for i64 {
     type Error = ();
 
-    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+    fn try_from(value: &Value) -> StdResult<Self, Self::Error> {
         match value {
             Value::Bft(value) => (*value).try_into().map_err(|_| ()),
             Value::Counter(value) | Value::DataSize(value) => Ok(*value),
@@ -39,7 +39,7 @@ impl TryFrom<&Value> for i64 {
 impl TryFrom<&Value> for bool {
     type Error = ();
 
-    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+    fn try_from(value: &Value) -> StdResult<Self, Self::Error> {
         match value {
             Value::Boolean(value) => Ok(*value),
             _ => Err(()),
@@ -50,7 +50,7 @@ impl TryFrom<&Value> for bool {
 impl TryFrom<&Value> for String {
     type Error = ();
 
-    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+    fn try_from(value: &Value) -> StdResult<Self, Self::Error> {
         match value {
             Value::ImageUrl(value) | Value::Text(value) | Value::StringEnum(value) => Ok(value.clone()),
             _ => Err(()),
@@ -61,7 +61,7 @@ impl TryFrom<&Value> for String {
 impl TryFrom<&Value> for Arc<Bytes> {
     type Error = ();
 
-    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+    fn try_from(value: &Value) -> StdResult<Self, Self::Error> {
         match value {
             Value::Blob(bytes) => Ok(bytes.clone()),
             _ => Err(()),

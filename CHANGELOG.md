@@ -1,3 +1,7 @@
+# `master`
+
+- 🥅 Use `anyhow` crate instead of the custom `Error` structure, closes #138
+
 # `0.94.12`
 
 - 🚑 Fix the high CPU usage, closes #143

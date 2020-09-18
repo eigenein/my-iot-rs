@@ -26,7 +26,7 @@ fn build_client() -> Result<Client> {
 }
 
 /// Deserializes a Unix time into `DateTime<Local>`.
-pub fn deserialize_timestamp<'de, D: Deserializer<'de>>(deserializer: D) -> Result<DateTime<Local>, D::Error> {
+pub fn deserialize_timestamp<'de, D: Deserializer<'de>>(deserializer: D) -> StdResult<DateTime<Local>, D::Error> {
     Ok(Local.timestamp(i64::deserialize(deserializer)?, 0))
 }
 

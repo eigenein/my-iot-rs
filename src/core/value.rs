@@ -87,11 +87,11 @@ impl AsRef<Value> for Value {
     }
 }
 
-fn serialize_bytes<S: Serializer>(bytes: &Arc<Bytes>, serializer: S) -> Result<S::Ok, S::Error> {
+fn serialize_bytes<S: Serializer>(bytes: &Arc<Bytes>, serializer: S) -> StdResult<S::Ok, S::Error> {
     serializer.serialize_bytes(bytes.as_ref())
 }
 
-fn deserialize_bytes<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Arc<Bytes>, D::Error> {
+fn deserialize_bytes<'de, D: Deserializer<'de>>(deserializer: D) -> StdResult<Arc<Bytes>, D::Error> {
     Ok(Arc::new(Bytes::from(
         Vec::<u8>::deserialize(deserializer).map_err(de::Error::custom)?,
     )))

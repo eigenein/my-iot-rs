@@ -54,7 +54,7 @@ impl YouLess {
             .json::<Vec<Response>>()
             .await?
             .pop()
-            .ok_or("YouLess response is empty")?;
+            .ok_or_else(|| anyhow!("YouLess response is empty"))?;
         Message::new(format!("{}::nett", service_id))
             .value(Value::from_kwh(response.nett))
             .optional_location(self.location.clone())

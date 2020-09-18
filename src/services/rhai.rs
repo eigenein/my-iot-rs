@@ -8,7 +8,7 @@ use rhai::{Array, Dynamic, Engine, EvalAltResult, ImmutableString, RegisterFn, R
 use crate::prelude::*;
 use crate::settings::Service;
 
-type FnResult = Result<Dynamic, Box<EvalAltResult>>;
+type FnResult = StdResult<Dynamic, Box<EvalAltResult>>;
 
 mod telegram;
 
