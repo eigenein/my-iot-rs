@@ -1,3 +1,7 @@
+# `0.94.12`
+
+- 🚑 Fix the high CPU usage, closes #143
+
 # `0.94.11`
 
 - 🎨 Remove carets from the dep versions

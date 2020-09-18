@@ -155,9 +155,11 @@ impl Connection {
             -- noinspection SqlResolve
             SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()
         "#;
-        Ok(query_scalar(QUERY)
-            .fetch_one(&mut *self.inner_connection.lock().await)
-            .await?)
+        Ok(*query_scalar(QUERY)
+            .fetch_all(&mut *self.inner_connection.lock().await)
+            .await?
+            .first()
+            .unwrap())
     }
 
     /// Selects the specified sensor.
