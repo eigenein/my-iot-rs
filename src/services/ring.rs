@@ -1,8 +1,8 @@
 use std::str::FromStr;
 use std::time::Duration;
 
-use bytes::Bytes;
-use reqwest::Method;
+use serde_json::json;
+use surf::Body;
 
 use crate::prelude::*;
 use crate::services::prelude::*;
@@ -128,14 +128,18 @@ impl Ring {
 }
 
 /// Ring.com APIs.
+// TODO: de-duplicate.
 impl Ring {
     async fn get_devices(&self, service_id: &str, db: &Connection) -> Result<DevicesResponse> {
-        call_json_api(
-            Method::GET,
-            &self.get_access_token(service_id, db).await?,
-            "https://api.ring.com/clients_api/ring_devices",
-        )
-        .await
+        CLIENT
+            .get("https://api.ring.com/clients_api/ring_devices")
+            .header(
+                "Authorization",
+                format!("Bearer {}", &self.get_access_token(service_id, db).await?),
+            )
+            .recv_json()
+            .await
+            .map_err(anyhow::Error::msg)
     }
 
     async fn get_doorbot_history(
@@ -144,30 +148,35 @@ impl Ring {
         db: &Connection,
         device_id: i32,
     ) -> Result<Vec<HistoryResponse>> {
-        call_json_api(
-            Method::GET,
-            &self.get_access_token(service_id, db).await?,
-            &format!("https://api.ring.com/clients_api/doorbots/{}/history", device_id),
-        )
-        .await
+        CLIENT
+            .get(format!(
+                "https://api.ring.com/clients_api/doorbots/{}/history",
+                device_id
+            ))
+            .header(
+                "Authorization",
+                format!("Bearer {}", &self.get_access_token(service_id, db).await?),
+            )
+            .recv_json()
+            .await
+            .map_err(anyhow::Error::msg)
     }
 
     async fn get_recording(&self, service_id: &str, db: &Connection, entry: &HistoryResponse) -> Result<Bytes> {
         info!("[{}] Downloading recording #{}…", service_id, entry.id);
-        Ok(CLIENT
+        CLIENT
             .get(&format!(
                 "https://api.ring.com/clients_api/dings/{}/recording",
-                entry.id
+                entry.id,
             ))
             .header(
                 "Authorization",
                 format!("Bearer {}", self.get_access_token(service_id, db).await?),
             )
-            .send()
-            .await?
-            .error_for_status()?
-            .bytes()
-            .await?)
+            .recv_bytes()
+            .await
+            .map(Into::<Bytes>::into)
+            .map_err(anyhow::Error::msg)
     }
 }
 
@@ -191,17 +200,18 @@ impl Ring {
                     .unwrap_or_else(|| self.secrets.initial_refresh_token.clone());
                 let response = CLIENT
                     .post("https://oauth.ring.com/oauth/token")
-                    .form(&[
-                        ("scope", "client"),
-                        ("client_id", "ring_official_android"),
-                        ("grant_type", "refresh_token"),
-                        ("refresh_token", &refresh_token),
-                    ])
-                    .send()
-                    .await?
-                    .error_for_status()?
-                    .json::<TokenResponse>()
-                    .await?;
+                    .body(
+                        Body::from_form(&json!({
+                            "scope": "client",
+                            "client_id": "ring_official_android",
+                            "grant_type": "refresh_token",
+                            "refresh_token": &refresh_token,
+                        }))
+                        .map_err(anyhow::Error::msg)?,
+                    )
+                    .recv_json::<TokenResponse>()
+                    .await
+                    .map_err(anyhow::Error::msg)?;
                 db.set_user_data(
                     &access_token_key,
                     &response.access_token,

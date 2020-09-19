@@ -1,5 +1,7 @@
-# `master`
+# `0.94.13`
 
+- 💥 Telegram `send_video` is temporarily removed until future refactoring
+- 💥 Replace `reqwest` with `surf` to get rid of the `tokio` dependency which caused async runtime errors, implicitly closes #139
 - 🥅 Use `anyhow` crate instead of the custom `Error` structure, closes #138
 
 # `0.94.12`

@@ -35,11 +35,9 @@ impl Buienradar {
     async fn fetch(&self) -> Result<BuienradarFeedActual> {
         Ok(CLIENT
             .get(URL)
-            .send()
-            .await?
-            .error_for_status()?
-            .json::<BuienradarFeed>()
-            .await?
+            .recv_json::<BuienradarFeed>()
+            .await
+            .map_err(anyhow::Error::msg)?
             .actual)
     }
 

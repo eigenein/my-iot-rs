@@ -1,22 +1,13 @@
 //! [Telegram bot](https://core.telegram.org/bots/api) service which is able to receive and send messages.
 
 use std::fmt::Debug;
-use std::time::Duration;
 
-use bytes::Bytes;
-use log::debug;
-use reqwest::multipart::{Form, Part};
-use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-
-pub use method_call::MethodCall;
+use serde_json::json;
+use surf::Body;
 
 use crate::prelude::*;
 use crate::services::prelude::*;
-
-pub mod method_call;
-
-const GET_UPDATES_TIMEOUT_SECS: u64 = 60;
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Telegram {
@@ -39,7 +30,7 @@ impl Telegram {
                 match self.loop_(&service_id, offset, &mut tx).await {
                     Ok(new_offset) => offset = new_offset,
                     Err(error) => {
-                        error!("Failed to refresh the sensors: {}", error.to_string());
+                        error!("failed to refresh the sensors: {}", error.to_string());
                         task::sleep(MINUTE).await;
                     }
                 }
@@ -78,53 +69,62 @@ impl Telegram {
     }
 }
 
-/// API.
+/// Telegram bot API.
 impl Telegram {
     /// <https://core.telegram.org/bots/api#getupdates>
     async fn get_updates(&self, offset: Option<i64>) -> Result<Vec<TelegramUpdate>> {
-        Self::call(
-            &self.secrets.token,
-            &MethodCall::GetUpdates {
-                offset,
-                timeout: GET_UPDATES_TIMEOUT_SECS,
-                allowed_updates: &["message"],
-            },
-            None,
+        self.call(
+            "getUpdates",
+            json!({
+                "offset": offset.unwrap_or(0),
+                "timeout": crate::services::helpers::middleware::REQUEST_TIMEOUT_SECS - 1,
+                "allowed_updates": &["message"],
+            }),
         )
         .await
     }
 
-    /// Calls a [Telegram Bot API](https://core.telegram.org/bots/api) method.
-    pub async fn call<T: AsRef<str>, MC: Borrow<MethodCall>, R: DeserializeOwned>(
-        token: T,
-        call: MC,
-        input_file: Option<(String, Arc<Bytes>)>,
-    ) -> Result<R> {
-        let call = call.borrow();
-        debug!("{:?}", call);
+    /// <https://core.telegram.org/bots/api#sendmessage>
+    pub async fn send_message<T: Into<String>>(
+        &self,
+        chat_id: TelegramChatId,
+        text: T,
+        parse_mode: Option<&'static str>,
+    ) -> Result<TelegramMessage> {
+        #[derive(Serialize)]
+        struct Parameters {
+            chat_id: TelegramChatId,
+            text: String,
 
-        let url = format!("https://api.telegram.org/bot{}/{}", token.as_ref(), call.url_part(),);
-
-        let mut request = match input_file {
-            Some((field_name, bytes)) => CLIENT
-                .post(&url)
-                .query(call)
-                .multipart(Form::new().part(field_name, Part::bytes(bytes.to_vec()).file_name(""))),
-            None => CLIENT.get(&url).json(call),
-        };
-
-        // `GetUpdates` requires a timeout that is at least as long as the one in the request itself.
-        if let MethodCall::GetUpdates { .. } = call {
-            request = request.timeout(Duration::from_secs(GET_UPDATES_TIMEOUT_SECS + 1));
+            #[serde(skip_serializing_if = "Option::is_none")]
+            parse_mode: Option<&'static str>,
         }
 
-        match request.send().await?.json::<TelegramResponse<R>>().await? {
-            TelegramResponse::Result { result } => Ok(result),
-            TelegramResponse::Error { description } => {
-                error!("Telegram error: {:?}", description);
-                Err(anyhow!("{}", description))
-            }
-        }
+        self.call(
+            "sendMessage",
+            Body::from_json(&Parameters {
+                chat_id,
+                text: text.into(),
+                parse_mode,
+            })
+            .map_err(anyhow::Error::msg)?,
+        )
+        .await
+    }
+
+    async fn call<R: serde::de::DeserializeOwned>(&self, method_name: &str, body: impl Into<Body>) -> Result<R> {
+        let result = CLIENT
+            .post(format!(
+                "https://api.telegram.org/bot{}/{}",
+                self.secrets.token, method_name,
+            ))
+            .body(body)
+            .recv_json::<TelegramResponse<R>>()
+            .await
+            .map_err(anyhow::Error::msg)?
+            .into();
+        log_result(&result, || "Telegram bot API error:");
+        result
     }
 }
 
@@ -167,4 +167,14 @@ pub struct TelegramMessage {
 #[derive(Deserialize, Debug, Clone)]
 pub struct TelegramChat {
     pub id: i64,
+}
+
+/// Converts `TelegramResponse` into a normal `Result`.
+impl<T> From<TelegramResponse<T>> for Result<T> {
+    fn from(response: TelegramResponse<T>) -> Self {
+        match response {
+            TelegramResponse::Result { result } => Ok(result),
+            TelegramResponse::Error { description } => Err(anyhow!(description)),
+        }
+    }
 }

@@ -48,11 +48,9 @@ impl YouLess {
     async fn loop_(&self, service_id: &str, url: &str, tx: &mut Sender) -> Result {
         let response = CLIENT
             .get(url)
-            .send()
-            .await?
-            .error_for_status()?
-            .json::<Vec<Response>>()
-            .await?
+            .recv_json::<Vec<Response>>()
+            .await
+            .map_err(|err| anyhow!(err))?
             .pop()
             .ok_or_else(|| anyhow!("YouLess response is empty"))?;
         Message::new(format!("{}::nett", service_id))

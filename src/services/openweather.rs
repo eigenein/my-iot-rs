@@ -1,4 +1,4 @@
-use reqwest::Url;
+use surf::url::Url;
 
 use crate::prelude::*;
 use crate::services::prelude::*;
@@ -39,11 +39,9 @@ impl OpenWeather {
                     ("lon", &self.secrets.longitude.to_string()),
                 ],
             )?)
-            .send()
-            .await?
-            .error_for_status()?
-            .json::<Response>()
-            .await?;
+            .recv_json::<Response>()
+            .await
+            .map_err(|err| anyhow!(err))?;
 
         let sensor_prefix = format!("{}::{}", service_id, response.city_id);
 

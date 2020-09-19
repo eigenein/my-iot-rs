@@ -1,9 +1,10 @@
 //! [tado°](https://www.tado.com/) API.
 
+use crate::logging::log_result;
 use crate::prelude::*;
 use crate::services::prelude::*;
-use reqwest::{Method, Url};
 use std::time::SystemTime;
+use surf::url::Url;
 
 const CLIENT_ID: &str = "public-api-preview";
 const CLIENT_SECRET: &str = "4HJGRffVR8xb3XdEUQpjgZ1VplJi6Xgw";
@@ -186,11 +187,9 @@ impl Tado {
                     ("password", &self.secrets.password),
                 ],
             )?)
-            .send()
-            .await?
-            .error_for_status()?
-            .json::<Token>()
-            .await?;
+            .recv_json::<Token>()
+            .await
+            .map_err(anyhow::Error::msg)?;
         debug!("Logged in, the token expires at: {:?}", response.expires_at);
         let access_token = response.access_token.clone();
         *token_guard = Some(response);
@@ -210,10 +209,9 @@ impl Tado {
                     ("refresh_token", &token_guard.as_ref().unwrap().refresh_token),
                 ],
             )?)
-            .send()
-            .await?
-            .json::<Token>()
-            .await?;
+            .recv_json::<Token>()
+            .await
+            .map_err(anyhow::Error::msg)?;
         debug!("Refreshed the token, expires at: {:?}", response.expires_at);
         let access_token = response.access_token.clone();
         *token_guard = Some(response);
@@ -223,66 +221,69 @@ impl Tado {
 
 /// API methods.
 impl Tado {
-    async fn call<U, R>(&self, method: Method, url: U) -> Result<R>
-    where
-        U: AsRef<str> + std::fmt::Display,
-        R: DeserializeOwned,
-    {
-        call_json_api(method, &self.get_access_token().await?, url).await
-    }
-
     async fn get_me(&self) -> Result<Me> {
-        self.call(Method::GET, "https://my.tado.com/api/v1/me").await
+        self.get("https://my.tado.com/api/v1/me").await
     }
 
     async fn get_home(&self, home_id: u32) -> Result<Home> {
-        self.call(Method::GET, format!("https://my.tado.com/api/v2/homes/{}", home_id))
-            .await
+        self.get(format!("https://my.tado.com/api/v2/homes/{}", home_id)).await
     }
 
     async fn get_zones(&self, home_id: u32) -> Result<Zones> {
-        self.call(
-            Method::GET,
-            format!("https://my.tado.com/api/v2/homes/{}/zones", home_id),
-        )
-        .await
+        self.get(format!("https://my.tado.com/api/v2/homes/{}/zones", home_id))
+            .await
     }
 
     async fn get_weather(&self, home_id: u32) -> Result<Weather> {
-        self.call(
-            Method::GET,
-            format!("https://my.tado.com/api/v2/homes/{}/weather", home_id),
-        )
-        .await
+        self.get(format!("https://my.tado.com/api/v2/homes/{}/weather", home_id))
+            .await
     }
 
     async fn get_home_state(&self, home_id: u32) -> Result<HomeState> {
-        self.call(
-            Method::GET,
-            format!("https://my.tado.com/api/v2/homes/{}/state", home_id),
-        )
-        .await
+        self.get(format!("https://my.tado.com/api/v2/homes/{}/state", home_id))
+            .await
     }
 
     async fn get_zone_state(&self, home_id: u32, zone_id: u32) -> Result<ZoneState> {
-        self.call(
-            Method::GET,
-            format!("https://my.tado.com/api/v2/homes/{}/zones/{}/state", home_id, zone_id,),
-        )
+        self.get(format!(
+            "https://my.tado.com/api/v2/homes/{}/zones/{}/state",
+            home_id, zone_id,
+        ))
         .await
     }
 
     /// Activates the [Open Window](https://support.tado.com/en/articles/3387308-how-does-the-open-window-detection-skill-work) mode.
     async fn activate_open_window(&self, home_id: u32, zone_id: u32) -> Result {
-        self.call(
-            Method::POST,
-            format!(
-                "https://my.tado.com/api/v2/homes/{}/zones/{}/state/openWindow/activate",
-                home_id, zone_id,
-            ),
-        )
+        self.post(format!(
+            "https://my.tado.com/api/v2/homes/{}/zones/{}/state/openWindow/activate",
+            home_id, zone_id,
+        ))
         .await
     }
+
+    async fn get<R: serde::de::DeserializeOwned>(&self, url: impl AsRef<str>) -> Result<R> {
+        let result = CLIENT
+            .get(url)
+            .header("Authorization", format!("Bearer {}", self.get_access_token().await?))
+            .recv_json()
+            .await
+            .map_err(anyhow::Error::msg);
+        log_result(&result, || "Tado API error");
+        result
+    }
+
+    async fn post<R: serde::de::DeserializeOwned>(&self, url: impl AsRef<str>) -> Result<R> {
+        let result = CLIENT
+            .post(url)
+            .header("Authorization", format!("Bearer {}", self.get_access_token().await?))
+            .recv_json()
+            .await
+            .map_err(anyhow::Error::msg);
+        log_result(&result, || "Tado API error");
+        result
+    }
+
+    // FIXME: de-duplicate `get` and `post`.
 }
 
 #[derive(Deserialize, Debug)]
