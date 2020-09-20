@@ -12,7 +12,7 @@ pub fn read<P: AsRef<Path> + std::fmt::Debug>(paths: Vec<P>) -> Result<Settings>
     Ok(toml::from_str(
         &paths
             .iter()
-            .map(|path| -> Result<String> {
+            .map(|path| {
                 info!("Reading {:?}…", path);
                 Ok(fs::read_to_string(path)?)
             })
@@ -25,9 +25,13 @@ pub fn read<P: AsRef<Path> + std::fmt::Debug>(paths: Vec<P>) -> Result<Settings>
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct Settings {
     #[serde(default)]
+    pub database: DatabaseSettings,
+
+    #[serde(default)]
     pub http: HttpSettings,
 
     /// Services configuration.
+    ///
     /// Each entry is a pair of service ID (defined by user) and service settings.
     /// Service ID is normally used as a sensor prefix, for instance: `service_id::service_sensor`.
     #[serde(default = "HashMap::new")]
@@ -39,12 +43,31 @@ pub struct HttpSettings {
     /// Web server port. It's used for the user interface as well as for webhooks.
     #[serde(default = "default_http_port")]
     pub port: u16,
+
+    /// Disable the web server.
+    #[serde(default)]
+    pub disabled: bool,
 }
 
 impl Default for HttpSettings {
     fn default() -> Self {
         Self {
             port: default_http_port(),
+            disabled: false,
+        }
+    }
+}
+
+#[derive(Deserialize, Debug, Clone, Serialize)]
+pub struct DatabaseSettings {
+    #[serde(default = "default_database_path")]
+    pub path: String,
+}
+
+impl Default for DatabaseSettings {
+    fn default() -> Self {
+        Self {
+            path: default_database_path(),
         }
     }
 }
@@ -90,4 +113,8 @@ pub enum Service {
 
 pub fn default_http_port() -> u16 {
     8081
+}
+
+fn default_database_path() -> String {
+    "my-iot.sqlite3".into()
 }

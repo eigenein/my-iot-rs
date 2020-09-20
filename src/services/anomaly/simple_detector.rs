@@ -8,8 +8,10 @@ use crate::prelude::*;
 use crate::services::anomaly::min_heap_reading::MinHeapReading;
 use crate::services::helpers::expect::expect;
 
-/// [Normal distribution](https://en.wikipedia.org/wiki/Normal_distribution)-based
-/// [anomaly detector](https://en.wikipedia.org/wiki/Anomaly_detection).
+/// [Normal distribution]-based [anomaly detector].
+///
+/// [Normal distribution]: https://en.wikipedia.org/wiki/Normal_distribution
+/// [anomaly detector]: https://en.wikipedia.org/wiki/Anomaly_detection
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct SimpleAnomalyDetector {
     sensor_id: String,

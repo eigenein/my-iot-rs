@@ -17,14 +17,6 @@ pub struct Opts {
     #[structopt(long = "suppress-log-timestamps")]
     pub suppress_log_timestamps: bool,
 
-    /// Database URL
-    #[structopt(long, env = "MYIOT_DB", default_value = "my-iot.sqlite3")]
-    pub db: String,
-
-    /// Run only the specified service IDs
-    #[structopt(short = "i", long = "service-id")]
-    pub service_ids: Option<Vec<String>>,
-
     /// Setting files
     #[structopt(parse(from_os_str), env = "MYIOT_SETTINGS", default_value = "my-iot.toml")]
     pub settings: Vec<PathBuf>,
@@ -32,8 +24,4 @@ pub struct Opts {
     /// Prints version information
     #[structopt(short = "V", long = "version")]
     pub version: bool,
-
-    /// Do not start the web server.
-    #[structopt(long = "no-web-server")]
-    pub no_web_server: bool,
 }

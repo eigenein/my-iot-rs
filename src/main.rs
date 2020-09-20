@@ -31,15 +31,15 @@ async fn main() -> Result {
     debug!("Settings: {:?}", &settings);
 
     info!("Opening the database…");
-    let db = Connection::open(&opts.db).await?;
+    let db = Connection::open(&settings.database.path).await?;
 
     info!("Starting services…");
     let mut bus = Bus::new();
     core::db::tasks::spawn(db.clone(), &mut bus);
     services::db::Db.spawn("system::db".into(), &mut bus, db.clone());
-    services::spawn_all(&settings, &opts.service_ids, &mut bus, &db).await?;
+    services::spawn_all(&settings, &mut bus, &db).await?;
 
-    if !opts.no_web_server {
+    if !settings.http.disabled {
         std::thread::spawn(move || web::start_server(&settings, db));
     } else {
         warn!("Web server is disabled.");

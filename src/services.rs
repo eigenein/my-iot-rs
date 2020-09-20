@@ -18,20 +18,8 @@ pub mod threshold;
 pub mod youless;
 
 /// Spawn all the configured services.
-pub async fn spawn_all(
-    settings: &Settings,
-    service_ids: &Option<Vec<String>>,
-    bus: &mut Bus,
-    db: &Connection,
-) -> Result {
+pub async fn spawn_all(settings: &Settings, bus: &mut Bus, db: &Connection) -> Result {
     for (service_id, service) in settings.services.iter() {
-        if let Some(service_ids) = service_ids {
-            if !service_ids.contains(service_id) {
-                warn!("`{}` is not included in the `--service-id` option", service_id);
-                continue;
-            }
-        }
-
         info!("Spawning service `{}`…", service_id);
         debug!("Settings `{}`: {:?}", service_id, service);
         if let Err(error) = {
