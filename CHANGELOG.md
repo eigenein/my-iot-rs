@@ -1,3 +1,7 @@
+# `master`
+
+- 🔇 Remove thread IDs from the logs
+
 # `0.94.13`
 
 - 💥 Telegram `send_video` is temporarily removed until future refactoring
