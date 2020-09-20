@@ -1,5 +1,6 @@
 # `master`
 
+- 🐛 Fix `select_sensor_reading_count`
 - 🔇 Remove thread IDs from the logs
 
 # `0.94.13`

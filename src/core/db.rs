@@ -230,7 +230,7 @@ impl Connection {
     pub async fn select_sensor_reading_count(&self, sensor_id: &str) -> Result<i64> {
         // language=sql
         Ok(*query_scalar("SELECT COUNT(*) FROM readings WHERE sensor_fk = ?")
-            .bind(sensor_id)
+            .bind(hash_sensor_id(sensor_id))
             .fetch_all(&mut *self.inner_connection.lock().await)
             .await?
             .first()
