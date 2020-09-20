@@ -1,3 +1,7 @@
+# `0.96.0`
+
+- 🚑 Emit warning events to Sentry #137
+
 # `0.95.0`
 
 - ✨ Sentry integration, closes #137
