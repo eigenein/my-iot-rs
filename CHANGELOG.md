@@ -1,5 +1,6 @@
-# `master`
+# `0.95.0`
 
+- ✨ Sentry integration, closes #137
 - 💥 Move some command-line options to the settings
 - 🐛 Fix `select_sensor_reading_count`
 - 🔇 Remove thread IDs from the logs

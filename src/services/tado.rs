@@ -1,6 +1,5 @@
 //! [tado°](https://www.tado.com/) API.
 
-use crate::logging::log_result;
 use crate::prelude::*;
 use crate::services::prelude::*;
 use std::time::SystemTime;
@@ -262,25 +261,23 @@ impl Tado {
     }
 
     async fn get<R: serde::de::DeserializeOwned>(&self, url: impl AsRef<str>) -> Result<R> {
-        let result = CLIENT
+        CLIENT
             .get(url)
             .header("Authorization", format!("Bearer {}", self.get_access_token().await?))
             .recv_json()
             .await
-            .map_err(anyhow::Error::msg);
-        log_result(&result, || "Tado API error");
-        result
+            .map_err(anyhow::Error::msg)
+            .log(|| "Tado API error")
     }
 
     async fn post<R: serde::de::DeserializeOwned>(&self, url: impl AsRef<str>) -> Result<R> {
-        let result = CLIENT
+        CLIENT
             .post(url)
             .header("Authorization", format!("Bearer {}", self.get_access_token().await?))
             .recv_json()
             .await
-            .map_err(anyhow::Error::msg);
-        log_result(&result, || "Tado API error");
-        result
+            .map_err(anyhow::Error::msg)
+            .log(|| "Tado API error")
     }
 
     // FIXME: de-duplicate `get` and `post`.

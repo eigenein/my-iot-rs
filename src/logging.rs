@@ -3,6 +3,7 @@ use simplelog::{ConfigBuilder, TermLogger, TerminalMode, ThreadLogMode};
 
 use crate::opts::Opts;
 use crate::prelude::*;
+use sentry::integrations::anyhow::capture_anyhow;
 
 pub fn init(opts: &Opts) -> Result {
     let mut config_builder = ConfigBuilder::new();
@@ -36,8 +37,22 @@ pub fn init(opts: &Opts) -> Result {
     Ok(())
 }
 
-pub fn log_result<T>(result: &Result<T>, message: fn() -> &'static str) {
-    if let Err(error) = result {
-        error!("{}: {}", message(), error);
+pub trait Log {
+    fn log<M: Fn() -> R, R: AsRef<str>>(self, message: M) -> Self;
+}
+
+/// Logs the result and submits errors to Sentry.
+impl<T> Log for Result<T> {
+    fn log<M: Fn() -> R, R: AsRef<str>>(self, message: M) -> Self {
+        if let Err(ref error) = self {
+            let sentry_id = capture_anyhow(error);
+            let message = message();
+            if !sentry_id.is_nil() {
+                error!("[{}] {}: {}", sentry_id, message.as_ref(), error);
+            } else {
+                error!("{}: {}", message.as_ref(), error);
+            }
+        }
+        self
     }
 }

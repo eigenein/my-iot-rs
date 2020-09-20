@@ -22,7 +22,7 @@ pub use crate::core::db::{reading::Reading, sensor::Sensor, Connection};
 pub use crate::core::message::{Message, Type as MessageType};
 pub use crate::core::si::*;
 pub use crate::core::value::{from::*, try_into::*, *};
-pub use crate::logging::log_result;
+pub use crate::logging::Log;
 
 pub type Result<T = ()> = anyhow::Result<T>;
 pub type StdResult<T, E> = std::result::Result<T, E>;

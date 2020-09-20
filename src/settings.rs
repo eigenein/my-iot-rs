@@ -36,6 +36,10 @@ pub struct Settings {
     /// Service ID is normally used as a sensor prefix, for instance: `service_id::service_sensor`.
     #[serde(default = "HashMap::new")]
     pub services: HashMap<String, Service>,
+
+    /// Optional Sentry DSN for monitoring.
+    #[serde(default)]
+    pub sentry_dsn: Option<String>,
 }
 
 #[derive(Deserialize, Debug, Clone, Serialize)]

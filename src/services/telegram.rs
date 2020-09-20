@@ -113,7 +113,7 @@ impl Telegram {
     }
 
     async fn call<R: serde::de::DeserializeOwned>(&self, method_name: &str, body: impl Into<Body>) -> Result<R> {
-        let result = CLIENT
+        CLIENT
             .post(format!(
                 "https://api.telegram.org/bot{}/{}",
                 self.secrets.token, method_name,
@@ -122,9 +122,8 @@ impl Telegram {
             .recv_json::<TelegramResponse<R>>()
             .await
             .map_err(anyhow::Error::msg)?
-            .into();
-        log_result(&result, || "Telegram bot API error:");
-        result
+            .into_result()
+            .log(|| "Telegram bot API error:")
     }
 }
 
@@ -169,10 +168,16 @@ pub struct TelegramChat {
     pub id: i64,
 }
 
-/// Converts `TelegramResponse` into a normal `Result`.
 impl<T> From<TelegramResponse<T>> for Result<T> {
     fn from(response: TelegramResponse<T>) -> Self {
-        match response {
+        response.into_result()
+    }
+}
+
+impl<T> TelegramResponse<T> {
+    /// Convert the Telegram response into a normal `Result`.
+    pub fn into_result(self) -> Result<T> {
+        match self {
             TelegramResponse::Result { result } => Ok(result),
             TelegramResponse::Error { description } => Err(anyhow!(description)),
         }

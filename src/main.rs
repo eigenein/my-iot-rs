@@ -11,6 +11,7 @@ mod format;
 mod logging;
 mod opts;
 mod prelude;
+mod sentry;
 mod services;
 mod settings;
 mod web;
@@ -29,6 +30,8 @@ async fn main() -> Result {
     info!("Reading the settings…");
     let settings = settings::read(opts.settings)?;
     debug!("Settings: {:?}", &settings);
+
+    let _sentry_guard = settings.sentry_dsn.as_ref().map(crate::sentry::init);
 
     info!("Opening the database…");
     let db = Connection::open(&settings.database.path).await?;
