@@ -37,6 +37,13 @@ pub struct Settings {
     #[serde(default = "HashMap::new")]
     pub services: HashMap<String, Service>,
 
+    /// Separate section for sensitive settings.
+    #[serde(default)]
+    pub secrets: SecretSettings,
+}
+
+#[derive(Deserialize, Debug, Clone, Serialize)]
+pub struct SecretSettings {
     /// Optional Sentry DSN for monitoring.
     #[serde(default)]
     pub sentry_dsn: Option<String>,
@@ -53,27 +60,10 @@ pub struct HttpSettings {
     pub disabled: bool,
 }
 
-impl Default for HttpSettings {
-    fn default() -> Self {
-        Self {
-            port: default_http_port(),
-            disabled: false,
-        }
-    }
-}
-
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct DatabaseSettings {
     #[serde(default = "default_database_path")]
     pub path: String,
-}
-
-impl Default for DatabaseSettings {
-    fn default() -> Self {
-        Self {
-            path: default_database_path(),
-        }
-    }
 }
 
 /// Service settings section.
@@ -113,6 +103,29 @@ pub enum Service {
 
     /// [YouLess](https://www.youless.nl/home.html) kWh meter to ethernet bridge.
     YouLess(services::youless::YouLess),
+}
+
+impl Default for SecretSettings {
+    fn default() -> Self {
+        Self { sentry_dsn: None }
+    }
+}
+
+impl Default for HttpSettings {
+    fn default() -> Self {
+        Self {
+            port: default_http_port(),
+            disabled: false,
+        }
+    }
+}
+
+impl Default for DatabaseSettings {
+    fn default() -> Self {
+        Self {
+            path: default_database_path(),
+        }
+    }
 }
 
 pub fn default_http_port() -> u16 {

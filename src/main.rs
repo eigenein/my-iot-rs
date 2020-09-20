@@ -31,7 +31,7 @@ async fn main() -> Result {
     let settings = settings::read(opts.settings)?;
     debug!("Settings: {:?}", &settings);
 
-    let _sentry_guard = settings.sentry_dsn.as_ref().map(crate::sentry::init);
+    let _sentry_guard = settings.secrets.sentry_dsn.as_ref().map(crate::sentry::init);
 
     info!("Opening the database…");
     let db = Connection::open(&settings.database.path).await?;
