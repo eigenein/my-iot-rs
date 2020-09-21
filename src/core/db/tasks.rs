@@ -37,7 +37,7 @@ fn spawn_committer(db: Connection, buffer: Arc<Mutex<Vec<Message>>>) {
                 if elapsed < COMMIT_INTERVAL {
                     info!("Upserted in {:.1?}.", elapsed);
                 } else {
-                    warn!("Upserted in {:.1?} > {}.", elapsed, COMMIT_INTERVAL);
+                    warn!("Upserted in {:.1?} > {:.1?}.", elapsed, COMMIT_INTERVAL);
                 }
             }
         }
