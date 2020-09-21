@@ -38,7 +38,7 @@ jobs:
         with:
           upload_url: ${{ steps.release.outputs.upload_url }}
           asset_path: target/arm-unknown-linux-gnueabihf/release/my-iot
-          asset_name: my-iot-arm-unknown-linux-gnueabihf
+          asset_name: my-iot.arm-unknown-linux-gnueabihf
           asset_content_type: application/octet-stream
 
       - name: Upload for armv7-unknown-linux-gnueabihf
@@ -48,5 +48,5 @@ jobs:
         with:
           upload_url: ${{ steps.release.outputs.upload_url }}
           asset_path: target/armv7-unknown-linux-gnueabihf/release/my-iot
-          asset_name: my-iot-armv7-unknown-linux-gnueabihf
+          asset_name: my-iot.armv7-unknown-linux-gnueabihf
           asset_content_type: application/octet-stream
