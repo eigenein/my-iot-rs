@@ -5,6 +5,7 @@ src/fontawesome.zip
 docs/linkcheck
 !Cargo.toml
 !book.toml
+!Cross.toml
 
 # Created by https://www.gitignore.io/api/git,rust,linux,clion,macos,windows,jetbrains,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=git,rust,linux,clion,macos,windows,jetbrains,visualstudiocode

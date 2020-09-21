@@ -1,3 +1,7 @@
+# `0.96.2`
+
+- 💚 Fix cross-builds for Raspberry Pi #141
+
 # `0.96.1`
 
 - 🔊 Emit warnings when `upsert_messages` takes too much time #143 #146
