@@ -21,10 +21,13 @@ jobs:
           prerelease: false
 
       - name: Install Cross
-        run: cargo install cross  # we need OpenSSL from SQLx #515 #575
+        run: cargo install cross
 
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Docker login
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login https://docker.pkg.github.com -u ${GITHUB_ACTOR} --password-stdin
 
       - name: Build for Raspberry Pi 0/1
         run: cross build --target arm-unknown-linux-gnueabihf

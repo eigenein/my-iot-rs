@@ -1,3 +1,7 @@
+# `0.96.3`
+
+- 💚 Fix Docker login in the publish workflow #141
+
 # `0.96.2`
 
 - 💚 Fix cross-builds for Raspberry Pi #141
