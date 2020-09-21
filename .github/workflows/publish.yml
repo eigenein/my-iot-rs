@@ -20,14 +20,17 @@ jobs:
           draft: false
           prerelease: false
 
+      - name: Rustup
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+
       - name: Install Cross
         run: cargo install cross
 
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Docker login
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login https://docker.pkg.github.com -u ${GITHUB_ACTOR} --password-stdin
 
       - name: Build arm-unknown-linux-gnueabihf binary (Raspberry Pi 0/1)
         run: cross build --target arm-unknown-linux-gnueabihf
