@@ -1,9 +1,9 @@
-//! Database persistence thread.
+//! Database persistence tasks.
 
 use crate::prelude::*;
 
 // TODO: make configurable.
-const COMMIT_INTERVAL_MILLIS: u64 = 1000;
+const COMMIT_INTERVAL: Duration = Duration::from_millis(1000);
 
 /// Spawn the persistence thread.
 pub fn spawn(db: Connection, bus: &mut Bus) {
@@ -18,7 +18,7 @@ pub fn spawn(db: Connection, bus: &mut Bus) {
 fn spawn_committer(db: Connection, buffer: Arc<Mutex<Vec<Message>>>) {
     task::spawn(async move {
         loop {
-            task::sleep(Duration::from_millis(COMMIT_INTERVAL_MILLIS)).await;
+            task::sleep(COMMIT_INTERVAL).await;
 
             // Acquire the lock, drain the buffer and release the lock immediately.
             let messages: Vec<Message> = {
@@ -32,10 +32,13 @@ fn spawn_committer(db: Connection, buffer: Arc<Mutex<Vec<Message>>>) {
 
             if !messages.is_empty() {
                 let start_time = Instant::now();
-                if let Err(error) = db.upsert_messages(messages).await {
-                    error!("could not upsert the messages: {}", error);
+                let _ = db.upsert_messages(messages).await.log(|| "failed upsert the messages");
+                let elapsed = start_time.elapsed();
+                if elapsed < COMMIT_INTERVAL {
+                    info!("Upserted in {:.1?}.", elapsed);
+                } else {
+                    warn!("Upserted in {:.1?} > {}.", elapsed, COMMIT_INTERVAL);
                 }
-                info!("Took {:.1?}.", start_time.elapsed());
             }
         }
     });

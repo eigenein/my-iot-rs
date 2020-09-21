@@ -1,3 +1,7 @@
+# `0.96.1`
+
+- 🔊 Emit warnings when `upsert_messages` takes too much time #143 #146
+
 # `0.96.0`
 
 - 🚑 Emit warning events to Sentry #137
