@@ -1,3 +1,7 @@
+# `master`
+
+- 🚧 Attempting to fix the cross-compilation (but this still doesn't work) #141
+
 # `0.96.3`
 
 - 💚 Fix Docker login in the publish workflow #141

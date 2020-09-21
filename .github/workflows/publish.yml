@@ -29,10 +29,10 @@ jobs:
       - name: Docker login
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login https://docker.pkg.github.com -u ${GITHUB_ACTOR} --password-stdin
 
-      - name: Build for Raspberry Pi 0/1
-        run: cross build --target arm-unknown-linux-gnueabihf
-      - name: Build for Raspberry Pi 2/3/4
-        run: cross build --target armv7-unknown-linux-gnueabihf
+      - name: Build arm-unknown-linux-gnueabihf binary (Raspberry Pi 0/1)
+        run: make cross/arm-unknown-linux-gnueabihf
+      - name: Build armv7-unknown-linux-gnueabihf binary (Raspberry Pi 2/3/4)
+        run: make cross/armv7-unknown-linux-gnueabihf
 
       - name: Upload for arm-unknown-linux-gnueabihf
         uses: actions/upload-release-asset@v1.0.1
