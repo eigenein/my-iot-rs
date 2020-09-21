@@ -50,21 +50,3 @@ tag/publish: tag
 .PHONY: publish
 publish: tag/publish
 	@cargo publish
-
-# The targets below are related to the cross-compilation.
-
-.PHONY: docker
-docker: docker/arm-unknown-linux-gnueabihf docker/armv7-unknown-linux-gnueabihf
-
-.PHONY: docker/%
-docker/%:
-	@docker build --build-arg TRIPLE=$* -t docker.pkg.github.com/eigenein/my-iot-rs/cross-$* - < cross.Dockerfile
-
-.PHONY: docker/publish
-docker/publish:
-	@docker push docker.pkg.github.com/eigenein/my-iot-rs/cross-arm-unknown-linux-gnueabihf
-	@docker push docker.pkg.github.com/eigenein/my-iot-rs/cross-armv7-unknown-linux-gnueabihf
-
-.PHONY: cross/%
-cross/%: docker/%
-	@cross build --target $*

@@ -1,6 +1,6 @@
-# `master`
+# `0.96.4`
 
-- 🚧 Attempting to fix the cross-compilation (but this still doesn't work) #141
+- 💚 Fix cross-builds for Raspberry Pi #141
 
 # `0.96.3`
 

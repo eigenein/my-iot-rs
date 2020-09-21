@@ -831,28 +831,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e1cd41440ae7e4734bbd42302f63eaba892afc93a3912dad84006247f0dedb0e"
 
 [[package]]
-name = "failure"
-version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d32e9bd16cc02eae7db7ef620b392808b89f6a5e16bb3497d159c6b92a0f4f86"
-dependencies = [
- "backtrace",
- "failure_derive",
-]
-
-[[package]]
-name = "failure_derive"
-version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa4da3c766cd7a0db8242e326e9e4e081edd567072893ed320008189715366a4"
-dependencies = [
- "proc-macro2 1.0.21",
- "quote 1.0.7",
- "syn 1.0.41",
- "synstructure",
-]
-
-[[package]]
 name = "fastrand"
 version = "1.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1721,7 +1699,7 @@ dependencies = [
 
 [[package]]
 name = "my-iot"
-version = "0.96.3"
+version = "0.96.4"
 dependencies = [
  "anyhow",
  "askama",
@@ -1733,8 +1711,10 @@ dependencies = [
  "futures",
  "itertools",
  "lazy_static",
+ "libsqlite3-sys",
  "log 0.4.11",
  "mdns",
+ "openssl-sys",
  "regex",
  "rhai",
  "rocket",
@@ -1935,6 +1915,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77af24da69f9d9341038eba93a073b1fdaaa1b788221b00a69bce9e762cb32de"
 
 [[package]]
+name = "openssl-src"
+version = "111.10.2+1.1.1g"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a287fdb22e32b5b60624d4a5a7a02dbe82777f730ec0dbc42a0554326fef5a70"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "openssl-sys"
 version = "0.9.58"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1943,6 +1932,7 @@ dependencies = [
  "autocfg",
  "cc",
  "libc",
+ "openssl-src",
  "pkg-config",
  "vcpkg",
 ]
@@ -2497,7 +2487,6 @@ dependencies = [
  "sentry-backtrace",
  "sentry-contexts",
  "sentry-core",
- "sentry-failure",
  "sentry-log",
  "sentry-panic",
 ]
@@ -2551,17 +2540,6 @@ dependencies = [
  "sentry-types",
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "sentry-failure"
-version = "0.20.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ead35e7019f77a79ed0345b3f3c28427139100f87f318c1c3e2788db2cdea8b7"
-dependencies = [
- "failure",
- "sentry-backtrace",
- "sentry-core",
 ]
 
 [[package]]
