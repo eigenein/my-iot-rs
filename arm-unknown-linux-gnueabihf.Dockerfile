@@ -2,7 +2,7 @@ FROM rustembedded/cross:arm-unknown-linux-gnueabihf
 
 LABEL maintainer = "Pavel Perestoronin <eigenein@gmail.com>"
 LABEL org.label-schema.version = "1.0.0"
-LABEL org.label-schema.name = "docker.pkg.github.com/eigenein/my-iot-rs/cross/arm-unknown-linux-gnueabihf"
+LABEL org.label-schema.name = "docker.pkg.github.com/eigenein/my-iot-rs/cross-arm-unknown-linux-gnueabihf"
 LABEL org.label-schema.vcs-url = "https://github.com/eigenein/my-iot-rs"
 
 ENV \

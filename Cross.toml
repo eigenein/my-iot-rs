@@ -1,5 +1,5 @@
 [target.arm-unknown-linux-gnueabihf]
-image = "docker.pkg.github.com/eigenein/my-iot-rs/cross/arm-unknown-linux-gnueabihf"
+image = "docker.pkg.github.com/eigenein/my-iot-rs/cross-arm-unknown-linux-gnueabihf"
 
 [target.armv7-unknown-linux-gnueabihf]
-image = "docker.pkg.github.com/eigenein/my-iot-rs/cross/armv7-unknown-linux-gnueabihf"
+image = "docker.pkg.github.com/eigenein/my-iot-rs/cross-armv7-unknown-linux-gnueabihf"
