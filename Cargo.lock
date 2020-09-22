@@ -1699,7 +1699,7 @@ dependencies = [
 
 [[package]]
 name = "my-iot"
-version = "0.96.5"
+version = "0.96.6"
 dependencies = [
  "anyhow",
  "askama",

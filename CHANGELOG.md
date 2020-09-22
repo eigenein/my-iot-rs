@@ -1,3 +1,7 @@
+# `0.96.6`
+
+- 💚 Fix cross-builds for Raspberry Pi #141
+
 # `0.96.5`
 
 - 💚 Fix cross-builds for Raspberry Pi #141
