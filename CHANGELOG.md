@@ -1,3 +1,7 @@
+# `0.96.8`
+
+- 💚 Fix publishing to crates.io #141
+
 # `0.96.7`
 
 - 🔧 Simplify cross-build configuration #141
