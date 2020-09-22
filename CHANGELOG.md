@@ -1,3 +1,7 @@
+# `0.96.7`
+
+- 🔧 Simplify cross-build configuration #141
+
 # `0.96.6`
 
 - 💚 Fix cross-builds for Raspberry Pi #141

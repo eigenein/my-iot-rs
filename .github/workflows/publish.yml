@@ -32,12 +32,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Build arm-unknown-linux-gnueabihf binary (Raspberry Pi 0/1)
+      - name: Build my-iot.arm-unknown-linux-gnueabihf (Raspberry Pi 0/1)
         run: cross build --target arm-unknown-linux-gnueabihf --release
-      - name: Build armv7-unknown-linux-gnueabihf binary (Raspberry Pi 2/3/4)
-        run: cross build --target armv7-unknown-linux-gnueabihf --release
 
-      - name: Upload for arm-unknown-linux-gnueabihf
+      - name: Upload my-iot.arm-unknown-linux-gnueabihf
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -47,7 +45,10 @@ jobs:
           asset_name: my-iot.arm-unknown-linux-gnueabihf
           asset_content_type: application/octet-stream
 
-      - name: Upload for armv7-unknown-linux-gnueabihf
+      - name: Build my-iot.armv7-unknown-linux-gnueabihf (Raspberry Pi 2/3/4)
+        run: cross build --target armv7-unknown-linux-gnueabihf --release
+
+      - name: Upload my-iot.armv7-unknown-linux-gnueabihf
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
