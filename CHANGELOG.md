@@ -1,3 +1,7 @@
+# `master`
+
+- ⬆️ cargo update
+
 # `0.96.8`
 
 - 💚 Fix publishing to crates.io #141
