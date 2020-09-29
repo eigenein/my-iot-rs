@@ -2,9 +2,7 @@
 
 use chrono::prelude::*;
 use sqlx::sqlite::{SqliteConnectOptions, SqliteDone, SqliteJournalMode, SqliteRow};
-use sqlx::{
-    query, query_scalar, ConnectOptions, Connection as SqlxConnection, Executor, Row, Sqlite, SqliteConnection,
-};
+use sqlx::{query, query_scalar, ConnectOptions, Connection as SqlxConnection, Row, SqliteConnection};
 
 use crate::prelude::*;
 
@@ -16,18 +14,18 @@ pub mod tasks;
 /// Wraps the connection and provides the high-level database methods.
 #[derive(Clone)]
 pub struct Connection {
-    inner_connection: Arc<Mutex<SqliteConnection>>,
+    inner: Arc<Mutex<SqliteConnection>>,
 }
 
 impl Connection {
     pub async fn open(uri: &str) -> Result<Self> {
         let connection = Self {
-            inner_connection: Arc::new(Mutex::new(
+            inner: Arc::new(Mutex::new(
                 SqliteConnectOptions::new()
                     .filename(uri)
                     .create_if_missing(true)
-                    .journal_mode(SqliteJournalMode::Truncate)
-                    .foreign_keys(true)
+                    .journal_mode(SqliteJournalMode::Wal)
+                    .foreign_keys(false)
                     .connect()
                     .await?,
             )),
@@ -43,8 +41,8 @@ impl Connection {
             if user_version < i + 1 {
                 info!("Applying migration #{}…", i + 1);
                 {
-                    let mut connection_guard = self.inner_connection.lock().await;
-                    let mut transaction = connection_guard.begin().await?;
+                    let mut inner = self.inner.lock().await;
+                    let mut transaction = inner.begin().await?;
                     query(migration)
                         .execute_many(&mut transaction)
                         .await
@@ -54,9 +52,7 @@ impl Connection {
                 }
 
                 info!("Vacuuming…");
-                query("VACUUM")
-                    .execute(&mut *self.inner_connection.lock().await)
-                    .await?;
+                query("VACUUM").execute(&mut *self.inner.lock().await).await?;
             }
         }
         Ok(())
@@ -66,19 +62,13 @@ impl Connection {
         // TODO: `fetch_one` issue: https://github.com/launchbadge/sqlx/issues/662
         // language=sql
         Ok(*query_scalar("PRAGMA user_version")
-            .fetch_all(&mut *self.inner_connection.lock().await)
+            .fetch_all(&mut *self.inner.lock().await)
             .await?
             .first()
             .unwrap())
     }
 
-    #[allow(dead_code)]
-    pub async fn upsert_message(&self, message: &Message) -> Result {
-        Self::upsert_message_to(&message, &mut *self.inner_connection.lock().await).await
-    }
-
-    /// Upsert the message into the database.
-    async fn upsert_message_to<'e, E: Executor<'e, Database = Sqlite>>(message: &Message, executor: E) -> Result {
+    async fn upsert_message_to(connection: &mut SqliteConnection, message: &Message) -> Result {
         let sensor_pk = hash_sensor_id(&message.sensor.id);
         let timestamp = message.reading.timestamp.timestamp_millis();
         let value = bincode::serialize(&message.reading.value)?;
@@ -87,19 +77,12 @@ impl Connection {
             // language=sql
             r#"
                 -- noinspection SqlResolve @ any/"excluded"
-                INSERT INTO sensors (pk, sensor_id, title, timestamp, location, value, is_writable)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT (pk) DO UPDATE SET
-                    timestamp = excluded.timestamp,
-                    title = excluded.title,
-                    location = excluded.location,
-                    value = excluded.value,
-                    is_writable = excluded.is_writable;
+                REPLACE INTO sensors (pk, sensor_id, title, timestamp, location, value, is_writable)
+                VALUES (?, ?, ?, ?, ?, ?, ?);
 
                 -- noinspection SqlResolve @ any/"excluded"
-                INSERT INTO readings (sensor_fk, timestamp, value)
-                VALUES (?, ?, ?)
-                ON CONFLICT (sensor_fk, timestamp) DO UPDATE SET value = excluded.value;
+                REPLACE INTO readings (sensor_fk, timestamp, value)
+                VALUES (?, ?, ?);
             "#,
         )
         .bind(sensor_pk)
@@ -112,11 +95,18 @@ impl Connection {
         .bind(sensor_pk)
         .bind(timestamp)
         .bind(&value)
-        .execute_many(executor)
-        .await
-        .try_collect::<SqliteDone>()
+        .execute(connection)
         .await?;
 
+        Ok(())
+    }
+
+    #[cfg(test)]
+    pub async fn upsert_message(&self, message: &Message) -> Result {
+        let mut inner = self.inner.lock().await;
+        let mut transaction = inner.begin().await?;
+        Self::upsert_message_to(&mut transaction, &message).await?;
+        transaction.commit().await?;
         Ok(())
     }
 
@@ -126,16 +116,15 @@ impl Connection {
     /// Thus, I spin up a separate thread which accumulates incoming messages
     /// and periodically upserts them all within a single transaction.
     pub async fn upsert_messages(&self, messages: Vec<Message>) -> Result {
-        info!("Upserting a bulk of {} messages…", messages.len());
-        let mut connection_guard = self.inner_connection.lock().await;
-        let mut transaction = connection_guard.begin().await?;
+        let mut inner = self.inner.lock().await;
+        let mut transaction = inner.begin().await?;
 
         for message in messages.iter() {
             debug!("[{:?}] {}", &message.type_, &message.sensor.id);
-            Connection::upsert_message_to(&message, &mut transaction).await?;
+            Connection::upsert_message_to(&mut transaction, &message).await?;
         }
-
         transaction.commit().await?;
+
         Ok(())
     }
 
@@ -144,7 +133,7 @@ impl Connection {
         // language=sql
         Ok(query(r"SELECT * FROM sensors ORDER BY location, sensor_id")
             .try_map(get_sensor_reading)
-            .fetch_all(&mut *self.inner_connection.lock().await)
+            .fetch_all(&mut *self.inner.lock().await)
             .await?)
     }
 
@@ -156,7 +145,7 @@ impl Connection {
             SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()
         "#;
         Ok(*query_scalar(QUERY)
-            .fetch_all(&mut *self.inner_connection.lock().await)
+            .fetch_all(&mut *self.inner.lock().await)
             .await?
             .first()
             .unwrap())
@@ -168,7 +157,7 @@ impl Connection {
         Ok(query(r"SELECT * FROM sensors WHERE sensor_id = ?")
             .bind(sensor_id)
             .try_map(get_sensor_reading)
-            .fetch_optional(&mut *self.inner_connection.lock().await)
+            .fetch_optional(&mut *self.inner.lock().await)
             .await?)
     }
 
@@ -176,7 +165,7 @@ impl Connection {
         // language=sql
         query(r"DELETE FROM sensors WHERE sensor_id = ?")
             .bind(sensor_id)
-            .execute(&mut *self.inner_connection.lock().await)
+            .execute(&mut *self.inner.lock().await)
             .await?;
         Ok(())
     }
@@ -194,7 +183,7 @@ impl Connection {
             .bind(hash_sensor_id(sensor_id))
             .bind(since.timestamp_millis())
             .try_map(get_reading)
-            .fetch_all(&mut *self.inner_connection.lock().await)
+            .fetch_all(&mut *self.inner.lock().await)
             .await?)
     }
 
@@ -205,14 +194,14 @@ impl Connection {
             .bind(hash_sensor_id(sensor_id))
             .bind(limit)
             .try_map(get_reading)
-            .fetch_all(&mut *self.inner_connection.lock().await)
+            .fetch_all(&mut *self.inner.lock().await)
             .await?)
     }
 
     pub async fn select_sensor_count(&self) -> Result<i64> {
         // language=sql
         Ok(*query_scalar("SELECT COUNT(*) FROM sensors")
-            .fetch_all(&mut *self.inner_connection.lock().await)
+            .fetch_all(&mut *self.inner.lock().await)
             .await?
             .first()
             .unwrap())
@@ -221,7 +210,7 @@ impl Connection {
     pub async fn select_total_reading_count(&self) -> Result<i64> {
         // language=sql
         Ok(*query_scalar("SELECT COUNT(*) FROM readings")
-            .fetch_all(&mut *self.inner_connection.lock().await)
+            .fetch_all(&mut *self.inner.lock().await)
             .await?
             .first()
             .unwrap())
@@ -231,7 +220,7 @@ impl Connection {
         // language=sql
         Ok(*query_scalar("SELECT COUNT(*) FROM readings WHERE sensor_fk = ?")
             .bind(hash_sensor_id(sensor_id))
-            .fetch_all(&mut *self.inner_connection.lock().await)
+            .fetch_all(&mut *self.inner.lock().await)
             .await?
             .first()
             .unwrap())
@@ -246,15 +235,13 @@ impl Connection {
         // language=sql
         const QUERY: &str = r#"
             -- noinspection SqlResolve @ any/"excluded"
-            INSERT INTO user_data (pk, value, expires_at)
-            VALUES (?, ?, ?)
-            ON CONFLICT (pk) DO UPDATE SET value = excluded.value, expires_at = excluded.expires_at
+            REPLACE INTO user_data (pk, value, expires_at) VALUES (?, ?, ?);
         "#;
         query(QUERY)
             .bind(key)
             .bind(bincode::serialize(&value)?)
             .bind(expires_at.as_ref().map(DateTime::<Local>::timestamp_millis))
-            .execute(&mut *self.inner_connection.lock().await)
+            .execute(&mut *self.inner.lock().await)
             .await?;
         Ok(())
     }
@@ -269,7 +256,7 @@ impl Connection {
             .bind(key)
             .bind(Local::now().timestamp_millis())
             .try_map(|row: SqliteRow| Ok(bincode::deserialize(&row.try_get::<Vec<u8>, _>(0)?).unwrap()))
-            .fetch_optional(&mut *self.inner_connection.lock().await)
+            .fetch_optional(&mut *self.inner.lock().await)
             .await?)
     }
 }
@@ -354,7 +341,7 @@ mod tests {
     }
 
     #[async_std::test]
-    async fn select_last_reading_returns_newer_reading() -> Result {
+    async fn insert_two_readings_ok() -> Result {
         let db = Connection::open(":memory:").await?;
         let mut message = Message::new("test")
             .value(Value::Counter(42))
@@ -362,7 +349,10 @@ mod tests {
         db.upsert_message(&message).await?;
         message = message.timestamp(Local.timestamp_millis(1_566_424_128_000));
         db.upsert_message(&message).await?;
+
+        assert_eq!(db.select_total_reading_count().await?, 2);
         assert_eq!(db.select_sensor("test").await?, Some(message.into()));
+
         Ok(())
     }
 

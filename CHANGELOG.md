@@ -1,5 +1,6 @@
-# `master`
+# `0.96.9`
 
+- ✨ Trying to improve performance, drops all the readings #143
 - ⬆️ cargo update
 
 # `0.96.8`

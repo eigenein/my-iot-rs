@@ -1,9 +1,9 @@
 use log::LevelFilter;
+use sentry::integrations::anyhow::capture_anyhow;
 use simplelog::{ConfigBuilder, TermLogger, TerminalMode, ThreadLogMode};
 
 use crate::opts::Opts;
 use crate::prelude::*;
-use sentry::integrations::anyhow::capture_anyhow;
 
 pub fn init(opts: &Opts) -> Result {
     let mut config_builder = ConfigBuilder::new();
@@ -14,12 +14,7 @@ pub fn init(opts: &Opts) -> Result {
         .set_thread_mode(ThreadLogMode::Names)
         .set_time_format_str("%F %T%.3f")
         .set_time_to_local(true)
-        .add_filter_ignore_str("h2")
-        .add_filter_ignore_str("hyper")
-        .add_filter_ignore_str("launch_")
-        .add_filter_ignore_str("reqwest")
-        .add_filter_ignore_str("rustls")
-        .add_filter_ignore_str("sqlx::query");
+        .add_filter_allow_str("my_iot");
     if opts.suppress_log_timestamps {
         config_builder.set_time_level(LevelFilter::Off);
     }
@@ -45,13 +40,7 @@ pub trait Log {
 impl<T> Log for Result<T> {
     fn log<M: Fn() -> R, R: AsRef<str>>(self, message: M) -> Self {
         if let Err(ref error) = self {
-            let sentry_id = capture_anyhow(error);
-            let message = message();
-            if !sentry_id.is_nil() {
-                error!("[{}] {}: {}", sentry_id, message.as_ref(), error);
-            } else {
-                error!("{}: {}", message.as_ref(), error);
-            }
+            error!("[{}] {}: {}", capture_anyhow(error), message().as_ref(), error);
         }
         self
     }

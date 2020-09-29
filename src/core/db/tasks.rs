@@ -2,8 +2,8 @@
 
 use crate::prelude::*;
 
-// TODO: make configurable.
-const COMMIT_INTERVAL: Duration = Duration::from_millis(1000);
+const COMMIT_INTERVAL_MIN: Duration = Duration::from_millis(50);
+const COMMIT_INTERVAL_MAX: Duration = Duration::from_millis(5000);
 
 /// Spawn the persistence thread.
 pub fn spawn(db: Connection, bus: &mut Bus) {
@@ -17,8 +17,10 @@ pub fn spawn(db: Connection, bus: &mut Bus) {
 /// Spawns the task that periodically commits the buffered messages.
 fn spawn_committer(db: Connection, buffer: Arc<Mutex<Vec<Message>>>) {
     task::spawn(async move {
+        let mut commit_interval = Duration::from_millis(1000);
+
         loop {
-            task::sleep(COMMIT_INTERVAL).await;
+            task::sleep(commit_interval).await;
 
             // Acquire the lock, drain the buffer and release the lock immediately.
             let messages: Vec<Message> = {
@@ -31,14 +33,18 @@ fn spawn_committer(db: Connection, buffer: Arc<Mutex<Vec<Message>>>) {
             };
 
             if !messages.is_empty() {
+                info!("Upserting a bulk of {} messages…", messages.len());
                 let start_time = Instant::now();
-                let _ = db.upsert_messages(messages).await.log(|| "failed upsert the messages");
+                let _ = db.upsert_messages(messages).await.log(|| "failed to upsert");
                 let elapsed = start_time.elapsed();
-                if elapsed < COMMIT_INTERVAL {
-                    info!("Upserted in {:.1?}.", elapsed);
-                } else {
-                    warn!("Upserted in {:.1?} > {:.1?}.", elapsed, COMMIT_INTERVAL);
+                info!("Upserted in {:.1?}.", elapsed);
+
+                if elapsed > commit_interval {
+                    commit_interval = COMMIT_INTERVAL_MAX.min(commit_interval * 2);
+                } else if elapsed < commit_interval / 2 {
+                    commit_interval = COMMIT_INTERVAL_MIN.max(commit_interval / 2);
                 }
+                info!("Commit interval: {:?}.", commit_interval);
             }
         }
     });
