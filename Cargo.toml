@@ -37,7 +37,7 @@ features = ["curl-client", "encoding"]
 default-features = false
 
 [dependencies.chrono]
-version = "0.4.13"
+version = "0.4.19"
 features = ["serde"]
 default-features = false
 
