@@ -22,7 +22,7 @@ lto = "fat"
 codegen-units = 1
 
 [dependencies.async-std]
-version = "1.6.2"
+version = "1.6.5"
 features = ["std", "attributes"]
 default-features = false
 
