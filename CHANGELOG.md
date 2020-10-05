@@ -1,5 +1,6 @@
 # `master`
 
+- ⬆️ cargo update
 - ⬆️ Bump `surf`
 
 # `0.96.9`
