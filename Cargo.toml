@@ -32,8 +32,8 @@ features = ["runtime-async-std", "sqlite"]
 default-features = false
 
 [dependencies.surf]
-version = "2.0.0-alpha.5"
-features = ["native-client", "encoding"]
+version = "2.0.0-alpha.7"
+features = ["curl-client", "encoding"]
 default-features = false
 
 [dependencies.chrono]
