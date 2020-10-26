@@ -75,7 +75,7 @@ features = ["sync", "no_module"]
 default-features = false
 
 [dependencies.futures]
-version = "0.3.5"
+version = "0.3.7"
 default-features = false
 
 [dependencies.sentry]
