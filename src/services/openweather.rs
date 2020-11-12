@@ -1,4 +1,4 @@
-use surf::url::Url;
+use url::Url;
 
 use crate::prelude::*;
 use crate::services::prelude::*;

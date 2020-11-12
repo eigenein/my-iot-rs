@@ -1,4 +1,4 @@
-# `master`
+# `0.96.10`
 
 - ⬆️ cargo update
 - ⬆️ Bump `surf`

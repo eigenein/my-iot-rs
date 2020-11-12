@@ -1,9 +1,11 @@
 //! [tado°](https://www.tado.com/) API.
 
+use std::time::SystemTime;
+
+use url::Url;
+
 use crate::prelude::*;
 use crate::services::prelude::*;
-use std::time::SystemTime;
-use surf::url::Url;
 
 const CLIENT_ID: &str = "public-api-preview";
 const CLIENT_SECRET: &str = "4HJGRffVR8xb3XdEUQpjgZ1VplJi6Xgw";
