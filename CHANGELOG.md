@@ -1,3 +1,8 @@
+# `0.96.11`
+
+- ⬆️ Bump `sqlx`
+- ⬆️ cargo update
+
 # `0.96.10`
 
 - ⬆️ cargo update
