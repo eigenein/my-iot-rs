@@ -106,7 +106,7 @@ impl YouLess {
     }
 }
 
-/// http://wiki.td-er.nl/index.php?title=YouLess#Enelogic_.28default.29_firmware
+/// <http://wiki.td-er.nl/index.php?title=YouLess#Enelogic_.28default.29_firmware>
 #[derive(Deserialize)]
 struct Response {
     #[serde(rename = "tm", deserialize_with = "deserialize_timestamp")]
