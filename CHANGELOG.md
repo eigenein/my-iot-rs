@@ -1,3 +1,7 @@
+# `0.96.12`
+
+- ⚗ Try using SQLite connection pool with the newer SQLx
+
 # `0.96.11`
 
 - ⬆️ Bump `sqlx`
