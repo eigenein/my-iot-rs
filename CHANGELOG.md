@@ -1,5 +1,6 @@
 # `0.96.12`
 
+- ⬆️ cargo update
 - 🥅 Add the middleware to catch HTTP errors
 - ⚗ Try using SQLite connection pool with the newer SQLx
 
