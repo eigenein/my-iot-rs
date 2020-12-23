@@ -1,3 +1,7 @@
+# `master`
+
+- ⬆️ cargo update
+
 # `0.96.12`
 
 - ⬆️ cargo update
