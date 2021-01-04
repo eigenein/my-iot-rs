@@ -1,5 +1,6 @@
-# `master`
+# `0.96.13`
 
+- ✅ More Tado unit tests
 - ⬆️ Bump `sentry`
 - ⬆️ cargo update
 
