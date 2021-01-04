@@ -1,5 +1,6 @@
 use log::LevelFilter;
 use sentry::integrations::anyhow::capture_anyhow;
+use sentry::integrations::log::SentryLogger;
 use simplelog::{ConfigBuilder, TermLogger, TerminalMode, ThreadLogMode};
 
 use crate::opts::Opts;
@@ -18,7 +19,7 @@ pub fn init(opts: &Opts) -> Result {
     if opts.suppress_log_timestamps {
         config_builder.set_time_level(LevelFilter::Off);
     }
-    TermLogger::init(
+    let inner_logger = *TermLogger::new(
         if opts.silent {
             LevelFilter::Warn
         } else if opts.verbose {
@@ -28,7 +29,9 @@ pub fn init(opts: &Opts) -> Result {
         },
         config_builder.build(),
         TerminalMode::Stderr,
-    )?;
+    );
+    log::set_boxed_logger(Box::new(SentryLogger::with_dest(inner_logger)))?;
+    log::set_max_level(log::LevelFilter::Debug);
     Ok(())
 }
 

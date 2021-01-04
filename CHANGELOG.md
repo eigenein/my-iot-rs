@@ -1,3 +1,7 @@
+# `0.97.0`
+
+- ✨ Sentry logging integration #137
+
 # `0.96.13`
 
 - ✅ More Tado unit tests
