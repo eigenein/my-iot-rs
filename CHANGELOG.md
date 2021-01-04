@@ -1,5 +1,6 @@
 # `master`
 
+- ⬆️ Bump `sentry`
 - ⬆️ cargo update
 
 # `0.96.12`
