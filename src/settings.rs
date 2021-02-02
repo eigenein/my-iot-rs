@@ -71,38 +71,38 @@ pub struct DatabaseSettings {
 #[serde(tag = "type")]
 pub enum Service {
     /// Dutch [Buienradar](https://www.buienradar.nl/) weather service.
-    Buienradar(services::buienradar::Buienradar),
+    Buienradar(Box<services::buienradar::Buienradar>),
 
     /// Regularly emits a counter value.
-    Clock(services::clock::Clock),
+    Clock(Box<services::clock::Clock>),
 
     /// [OpenWeather](https://openweathermap.org/).
-    OpenWeather(services::openweather::OpenWeather),
+    OpenWeather(Box<services::openweather::OpenWeather>),
 
     /// [Philips Hue bridge](https://developers.meethue.com/develop/get-started-2/)
-    PhilipsHue(services::philips_hue::PhilipsHue),
+    PhilipsHue(Box<services::philips_hue::PhilipsHue>),
 
     /// [Rhai](https://schungx.github.io/rhai/).
-    Rhai(services::rhai::Rhai),
+    Rhai(Box<services::rhai::Rhai>),
 
     /// [Ring](https://ring.com)
-    Ring(services::ring::Ring),
+    Ring(Box<services::ring::Ring>),
 
-    SimpleAnomalyDetector(services::anomaly::simple_detector::SimpleAnomalyDetector),
+    SimpleAnomalyDetector(Box<services::anomaly::simple_detector::SimpleAnomalyDetector>),
 
     /// Sunrise and sunset messages.
-    Solar(services::solar::Solar),
+    Solar(Box<services::solar::Solar>),
 
     /// [tado°](https://www.tado.com/) API.
-    Tado(services::tado::Tado),
+    Tado(Box<services::tado::Tado>),
 
     /// [Telegram bot](https://core.telegram.org/bots/api) service.
-    Telegram(services::telegram::Telegram),
+    Telegram(Box<services::telegram::Telegram>),
 
-    Threshold(services::threshold::Threshold),
+    Threshold(Box<services::threshold::Threshold>),
 
     /// [YouLess](https://www.youless.nl/home.html) kWh meter to ethernet bridge.
-    YouLess(services::youless::YouLess),
+    YouLess(Box<services::youless::YouLess>),
 }
 
 impl Default for SecretSettings {

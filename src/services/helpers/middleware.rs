@@ -17,7 +17,7 @@ pub fn inject_default_headers(request: Request, client: Client, next: Next) -> B
     Box::pin(async move {
         let mut request = request;
         request.insert_header(headers::USER_AGENT, USER_AGENT);
-        Ok(next.run(request, client).await?)
+        next.run(request, client).await
     })
 }
 

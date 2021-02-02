@@ -1,3 +1,7 @@
+# `master`
+
+- ⬆️ cargo update
+
 # `0.97.0`
 
 - ✨ Sentry logging integration #137
