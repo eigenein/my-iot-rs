@@ -35,8 +35,8 @@ jobs:
 
       - name: Install
         run: cargo install mdbook mdbook-linkcheck
-        env:
-          RUSTC_WRAPPER: sccache
+        # env:
+        #   RUSTC_WRAPPER: sccache
 
       - name: Check
         run: make check
