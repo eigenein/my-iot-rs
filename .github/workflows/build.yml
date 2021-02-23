@@ -29,7 +29,7 @@ jobs:
 
       - name: Shared Compilation Cache
         run: |
-          curl --location 'https://github.com/mozilla/sccache/releases/download/0.2.13/sccache-0.2.13-x86_64-unknown-linux-musl.tar.gz' --output sccache.tar.gz
+          curl --location 'https://github.com/mozilla/sccache/releases/download/v0.2.15/sccache-v0.2.15-x86_64-unknown-linux-musl.tar.gz' --output sccache.tar.gz
           tar xvf sccache.tar.gz
           echo "$GITHUB_WORKSPACE/sccache-0.2.13-x86_64-unknown-linux-musl" >> $GITHUB_PATH
 
